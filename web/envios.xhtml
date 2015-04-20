@@ -149,14 +149,14 @@
             function handlePedidoAgregado(xhr, status, args) {
                 PF('nuevoEnvioDlg').hide();
                 if(args.validationFailed) {
-                    alert("Error en la validacion de paso de parametros");
+                    alert("Error en la validacion de paso de los parametros");
                 } else if(args.okDirecto) {
                     PF('editarPedidoDlg').show();
                 }
             }
             function handleAgregarPedido(xhr, status, args) {
                 if(args.validationFailed) {
-                    alert("Error en la validacion de paso de parametros");
+                    alert("Error en la validacion de paso de los parametros");
                 } else if(args.okDirecto) {
                     PF('editarPedidoDlg').show();
                 } else {
