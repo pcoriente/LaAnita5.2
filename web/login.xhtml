@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html">
+    <h:head>
+        <title>ENTRADA AL BDS</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+        <meta http-equiv="refresh" content="#{session.maxInactiveInterval};url=http://localhost:8081/LaAnita/" />
+    </h:head>
+
+    <body> 
+        <h:form >
+            <div id="wrapper" align="center">
+                <ui:include src="wrapperLogin.xhtml" />
+                <div id="content" align="center"  >
+                    <!--   CAMBIAR DE AQUI EN ADELANTE  -->
+                    <p:messages showDetail="true" closable="true" />
+                    <p:panel header="CONTROL DE ACCESO: BASES DE DATOS" style="width: 60%;  ">
+                        <h:panelGrid  columns="2" style="width: 100%;" >
+                            <h:outputText  value="Selecciona BDs: "  />
+                            <p:selectOneMenu id="Bases" value="#{mbDbs.dbs}"
+                                             required="true"
+                                             requiredMessage="Elija una base de datos" 
+                                             style="width: 155px">
+                                <f:converter id="bases" converterId="converters.Dbs" />
+                                <f:selectItems value="#{mbDbs.listaDbs}" />
+                            </p:selectOneMenu>
+
+                            <h:outputText  value="Login: " />
+                            <p:inputText id="login"
+                                         value="#{mbDbs.login}" disabled="#{mbDbs.dbs.idDbs==0}"
+                                         required="true"
+                                         requiredMessage="Teclea un nombre de usuario..." />
+
+                            <h:outputText  value="Password: " />
+                            <p:password   id="password"
+                                          value="#{mbDbs.password}"
+                                          required="true" disabled="#{mbDbs.dbs.idDbs==0}"
+                                          requiredMessage="Teclea un password..."
+                                          feedback="true" /> 
+
+                            <h:outputText  value="" />
+                            <p:commandButton id="boton"
+                                             value="Acceder"
+                                             action="#{mbDbs.doLogin}"
+                                             ajax="false"/>
+                        </h:panelGrid>
+                    </p:panel>
+                </div>
+                <ui:include src="footer.xhtml" />
+            </div>
+        </h:form> 
+    </body>
+</html>

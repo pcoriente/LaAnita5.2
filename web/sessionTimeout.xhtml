@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+    <ui:composition>
+        <h:form prependId="false">
+            <p:idleMonitor timeout="#{session.maxInactiveInterval * 1000 - 15000}" onidle="startIdleMonitor();" />
+            <p:dialog id="timeoutSession"
+                      header="Su sesion esta proxima a caducar"
+                      widgetVar="timeoutDialog"
+                      showEffect="fade" hideEffect="fade"
+                      modal="true"
+                      width="400"
+                      height="110"
+                      closable="false"
+                      draggable="false"
+                      resizable="false" 
+                      onShow="doTimer();" 
+                      onHide="stopCount();" >
+                <span id="minuteOutput" style="font-weight: bold"></span> Necesita mas tiempo ?
+                <p:commandButton value="Si" process="@this" update="@none" onclick="PF('timeoutDialog').hide();" />
+                <p:commandButton value="No" type="button" onclick="exit();" />
+            </p:dialog>
+        </h:form>
+        <script type="text/javascript">
+            var TIME = 10; // in seconds
+            var countTimer = TIME;
+            var processTimer;
+            var timer_is_on = 0;
+            
+            function startIdleMonitor() {
+                countTimer = TIME;
+                document.getElementById('minuteOutput').innerHTML = countTimer;
+                PF('timeoutDialog').show();
+            }
+            function timedCount() {
+                document.getElementById('minuteOutput').innerHTML = countTimer;
+                if (countTimer === 0) {
+                    timer_is_on = 0;
+                    window.location.href = 'login.xhtml';
+                    return;
+                }
+                countTimer = countTimer - 1;
+                processTimer = setTimeout("timedCount()", 1000);
+            }
+            function doTimer() {
+                if (!timer_is_on) {
+                    timer_is_on = 1;
+                    timedCount();
+                }
+            }
+            function stopCount() {
+                clearTimeout(processTimer);
+                timer_is_on = 0;
+            }
+            function exit() {
+                document.location.href = 'login.xhtml';
+            }
+        </script>
+    </ui:composition>
+
+</html>

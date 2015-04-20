@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Devoluciones a Proveedor</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="DEVOLUCIONES A PROVEEDOR"
+                             rendered="#{not empty mbDevs.obtenerAcciones(19) and not mbEntradas.modoEdicion}">
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cedis" value="#{mbDevs.mbComprobantes.mbAlmacenes.mbCedis.cedis}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbDevs.mbComprobantes.mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" listener="#{mbDevs.mbComprobantes.cargaAlmacenes()}" 
+                                                update=":main:msgs almacen" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <h:outputLabel value="PERIODO" style="font-weight: bold; color: red; text-align: center;" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="almacen" value="#{mbDevs.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbDevs.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" listener="#{mbDevs.cargaListaComprobantes()}" 
+                                                update=":main:msgs cmbComprobante" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="txtIniPeriodo" value="DEL :" style="font-weight: bold; color: red; text-align: right; width: 35px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtIniPeriodo" value="#{mbDevs.fechaIniPeriodo}" size="8" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="PROVEEDOR :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="proveedor" value="#{mbDevs.mbComprobantes.mbProveedores.miniProveedor}" style="width: 550px;"
+                                                     filter="true" filterMatchMode="contains" >
+                                        <f:converter converterId="converters.miniProveedor" />
+                                        <f:selectItems value="#{mbDevs.mbComprobantes.mbProveedores.listaMiniProveedores}" />
+                                        <p:ajax event="change" listener="#{mbDevs.cargaListaComprobantes()}" 
+                                                update=":main:msgs cmbComprobante" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="txtFinPeriodo" value="AL :" style="font-weight: bold; color: red; text-align: right;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtFinPeriodo" value="#{mbDevs.fechaFinPeriodo}" size="8" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="cmbComprobante" value="#{mbDevs.mbComprobantes.toComprobante}" 
+                                                     filter="true" filterMatchMode="contains" style="width: 220px;" >
+                                        <f:converter converterId="converters.ComprobanteConverter" />
+                                        <f:selectItems value="#{mbDevs.mbComprobantes.listaComprobantes}" />
+                                        <p:ajax event="change" update="lnkEditarComprobante" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column style="width: 310px;" >
+                                    <p:commandButton id="btnImprimirFactura" icon="ui-icon-print" title="Imprimir Factura" />
+                                </p:column>
+                                <p:column colspan="2" style="text-align: right;" >
+                                    <p:commandLink id="lnkEditarComprobante" styleClass="nueva" value="Editar" 
+                                                   disabled="#{mbDevs.mbComprobantes.toComprobante.cerradaOficina or mbDevs.mbComprobantes.toComprobante.idComprobante==0}"
+                                                   update="main" actionListener="#{mbDevs.devoluciones()}" process="@this" />|
+                                    <p:commandLink styleClass="nueva" action="#{mbDevs.terminar()}" value="Salir" ajax="false" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+        </div>
+    </body>
+</html>

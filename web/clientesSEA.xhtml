@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <h:head>
+        <title>Actualización de Cliente</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form>
+                    <div align="right" >
+                        |<p:commandLink styleClass="nueva"  action="menuClientes" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+                <h:form >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    <p:panel header="MANTENIMIENTO DE CLIENTES" styleClass="quitaCuadro"  >
+                        <h:panelGrid id="panelCapturaEmpresas" frame="box"  columns="2" styleClass="quitaCuadro"  >
+                           
+                            <h:outputText value="Selecciona el Cliente: "/>
+
+                            <p:selectOneMenu id="cbCliente" 
+                                             value="#{mbClientesSEA.cliente.clienteSEA}">
+                                <f:converter converterId="converters.Cliente"/>
+                                <f:selectItems value="#{mbClientesSEA.LClientesSEA}" />
+                            </p:selectOneMenu>
+
+                            <h:outputText value="Selecciona el Banco: "/>
+                            <p:selectOneMenu id="cbPaises" 
+                                             value="#{mbClientesSEA.cliente.banco}">
+                                <f:converter converterId="converters.Banco"/>
+                                <f:selectItems value="#{mbClientesSEA.listaBancos}" />
+                            </p:selectOneMenu>
+
+                            <h:outputText value="Cuenta de Pago:"/>
+                            <p:inputText id="nuCatalago"
+                                         value="#{mbClientesSEA.cliente.numCtaPago}"
+                                         required="true"
+                                         
+                                         requiredMessage="Ingrese un numero de catalogo"/>
+
+                            <h:outputText value="Método de Pago: "/>
+                            <p:inputText id="mediopago"
+                                         value="#{mbClientesSEA.cliente.medioPago}"
+                                         required="true"
+                                         requiredMessage="Debe ingresar un medio de pago"/>
+
+                            <h:outputLabel />
+                            <h:panelGroup style="text-align: right">
+                                <p:commandButton value="Grabar" ajax="false" action="#{mbClientesSEA.grabar()}" update="msgs" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

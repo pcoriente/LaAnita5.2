@@ -1,0 +1,84 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Clasificaciones</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form>
+                    <div align="right">
+                        <p:commandLink styleClass="nueva" action="#{mbClasificacion.mantenimiento(0)}" value="Nueva" ajax="false"/>|
+                        <p:commandLink styleClass="nueva" action="#{mbClasificacion.terminar()}" value="Salir" ajax="false" />|
+                    </div>
+                    <p:panel header="RELACION DE CLASIFICACIONES" styleClass="quitaCuadro" >
+
+                    <p:dataTable value="#{mbClasificacion.listaClasificaciones}" var="clas"
+                                 rendered="#{not empty mbClasificacion.listaClasificaciones}"
+                                 widgetVar="clasTable"
+                                 emptyMessage="No hay elementos que desplegar" >
+                        
+                        <f:facet name="header">
+                            <p:outputPanel>
+                                <h:outputText value="Filtrado de campos: " />
+                                <h:inputText   id="globalFilter" onkeyup="clasTable.filter()"   />
+                            </p:outputPanel>
+                        </f:facet>
+                        
+                        <p:column filterBy="#{clas.grupo.codigoGrupo}" headerText="Cod.Gpo" filterMatchMode="contains" style="width: 10px" >
+                            <f:facet name="header">
+                                <h:outputText value="Cod.Gpo"/>
+                            </f:facet>
+                            <h:outputText value="#{clas.grupo.codigoGrupo}"/>
+                        </p:column>
+                        
+                        <p:column filterBy="#{clas.grupo.grupo}" headerText="Grupo" filterMatchMode="contains" style="width: 10px" >
+                            <f:facet name="header">
+                                <h:outputText value="Grupo"/>
+                            </f:facet>
+                            <h:outputText value="#{clas.grupo.grupo}"/>
+                        </p:column>
+                        
+                        <p:column filterBy="#{clas.codigoSubGrupo}" headerText="SubGrupo" filterMatchMode="contains" style="width: 10px" >
+                            <f:facet name="header">
+                                <h:outputText value="SubGrupo"/>
+                            </f:facet>
+                            <h:outputText value="#{clas.codigoSubGrupo}"/>
+                        </p:column>
+                        
+                        <p:column filterBy="#{clas.subGrupo}" headerText="Cod.SubGpo" filterMatchMode="contains" style="width: 10px" >
+                            <f:facet name="header">
+                                <h:outputText value="Cod.SubGpo"/>
+                            </f:facet>
+                            <h:outputText value="#{clas.subGrupo}"/>
+                        </p:column>
+                        
+                        <p:column  headerText="Procesos" style="width: 5px; height: 10px" >
+                            <h:commandLink action="#{mbClasificacion.mantenimiento(clas.idSubGrupo)}" >
+                                <h:graphicImage  library="images" name="build.png" style="width: 15px; " /> 
+                            </h:commandLink>
+                        </p:column>
+                        
+                    </p:dataTable>
+                    
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>
+

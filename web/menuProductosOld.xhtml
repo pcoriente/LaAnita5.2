@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Actualización de Catálogo</title>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" >
+                    <p:growl id="growl" showDetail="true" sticky="true" />
+                    <div align="right" >
+                        <p:commandLink styleClass="nueva" action="#{mbProductoOld.terminar()}" ajax="false" value="Terminar" />
+                    </div>
+
+                    <p:panelGrid id="mttoProductosOld" style="width: 800px;" >
+                        <f:facet name="header" >
+                            <p:row >
+                                <p:column colspan="3" >
+                                    MANTENIMIENTO DE PRODUCTOS
+                                </p:column>
+                            </p:row>
+                        </f:facet>
+                        <p:row >
+                            <p:column style="width: 90px;" >
+                                <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column style="width: 200px;" >
+                                <p:selectOneRadio id="opciones" value="#{mbProductoOld.mbBuscarOld.tipoBusqueda}" style="background-color: #ccc" >
+                                    <f:selectItem itemLabel="Descripción" itemValue="1" />
+                                    <f:selectItem itemLabel="Código" itemValue="2" />
+                                </p:selectOneRadio>
+                            </p:column>
+                            <p:column >
+                                <p:inputText id="txtCadena" value="#{mbProductoOld.mbBuscarOld.cadena}" maxlength="25" />
+                                <p:commandButton id="btnBuscar" value="Buscar" process="@this opciones txtCadena" 
+                                                 actionListener="#{mbProductoOld.mbBuscarOld.buscar()}" update="lstProductosOld" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column colspan="3" >
+                                <p:dataTable id="lstProductosOld" value="#{mbProductoOld.mbBuscarOld.listaEncontrados}" var="prodOld"
+                                             scrollable="true" scrollHeight="200" scrollWidth="880" >
+                                    <p:column width="60" >
+                                        <f:facet name="header" >
+                                            <h:outputText value="Capturado" />
+                                        </f:facet>
+                                        <h:outputText value="#{prodOld.idEmpaque==0?'No':'Si'}" />
+                                    </p:column>
+                                    <p:column width="50" >
+                                        <f:facet name="header">
+                                            <h:outputText value="Empresa"/>
+                                        </f:facet>
+                                        <h:outputText value="#{prodOld.cod_emp}"/>
+                                    </p:column>
+                                    <p:column width="50" >
+                                        <f:facet name="header">
+                                            <h:outputText value="Código"/>
+                                        </f:facet>
+                                        <h:outputText value="#{prodOld.cod_pro}"/>
+                                    </p:column>
+                                    <p:column width="275">
+                                        <f:facet name="header">
+                                            <h:outputText value="Descripción"/>
+                                        </f:facet>
+                                        <h:outputText value="#{prodOld.descripcion}"/>
+                                    </p:column>
+                                    <p:column width="275">
+                                        <f:facet name="header">
+                                            <h:outputText value="Grupo"/>
+                                        </f:facet>
+                                        <h:outputText value="#{prodOld.grupo}"/>
+                                    </p:column>
+                                    <p:column width="25" headerText="Edit">
+                                        <h:commandLink action="#{mbProductoOld.mantenimiento(prodOld)}" >
+                                            <h:graphicImage  library="images" name="build.png" style="width: 15px; " /> 
+                                        </h:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="es-Es" xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+     <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Marcas</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" >
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" style="text-align: left" >
+                <br></br>
+                <h:form>
+                    <div style="text-align: right" >
+                        |<p:commandLink styleClass="nueva"  action="menuMarcas" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+                
+                <h:form rendered="#{not empty mbMarca.marca}" >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    
+                    <p:panel header="MANTENIMIENTO DE MARCAS">
+                        <h:panelGrid frame="box" border="0" columns="2">
+                            <h:outputLabel value="Código:"  styleClass="colorLetra" />
+                            <p:inputText readonly="#{mbMarca.marca.idMarca > 0}" value="#{mbMarca.marca.codigoMarca}" maxlength="6" size="8" />
+                            
+                            <h:outputLabel value="Marca:"  styleClass="colorLetra" />
+                            <p:inputText value="#{mbMarca.marca.marca}" maxlength="100" size="60" 
+                                         required="true"
+                                         requiredMessage="Ingrese una marca" />
+                            
+                            <h:outputLabel />
+                            <h:panelGroup style="display:block; text-align: right">
+                                <h:commandButton value="Grabar" action="#{mbMarca.grabar()}" />
+                                <h:commandButton value="Cancelar" action="#{mbMarca.cancelar()}" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

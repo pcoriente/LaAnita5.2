@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html  xmlns="http://www.w3.org/1999/xhtml"
+       xmlns:h="http://java.sun.com/jsf/html" 
+       xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>ALTA A EMPRESA</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <h:body >
+        <div id="header">
+            <h:graphicImage name="/images/encabezado.jpg" /> 
+            <h:form>
+                <p:menubar widgetVar="menu" >
+                    <p:submenu label="Catalogos" >
+                        <p:menuitem value="Empresas" url="menuEmpresas.xhtml" />
+                        <p:menuitem value="Cedis" url="menuCedis.xhtml" />
+                        <p:menuitem value="Bancos" url="menuBancos.xhtml" />
+                        <p:menuitem value="ProductosOld" url="menuProductosOld.xhtml" />
+                        <p:menuitem value="Productos" url="productos.xhtml" />
+                        <p:menuitem value="Mantenimiento" url="impuestos.xhtml" />
+                        <p:menuitem value="Unidades de Medida" url="menuUnidadesMedida.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="Compras" >
+                        <p:menuitem value="Proveedores" url="menuProveedores.xhtml" />
+                        <p:menuitem value="Clientes" url="menuClientes.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="Inventarios" >
+                        <p:menuitem value="Clasificaciones" url="menuClasificaciones.xhtml" />
+                        <p:menuitem value="Marcas" url="menuMarcas.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="Pedidos" >
+                        <p:menuitem value="Calculo de Pedidos" url="pedidos.xhtml" />
+                    </p:submenu>
+                    <p:submenu label="Requisicion" >
+                        <p:menuitem value="Requisicion" url="Requisicion.xhtml" />
+                        <p:menuitem value="PickList" url="PickListPruebas.xhtml" />
+                    </p:submenu>
+                </p:menubar>
+            </h:form>
+ 
+        </div> <!-- FIN ENCABEZADO -->
+
+        <!-- FIN DE CONTENIDO -->
+    </h:body>
+</html>
+
+
+

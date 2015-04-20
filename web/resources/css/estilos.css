@@ -1,0 +1,64 @@
+
+
+table.tablas{
+    border: 1px solid #ccc;
+    width: 920px;
+    margin: 5px auto;
+}
+table.tablas tbody tr.altas td {
+    font: bold .9em/1.5em "Trebuchet MS", Tahoma, Arial, sans-serif;
+    color: #666666;
+    background: #5FACF3;
+    text-align: right;
+    padding: 5px;
+    border:1px dotted #ccc;
+}
+table.tablas tbody tr.titulos td {
+  /*  font: bold .9em/1.5em "Trebuchet MS", Tahoma, Arial, sans-serif;
+    color: #666666;*/
+    color:  #fff;
+    background: #5FACF3; /* CAMBIO DEL FONDO DE LAS TABLAS #5FACF3 */
+    text-align: center;
+    padding: 5px;
+    border: 1px dotted #ccc;
+     font-family:'Helvetica', Arial, sans-serif;
+     text-shadow:1px 1px 1px #325179;
+   
+}
+table.tablas tbody td.primera  {
+    font: bold .9em/1.5em "Trebuchet MS", Tahoma, Arial, sans-serif;
+    color: #666666;
+    
+    background: #fcfbfb;
+    text-align: left;;
+    padding: 5px;
+    border-top: 1px solid #ccc;
+}
+table.tablas tbody td {
+    font: .9em/1.5em "Trebuchet MS", Tahoma, Arial, sans-serif;
+    color: #666;
+    background: #fff;
+    text-align: left;
+    padding: 5px;
+    border-top: 1px solid #ccc;
+    
+}
+
+form { padding: 5px;  width: 900px; margin: 0 auto} 
+label { font-size: 14px; font-family: Arial, Helvetica, sans-serif; color: #FFF; display: block; } 
+.campo { width: 400px; height: 30px; margin-bottom: 20px; border: 1px Solid #0000ff; background: #fff; } 
+.boton{
+    font-size:10px;
+    font-family:Verdana,Helvetica;
+    font-weight:bold;
+    color:white;
+    background:#5FACF3;; /*#638cb5;  */
+    border:0px;
+    width:80px;
+    height:19px;
+     font-family:'Helvetica', Arial, sans-serif;
+     text-shadow:1px 1px 1px #325179;
+
+}
+
+

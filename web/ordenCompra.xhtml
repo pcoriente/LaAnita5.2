@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Nueva order de Compra</title>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" >
+                    <p:panel id="panelOrdenCompra" header="Orden de Compra" style="float: left" >
+                        <p:messages id="messages" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoOrdenCompra" >
+                            <f:facet name="header" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-search" title="Buscar Productos" 
+                                                         process="@this" actionListener="#{frmOrdenCompra.mbBuscarProd.inicializar()}" 
+                                                         update="buscarProductos listaProductos" oncomplete="buscarProductoDlg.show()" />
+                                        <p:commandButton icon="ui-icon-home" title="Terminar" action="#{frmOrdenCompra.terminar()}" 
+                                                         ajax="false" immediate="true" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="messages4" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{frmOrdenCompra.mbBuscarProd.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="UPC" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <p:ajax listener="#{frmOrdenCompra.mbBuscarProd.verCambio()}" update="buscarProductos listaProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{frmOrdenCompra.mbBuscarProd.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionUPC" value="#{frmProducto.mbBuscarProd.strBuscar}" maxlength="13" size="15" />
+                                    <p:commandButton id="btnBuscarUPC" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionUPC" actionListener="#{frmOrdenCompra.buscar()}" 
+                                                     update=":main:mttoProductos" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{frmOrdenCompra.mbBuscarProd.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{frmOrdenCompra.mbBuscarProd.parte}" maxlength="50" size="30"
+                                                    completeMethod="#{frmOrdenCompra.mbBuscarProd.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.ParteBuscar" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{frmOrdenCompra.buscar()}" 
+                                                     update="listaProductos" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaProductos" value="#{frmOrdenCompra.mbBuscarProd.productos}" 
+                                     filteredValue="#{frmOrdenCompra.mbBuscarProd.filtrados}"
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{frmOrdenCompra.mbBuscarProd.prodStr}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+                            
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+                            
+                            <p:column id="idListaTipos" headerText="Tipo Inventario" style="width: 150px;" 
+                                      filterBy="#{prod.tipo}" filterOptions="#{frmOrdenCompra.mbBuscarProd.arrayTipos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.tipo}" />
+                            </p:column>
+                            
+                            <p:column id="idListaGrupos" headerText="Grupo" style="width: 150px;" 
+                                      filterBy="#{prod.grupo}" filterOptions="#{frmOrdenCompra.mbBuscarProd.arrayGrupos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.grupo}" />
+                            </p:column>
+                            
+                            <p:column id="idListaSubGrupos" headerText="SubGrupo" style="width: 150px;" 
+                                      filterBy="#{prod.subGrupo}" filterOptions="#{frmOrdenCompra.mbBuscarProd.arraySubGrupos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.subGrupo}" />
+                            </p:column>
+                            
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.producto}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{frmOrdenCompra.mbBuscarProd.prodStr==null}"
+                                                 actionListener="#{frmOrdenCompra.actualizaProductoSeleccionado()}"
+                                                 update=":main:mttoProductos" oncomplete="buscarProductoDlg.hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>

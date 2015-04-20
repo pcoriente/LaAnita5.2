@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <title>Pedidos</title>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form id="form" onkeypress="return event.keyCode !== 13;" enctype="multipart/form-data">
+                    <p:growl id="growl" autoUpdate="true" showDetail="true"/> 
+                    <p:panel header="Pedidos Autoservicio">
+                        <div align="right" style="margin-right: -15px">
+                            <p:commandButton icon="ui-icon-disk" 
+                                             title="Guardar Archivo"
+                                             value="Guardar"
+                                             action="#{mbPedido.upload()}"
+                                             ajax="false"/>
+                            <p:commandButton icon="ui-icon-arrowreturnthick-1-w" 
+                                             title="Salir"
+                                             action="#{mbPedido.salir()}"
+                                             immediate="true"/> 
+                            <p:commandButton icon="ui-icon-document"/>
+                        </div>
+                        <br></br>
+                        <h:panelGrid columns="8" style="margin-left: -25px">
+                            <h:outputText value="Empresa:"/>
+                            <p:selectOneMenu filter="true">
+                                <f:selectItems value="#{mbPedido.mbEmpresas.listaObtenerEmpresas}"/>
+                            </p:selectOneMenu>
+                            <h:outputText value="Grupo:"/>
+                            <p:selectOneMenu value="#{mbPedido.mbClientesGrupos.cmbClientesGrupos}"
+                                             filter="true">
+                                <f:selectItems value="#{mbPedido.mbClientesGrupos.itemsClientesGrupos}"/>
+                                <f:converter converterId="converters.ClientesGrupos"/>
+                                <p:ajax event="change" 
+                                        listener="#{mbPedido.cargarInformacion()}" 
+                                        process="@this"
+                                        update=":form:cmbFormatos
+                                        :form:cmbPago"/>
+                            </p:selectOneMenu>
+                            <h:outputText value="Formato:"/>
+                            <p:selectOneMenu id="cmbFormatos" 
+                                             value="#{mbPedido.mbClientesGrupos.mbFormatos.cmbClientesFormatos}"
+                                             filter="true">
+                                <f:selectItems value="#{mbPedido.mbClientesGrupos.mbFormatos.lstFormatos}"/>
+                            </p:selectOneMenu>
+                            <h:outputText value="Pago:"/>
+                            <p:selectOneMenu filter="true"
+                                             style="width: 155px"
+                                             id="cmbPago">
+                                <f:selectItems value="#{mbPedido.mbGruposBancos.lstGruposBancos}"/>
+                            </p:selectOneMenu>
+                        </h:panelGrid>
+                        <h:panelGrid columns="2">
+                            <p:fileUpload mode="simple" 
+                                          value="#{mbPedido.file}" 
+                                          id="archivo"
+                                          label="Archivo">
+                            </p:fileUpload>
+                            <h:outputLabel/>
+                        </h:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>
+

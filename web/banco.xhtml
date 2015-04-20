@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" ></meta>
+        <title>Actualización de Bancos</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form>
+                    <div align="right" >
+                        |<p:commandLink styleClass="nueva"  action="menuBancos" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+                <h:form >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    <p:panel header="Actualizacion de Bancos" styleClass="quitaCuadro">
+                        <h:panelGrid columns="2">
+
+                            <h:outputText value="RFC:"/>
+                            <p:inputText id="rfc"
+                                         value ="#{mbBanco.rfc}"
+                                         required="true">
+                                <f:validator validatorId="emailValidator"/>
+                            </p:inputText>
+                            <h:outputText value ="Codigo Banco:"/>
+                            <p:inputText id="codigoBanco"
+                                         value="#{mbBanco.codigoBanco}"
+                                         required="true"/>
+
+                            <h:outputText value ="Razon Social:"/>
+                            <p:inputText id="razonSocial"
+                                         value="#{mbBanco.razonSocial}"
+                                         required="true"/>
+
+                            <h:outputText value= "Nombre Corto:"/>
+                            <p:inputText id="nombreCorto"
+                                         value ="#{mbBanco.nombreCorto}"
+                                         required="true"/>
+
+                            <h:outputLabel />
+                            <h:panelGroup style="text-align: right">
+                                <p:commandButton value="Grabar" ajax="false" action="#{mbEmpresas.grabar()}" update="msgs" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

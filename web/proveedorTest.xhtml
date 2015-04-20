@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Proveedor</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" onkeypress="blockEnter();" >
+                    <!-- onkeypress="return event.keyCode !== 13;" Esto va dentro de la etiqueta form -->
+                    <p:panel header="MANTENIMIENTO DE PROVEEDORES" styleClass="quitaCuadro" >
+                        <!-- <p:hotkey bind="ctrl+shift+s" /> -->
+                        <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                        <p:panelGrid id="panelCapturaProveedores" styleClass="quitaCuadro" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="rfc" value="RFC:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column style="width: 120px;" >
+                                    <p:inputText id="rfc" value="#{mbProveedores.proveedor.contribuyente.rfc}" disabled="true"
+                                                 maxlength="13" size="13" >
+                                    </p:inputText>
+                                </p:column>
+                                <p:column colspan="4" >
+                                    <p:commandButton icon="ui-icon-document" title="Nuevo Contribuyente"
+                                                     process="@this"
+                                                     update="mttoContribuyentes" oncomplete="mttoContribDialog.show()" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="6" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar"  type="button"
+                                                         actionListener="#{mbProveedores.grabar()}" update="msgs" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar" type="button"
+                                                         action="#{mbProveedores.salir()}" ajax="false" immediate="true" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="MANTENIMIENTO DE CONTRIBUYENTES" widgetVar="mttoContribDialog" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages6" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoContribuyentes" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtRfc" value="RFC:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtRfc" value="#{mbProveedores.mbContribuyentes.contribuyente.rfc}" 
+                                                 maxlength="13" size="15" >
+                                        <p:ajax event="change" process="@this" listener="#{mbProveedores.obtenerRfc()}" update="mttoContribuyentes" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{not empty mbProveedores.listaContribuyentes}" >
+                                <p:column >
+                                    <h:outputLabel for="cmbContribuyente" value="CONTRIBUYENTE:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="cmbContribuyente" value="#{mbProveedores.mbContribuyentes.contribuyente}" style="width: 300px" >
+                                        <f:converter converterId="converters.Contribuyente" />
+                                        <f:selectItems value="#{mbProveedores.listaContribuyentes}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton icon="ui-icon-document" title="Agregar Contribuyente" 
+                                                     actionListener="#{mbProveedores.agregarContribuyente()}" 
+                                                     update="mttoContribuyentes" />
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{empty mbProveedores.listaContribuyentes}" >
+                                <p:column >
+                                    <h:outputLabel for="txtContribuyente" value="CONTRIBUYENTE:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtContribuyente"
+                                                 value="#{mbProveedores.mbContribuyentes.contribuyente.contribuyente}"
+                                                 maxlength="100"
+                                                 size="50" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript" >
+                    function blockEnter() {
+                        var tecla=window.event.keyCode;
+                        if(window.event.keyCode === 13) {
+                            alert("presiono enter");
+                            window.event.keyCode=9;
+                        } else {
+                            alert("presiono otra tecla");
+                        }
+                        return tecla;
+                    }
+                </script>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>

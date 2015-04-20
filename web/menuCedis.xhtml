@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Cedis</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center" >
+                <br></br>
+                <h:form >
+                    <p:panel header="RELACION DE CEDIS" styleClass="quitaCuadro" >
+                        <p:dataTable var="ced" widgetVar="cedisTable" 
+                                     value="#{mbCedis.listaCedis}" filteredValue="#{mbCedis.cedisFiltrados}"
+                                     emptyMessage="No hay elementos que desplegar">
+                            <f:facet name="header" >
+                                 <p:outputPanel  >
+                                    <div align="right" >
+                                        <p:commandButton icon="ui-icon-document" title="Nuevo Cedis" 
+                                                             action="#{mbCedis.mantenimiento(0)}" ajax="false" immediate="true" />
+                                        <p:commandButton icon="ui-icon-home" title="Salir" 
+                                                         action="#{mbCedis.terminar()}" ajax="false" immediate="true" />
+                                    </div>
+                                </p:outputPanel>
+                            </f:facet>
+                            <p:column filterBy="#{ced.idCedis}" headerText="Codigo" filterMatchMode="contains" style="width: 110px; text-align: center;">
+                                <f:facet name="header">
+                                    <h:outputText value="codigo"/>
+                                </f:facet>
+                                <h:outputText value="#{ced.idCedis}"/>
+                            </p:column>
+
+                            <p:column filterBy="#{ced.cedis}" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Cedis"/>
+                                </f:facet>
+                                <h:outputText value="#{ced.cedis}"/>
+                            </p:column>
+
+                            <p:column filterBy="#{ced.telefono}" filterMatchMode="contains" style="width: 110px;" >
+                                <f:facet name="header">
+                                    <h:outputText value="Telefono"/>
+                                </f:facet>
+                                <h:outputText value="#{ced.telefono}"/>
+                            </p:column>
+
+                            <p:column filterBy="#{ced.correo}" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Correo"/>
+                                </f:facet>
+                                <h:outputText value="#{ced.correo}"/>
+                            </p:column>
+
+                            <p:column headerText="Más" style="width: 25px;" >
+                                <p:rowToggler   />
+                            </p:column>
+                            <p:rowExpansion  >
+                                <h:outputText value="FAX: #{ced.fax}" /><br></br>
+                                <h:outputText value="R. LEGAL: #{ced.representante}" /><br></br>
+                                <h:outputText value="DIRECCION: " /><br></br>
+                                <p:inputTextarea id="direccion" readonly="true" value="#{ced.direccion.toString()}" rows="10" cols="50" />
+                            </p:rowExpansion>
+                            <p:column  headerText="Accion" style="width: 35px; text-align: center;">
+                                <h:commandLink action="#{mbCedis.mantenimiento(ced.idCedis)}" >
+                                    <h:graphicImage  library="images" name="build.png" style="width: 15px; " /> 
+                                </h:commandLink>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>
+

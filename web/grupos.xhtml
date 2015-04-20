@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Grupos</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <h:body>
+        <div id="wrapper" >
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" style="text-align: left" >
+                <br></br>
+                <h:form>
+                    <div style="text-align: right" >
+                        |<p:commandLink styleClass="nueva"  action="clasificaciones" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+
+
+                <h:form prependId="false" rendered="#{not empty mbClasificacion.grupo}" >
+                    <p:panel header="MANTENIMIENTO DE GRUPOS">
+
+                        <p:messages id="msgs" showDetail="true" />
+
+                        <h:panelGrid id="panelCapturaGrupo" frame="box" border="0" columns="2" >
+
+                            <h:outputLabel value="Código:" for="codigoGrupo" styleClass="colorLetra" />
+                            <p:inputText id="codigoGrupo" readonly="#{mbClasificacion.grupo.idGrupo > 0}" value="#{mbClasificacion.grupo.codigoGrupo}" maxlength="6" size="6" />
+
+                            <h:outputLabel value="Grupo:" for="grupo" styleClass="colorLetra" />
+                            <p:inputText id="grupo" value="#{mbClasificacion.grupo.grupo}" maxlength="30" size="30" />
+
+                            <h:outputLabel />
+                            <h:panelGroup style="display: block; text-align: right" >
+                                <p:commandButton value="Grabar" actionListener="#{mbClasificacion.grabarGrupo}" update="msgs" />
+                                <p:commandButton value="Salir" ajax="false" action="#{mbClasificacion.cancelarGrupo()}" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="es-Es" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Actualización de Direccion</title>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+                    <div align="right" >
+                        |<p:commandLink value="Salir" ajax="false" action="#{mbDireccion.salir()}"  />
+                    </div>
+                    <h:panelGroup styleClass="errores">
+                        <h:messages layout="table" />
+                    </h:panelGroup>
+                    <p:panel header="MANTENIMIENTO DE DIRECCIONES" styleClass="quitaCuadro">
+                        <p:messages id="msgs" showDetail="true" closable="true" />
+                        <h:panelGrid id="panelCapturaDireccion" frame="box" border="0" columns="2" styleClass="quitaCuadro" >
+                            <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
+                            <p:inputText id="calle" value="#{mbDireccion.direccion.calle}" maxlength="100" size="50" />
+                            <h:outputLabel value="No.Exterior:" for="noExterior" styleClass="colorLetra"  />
+                            <p:inputText id="noExterior" value="#{mbDireccion.direccion.numeroExterior}" maxlength="50" size="50"  />
+                            <h:outputLabel value="No.Interior:" for="noInterior" styleClass="colorLetra" />
+                            <p:inputText id="noInterior" value="#{mbDireccion.direccion.numeroInterior}" maxlength="50" size="50"  />
+                            <h:outputLabel value="Referencia:" for="referencia" styleClass="colorLetra" />
+                            <p:inputText id="referencia" value="#{mbDireccion.direccion.referencia}" maxlength="100" size="50" />
+                            <h:outputLabel value="País:" for="cboPaises" styleClass="colorLetra"/>
+                            <h:selectOneMenu id="cboPaises" value="#{mbDireccion.direccion.pais}">
+                                <f:converter converterId="converters.Pais" />
+                                <f:selectItems value="#{mbDireccion.listaPaises}" />
+                            </h:selectOneMenu>
+                            <h:outputLabel value="Código Postal:" for="codigoPostal" styleClass="colorLetra"/>
+                            <h:panelGroup >
+                                <p:inputText id="codigoPostal" value="#{mbDireccion.direccion.codigoPostal}" maxlength="10" size="11" />
+                                <p:commandButton value="Buscar" action="#{mbDireccion.buscarAsentamientos()}" ajax="false" />
+                            </h:panelGroup>
+                            
+                            <h:outputLabel value="Colonia:" for="asentamiento" styleClass="colorLetra"/>
+                            <h:panelGroup id="asentamientos" >
+                                <h:panelGrid rendered="#{mbDireccion.editarAsentamiento}" frame="box" border="0" columns="2" >
+                                    <p:inputText id="asentamiento" value="#{mbDireccion.direccion.colonia}" maxlength="100" size="41" />
+                                    <p:commandButton value="Elegir" actionListener="#{mbDireccion.setEditarAsentamiento(false)}" 
+                                                     update="msgs asentamientos" ajax="false" />
+                                </h:panelGrid>
+                                <h:selectOneMenu id="cboAsentamientos" 
+                                                 rendered="#{!mbDireccion.editarAsentamiento}" 
+                                                 value="#{mbDireccion.direccion.selAsentamiento}" >
+                                    <p:ajax event="change" 
+                                            listener="#{mbDireccion.actualizaAsentamiento}"
+                                            update="estado municipio localidad  asentamientos" />             
+                                    <f:converter converterId="converters.Asentamiento" />
+                                    <f:selectItems value="#{mbDireccion.listaAsentamientos}" />
+                                </h:selectOneMenu>
+                            </h:panelGroup>
+
+                            <h:outputLabel value="Ciudad/Localidad:" for="localidad" styleClass="colorLetra"/>
+                            <p:inputText id="localidad" value="#{mbDireccion.direccion.localidad}" maxlength="100" size="50" />
+
+                            <h:outputLabel value="Municipio/Delegación:" for="municipio" styleClass="colorLetra"/>
+                            <p:inputText id="municipio" value="#{mbDireccion.direccion.municipio}" maxlength="100" size="50" />
+
+                            <h:outputLabel value="Estado:" for="estado" styleClass="colorLetra"/>
+                            <p:inputText id="estado" value="#{mbDireccion.direccion.estado}" maxlength="100" size="50" />
+                            
+                            <h:outputLabel value="GLN:" for="gln" styleClass="colorLetra"/>
+                            <p:inputText id="gln" value="#{mbDireccion.direccion.numeroLocalizacion}" maxlength="14" size="16" />
+
+                            <h:outputLabel />
+                            <h:panelGroup style="display: block; text-align: right" >
+                                <p:commandButton value="Grabar" actionListener="#{mbDireccion.grabar()}" update=":main:msgs"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+
+                    </p:panel>
+                </h:form>
+            </div>
+
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+
+    </h:body>
+</html>

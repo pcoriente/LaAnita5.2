@@ -1,0 +1,727 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Catálogo de Productos</title>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" >
+                    <div align="right" >
+                        <p:commandLink styleClass="nueva" action="#{mbProductoOld.salir()}" ajax="false" immediate="true" value="Salir" />
+                    </div>
+                    <p:panel id="principal" header="CATALOGO ANTERIOR" style="float: left; width: 100%;" >
+                        <p:panelGrid columns="2" styleClass="sinBorde" >
+                            <h:outputLabel for="productoOld" value="PRODUCTO :" style="font-weight: bold; color: red; width: 90px;" />
+                            <p:inputText id="productoOld" value="#{mbProductoOld.productoOld.descripcion}" readonly="true" maxlength="70" size="80" />
+
+                            <h:outputLabel for="grupoOld" value="GRUPO :" style="font-weight: bold; color: red; width: 90px;" />
+                            <p:inputText id="grupoOld" value="#{mbProductoOld.productoOld.grupo}" readonly="true" maxlength="70" size="80" />
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="capturaEmpaque" header="CAPTURA DE EMPAQUES" style="float: left; width: 100%" >
+                        <p:messages id="messages2" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoEmpaques" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="sku" value="SKU :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="sku" value="#{mbProductoOld.mbEmpaque.empaque.cod_pro}" maxlength="7" size="10" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnVerEmpaques" value="VER EMPAQUES" 
+                                                     process="@this" actionListener="#{mbProductoOld.mbEmpaque.buscarEmpaques()}"
+                                                     update="verEmpaques messages2" oncomplete="verEmpaquesDlg.show()" />
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:commandButton id="btnEditarProducto" value="Editar Producto" 
+                                                     process="@this" actionListener="#{mbProductoOld.mttoProducto()}" 
+                                                     update="mttoProducto" oncomplete="mttoProductoDlg.show()" />
+                                    <p:commandButton id="btnBuscarProducto" value="Buscar Producto" 
+                                                     process="@this" actionListener="#{mbProductoOld.buscarProducto()}" 
+                                                     update="buscarProductos listaProductos" oncomplete="buscarProductoDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="codBar" value="UPC :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" style="width: 150px;" >
+                                    <p:selectOneMenu id="codBar" style="width: 140px;" >
+                                        <f:selectItems value="#{mbProductoOld.mbEmpaque.listaUpcs}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column>
+                                    <h:outputLabel for="producto" value="PRODUCTO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="producto" value="#{mbProductoOld.mbEmpaque.empaque.producto.toString()}" readonly="true" maxlength="70" size="80" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="verTipo" value="TIPO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="verTipo" value="#{mbProductoOld.mbEmpaque.empaque.producto.tipo.tipo}" 
+                                                 readonly="true" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column>
+                                    <h:outputLabel for="grupoEpq" value="GRUPO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="grupoEpq" value="#{mbProductoOld.mbEmpaque.empaque.producto.grupo.grupo}" 
+                                                 readonly="true" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column>
+                                    <h:outputLabel for="subGrupoEpq" value="SUBGRUPO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="subGrupoEpq" value="#{mbProductoOld.mbEmpaque.empaque.producto.subGrupo.subGrupo}" 
+                                                 readonly="true" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column>
+                                    <h:outputLabel for="marcaEpq" value="MARCA :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="marcaEpq" value="#{mbProductoOld.mbEmpaque.empaque.producto.marca.marca}" 
+                                                 readonly="true" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="empaque" value="EMPAQUE :"  style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="empaque" value="#{mbProductoOld.mbEmpaque.empaque.unidadEmpaque}" style="width: 250px;" >
+                                        <f:converter converterId="converters.UnidadEmpaque" />
+                                        <f:selectItems value="#{mbProductoOld.mbEmpaque.listaUnidades}" />
+                                        <p:ajax event="change" listener="#{mbProductoOld.mbEmpaque.piezasUnidad()}" update="piezas subEmpaque" />
+                                    </p:selectOneMenu>
+                                </p:column >
+                                <p:column colspan="3" >
+                                    <p:commandButton id="btnMttoUnidadesEmpaque" value="Mtto.Empaques" 
+                                                     actionListener="#{mbProductoOld.mbEmpaque.mttoUnidadesEmpaque()}" 
+                                                     process="@this empaque" update="mttoUnidadesEmpaque" oncomplete="mttoUnidadesEmpaqueDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="piezas" value="PIEZAS :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="piezas" value="#{mbProductoOld.mbEmpaque.empaque.piezas}" style="width: 100px;"
+                                                 readonly="#{mbProductoOld.mbEmpaque.empaque.unidadEmpaque.idUnidad==1}" maxlength="5" size="7" >
+                                        <p:ajax event="change" listener="#{mbProductoOld.mbEmpaque.cargaListaSubEmpaques()}" update="subEmpaque" />
+                                    </p:inputText>
+                                </p:column >
+                                <p:column >
+                                    <h:outputLabel for="subEmpaque" value="SUBEMPAQUE :" style="font-weight: bold; color: red; width: 110px;" />
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:selectOneMenu id="subEmpaque" value="#{mbProductoOld.mbEmpaque.empaque.subEmpaque}" style="width: 250px;"
+                                                     disabled="#{(mbProductoOld.mbEmpaque.empaque.piezas==0 or mbProductoOld.mbEmpaque.empaque.producto.idProducto==0?'true':'false')}" >
+                                        <f:converter converterId="converters.SubEmpaque" />
+                                        <f:selectItems value="#{mbProductoOld.mbEmpaque.listaSubEmpaques}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="peso" value="PESO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="peso" value="#{mbProductoOld.mbEmpaque.empaque.peso}" maxlength="10" size="12" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="volumen" value="VOLUMEN :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:inputText id="volumen" value="#{mbProductoOld.mbEmpaque.empaque.volumen}" maxlength="10" size="12" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column>
+                                    <h:outputLabel for="dun14" value="DUN14 :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column colspan="5" >
+                                    <p:inputText id="dun14" value="#{mbProductoOld.mbEmpaque.empaque.dun14}" maxlength="14" size="20" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="6" >
+                                        <p:commandButton id="grabarEmpaque" value="Grabar" 
+                                                         process="mttoEmpaques" actionListener="#{mbProductoOld.mbEmpaque.grabar()}" 
+                                                         update="messages2" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="MANTENIMIENTO DE UNIDADES DE EMPAQUE" widgetVar="mttoUnidadesEmpaqueDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages6" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoUnidadesEmpaque" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadEmpaque" value="EMPAQUE :" 
+                                                   style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadEmpaque" value="#{mbProductoOld.mbEmpaque.mbUnidadEmpaque.unidad.unidad}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadEmpaqueAbrev" value="ABREVIATURA :" 
+                                                   style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadEmpaqueAbrev" value="#{mbProductoOld.mbEmpaque.mbUnidadEmpaque.unidad.abreviatura}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarUnidadEmpaque" value="Grabar" 
+                                                         process="@this txtUnidadEmpaque txtUnidadEmpaqueAbrev" 
+                                                         actionListener="#{mbProductoOld.mbEmpaque.grabarUnidadEmpaque()}"
+                                                         update="empaque" oncomplete="handleUnidadEmpaque(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarUnidadEmpaque" value="Eliminar" 
+                                                         disabled="#{mbProductoOld.mbEmpaque.mbUnidadEmpaque.unidad.idUnidad==0}" 
+                                                         process="@this" actionListener="#{mbProductoOld.mbEmpaque.eliminarUnidadEmpaque()}" 
+                                                         update="empaque" oncomplete="handleUnidadEmpaque(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE PRODUCTOS" widgetVar="mttoProductoDlg" resizable="false" style="width: 700px;" modal="true" >
+                        <p:messages id="messages" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoProducto" styleClass="sinBorde">
+                            <p:row rendered="#{mbProductoOld.mbProducto.producto.idProducto>0}" >
+                                <p:column >
+                                    <h:outputLabel for="upc" value="UPC :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column style="width: 150px;" >
+                                    <p:selectOneMenu id="upc" value="#{mbProductoOld.mbProducto.mbUpc.upc}" style="width: 140px;" >
+                                        <f:converter converterId="converters.Upc" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaUpcs}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEditarUpc" value="Mtto.UPC's" disabled="#{mbProductoOld.mbProducto.producto.idProducto==0}"
+                                                     process="@this upc" actionListener="#{mbProductoOld.mbProducto.mttoUpc()}" 
+                                                     update="mttoUpc" oncomplete="mttoUpcDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="PARTE :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2">
+                                    <p:autoComplete id="basicPojo1" value="#{mbProductoOld.mbProducto.producto.parte2}"
+                                                    completeMethod="#{mbProductoOld.mbProducto.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" />
+                                    <p:commandButton id="btnGrabarParte" value="Grabar" 
+                                                     process="@this basicPojo1" update="basicPojo1 messages" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="descripcion" value="DESCRIPCION :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2">
+                                    <p:inputText id="descripcion" value="#{mbProductoOld.mbProducto.producto.descripcion}" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="tipo" value="TIPO :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="tipo" value="#{mbProductoOld.mbProducto.producto.tipo}" >
+                                        <f:converter converterId="converters.TipoProducto" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaTipos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="grupo" value="GRUPO :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="grupo" value="#{mbProductoOld.mbProducto.producto.grupo}" style="width: 200px;" >
+                                        <f:converter converterId="converters.Grupos" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaGrupos}" />
+                                        <p:ajax event="change" listener="#{mbProductoOld.mbProducto.cargaSubGrupos()}" 
+                                                update="subGrupo btnMttoSubGrupos" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoGrupos" value="Mtto.Grupos" 
+                                                     process="@this grupo" actionListener="#{mbProductoOld.mbProducto.mttoGrupo()}"
+                                                     update="mttoGrupos messages" oncomplete="mttoGruposDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="subGrupo" value="SUBGRUPO :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="subGrupo" value="#{mbProductoOld.mbProducto.producto.subGrupo}" style="width: 200px;" >
+                                        <f:converter converterId="converters.SubGrupos" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaSubGrupos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoSubGrupos" value="Mtto.SubGrupos"
+                                                     disabled="#{mbProductoOld.mbProducto.producto.grupo.idGrupo==0}"
+                                                     actionListener="#{mbProductoOld.mbProducto.mttoSubGrupo()}" 
+                                                     process="@this grupo subGrupo" update="mttoSubGrupos" oncomplete="mttoSubGruposDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="marca" value="MARCA :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="marca" value="#{mbProductoOld.mbProducto.producto.marca}" style="width: 250px;" >
+                                        <f:converter converterId="converters.Marca" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaMarcas}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoMarcas" icon="ui-icon-pencil" title="Mtto.Marcas" 
+                                                     actionListener="#{mbProductoOld.mbProducto.mttoMarcas()}" 
+                                                     process="@this marca" update="mttoMarcas" oncomplete="mttoMarcasDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="unidad" value="EMPAQUE :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="unidad" value="#{mbProductoOld.mbProducto.producto.unidad}" style="width: 200px;" >
+                                        <f:converter converterId="converters.Unidad" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaUnidades}" />
+                                        <p:ajax event="change" listener="#{mbProductoOld.mbProducto.actualizarContenido()}" 
+                                                update="contenido unimed" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoUnidadesProducto" value="Mtto.Empaques" 
+                                                     process="@this unidad" actionListener="#{mbProductoOld.mbProducto.mttoUnidad()}" 
+                                                     update="mttoUnidadesProducto" oncomplete="mttoUnidadesProductoDlg.show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="contenido" value="CONTENIDO :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2">
+                                    <p:inputText id="contenido" immediate="true" required="true" requiredMessage="Se requiere un número" maxlength="7"
+                                                 disabled="#{mbProductoOld.mbProducto.producto.unidad.idUnidad==0 
+                                                             || mbProductoOld.mbProducto.producto.unidad.idUnidad==1}"
+                                                 value="#{mbProductoOld.mbProducto.producto.contenido}" >
+                                        <f:convertNumber maxIntegerDigits="3" maxFractionDigits="3" pattern="##0.###" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="unimed" value="U. MEDIDA :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="unimed" value="#{mbProductoOld.mbProducto.producto.unidadMedida}" 
+                                                     disabled="#{mbProductoOld.mbProducto.producto.unidad.idUnidad==0 
+                                                                 || mbProductoOld.mbProducto.producto.unidad.idUnidad==1}" >
+                                        <f:converter converterId="converters.UnidadMedida" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.listaUnidadesMedida}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="impuesto" value="IMPUESTO :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="impuesto" value="#{mbProductoOld.mbProducto.producto.impuesto}" >
+                                        <f:converter converterId="converters.ImpuestoGrupo" />
+                                        <f:selectItems value="#{mbProductoOld.mbProducto.mbImpuesto.mbGrupos.listaGrupos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" >
+                                        <p:commandButton id="nuevoProducto" value="Nuevo" process="@this mttoProducto"
+                                                         actionListener="#{mbProductoOld.mbProducto.nuevo()}" 
+                                                         update="messages mttoProducto" />
+                                        <p:commandButton id="grabarProducto" value="Grabar" process="@this mttoProducto"
+                                                         actionListener="#{mbProductoOld.grabarProducto()}" 
+                                                         update="messages mttoProducto mttoEmpaques" 
+                                                         oncomplete="handleProducto(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE UPC" widgetVar="mttoUpcDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages3" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoUpc" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUpc" value="DESCRIPCION :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUpc" readonly="#{mbProductoOld.mbProducto.mbUpc.upc.idUpc!=0}"
+                                                 value="#{mbProductoOld.mbProducto.mbUpc.upc.upc}" maxlength="13" size="15" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarUpc" value="Agregar" disabled="#{mbProductoOld.mbProducto.mbUpc.upc.idUpc!=0}"
+                                                         process="@this txtUpc" actionListener="#{mbProductoOld.agregarProductoUpc()}"
+                                                         update="upc codBar" oncomplete="handleUpc(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarUpc" value="Eliminar" disabled="#{mbProductoOld.mbProducto.mbUpc.upc.idUpc==0}" 
+                                                         process="@this" actionListener="#{mbProductoOld.eliminarProductoUpc()}" 
+                                                         update="upc codBar" oncomplete="handleUpc(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE GRUPOS" widgetVar="mttoGruposDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages7" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoGrupos" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtCodigoGrupo" value="CODIGO :" style="font-weight: bold; color: red; width: 80px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtCodigoGrupo" required="true" requiredMessage="Se requiere un entero"
+                                                 readonly="#{mbProductoOld.mbProducto.mbGrupo.grupo.idGrupo!=0}"
+                                                 value="#{mbProductoOld.mbProducto.mbGrupo.grupo.codigo}" maxlength="3" size="5" >
+                                        <f:convertNumber maxFractionDigits="0" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtGrupo" value="GRUPO :" style="font-weight: bold; color: red; width: 80px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtGrupo" required="true" requiredMessage="Se requiere la descripcion del grupo"
+                                                 value="#{mbProductoOld.mbProducto.mbGrupo.grupo.grupo}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarGrupo" value="Grabar" process="@this txtGrupo" 
+                                                         actionListener="#{mbProductoOld.mbProducto.grabarGrupo()}"
+                                                         update="grupo subGrupo btnMttoSubGrupos" oncomplete="handleGrupo(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarGrupo" value="Eliminar" process="@this" 
+                                                         disabled="#{mbProductoOld.mbProducto.mbGrupo.grupo.idGrupo==0}" 
+                                                         actionListener="#{mbProductoOld.mbProducto.eliminarGrupo()}"
+                                                         update="grupo subGrupo btnMttoSubGrupos" oncomplete="handleGrupo(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE SUBGRUPOS" widgetVar="mttoSubGruposDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages8" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoSubGrupos" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtSubGrupo" value="SUBGRUPO :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtSubGrupo" value="#{mbProductoOld.mbProducto.mbSubGrupo.subGrupo.subGrupo}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarSubGrupo" value="Grabar" process="@this txtSubGrupo" 
+                                                         actionListener="#{mbProductoOld.mbProducto.grabarSubGrupo()}"
+                                                         update="subGrupo" oncomplete="handleSubGrupo(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarSubGrupo" value="Eliminar" process="@this" 
+                                                         disabled="#{mbProductoOld.mbProducto.mbSubGrupo.subGrupo.idSubGrupo==0}" 
+                                                         actionListener="#{mbProductoOld.mbProducto.eliminarSubGrupo()}"
+                                                         update="subGrupo" oncomplete="handleSubGrupo(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE MARCAS" widgetVar="mttoMarcasDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages5" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoMarcas" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="fabricante" value="FABRICANTE :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="fabricante" value="#{mbProductoOld.mbProducto.mbMarca.strFabricante}" 
+                                                      disabled="#{mbProductoOld.mbProducto.mbMarca.marca.idMarca>0}"
+                                                      style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="La Anita" itemValue="1" />
+                                        <f:selectItem itemLabel="Externo " itemValue="2" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtMarca" value="MARCA :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtMarca" value="#{mbProductoOld.mbProducto.mbMarca.marca.marca}" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarMarca" value="Grabar" 
+                                                         process="@this fabricante txtMarca" actionListener="#{mbProductoOld.mbProducto.grabarMarca()}" 
+                                                         update="marca" oncomplete="handleMarca(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarMarca" value="Eliminar" 
+                                                         disabled="#{mbProductoOld.mbProducto.mbMarca.marca.idMarca==0}"
+                                                         process="@this" actionListener="#{mbProductoOld.mbProducto.eliminarMarca()}" 
+                                                         update="marca" oncomplete="handleMarca(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE EMPAQUES" widgetVar="mttoUnidadesProductoDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages9" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoUnidadesProducto" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadProducto" value="EMPAQUE :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadProducto" value="#{mbProductoOld.mbProducto.mbUnidadProducto.unidad.unidad}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadProductoAbrev" value="EMPAQUE :" style="font-weight: bold; color: red; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadProductoAbrev" value="#{mbProductoOld.mbProducto.mbUnidadProducto.unidad.abreviatura}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarUnidadProducto" value="Grabar" 
+                                                         process="@this txtUnidadProducto txtUnidadProductoAbrev" 
+                                                         actionListener="#{mbProductoOld.mbProducto.grabarUnidadProducto()}"
+                                                         update="unidad contenido unimed" oncomplete="handleUnidadProducto(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarUnidadProducto" value="Eliminar" process="@this" 
+                                                         disabled="#{mbProductoOld.mbProducto.mbUnidadProducto.unidad.idUnidad==0}" 
+                                                         actionListener="#{mbProductoOld.mbProducto.eliminarUnidadProducto()}"
+                                                         update="unidad contenido unimed" oncomplete="handleUnidadProducto(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="LISTA DE EMPAQUES" widgetVar="verEmpaquesDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:dataTable id="verEmpaques" value="#{mbProductoOld.mbEmpaque.empaques}" 
+                                     var="epq" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{epq.idEmpaque}" selectionMode="single" selection="#{mbProductoOld.mbEmpaque.selEpq}" >
+                            <p:ajax event="rowSelect" update="btnSelEmpaque" />
+                            
+                            <f:facet name="header">  
+                                Seleccione un empaque
+                            </f:facet>
+                            
+                            <p:column id="epqSku" headerText="SKU" >
+                                <h:outputText value="#{epq.cod_pro}" />
+                            </p:column>
+                            <p:column id="epqProducto" headerText="PRODUCTO" >
+                                <h:outputText value="#{epq.toString()}" />
+                            </p:column>
+                            
+                            <f:facet name="footer" >
+                                <p:commandButton id="btnSelEmpaque" value="VER EMPAQUES" 
+                                                 disabled="#{mbProductoOld.mbEmpaque.selEpq==null}"
+                                                 process="@this" actionListener="#{mbProductoOld.mbEmpaque.actualizarEmpaque()}" 
+                                                 update=":main:mttoEmpaques" oncomplete="verEmpaquesDlg.hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="messages4" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbProductoOld.mbBuscarProd.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="UPC" itemValue="1" />
+                                        <f:selectItem itemLabel="Parte" itemValue="2" />
+                                        <p:ajax listener="#{mbProductoOld.mbBuscarProd.verCambio()}" update="buscarProductos listaProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbProductoOld.mbBuscarProd.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionUPC" value="#{mbProductoOld.mbBuscarProd.strBuscar}" maxlength="13" size="15" />
+                                    <p:commandButton id="btnBuscarUPC" value="Buscar" 
+                                                     process="@this opcionUPC" actionListener="#{mbProductoOld.buscar()}" 
+                                                     update=":main:mttoEmpaques" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbProductoOld.mbBuscarProd.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbProductoOld.mbBuscarProd.parte}" maxlength="50" size="30"
+                                                    completeMethod="#{mbProductoOld.mbBuscarProd.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.ParteBuscar" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" value="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbProductoOld.buscar()}" 
+                                                     update="listaProductos" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaProductos" value="#{mbProductoOld.mbBuscarProd.productos}" 
+                                     filteredValue="#{mbProductoOld.mbBuscarProd.filtrados}"
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbProductoOld.mbBuscarProd.prodStr}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+                            
+                            <f:facet name="header">  
+                                Seleccione un producto  
+                            </f:facet>
+                            
+                            <p:column id="idListaTipos" headerText="Tipo Inventario" style="width: 150px;" 
+                                      filterBy="#{prod.tipo}" filterOptions="#{mbProductoOld.mbBuscarProd.arrayTipos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.tipo}" />
+                            </p:column>
+                            
+                            <p:column id="idListaGrupos" headerText="Grupo" style="width: 150px;" 
+                                      filterBy="#{prod.grupo}" filterOptions="#{mbProductoOld.mbBuscarProd.arrayGrupos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.grupo}" />
+                            </p:column>
+                            
+                            <p:column id="idListaSubGrupos" headerText="SubGrupo" style="width: 150px;" 
+                                      filterBy="#{prod.subGrupo}" filterOptions="#{mbProductoOld.mbBuscarProd.arraySubGrupos}" filterMatchMode="exact" >
+                                <h:outputText value="#{prod.subGrupo}" />
+                            </p:column>
+                            
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.producto}" />
+                            </p:column>
+
+                            <f:facet name="footer">  
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbProductoOld.mbBuscarProd.prodStr==null}"
+                                                 actionListener="#{mbProductoOld.actualizaProductoSeleccionado()}"
+                                                 update=":main:mttoEmpaques" oncomplete="buscarProductoDlg.hide()" />  
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleUnidadProducto(xhr, status, args) {
+                        if(args.validationFailed || !args.okUnidadProducto) {
+                            mttoUnidadesProductoDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoUnidadesProductoDlg.hide();
+                        }
+                    }
+                    
+                    function handleSubGrupo(xhr, status, args) {
+                        if(args.validationFailed || !args.okSubGrupo) {
+                            mttoSubGruposDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoSubGruposDlg.hide();
+                        }
+                    }
+                    
+                    function handleGrupo(xhr, status, args) {
+                        if(args.validationFailed || !args.okGrupo) {
+                            mttoGruposDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoGruposDlg.hide();
+                        }
+                    }
+                    
+                    function handleUnidadEmpaque(xhr, status, args) {
+                        if(args.validationFailed || !args.okUnidadEmpaque) {
+                            mttoUnidadesEmpaqueDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoUnidadesEmpaqueDlg.hide();
+                        }
+                    }
+                    
+                    function handleMarca(xhr, status, args) {
+                        if(args.validationFailed || !args.okMarca) {
+                            mttoMarcasDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoMarcasDlg.hide();
+                        }
+                    }
+                    
+                    function handleBuscar(xhr, status, args) {
+                        if(!(args.validationFailed || !args.okBuscar)) {
+                            buscarProductoDlg.hide();
+                        }
+                    }
+                    
+                    function handleProducto(xhr, status, args) {
+                        if(args.validationFailed || !args.okProducto) {
+                            mttoProductoDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoProductoDlg.hide();
+                        }
+                    }
+                    
+                    function handleUpc(xhr, status, args) {
+                        if(args.validationFailed || !args.okUpc) {
+                            mttoUpcDlg.jq.effect("shake", { times: 5}, 100);
+                        } else {
+                            mttoUpcDlg.hide();
+                        }
+                    }
+                    /*
+                    function handleVerEmpaques(xhr, status, args) {
+                        if(!(args.validationFailed || !args.okEmpaque)) {
+                            verEmpaquesDlg.show();
+                        }
+                    }
+                    */
+                </script>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

@@ -1,0 +1,699 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Menu de Ordenes de Compra</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputScript library="js" name="lenguaje.js" />
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <h:form id="form" >
+                    <div align="right">
+
+                        <p:commandButton 
+                            icon="ui-icon-plus"
+                            title="Crear orden de compra directa"
+                            oncomplete="odecD.show();"   
+
+                            />
+                        <p:commandButton 
+                            icon="ui-icon-note"
+                            title="ir a Menú a Cotizaciones"
+                            action="menuCotizaciones.xhtml"
+
+                            />
+                        <p:commandButton id="salir"
+                                         icon="ui-icon-arrowreturnthick-1-w"
+                                         title="Salir de Listado de Requisiciones"
+                                         action="index.xhtml"
+
+                                         />
+                    </div>
+
+                    <!-- P A N E L   D E  A D M I N I S T R A C I O N... -->
+                    <p:panel header="PANEL DE ADMINISTRACION DE ORDENES DE COMPRA" styleClass="quitaCuadro"  >
+                        <h:outputText value="No hay ORDENES DE COMPRA que mostrar !!" rendered="#{empty mbOrdenCompra.listaOrdenesEncabezado}" />
+                        <p:dataTable id="ordenCompra"
+                                     value="#{mbOrdenCompra.listaOrdenesEncabezado}"
+                                     var="oc"
+                                     rowKey="#{oc}"
+                                     selectionMode="single"
+                                     selection="#{mbOrdenCompra.ordenElegida}"
+                                     >
+                            <p:ajax event="rowSelect" 
+                                    listener="#{mbOrdenCompra.dameOrdenCompra}"   
+                                    oncomplete="odec.show()" 
+                                    update=":form:dialogoOC :form:OCDetalle"
+                                    process="@this"
+                                    > 
+                            </p:ajax>
+                            <p:column sortBy="#{oc.idOrdenCompra}" filterBy="#{oc.idOrdenCompra}" headerText="OC" filterMatchMode="contains" width="30"  >
+                                <h:outputText value="#{oc.idOrdenCompra}"   />
+                            </p:column>
+                            <p:column sortBy="#{oc.idCotizacion}" filterBy="#{oc.idCotizacion}" headerText="COT" filterMatchMode="contains" width="30"  >
+                                <h:outputText value="#{oc.idCotizacion}"   />
+                            </p:column>
+                            <p:column sortBy="#{oc.idRequisicion}" filterBy="#{oc.idRequisicion}" headerText="REQ" filterMatchMode="contains" width="30"  >
+                                <h:outputText value="#{oc.idRequisicion}"   />
+                            </p:column>
+                            <p:column headerText="Empresa" >
+                                <h:outputText value="#{oc.empresa.empresa}"   />
+                            </p:column>
+                            <p:column headerText="Proveedor">
+                                <h:outputText value="#{oc.proveedor.contribuyente}"    />
+                            </p:column>
+                            <p:column headerText="F. Finaliz">
+                                <h:outputText value="#{oc.fechaFinalizacion}"    />
+                            </p:column>
+                            <p:column headerText="F. Puesta">
+                                <h:outputText value="#{oc.fechaPuesta}"    />
+                            </p:column>
+                            <p:column headerText="F. Entrega">
+                                <h:outputText value="#{oc.fechaEntrega}"    />
+                            </p:column>
+                            <p:column headerText="Status">
+                                <h:outputText value="#{oc.status}"    />
+                            </p:column>
+
+                        </p:dataTable>
+                    </p:panel>
+
+                    <!-- ORDENES QUE SIGUE EN EL PROCESO REQUISICION, COTIZACION Y ORDEN DE COMPRA -->
+                    <p:dialog widgetVar="odec" width="950" header="MANTENIMIENTO DE ORDEN DE COMPRA" id="dialogoOC" modal="true">
+                        <p:toolbar  id="tb" style="width: 900px; height: auto; margin:0 auto; " >  
+                            <p:toolbarGroup id="toolbar" align="right">  
+                                <p:commandButton
+                                    icon="ui-icon-disk"
+                                    title="Guardar orden de compra"
+                                    actionListener="#{mbOrdenCompra.guardarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,mbOrdenCompra.ordenElegida.estado)}"
+                                    oncomplete="odec.hide()"
+                                    disabled="#{mbOrdenCompra.ordenElegida.estado eq 2 }"
+                                    update=":form:ordenCompra"
+                                    />
+                                <p:commandButton
+                                    icon="ui-icon-cancel"
+                                    title="Cancelar orden de compra"
+                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,0)}"
+                                    update=":form:ordenCompra"
+                                    />
+                                <p:separator />
+
+                                <p:commandButton
+                                    icon="ui-icon-mail-closed"
+                                    title="Enviar orden de compra"
+                                    disabled="#{mbOrdenCompra.ordenElegida.estado eq 1 }"
+                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
+                                    oncomplete="correo.show();"
+                                    update=":form:para :form:asunto :form:mensaje :form:tablaCorreos" />
+
+                                <p:commandButton
+                                    icon="ui-icon-print"
+                                    title="Imprimir orden de compra"
+                                    actionListener="#{mbOrdenCompra.generarReporte()}"
+                                    ajax="false"
+                                    disabled="#{mbOrdenCompra.ordenElegida.estado eq 1 }"
+                                    />
+
+                                <p:separator />
+
+                                <p:commandButton id="salirOC"
+                                                 icon="ui-icon-arrowreturnthick-1-w"
+                                                 title="Ir al menu principal"
+                                                 action="index.xhtml"
+                                                 ajax="false"
+                                                 />
+                            </p:toolbarGroup>  
+                        </p:toolbar>
+                        <p:separator style="width:900px;height:0.5px" />
+                        <p:panelGrid id="OCEncabezado" style="width: 900px; height: auto; margin:0 auto; "  >
+                            <p:row>
+                                <p:column      >
+                                    <h:outputLabel value="Orden de Compra: " style=" color: red; text-align: right;"/> 
+                                </p:column>
+                                <p:column     >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.idOrdenCompra}" style="color: black; " />
+                                </p:column>
+                                <p:column   >
+                                    <h:outputLabel value="Fechas: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel value="Emision: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.fechaCreacion}" style="color: black; font-size: 10px;" />
+                                </p:column>
+
+                                <p:column    >
+                                    <h:outputLabel value="Entrega: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.fechaEntrega}" style="color: black; font-size: 10px;"/>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column    >
+                                    <h:outputLabel value="Empresa: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.nombreComercial}" style="color: black; font-size: 10px;" /> 
+                                </p:column>
+                                <p:column     >
+                                    <h:outputLabel value="Dirección entrega: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column    colspan="4" >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.empresa.direccion.toString()}" 
+                                                    style="color: black; font-size: 10px;"/> 
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column    rowspan="2" >
+                                    <h:outputLabel value="Proveedor: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column    rowspan="2" >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.proveedor.contribuyente.contribuyente}" style="color: black; font-size: 10px; "  />
+                                </p:column>
+                                <p:column   >
+                                    <h:outputLabel value="Dirección: " styleClass="textoEtiquetas"    /> 
+                                </p:column>
+                                <p:column   colspan="4">
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.proveedor.direccionFiscal.referencia}"
+                                                    style="color: black; font-size: 10px;" /> 
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column   >
+                                    <h:outputLabel value="Descuentos: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column     >
+                                    <h:outputLabel value="Comercial (%): " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column     >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.desctoComercial}" style="color: black; font-size: 10px;"  />
+                                </p:column>
+                                <p:column   >
+                                    <h:outputLabel value="Pronto Pago (%): " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegida.desctoProntoPago}" style="color: black; font-size: 10px;"  />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:separator style="width:900px;height:0.5px" />
+                        <p:dataTable id="OCDetalle"
+                                     scrollable="true" scrollHeight="200" style="width: 900px; margin:0 auto; font-size: 12px;" styleClass="sinBorde"
+                                     value="#{mbOrdenCompra.listaOrdenDetalle}"
+                                     var="det"
+
+                                     >
+                            <p:column headerText="Producto" width="300" >
+                                #{det.producto.toString()}
+                            </p:column>
+                            <p:column headerText="Cant. Ord." width="60" styleClass="alineacionD" >
+                                #{det.cantOrdenada}
+                            </p:column>
+                            <p:column headerText="Nueva Cant." width="60" styleClass="alineacionD" >
+                                <pe:inputNumber  value="#{det.cantidadSolicitada}"  id="ordenada"  
+                                                 decimalPlaces="3"  minValue="0"
+                                                 disabled="#{mbOrdenCompra.ordenElegida.estado eq 2 }"
+                                                 >
+                                    <p:ajax event="change" 
+                                            listener="#{mbOrdenCompra.calculosOrdenCompra(det.producto.idProducto)}"
+                                            process="@this"
+                                            update=":form:OCDetalle :form:pie"
+                                            />
+                                </pe:inputNumber>
+                            </p:column>
+                            <p:column headerText="Costo Cot." width="60" styleClass="alineacionD">  
+                                #{det.costoOrdenadoF}  
+                            </p:column> 
+                            <p:column headerText="1 Desc.(%)" width="50" styleClass="alineacionD">  
+                                #{det.descuentoProducto}  
+                            </p:column>
+                            <p:column headerText="2 Desc.(%)" width="50" styleClass="alineacionD">  
+                                #{det.descuentoProducto2}  
+                            </p:column>
+
+                            <p:column headerText="Subtotal" width="80" styleClass="alineacionD">  
+                                <h:outputText value="#{det.subtotal}" id="subtotal" >
+                                    <f:convertNumber type="currency" locale="en-US"   />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+
+                        <p:panelGrid id="pie" >
+                            <p:row >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Importe :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                    <h:outputText value="#{mbOrdenCompra.subtotF}" id="general" style="color: black;" >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 250px;" >Total de descuentos :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 100px;" >
+                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosGeneralesF}" id="sumaDescuentosTotales" style="color: black;" >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 250px;" >Por Productos :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width:100px;" >
+                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosProductosF}" id="sumaDescuentosProductos" style="color: black;" >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+
+
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" >Comercial+Pronto Pago :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosTotalesF}" id="descuentoGeneralAplicado" style="color: black;" >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+
+
+                            </p:row>
+                            <p:row >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Subtotal :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                    <h:outputText value="#{mbOrdenCompra.subtotalBrutoF}"  id="subtotalBruto" style="color: black;" >
+
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+
+                            <p:row >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5">Impuestos :</p:column>
+                                <p:column  styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                    <h:outputText value="#{mbOrdenCompra.impF}"  id="impuesto"  style="color: black;"  >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Total :</p:column>
+                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                    <h:outputText value="#{mbOrdenCompra.totalF}"  id="total" style="color: black;" >
+                                        <f:convertNumber type="currency" locale="en-US"   />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                    </p:dialog>
+
+
+                    <!-- ///////////////////////////////////////////    D I  R E C T A S   ////////////////////////////////////////////////////              -->
+
+
+                    <p:dialog widgetVar="odecD" width="950" header="MANTENIMIENTO ORDENES DE COMPRA DIRECTAS" id="dialogoOCD" modal="true">
+                        <p:messages id="mensajeProducto" showDetail="true" autoUpdate="true" closable="true" showSummary="false" />  
+                        <p:ajax event="close" 
+                                listener="#{mbOrdenCompra.handleClose()}"
+                                process="@this"
+                                update=":form:empresaD :form:proveedorD :form:monedaD :form:dirEmpD :form:dirProvD :form:fEmision :form:fEntrega :form:dcD :form:ppD"/> 
+                        <p:panelGrid id="encabezadoOCD" style="width: 900px; height: auto; margin:0 auto; "  >
+                            <p:row>
+                                <p:column    >
+                                    <h:outputLabel value="Empresa: " styleClass="textoEtiquetas"/>
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel   styleClass="textoContenido" />
+                                    <p:selectOneMenu id="empresaD" value="#{mbOrdenCompra.mbEmpresas.empresa}" style="width: 250px;" >
+                                        <f:converter converterId="converters.Empresa" />
+                                        <f:selectItems value="#{mbOrdenCompra.mbEmpresas.listaObtenerEmpresas}" />
+                                        <p:ajax event="change"
+                                                update=":form:dirEmpD"/>
+                                    </p:selectOneMenu><br></br>
+                                    <p:inplace id="verDireccionEmpresa" label="Ver direccion empresa"  editor="true" >  
+                                        <h:outputLabel id="dirEmpD" value="#{mbOrdenCompra.mbEmpresas.empresa.direccion.toString()}"    />  
+                                    </p:inplace> 
+                                </p:column>
+
+                                <p:column    >
+                                    <h:outputLabel  value="Emision: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column      >
+                                    <p:calendar id="fEmision"  
+                                                value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEmisionDirectas}" maxlength="8" size="10" style="width: 70px;">
+                                    </p:calendar>
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="Entrega: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column    >
+                                    <p:column     >
+                                        <p:calendar id="fEntrega"  
+                                                    value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEntregaDirectas}" maxlength="8" size="10" style="width: 70px;">
+                                            <p:ajax event="dateSelect"
+                                                    process="@this fEmision"
+                                                    listener="#{mbOrdenCompra.validarRangoFechas()}"/>
+                                        </p:calendar>
+                                    </p:column>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column    rowspan="2"  >
+                                    <h:outputLabel value="Proveedor: " styleClass="textoEtiquetas"  /> 
+                                </p:column>
+                                <p:column    rowspan="2"  >
+                                    <h:outputLabel   styleClass="textoContenido"  />
+                                    <p:selectOneMenu id="proveedorD"  value="#{mbOrdenCompra.mbProveedores.miniProveedor}" filter="true" filterMatchMode="contains" style="width: 250px;"  >
+                                        <f:converter converterId="converters.miniProveedor" />
+                                        <f:selectItems value="#{mbOrdenCompra.mbProveedores.listaMiniProveedores}"  />
+                                        <p:ajax event="change"
+                                                listener="#{mbOrdenCompra.cargaDatosProveedor()}"
+                                                update=":form:dirProvD :form:dcD :form:ppD"
+                                                />
+                                    </p:selectOneMenu><br></br>
+                                    <p:inplace id="verDireccionProveedor" label="Ver Direccion"  editor="true" >  
+                                        <h:outputLabel id="dirProvD" value="#{mbOrdenCompra.provee.direccionEntrega.referencia}"    />  
+                                    </p:inplace> 
+                                </p:column>
+                                <p:column     >
+                                    <h:outputLabel value="Comercial (%): " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column   >
+                                    <h:outputLabel  id="dcD" value="#{mbOrdenCompra.provee.desctoComercial} " styleClass="textoContenido"  />
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel  value="Pronto Pago (%): " styleClass="textoEtiquetas"  /> 
+                                </p:column>
+                                <p:column    >
+                                    <h:outputLabel id="ppD"  value="#{mbOrdenCompra.provee.desctoProntoPago} " styleClass="textoContenido"  />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column    >
+                                    <h:outputLabel  value="Moneda: " styleClass="textoEtiquetas"  /> 
+                                </p:column>
+                                <p:column    colspan="3" >
+                                    <p:selectOneMenu id="monedaD" value="#{mbOrdenCompra.mbMonedas.moneda}" style="width: 180px;"  >
+                                        <f:converter converterId="converters.Moneda" />
+                                        <f:selectItems value="#{mbOrdenCompra.mbMonedas.listaMonedas}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+
+                        <p:toolbar  id="tbD" style="width: 900px; height: auto; margin:0 auto; " >  
+                            <p:toolbarGroup id="toolbarD" align="right">  
+                                <p:commandButton
+                                    icon="ui-icon-search"
+                                    title="Buscar Productos"
+                                    process="@this"
+                                    actionListener="#{mbOrdenCompra.limpiarCamposBusqueda()}"
+                                    oncomplete="buscarProductoDlg.show()"
+                                    update=":form:buscarProductos :form:opcionParte :form:opcionDescripcion"
+                                    />
+                                <p:commandButton
+                                    icon="ui-icon-trash"
+                                    title="Eliminar empaque de la orden de compra directa"
+                                    actionListener="#{mbOrdenCompra.eliminarEmpaqueSeleccionado()}"
+                                    update=":form:detalleOCD :form:buscarProductos"
+                                    />
+                                <p:commandButton
+                                    icon="ui-icon-clear"
+                                    title="Limpiar formulario de orden de compra directa"
+
+                                    update=":form:detalleOCD :form:encabezadoOCD "
+                                    />
+                                <p:separator />
+                                <p:commandButton
+                                    icon="ui-icon-disk"
+                                    title="Guardar orden de compra directa"
+                                    oncomplete="odecD.hide()"
+                                    />
+                                <p:commandButton
+                                    icon="ui-icon-cancel"
+                                    title="Cancelar orden de compra directa"
+                                    />
+                                <p:separator />
+
+                                <p:commandButton
+                                    icon="ui-icon-mail-closed"
+                                    title="Enviar orden de compra directa"
+                                    />
+
+                                <p:commandButton
+                                    icon="ui-icon-print"
+                                    title="Imprimir orden de compra directa"
+                                    />
+
+                                <p:separator />
+
+                                <p:commandButton id="salirOCD"
+                                                 icon="ui-icon-arrowreturnthick-1-w"
+                                                 title="Ir al menu principal"
+                                                 update=":form:empresaD :form:proveedorD"
+                                                 />
+                            </p:toolbarGroup>  
+                        </p:toolbar>
+                        <p:dataTable id="detalleOCD" style="width: 900px"
+
+                                     value="#{mbOrdenCompra.listaEmpaque}"
+                                     var="detD" rowKey="#{detD.idProducto}"
+                                     selectionMode="single" 
+                                     selection="#{mbOrdenCompra.empaque}"
+                                     scrollable="true"
+                                     scrollHeight="300">
+                            <p:ajax event = "rowSelect"/>
+                            <p:column headerText="No." width="30">
+                            </p:column>
+                            <p:column headerText="Producto" width="200"  >
+                                #{detD.toString()}
+                            </p:column>
+                            <p:column headerText="Cant." width="60" styleClass="alineacionD" >
+                                <pe:inputNumber    id="cantD"  
+                                                   style="width: 60px"
+                                                   decimalPlaces="3"  minValue="0"
+                                                   >
+                                    <p:ajax event="change" 
+
+                                            process="@this"
+                                            update="detalleOCD"
+                                            />
+                                </pe:inputNumber>
+                            </p:column>
+                            <p:column headerText="Costo" styleClass="alineacionD" width="60"> 
+
+
+                            </p:column> 
+                            <p:column headerText="1 Descto(%)" styleClass="alineacionD" width="60">  
+
+                            </p:column>
+                            <p:column headerText="2 Descto(%)" styleClass="alineacionD" width="60">  
+
+                            </p:column>
+
+                            <p:column headerText="Subtotal" styleClass="alineacionD" width="60">  
+                                <h:outputText  id="subtotalD" >
+                                    <f:convertNumber type="currency" locale="en-US"   />
+                                </h:outputText>
+
+
+                            </p:column>
+
+
+                            <p:columnGroup type="footer" >  
+                                <p:row >
+                                    <p:column colspan="6"  style="text-align:right; font-size: 14px;" footerText="Importe:" />
+                                    <p:column colspan="6"  id="generalD"   styleClass="alineacionD" width="60" />
+                                </p:row>
+                                <p:row>
+                                    <p:column colspan="2" style="text-align:right; background-color: whitesmoke; font-size: 14px; " footerText="Generales:"   />
+                                    <p:column    id="sumaDescuentosTotalesD"  styleClass="alineacionD" />
+
+                                    <p:column style="text-align:right; font-size: 14px;" footerText="Por Productos:"/>
+                                    <p:column  id="sumaDescuentosProductosD"  />
+
+                                    <p:column style="text-align:right; font-size: 14px;" footerText="Desc. Totales:"/>
+                                    <p:column  id="descuentoGeneralAplicadoD"  styleClass="alineacionD" width="60" />
+                                </p:row>
+                                <p:row>
+                                    <p:column colspan="6" style="text-align:right; font-size: 14px;" footerText="Subtotal:"/>
+                                    <p:column   id="subtotalBrutoD"  styleClass="alineacionD" width="60"/>
+                                </p:row>
+                                <p:row>
+                                    <p:column colspan="6" style="text-align:right; font-size: 14px;" footerText="IVA:"/>
+                                    <p:column  id="impuestoD"  styleClass="alineacionD" width="60"/>
+                                </p:row>
+                                <p:row>
+                                    <p:column colspan="6" style="text-align:right; font-size: 14px;" footerText="Total :"/>
+                                    <p:column   id="totalD"  styleClass="alineacionD" width="60">
+                                    </p:column>
+                                </p:row>
+                            </p:columnGroup> 
+                        </p:dataTable>
+                    </p:dialog>
+
+                    <!--  FORMULARIO DE ENVIO DE CORREO ///////////////////////////////////////////////////////////////////////////////////////////////////////  -->
+                    <p:dialog widgetVar="correo" width="900" header="Formulario de envio de correo" id="dialogoCorreo" modal="true">
+                        <p:messages id="messagePanel6" showDetail="true" closable="true" showSummary="false" autoUpdate="true" />
+                        <p:panelGrid id="formCorreo" style="width:850px; height: auto; margin:0 auto; "  >
+                            <p:row>
+                                <p:column   id="colPara"   >
+                                    <h:outputLabel value="Para: " styleClass="textoEtiquetas"/> 
+                                </p:column>
+                                <p:column     colspan="3" >
+                                    <p:inputText id="para"  value="#{mbOrdenCompra.correo.para}"  size="80" />
+                                </p:column>
+                                <p:column     >
+                                    <p:dataTable id="tablaCorreos"
+                                                 value="#{mbOrdenCompra.listaContactos}"
+                                                 var="co"
+                                                 rowKey="#{co.correo}"
+                                                 selection="#{mbOrdenCompra.contactoElegido}"
+                                                 selectionMode="single"
+                                                 emptyMessage="No tiene correo el proveedor..."
+                                                 >
+                                        <p:ajax event="rowSelect" 
+                                                listener="#{mbOrdenCompra.contactoSeleccion()}"
+                                                update=":form:para"
+                                                />
+                                        <p:column  headerText="#{mbOrdenCompra.ordenElegida.proveedor.contribuyente.contribuyente}"   >
+                                            <h:outputText value="#{co.correo}"   />
+                                        </p:column>
+                                    </p:dataTable>
+
+                                </p:column> 
+                            </p:row>
+                            <p:row>
+                                <p:column    >
+                                    <h:outputLabel value="Asunto: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column     colspan="3" >
+                                    <p:inputText id="asunto"  value="#{mbOrdenCompra.correo.asunto}"  size="80"  />
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column   rowspan="6">
+                                    <h:outputLabel value="Mensaje: " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column    colspan="3" >
+                                    <p:inputTextarea  id="mensaje"  value="#{mbOrdenCompra.correo.mensaje}"  autoResize="false" rows="10" cols="80"  />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:commandButton id="grabar" value="Enviar"  actionListener="#{mbOrdenCompra.enviarCorreo(mbOrdenCompra.correo.para)}" 
+                                         update="para asunto mensaje"
+                                         />
+                        <p:commandButton value="Cancelar"
+                                         actionListener="#{mbOrdenCompra.limpiarFormulario()}"
+                                         update="para asunto mensaje"
+                                         process="@this"/>
+                        <p:blockUI  block="formCorreo" trigger="grabar">
+                            <p:graphicImage value="/resources/images/big-roller.gif" />
+                        </p:blockUI>
+                    </p:dialog> 
+
+                    <!-- B U S C A D O R  DE  P R O D U C T O S... -->
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column colspan="6" >
+                                    <p:selectOneRadio id="opciones" value="#{mbOrdenCompra.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <f:selectItem itemLabel="Clasificacion" itemValue="4" />
+                                        <p:ajax listener="#{mbOrdenCompra.mbBuscar.verCambio()}" update="buscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column style="width: 70px;" >
+                                    <h:outputLabel value="BUSCAR :" style="font-weight: bold; color: red; width: 70px;" />
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbOrdenCompra.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbOrdenCompra.buscar()}" 
+                                                     update=":form:detalleOCD" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbOrdenCompra.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbOrdenCompra.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbOrdenCompra.buscar()}" 
+                                                     update=":form:multipleSelectProductos"  />
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbOrdenCompra.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbOrdenCompra.buscar()}" 
+                                                     update=":form:multipleSelectProductos" />
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:selectOneMenu id="grupo" value="#{mbOrdenCompra.mbBuscar.mbGrupo.grupo}" style="width: 250px;" >
+                                        <f:converter converterId="converters.Grupos" />
+                                        <f:selectItems value="#{mbOrdenCompra.mbBuscar.mbGrupo.listaGrupos}" />
+                                        <p:ajax event="change" listener="#{mbOrdenCompra.mbBuscar.mbGrupo.cargaListaSubGrupos()}" 
+                                                update="subGrupo" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:selectOneMenu id="subGrupo" value="#{mbOrdenCompra.mbBuscar.mbGrupo.mbSubGrupo.subGrupo}" style="width: 250px;" >
+                                        <f:converter converterId="converters.SubGrupos" />
+                                        <f:selectItems value="#{mbOrdenCompra.mbBuscar.mbGrupo.mbSubGrupo.listaSubGrupos}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column rendered="#{mbOrdenCompra.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:commandButton id="btnBuscarClasificacion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbOrdenCompra.buscar()}" 
+                                                     update=":form:multipleSelectProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="multipleSelectProductos" var="e" rowKey="#{e.cod_pro}"
+                                     value="#{mbOrdenCompra.mbBuscar.productos}" 
+                                     selection="#{mbOrdenCompra.mbBuscar.seleccionados}"  
+                                     scrollable="true"
+                                     scrollHeight="90px">
+                            <p:column selectionMode="multiple" style="width: 40px;" />
+                            <p:column headerText="SKU" style="width: 70px;" >
+                                <h:outputText value="#{e.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="Producto" style="width: 575px;" >
+                                <h:outputText value="#{e.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccionMultiple" value="Seleccionar" 
+                                                 update=":form:detalleOCD" oncomplete="buscarProductoDlg.hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+
+                    <script type="text/javascript">
+                        function handleBuscar(xhr, status, args) {
+                            if (!(args.validationFailed || !args.okBuscar)) {
+                                buscarProductoDlg.hide();
+                            }
+                        }
+                    </script>
+
+
+
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+       xmlns:ui="http://java.sun.com/jsf/facelets"
+       xmlns:h="http://java.sun.com/jsf/html"
+       xmlns:f="http://java.sun.com/jsf/core"
+       xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Mantenimiento de Impuestos</title>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" >
+                    <p:panel header="MANTENIMIENTO DE GRUPOS DE IMPUESTOS" style="width: 520px">
+                        <p:messages id="msgImpuestoDetalle" showDetail="true" closable="true" />
+                        <p:panelGrid style="width: 500px;" >
+                            <f:facet name="header" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton id="btnSalir" title="Salir" icon="ui-icon-home" 
+                                                         immediate="true" ajax="false" action="#{mbDetalle.salir()}" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                            <p:row >
+                                <p:column width="80px;" >
+                                    <h:outputLabel for="zona" value="ZONA :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="zona" value="#{mbDetalle.zona}" style="width: 290px;" >
+                                        <f:converter converterId="converters.ImpuestoZona" />
+                                        <f:selectItems value="#{mbDetalle.mbZonas.listaZonas}" />
+                                        <p:ajax event="change" listener="#{mbDetalle.cambiarZona()}" 
+                                                update="msgImpuestoDetalle periodos tablaImpuestosDetalle btnGrupo" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnZona" title="Mtto.Zonas" icon="ui-icon-pencil" 
+                                                     process="@this" actionListener="#{mbDetalle.mttoZonas()}" 
+                                                     update="mttoZonas btnNuevoPeriodo btnEliminarPeriodo" 
+                                                     oncomplete="PF('mttoZonasDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="grupo" value="GRUPO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="grupo" value="#{mbDetalle.grupo}" style="width: 290px;" >
+                                        <f:converter converterId="converters.ImpuestoGrupo" />
+                                        <f:selectItems value="#{mbDetalle.mbGrupos.listaGrupos}" />
+                                        <p:ajax event="change" listener="#{mbDetalle.cambiarGrupo()}" 
+                                                update="msgImpuestoDetalle periodos tablaImpuestosDetalle btnGrupo" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnGrupo" title="Mtto.Grupos" icon="ui-icon-pencil"
+                                                     process="@this" actionListener="#{mbDetalle.mttoGrupos()}" 
+                                                     update="mttoGrupos btnNuevoPeriodo btnEliminarPeriodo" 
+                                                     oncomplete="PF('mttoGruposDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="periodos" value="PERIODO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="periodos" style="background-color: #ccc" value="#{mbDetalle.periodo}"
+                                                      valueChangeListener="#{mbDetalle.cambiarPeriodo}" >
+                                        <f:selectItem itemLabel="Actual" itemValue="1" />
+                                        <f:selectItem itemLabel="Siguiente" itemValue="2" />
+                                        <p:ajax event="valueChange" immediate="true" 
+                                                process="@this" update="msgImpuestoDetalle tablaImpuestosDetalle btnGrupo btnNuevoPeriodo btnEliminarPeriodo" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnNuevoPeriodo" title="Nuevo" icon="ui-icon-document"
+                                                     disabled="#{mbDetalle.periodo==null || mbDetalle.periodo=='1' || mbDetalle.detalles.size()!=0}"
+                                                     process="@this" actionListener="#{mbDetalle.crearPeriodo()}" 
+                                                     update="@this msgImpuestoDetalle tablaImpuestosDetalle btnEliminarPeriodo" />
+                                    <p:commandButton id="btnEliminarPeriodo" title="Eliminar" icon="ui-icon-trash"
+                                                     disabled="#{mbDetalle.periodo==null || mbDetalle.periodo=='1' || mbDetalle.detalles.size()==0}"
+                                                     process="@this" actionListener="#{mbDetalle.eliminarPeriodo()}" 
+                                                     update="@this msgImpuestoDetalle tablaImpuestosDetalle btnNuevoPeriodo" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="3" >
+                                    <p:dataTable id="tablaImpuestosDetalle" widgetVar="tablaDetalle" var="impDet" value="#{mbDetalle.detalles}" 
+                                                 rowKey="#{impDet.impuesto}" selection="#{mbDetalle.detalle}" selectionMode="single" >
+                                        <p:ajax event="rowSelect" update="btnEditImpuesto" />
+                                        <p:column headerText="Impuesto" >
+                                            <h:outputText value="#{impDet.impuesto.toString()}" />
+                                        </p:column>
+                                        <p:column headerText="Inicia" width="60px;" >
+                                            <h:outputText value="#{impDet.fechaInicial}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Termina" width="60px;" >
+                                            <h:outputText value="#{impDet.fechaFinal}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Valor" width="30px;" style="text-align: right;" >
+                                            <h:outputText value="#{(impDet.impuesto.aplicable?impDet.valor:'------')}" />
+                                        </p:column>
+                                        <f:facet name="footer" >
+                                            <div style="text-align: right;" >
+                                                <p:commandButton id="btnEditImpuesto" title="Editar" icon="ui-icon-pencil" 
+                                                                 disabled="#{mbDetalle.periodo==null || mbDetalle.detalle==null}"
+                                                                 process="@this" actionListener="#{mbDetalle.mttoDetalle()}" 
+                                                                 update=":main:mttoDetalle" oncomplete="PF('mttoDetalleDlg').show();" />
+                                            </div>
+                                        </f:facet>
+                                    </p:dataTable>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="MANTENIMIENTO DE IMPUESTOS" widgetVar="mttoDetalleDlg" resizable="false" style="width: 750px;" modal="true" >
+                        <p:messages id="msgDetalle" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoDetalle" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="lblDetalle" value="IMPUESTO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="lblDetalle" value="#{mbDetalle.detalle.impuesto.toString()}" maxlength="50" size="50" readonly="true" />
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{mbDetalle.detalle.impuesto.aplicable}" >
+                                <p:column >
+                                    <h:outputLabel for="valor" value="VALOR :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column colspan="2" >#{mbDetalle.detalle.impuesto.modo==1?'':'$'}
+                                    <p:inputText id="valor" value="#{mbDetalle.detalle.valor}"
+                                                 readonly="#{mbDetalle.periodo=='1'}" 
+                                                 maxlength="9" size="10" />
+                                    #{mbDetalle.detalle.impuesto.modo=='1'?'%':''}
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="fecIni" value="FECHA INICIAL :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="fecIni" value="#{mbDetalle.detalle.fechaInicial}" 
+                                                 readonly="#{(mbDetalle.periodo=='1') || (mbDetalle.periodo=='2' and mbDetalle.soloLectura)}" 
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="fecFin" value="FECHA FINAL :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="fecFin" value="#{mbDetalle.detalle.fechaFinal}" 
+                                                 readonly="#{(mbDetalle.periodo=='1' and mbDetalle.soloLectura)}" 
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                    <p:commandButton id="btnGrabarDetalle" title="Grabar" icon="ui-icon-disk" 
+                                                     disabled="#{mbDetalle.detalle==null || (mbDetalle.periodo=='1' and mbDetalle.soloLectura)}"
+                                                     process="@this valor fecIni fecFin" actionListener="#{mbDetalle.grabar()}" 
+                                                     update=":main:tablaImpuestosDetalle" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE IMPUESTOS" widgetVar="mttoImpuestosDlg" resizable="false" style="width: 700px;" modal="true" >
+                        <p:messages id="msgImpuestos" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:ajax event="close" listener="#{mbDetalle.mttoGrupos()}" update=":main:mttoGrupos" />
+                        <p:panelGrid id="mttoImpuestos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column colspan="2" >
+                                    <p:dataTable id="tablaImpuestos" var="imp" value="#{mbDetalle.mbGrupos.impuestos}" style="width: 550px;" 
+                                                 rowKey="#{imp.idImpuesto}" selection="#{mbDetalle.mbGrupos.impuesto}" selectionMode="single" >
+                                        <p:ajax event="rowSelect" listener="#{mbDetalle.mbGrupos.actualizarString()}" 
+                                                update=":main:txtImpuesto :main:txtAplicable :main:txtModo :main:txtAcreditable :main:txtAcumulable" />
+                                        
+                                        <p:column headerText="Impuesto" style="width: 150px;" >
+                                            <h:outputText value="#{imp.impuesto}" />
+                                        </p:column>
+                                        <p:column headerText="Aplicacion" style="width: 350px;" >
+                                            <h:outputText value="#{imp.aplicacion()}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column style="width: 110px;" >
+                                    <h:outputLabel for="txtImpuesto" value="IMPUESTO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtImpuesto" value="#{mbDetalle.mbGrupos.impuesto.impuesto}" maxlength="20" size="20" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtAplicable" value="APLICABLE :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="txtAplicable" value="#{mbDetalle.mbGrupos.impuesto.aplicable}" >
+                                        <p:ajax event="change" update="txtModo txtAcreditable txtAcumulable" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtModo" value="MODO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="txtModo" disabled="#{(mbDetalle.mbGrupos.impuesto.aplicable?'false':'true')}"
+                                                      value="#{mbDetalle.mbGrupos.strModo}" style="background-color: #cccccc;" >
+                                        <f:selectItem itemLabel="Procentaje sobre base" itemValue="1" />
+                                        <f:selectItem itemLabel="Importe por pieza" itemValue="2" />
+                                        <p:ajax listener="#{mbDetalle.mbGrupos.actualizarBean()}" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtAcreditable" value="ACREDITABLE :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="txtAcreditable" disabled="#{(mbDetalle.mbGrupos.impuesto.aplicable?'false':'true')}" 
+                                                             value="#{mbDetalle.mbGrupos.impuesto.acreditable}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtAcumulable" value="ACUMULABLE :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="txtAcumulable" disabled="#{(mbDetalle.mbGrupos.impuesto.aplicable?'false':'true')}" 
+                                                             value="#{mbDetalle.mbGrupos.impuesto.acumulable}" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnNuevoImpuesto" title="Nuevo" icon="ui-icon-document" 
+                                                         actionListener="#{mbDetalle.mbGrupos.nuevoImpuesto()}" 
+                                                         update="txtImpuesto txtAplicable txtModo txtAcreditable txtAcumulable" 
+                                                         process="@this" />
+                                        <p:commandButton id="btnGrabarImpuesto" title="Grabar" icon="ui-icon-disk"
+                                                         actionListener="#{mbDetalle.mbGrupos.grabarImpuesto()}" update=":main:tablaImpuestos"
+                                                         process="@this txtImpuesto txtAplicable txtModo txtAcreditable txtAcumulable" />
+                                        <p:commandButton id="btnEliminaImpuesto" title="Eliminar" icon="ui-icon-trash"
+                                                         actionListener="#{mbDetalle.mbGrupos.eliminarImpuesto()}" 
+                                                         update=":main:tablaImpuestos txtImpuesto txtAplicable txtModo txtAcreditable txtAcumulable" 
+                                                         process="@this" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="CONFIGURACION DE GRUPOS DE IMPUESTOS" widgetVar="mttoGruposDlg" style="width: 700px;" modal="true" resizable="false" >
+                        <p:ajax event="close" listener="#{mbDetalle.mbGrupos.cargarGrupos()}" update="grupo tablaImpuestosDetalle" />
+                        <p:messages id="msgGrupos" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoGrupos" >
+                            <p:row >
+                                <p:column style="width: 110px;" >
+                                    <h:outputLabel for="txtGrupo" value="GRUPO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtGrupo" value="#{mbDetalle.mbGrupos.grupo.grupo}" maxlength="50" size="40" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="tablaDisponibles" value="DISPONIBLES :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:dataTable id="tablaDisponibles" var="imp" value="#{mbDetalle.mbGrupos.impuestosDisponibles}" style="width: 440px;"
+                                                 rowKey="#{imp.idImpuesto}" selection="#{mbDetalle.mbGrupos.impuestoDisponible}" selectionMode="single" >
+                                        <p:column headerText="Impuesto" >
+                                            <h:outputText value="#{imp.toString()}" />
+                                        </p:column>
+                                        <f:facet name="footer" >
+                                            <p:column >
+                                                <div style="text-align: right;" >
+                                                    <p:commandButton id="btnImpuesto" title="Mtto.Impuestos" icon="ui-icon-pencil" 
+                                                                process="@this" actionListener="#{mbDetalle.mbGrupos.mantenimientoImpuestos()}" 
+                                                                update=":main:mttoImpuestos" oncomplete="PF('mttoImpuestosDlg').show();" />
+                                                </div>
+                                            </p:column>
+                                        </f:facet>
+                                    </p:dataTable>
+                                </p:column>
+                                <p:column style="width: 30px;" >
+                                    <p:commandButton id="btnAgregarImpuesto" title="AGREGAR" icon="ui-icon-arrowthick-1-s" 
+                                                     actionListener="#{mbDetalle.mbGrupos.agregarImpuestoGrupo()}" process="@this tablaDisponibles"
+                                                     update="tablaDisponibles tablaAgregados" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="tablaAgregados" value="AGREGADOS :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:dataTable id="tablaAgregados" var="imp" value="#{mbDetalle.mbGrupos.impuestosAgregados}" style="width: 440px;" 
+                                                 rowKey="#{imp.idImpuesto}" selection="#{mbDetalle.mbGrupos.impuestoAgregado}" selectionMode="single" >
+                                        <p:column headerText="Impuesto" >
+                                            <h:outputText value="#{imp.toString()}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEliminarImpuesto" title="ELIMINAR" icon="ui-icon-arrowthick-1-n"
+                                                     actionListener="#{mbDetalle.mbGrupos.eliminarImpuestoGrupo()}" process="@this tablaAgregados"
+                                                     update="tablaDisponibles tablaAgregados" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton id="btnAgregarGrupo" title="Grabar" icon="ui-icon-disk"
+                                                         process="@this txtGrupo" actionListener="#{mbDetalle.mbGrupos.grabarGrupo()}" 
+                                                         update="txtGrupo" />
+                                        <p:commandButton id="btnEliminarGrupo" title="Eliminar" icon="ui-icon-trash"
+                                                         process="@this" actionListener="#{mbDetalle.eliminarGrupo()}" 
+                                                         update="grupo" oncomplete="eliminarGrupo(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE ZONAS" widgetVar="mttoZonasDlg" resizable="false" style="width: 700px;" modal="true" >
+                        <p:messages id="msgZonas" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoZonas" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtZona" value="ZONA :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtZona" value="#{mbDetalle.mbZonas.zona.zona}" maxlength="50" size="40" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnGrabarZona" value="Grabar" process="@this txtZona" update="zona"
+                                                     actionListener="#{mbDetalle.grabarZona()}" oncomplete="grabarZona(xhr, status, args)" />
+                                    <p:commandButton id="btnEliminarZona" value="Eliminar" process="@this" update="zona" 
+                                                     actionListener="#{mbDetalle.eliminarZona()}" oncomplete="eliminarZona(xhr, status, args)" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function eliminarGrupo(xhr, status, args) {
+                        if(args.validationFailed || !args.okEliminarGrupo) {
+                            PF('mttoGruposDlg').jq.effect("shake", { times:5 }, 100);
+                        } else {
+                            PF('mttoGruposDlg').hide();
+                        }
+                    }
+                    
+                    function grabarZona(xhr, status, args) {
+                        if(args.validationFailed || !args.okGrabarZona) {
+                            PF('mttoZonasDlg').jq.effect("shake", { times:5 }, 100);
+                        } else {
+                            PF('mttoZonasDlg').hide();
+                        }
+                    }
+                    
+                    function eliminarZona(xhr, status, args) {
+                        if(args.validationFailed || !args.okEliminarZona) {
+                            PF('mttoZonasDlg').jq.effect("shake", { times:5 }, 100);
+                        } else {
+                            PF('mttoZonasDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

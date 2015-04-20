@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"/>
+            <div id="content" align="center">
+                <br/>
+                <h:form>
+                    <div align="right">
+                        <h:commandLink> 
+                            <p:graphicImage style="width: 20px; alignment-adjust: middle"/> 
+                            <p:dataExporter type="pdf" target="clien" fileName="clientes"  />||  
+                        </h:commandLink>
+                        <h:commandLink >  
+                            <p:graphicImage   style="width: 20px; alignment-adjust: middle"/>
+                            <p:dataExporter type="xls" target="clien" fileName="clientes"  />||
+                        </h:commandLink>
+                        <p:commandLink styleClass="nueva"  action="#{mbBancoLeyenda.terminar()}" value="Salir" ajax="false" />|
+                    </div>
+                </h:form>
+                <h:form>
+                    <p:panel header="Relacion de Leyendas" styleClass="quitaCuadro">
+                        <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                        <h:panelGrid columns="2">
+                            <h:outputText value="Leyenda"/>
+                            <p:inputText id="leyenda"
+                                         value="#{mbBancoLeyenda.l.leyenda}"
+                                         required="true"/>
+
+                            <p:commandButton id ="guardar"
+                                             value="Guardar"
+                                             action="#{mbBancoLeyenda.guardarL()}"
+                                             ajax="false"/>
+                        </h:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>
+

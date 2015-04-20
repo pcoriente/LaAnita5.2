@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Recepcion de traspaso</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="RECEPCION DE TRASPASO"
+                             rendered="#{not empty mbRecepcion.obtenerAcciones(21) and not mbRecepcion.modoEdicion}">
+                        <p:panelGrid id="encabezadoRecepcion" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbRecepcion.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnBuscarRecepciones" icon="ui-icon-search" title="Buscar Recepciones" 
+                                                     process="@this" actionListener="#{mbRecepcion.obtenerRecepciones()}" 
+                                                     update=":main:msgs listaRecepciones" oncomplete="PF('listaRecepcionesDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="3" style="text-align: right;" >
+                                    <p:commandLink styleClass="nueva" action="#{mbRecepcion.terminar()}" value="Salir" ajax="false" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="mantenimiento" header="RECEPCION DE TRASPASO" rendered="#{mbRecepcion.modoEdicion}" >
+                        <p:panelGrid id="mantenimientoEnvio" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText value="#{mbRecepcion.recepcion.almacen}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText value="#{mbRecepcion.recepcion.comprobante.almacen.cedis.cedis}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbRecepcion.recepcion.comprobante.almacen}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
+                                                     process="@this" actionListener="#{mbRecepcion.grabarRecepcion()}" update="@this main :main:msgs" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                     process="@this" actionListener="#{mbRecepcion.salir()}" update="main" />
+                                    <p:commandButton id="btnEditarLotes" icon="ui-icon-document" title="Editar lotes recibidos" 
+                                                     process="@this" actionListener="#{mbRecepcion.editarLotes()}" update="listaLotes" 
+                                                     oncomplete="PF('editarLotesDlg').show();" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="detalleRecepcion" widgetVar="detalleRecepcion" value="#{mbRecepcion.recepcionDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbRecepcion.recepcionProducto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaFila()}" update="detalleRecepcion" />
+
+                            <p:column headerText="SKU" style="width: 60px;" >
+                                <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
+                            </p:column>
+                            <p:column headerText="Producto" style="width: 450px;" >
+                                <h:outputText value="#{prod.producto}" style="width: 440px;" />
+                            </p:column>
+                            <p:column headerText="Enviados" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantOrdenada}" style="width: 60px;" />
+                            </p:column>
+                            <p:column headerText="Recibidos" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
+                        <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" listener="#{mbRecepcion.actualizarCantidad()}" update=":main:detalleRecepcion"  />
+                        <p:dataTable id="listaLotes" widgetVar="listaLotes" value="#{mbRecepcion.recepcionProducto.lotes}" style="border: solid 1px" 
+                                     var="lte" rowKey="#{lte.lote}" selection="#{mbRecepcion.lote}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaSeparados()}" update="listaLotes" />
+                            
+                            <p:column headerText="LOTE" style="width: 80px;" >
+                                <h:outputText value="#{lte.lote}" />
+                            </p:column>
+                            <p:column headerText="ENVIADOS" style="width: 80px;" >
+                                <h:outputText value="#{lte.cantidad}" />
+                            </p:column>
+                            <p:column headerText="RECIBIDOS" style="width: 80px;" >
+                                <pe:inputNumber value="#{lte.separados}" disabled="#{mbRecepcion.comparaLotes(lte)}"
+                                                decimalPlaces="3" style="width: 80px;" >
+                                    <p:ajax event="change" process="@this" listener="#{mbRecepcion.gestionarLotes()}" 
+                                            update=":main:msgs1 listaLotes lotesTotales" />
+                                </pe:inputNumber>
+                            </p:column>
+                            <f:facet name="footer">
+                                <p:panelGrid id="lotesTotales" >
+                                    <p:row >
+                                        <p:column style="text-align: right" >
+                                            <h:outputText value="Enviados" />
+                                        </p:column>
+                                        <p:column style="text-align: left" >
+                                            <h:outputText value="#{mbRecepcion.recepcionProducto.cantOrdenada}" />
+                                        </p:column>
+                                        <p:column style="text-align: right" >
+                                            <h:outputText value="Recibidos" />
+                                        </p:column>
+                                        <p:column style="text-align: left" >
+                                            <h:outputText value="#{mbRecepcion.sumaLotes}" />
+                                        </p:column>
+                                    </p:row>
+                                </p:panelGrid>
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                    <p:dialog id="listaRecepcionesDlg" widgetVar="listaRecepcionesDlg" 
+                              header="LISTA DE RECEPCIONES DE TRASPASO" resizable="false" modal="true" width="800" >
+                        <p:dataTable id="listaRecepciones" widgetVar="listaRecepciones" 
+                                     value="#{mbRecepcion.recepciones}" style="border:solid 1px"
+                                     var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargaDetalleRecepcion}" 
+                                    update=":main" oncomplete="PF('listaRecepcionesDlg').hide();" />
+                            <p:column headerText="CEDIS" >
+                                <h:outputText value="#{recepcion.comprobante.almacen.cedis.cedis}" />
+                            </p:column>
+                            <p:column headerText="Almacen" >
+                                <h:outputText value="#{recepcion.comprobante.almacen}" />
+                            </p:column>
+                            <p:column headerText="Fecha" style="width: 120px;" >
+                                <h:outputText value="#{recepcion.comprobante.fecha}" >
+                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+            </div>
+        </div>
+    </body>
+</html>

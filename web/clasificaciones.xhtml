@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Clasificaciones</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+
+    <h:body>
+        <div id="wrapper" >
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" style="text-align: left" >
+                <br></br>
+                <h:form>
+                    <div style="text-align: right" >
+                        |<p:commandLink styleClass="nueva"  action="menuClasificaciones" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+                
+                <h:form rendered="#{not empty mbClasificacion.subGrupo}" >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    
+                    <p:panel header="CLASIFICACION DE PRODUCTOS">
+                        
+                        <h:panelGrid id="panelCapturaGrupo" frame="box" border="0" columns="3" >
+                            
+                            <h:outputLabel value="Grupo:" for="codigoGrupo" styleClass="colorLetra" />
+                            <p:inputText id="codigoGrupo" value="#{mbClasificacion.subGrupo.grupo.codigoGrupo}" maxlength="6" size="6" >
+                                <p:ajax event="change" listener="#{mbClasificacion.actualizarGrupo}" process="@this" update="gpoVer" />
+                            </p:inputText>
+                            <h:panelGroup id="gpoVer" style="display: block; text-align: left" >
+                                <p:inputText id="verGrupo" readonly="true" value="#{mbClasificacion.subGrupo.grupo.grupo}" maxlength="30" size="21" />
+                                <h:commandButton value="Editar" action="#{mbClasificacion.editarGrupo()}" />
+                            </h:panelGroup>
+                            
+                            <h:outputLabel value="SubGrupo:" for="codigoSubGrupo" styleClass="colorLetra" />
+                            <p:inputText id="codigoSubGrupo" readonly="#{mbClasificacion.subGrupo.idSubGrupo > 0}" value="#{mbClasificacion.subGrupo.codigoSubGrupo}" maxlength="6" size="6" />
+                            <p:inputText id="subGrupo" value="#{mbClasificacion.subGrupo.subGrupo}" maxlength="30" size="30" />
+                            
+                            <h:outputLabel />
+                            <h:outputLabel />
+                            <h:panelGroup style="display: block; text-align: right" >
+                                <p:commandButton value="Grabar" actionListener="#{mbClasificacion.grabar()}" update="msgs" />
+                                <p:commandButton value="Salir" ajax="false" action="#{mbClasificacion.cancelar()}" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>

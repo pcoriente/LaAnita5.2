@@ -1,0 +1,307 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Menu de Requisiciones</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <h:form id="form" onkeypress="return event.keyCode !== 13;">
+                    <div align="right">
+                        <p:commandButton id="Nuevo"
+                                         icon="ui-icon-circle-plus"
+                                         title="Nueva requisición"
+                                         action="#{mbRequisiciones.nuevo()}"
+                                         />
+                        <p:commandButton id="Menu"
+                                         icon="ui-icon-document"
+                                         title="Ir a menu cotizaciones"
+                                         action="menuCotizaciones.xhtml"
+                                         />
+                        <p:commandButton id="salir"
+                                         icon="ui-icon-arrowreturnthick-1-w"
+                                         title="Salir de Listado de Requisiciones"
+                                         action="#{mbRequisiciones.salirMenuRequisiciones()}"
+                                         />
+                    </div>
+
+                    <!-- P A N E L    D E   A D M I N I S T R A C I O N... -->
+                    <p:messages id="messagePanel" showDetail="true"  closable="true" />
+                    <p:panel header="PANEL DE ADMINISTRACION DE REQUISICIONES"  >
+                        <h:outputText value="No hay REQUISICIONES que mostrar !!" 
+                                      rendered="#{empty mbRequisiciones.listaRequisicionesEncabezado}" />
+                        <p:dataTable id="requisicion"
+                                     value="#{mbRequisiciones.listaRequisicionesEncabezado}"
+                                     var="req" 
+                                     widgetVar="requisicionesTable"
+                                     emptyMessage="No existen elementos para desplegar..."
+                                     filteredValue="#{mbRequisiciones.requisicionesFiltradas}"
+                                     >
+
+                            <p:column filterBy="#{req.fechaRequisicion}" headerText="F. Solicitud" filterMatchMode="contains" width="60" >
+                                <f:facet name="header">
+                                    <h:outputText value="Fecha"/>
+                                </f:facet>
+                                <h:outputText value="#{req.fechaRequisicion}"/>
+                            </p:column>
+                            <p:column filterBy="#{req.miniEmpresa.nombreComercial}" headerText="Nombre Comercial" filterMatchMode="contains"  >
+                                <f:facet name="header" >
+                                    <h:outputText value="Empresa"/>
+                                </f:facet>
+                                <h:outputText value="#{req.miniEmpresa.nombreComercial}"/>
+                            </p:column>
+                            <p:column id="nc" filterBy="#{req.depto.depto}" headerText="Departamento" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Departamento"/>
+                                </f:facet>
+                                <h:outputText value="#{req.depto.depto}"/>
+                            </p:column>
+                            <p:column filterBy="#{req.usuario.usuario}" headerText="Usuario" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Usuario"/>
+                                </f:facet>
+                                <h:outputText value="#{req.usuario.usuario}"/>
+                            </p:column>
+                            <p:column filterBy="#{req.estado}" headerText="Status" filterMatchMode="contains" width="70"   >
+                                <f:facet name="header">
+                                    <h:outputText  value="Status"/>
+                                </f:facet>
+                                <h:outputText  id="otEstadoAprobacion" value="#{(req.estado)}"  />
+
+                            </p:column>
+
+                            <p:column id="procesos"  headerText="Procesos" width="135" >
+
+                                <p:commandButton id="btnDetalle"
+                                                 icon="ui-icon-zoomin"
+                                                 title="Ver Detalle"
+                                                 actionListener="#{(mbRequisiciones.requisicionMas(req.idRequisicion))}"
+                                                 update=":form:detalle"  
+                                                 oncomplete="PF('reqDialog').show();" 
+
+                                                 />
+
+                                <p:commandButton 
+                                    id="btnAprobar"
+                                    icon="ui-icon-pencil"
+                                    update=":form:pgCabecero :form:detalleAprobar"
+                                    oncomplete="PF('aprobarDialog').show();"
+                                    title="Procedimiento de aprobación"
+                                    actionListener="#{mbRequisiciones.cargaRequisicionesDetalleAprobar(req.idRequisicion)}"
+                                    style="margin:0 auto;" 
+                                    disabled="#{req.status eq 0 || req.status eq 2}"
+                                    >  
+                                    <f:setPropertyActionListener value="#{req}" target="#{mbRequisiciones.requisicionEncabezado}" />  
+                                </p:commandButton> 
+                                <p:commandButton id="btnCotizar"
+                                                 icon="ui-icon-note"
+                                                 title="Procedimiento de cotización"
+                                                 action="cotizaciones.xhtml"
+                                                 actionListener="#{mbRequisiciones.cargaRequisicionesDetalleCotizar(req.idRequisicion,0)}"
+                                                 style="margin:0 auto;"
+                                                 disabled="#{req.status eq 0 || req.status eq 1}"
+                                                 >
+                                    <f:setPropertyActionListener value="#{req}" target="#{mbRequisiciones.requisicionEncabezado}" /> 
+                                </p:commandButton>
+                                <p:commandButton
+                                    id="btnModificarStatusRequerimiento"
+                                    icon="ui-icon-help"
+                                    title="Quitar Aprobación"
+                                    process="@this"
+                                    actionListener="#{mbRequisiciones.modificarRequisicionStatus(req.idRequisicion,2,req.status)}" 
+                                    update=":form:requisicion" 
+                                    style="margin:0 auto;"
+                                    disabled="#{req.status eq 1 || req.status eq 0 }"
+                                    />
+                            </p:column>
+                            <p:resizable for="nc" maxWidth="15"/>
+                        </p:dataTable>
+                    </p:panel>
+
+                    <!-- M A S   D E T A L L E... -->
+                    <p:dialog  widgetVar="reqDialog" resizable="false"  
+                               showEffect="fade" hideEffect="explode" modal="true" style="text-align: center">
+                        <p:dataTable id="detalle" value="#{mbRequisiciones.requisicionDetalles}" 
+                                     var="det" scrollable="true" scrollHeight="200"
+                                     style="width: 850px;">
+                            <f:facet name="header">  
+                                DETALLE DE PRODUCTOS REQUISITADOS  
+                            </f:facet>
+                            <p:column  headerText="Código" width="45" >
+                                <h:outputText value="#{det.producto.cod_pro}"  />
+                            </p:column>
+                            <p:column headerText="Descripción del Producto " width="250" >
+                                <h:outputText value="#{det.producto.toString()}" />
+                            </p:column>
+                            <p:column headerText="Unidad" width="50">
+                                <h:outputText value="#{det.producto.empaque.empaque}" />
+                            </p:column>
+
+                            <p:column headerText="Cantidad" width="50" >
+                                <h:outputText value="#{det.cantidad}"  />  
+                            </p:column>
+                        </p:dataTable>
+                    </p:dialog>
+
+                    <!-- A P R O B A C I O N... -->
+                    <p:dialog header="PROCESO DE APROBACION" widgetVar="aprobarDialog" resizable="false"  
+                              showEffect="fade" hideEffect="explode" modal="true" id="dialogo" width="1000" >
+                        <h:panelGrid id="pgCabecero" columns="4"  > 
+                            <h:outputLabel  value="Empresa :"  style="font-weight: bold; color: red; width: 120px;" />
+
+                            <h:outputText id="otEmpresa" value="#{mbRequisiciones.requisicionEncabezado.miniEmpresa.nombreComercial}"  /> 
+
+                            <h:outputLabel value="Departamento :"  style="font-weight: bold; color: red; width: 120px;" />
+
+                            <h:outputText id="otDepto"  value="#{mbRequisiciones.requisicionEncabezado.depto.depto}"  />
+
+                            <h:outputLabel   value="Solicitante :"  style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otSolicitante" value="#{mbRequisiciones.requisicionEncabezado.usuario.usuario}"  />
+
+                            <h:outputLabel   value="Fecha Req.:"  style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otFecha" value="#{mbRequisiciones.requisicionEncabezado.fechaRequisicion}"  />
+
+                            <h:outputLabel  value="No. Req.:"  style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otRequisicion" value="#{mbRequisiciones.requisicionEncabezado.idRequisicion}"  />
+
+                            <h:outputLabel  id="estatus" value="Usuario:"  
+                                            style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otUsuario" value="#{mbRequisiciones.requisicionEncabezado.empleadoAprobo}" />
+
+                            <h:outputLabel  value="Estado: "  style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otEstado" value="#{(mbRequisiciones.requisicionEncabezado.estado)}"  />
+
+                            <h:outputLabel  value="F. Aprobación: "  style="font-weight: bold; color: red; width: 105px;" />
+
+                            <h:outputText id="otfechaAprobacion" value="#{(mbRequisiciones.requisicionEncabezado.fechaAprobacion)} " />
+
+                        </h:panelGrid >
+                        <p:messages id="messagesAprobar" showDetail="true"  closable="true" />
+                        <p:toolbar>
+                            <f:facet name="left">
+                                <p:commandButton 
+                                    id="btnRechazarRequimiento"
+                                    icon=" ui-icon-trash"
+                                    value="Eliminar orden de compra."
+                                    title="Rechazar"
+                                    disabled="#{mbRequisiciones.requisicionEncabezado.status eq 2}"
+                                    process="@this"
+                                    actionListener="#{mbRequisiciones.aprobarRequisicion(mbRequisiciones.requisicionEncabezado.idRequisicion, 0)}"
+                                    update=":form:dialogo :form:requisicion :form:detalleAprobar :form:pgCabecero :form:estatus">
+                                    <p:confirm header="Confirmación" 
+                                               message="¿Esta seguro de eliminar la orden de compra?"
+                                               icon="ui-icon-alert" />
+                                </p:commandButton>
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                                    <p:commandButton value="Yes" type="button" 
+                                                     styleClass="ui-confirmdialog-yes" 
+                                                     icon="ui-icon-check" 
+                                                     />
+                                    <p:commandButton value="No" type="button" 
+                                                     styleClass="ui-confirmdialog-no" 
+                                                     icon="ui-icon-close" />
+                                </p:confirmDialog>
+                            </f:facet>
+                        </p:toolbar>
+                        <p:dataTable id="detalleAprobar" 
+                                     value="#{mbRequisiciones.requisicionDetalles}" 
+                                     var="da"
+                                     scrollRows="20"  
+                                     scrollable="true"
+                                     liveScroll="true"
+                                     scrollHeight="300"
+                                     style="width: 980px;"
+                                     rowKey="#{da.producto.idProducto}"
+                                     >
+                            <p:column  headerText="Cod." width="40">
+                                <h:outputText value="#{da.producto.cod_pro}"  />
+                            </p:column>
+                            <p:column headerText="Descripción Producto" width="250" >
+                                <h:outputText value="#{da.producto.toString()}" />
+                            </p:column>
+                            <p:column headerText="Unidad" width="50">
+                                <h:outputText value="#{da.producto.empaque.empaque}" />
+                            </p:column>
+
+                            <p:column headerText="Solicitada" width="50" >
+                                <h:outputText value="#{da.cantidad}"  />  
+                            </p:column>
+                            <p:column headerText="Autorizada" width="70"     >
+                                <pe:inputNumber value="#{da.cantidadAutorizada}"
+                                                decimalPlaces="2"
+                                                emptyValue="zero"
+                                                disabled="#{da.cantidadAutorizada eq 0 || mbRequisiciones.requisicionEncabezado.status eq 2}"
+                                                style="width: 65px"
+                                                >
+                                </pe:inputNumber>
+                            </p:column>
+                            <p:column headerText="Procesos" style="width: 120px"   >
+                                <p:toolbar id="tb" style="width: 80px; margin:0 auto;" >
+                                    <f:facet name="right">
+                                        <p:commandButton 
+                                            id="btnEliminarProducto"
+                                            icon="ui-icon-trash"
+                                            title="Eliminar Producto"
+                                            disabled="#{mbRequisiciones.requisicionEncabezado.status eq 2 }"
+                                            process="@this"
+                                            actionListener="#{mbRequisiciones.eliminaProductoAprobar(mbRequisiciones.requisicionEncabezado.idRequisicion,da.producto.idProducto)}" 
+                                            update=":form:detalleAprobar" 
+                                            style="margin:0 auto;"
+                                            />
+                                        <p:separator />
+                                        <p:commandButton
+                                            id="btnModificarStatusProducto"
+                                            icon="ui-icon-help"
+                                            title="Quitar Aprobación"
+                                            process="@this"
+                                            actionListener="#{mbRequisiciones.modificarRequisicionStatus(da.idRequisicion,da.producto.idProducto,da.cantidadAutorizada)}" 
+                                            update=":form:detalleAprobar" 
+                                            style="margin:0 auto;"
+                                            disabled="#{da.cantidadAutorizada > 0 }"
+                                            />
+
+                                    </f:facet>
+                                </p:toolbar>  
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton 
+                                    id="btnAprobarRequimiento"
+                                    icon="ui-icon-disk"
+                                    title="Aprobar"
+                                    actionListener="#{mbRequisiciones.aprobarRequisicion(mbRequisiciones.requisicionEncabezado.idRequisicion,2)}"
+                                    disabled="#{mbRequisiciones.requisicionEncabezado.status eq 2}"
+                                    update=":form:dialogo :form:requisicion :form:detalleAprobar :form:pgCabecero "
+                                    process="@this"
+                                    />
+                                <p:commandButton icon=" ui-icon-arrowreturnthick-1-w"
+                                                 title="Salir"
+                                                 onclick="PF('aprobarDialog').hide();"
+                                                 />
+
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>
+

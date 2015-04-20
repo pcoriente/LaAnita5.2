@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Facelet Title</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"/>
+            <div id="content" align="center">
+                <br/>
+                <h:form>
+                    <div align="right">
+                        <h:commandLink> 
+                            <p:graphicImage style="width: 20px; alignment-adjust: middle"/> 
+                            <p:dataExporter type="pdf" target="clien" fileName="clientes"  />||  
+                        </h:commandLink>
+                        <h:commandLink >  
+                            <p:graphicImage   style="width: 20px; alignment-adjust: middle"/>
+                            <p:dataExporter type="xls" target="clien" fileName="clientes"  />||
+                        </h:commandLink>
+                        <p:commandLink styleClass="nueva"  action="#{mbBancoLeyenda.actualizar(0)}" value="Nuevo" ajax="false" />|
+                        <p:commandLink styleClass="nueva"  action="#{mbBancoLeyenda.finalizar()}" value="Salir" ajax="false" />|
+                    </div>
+                </h:form>
+                <h:form>
+                    <p:panel header="Leyendas">
+                        <p:dataTable id="tabla" 
+                                     value="#{mbBancoLeyenda.verTablaLB()}" 
+                                     var="a">
+
+                            <p:column headerText="ID">
+                                <h:outputText id="idLeyenda"
+                                              value="#{a.idLeyenda}"/>
+                            </p:column>
+                            <p:column headerText="LEYENDA">
+                                <h:outputText id="leyenda"
+                                              value="#{a.leyenda}"/>
+                            </p:column>
+                            <p:column id="proc"  headerText="Actualizar" >
+
+                                <h:commandLink action="#{mbBancoLeyenda.actualizar(a.idLeyenda)}" >
+                                    <h:graphicImage  library="images" name="build.png"  /> 
+                                </h:commandLink>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>
+

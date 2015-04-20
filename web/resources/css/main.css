@@ -1,0 +1,176 @@
+.evenRow{  
+    background: PowderBlue;  
+}
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    background-color: #FFFFFF;
+}
+#wrapper { 
+    margin: 0 auto;
+    width: 950px;
+    background-color: #FFF;
+}
+#header {
+    color: #FFF;
+    width: 950px;
+    float: left;
+    padding-top: 0px;
+    border: 0px solid #ccc;
+    height: 130px;
+    background-color: #999999;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    text-align: center;
+    vertical-align: middle;
+    font-family:'Helvetica', Arial, sans-serif;
+    text-shadow:1px 1px 1px #325179;
+}
+
+#main {
+    float: left;
+    color: #333;
+    border: 1px solid #ccc;
+    background: #FFFFFF;
+    margin: 0px;
+    height: 450px;
+    width: 937px;
+    display: inline;
+    overflow: auto;
+    font-size: 11px;
+}
+
+#content {
+    float: left;
+    color: #333;
+    border: 1px solid #ccc;
+    background: #FFFFFF;
+    margin: 0px;
+    height: 450px;
+    width: 950px;
+    display: inline;
+    overflow: auto;
+    font-size: 11px;
+}
+#footer {
+    color: #FFF;
+    margin: 0px;
+    width: 950px;
+    float: left;
+    padding: 0px;
+    border: 0px solid #ccc;
+    height: 30px;
+    background-color: #999999;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    margin-left: 0px;
+    text-align: center;
+    font-family:'Helvetica', Arial, sans-serif;
+    text-shadow:1px 1px 1px #325179;
+
+}
+
+
+a.nueva{ display:  inline;}
+
+
+.quitaCuadro   {
+    box-shadow: none !important; 
+}
+
+.dataGridSinBorde .ui-datagrid-content {
+    border: none;
+}
+
+.columnaSinPadding .ui-datagrid-column {
+    padding: 0px;
+}
+
+.filaSinBorde tr {
+    border: none !important;
+}
+
+.filaSinPadding tr {
+    padding: 0px !important;
+}
+
+.colSinBorde td {
+    border: none !important;
+}
+
+.colSinPadding td {
+    padding: 0px !important;
+}
+
+.errores {
+    color: red;
+    font-weight: bold;
+}
+
+.tabla{
+    font-family:'Helvetica', Arial, sans-serif;
+}
+
+.salida {
+    font: 15px bold;
+    color: #045FB4;
+
+}
+.colorLetra{
+    font: 15px bold; color: #045FB4; 
+}
+.icono {
+    background-image:   url("images/excel.png");
+}
+
+#izquierdo {
+    float: left;
+}
+
+.textoEtiquetas{
+    color: red;
+    text-align: right;
+}
+
+.ui-panel, ui-widget, ui-widget-content, ui-corner-all {
+
+    border-color: #FFF!important;
+}
+
+.ui-selectonemenu, ui-widget, ui-state-default, ui-corner-all, ui-helper-clearfix{
+    width: 250px;
+}
+
+.classFactura {
+    width: 150px;
+}
+
+.textoContenido{
+    font-size: 10px;
+   
+}
+
+.fondoCelda{
+    background-color: #ccc;
+}
+
+.alineacionD
+{
+  text-align:right;
+  
+}
+
+.alineacionFooter{
+    text-align:right;
+    background-color: whitesmoke;
+    font-size: 14px; 
+}
+
+.ui-state-default .ui-icon-xls {
+    background-image: url(resources/images/excel.png);
+    background-color: blue;
+    image-resolution: 300dpi from-image;
+}

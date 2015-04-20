@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <title>Actualización de Banco</title>
+    </h:head>
+
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form >
+                    <div align="right">
+                        <h:commandLink> 
+                            <p:graphicImage   style="width: 20px; alignment-adjust: middle"/> 
+                            <p:dataExporter type="pdf" target="clien" fileName="clientes"  />||  
+                        </h:commandLink>
+                        <h:commandLink >  
+                            <p:graphicImage   style="width: 20px; alignment-adjust: middle"/>
+                            <p:dataExporter type="xls" target="clien" fileName="clientes"  />||
+                        </h:commandLink>
+                        <p:commandLink styleClass="nueva"  action="menuBancos.xhtml" value="Salir" ajax="false" />|
+                    </div>
+                </h:form>
+                <h:form>
+
+                    <p:panel header="Actualizacion de Bancos" styleClass="quitaCuadro">
+                        <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                        <h:panelGrid columns="2">
+                            <h:outputText value="RFC:"/>
+                            <p:inputText id="rfc"
+                                         value ="#{mbBanco.b.rfc}"
+                                         required="true">
+                                <f:validator validatorId="RFCValidator"/>
+                            </p:inputText>
+                            <h:outputText value ="Codigo Banco:"/>
+                            <p:inputText id="codigoBanco"
+                                         value="#{mbBanco.b.codigoBanco}"
+                                         required="true"
+                                         requiredMessage="Ingrese un Codigo de Banco"/>
+
+                            <h:outputText value ="Razon Social:"/>
+                            <p:inputText id="razonSocial"
+                                         value="#{mbBanco.b.razonSocial}"
+                                         required="true"
+                                         requiredMessage="Ingrese una Razón social"/>
+
+                            <h:outputText value= "Nombre Corto:"/>
+                            <p:inputText id="nombreCorto"
+                                         value ="#{mbBanco.b.nombreCorto}"
+                                         required="true"
+                                         requiredMessage="Ingrese un nombre Corto"/>
+                        </h:panelGrid>
+                        <p:commandButton id="guardar"
+                                         value ="Guardar"
+                                         action="#{mbBanco.guardar()}"
+                                         ajax =" false"/>
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

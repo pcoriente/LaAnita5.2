@@ -1,0 +1,269 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:pe="http://primefaces.org/ui/extensions">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body>
+        <h:form id="form">
+            <div id="wrapper" align="center">
+                <ui:include src="wrapper.xhtml" />
+                <div id="content" align="center"  >
+                    <br></br>
+                    <p:growl id="growl" autoUpdate="true" showDetail="true"/> 
+                    <div align="right">
+                        <p:commandButton icon="ui-icon-document"
+                                         title="Nuevo Formato"
+                                         oncomplete="PF('dlgPrecioIdeal').show();"
+                                         update=":form:btnBUscarProducto 
+                                         :form:tablePrecioIdeal"
+                                         actionListener="#{mbListaPrecioIdeal.cancelar()}"
+                                         />
+                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
+                                         ajax="false"
+                                         title="Salir"
+                                         action="#{mbListaPrecioIdeal.salir()}"
+                                         immediate="true"/>
+
+                    </div>
+                    <p:panel header="Grupo de Cliente" 
+                             styleClass="quitaCuadro">
+                        <p:dataTable value="#{mbListaPrecioIdeal.lstListaPrecioTable}"
+                                     var="listaPrecioIdeal"
+                                     id="tablePrecioIdeal"
+                                     paginator="true"
+                                     rows="10"
+                                     filteredValue="#{mbListaPrecioIdeal.filterLstPrecioIdeal}">
+                            <p:column headerText="Producto"
+                                      filterBy="#{listaPrecioIdeal.producto}"
+                                      filterMatchMode="contains">
+                                #{listaPrecioIdeal.producto}
+                            </p:column>
+                            <p:column headerText="Precio"
+                                      style="width: 210px"
+                                      filterBy="#{listaPrecioIdeal.precioLista}"
+                                      filterMatchMode="contains">
+                                <center>
+                                    <p:inplace id="ajaxInplace" 
+                                               editor="true"
+                                               >  
+                                        <p:ajax event="save" 
+                                                listener="#{mbListaPrecioIdeal.actualizarPrecioLista(listaPrecioIdeal)}"/>
+
+                                        <pe:inputNumber id="precio"
+                                                        value="#{listaPrecioIdeal.precioLista}"
+                                                        emptyValue="zero"
+                                                        decimalPlaces="6"
+                                                        style="width: 100px"
+                                                        symbol="$">
+                                        </pe:inputNumber> 
+                                    </p:inplace>
+                                </center>
+                            </p:column>
+                            <f:facet name="footer">
+                                Cantidad de Productos : #{mbListaPrecioIdeal.lstListaPrecioTable.size()}
+                            </f:facet>
+                        </p:dataTable>
+                    </p:panel>
+
+                    <p:dialog widgetVar="dlgPrecioIdeal"
+                              header="Precio Ideal"
+                              showEffect="explode"
+                              hideEffect="explode"
+                              resizable="false"
+                              closable="false">
+                        <div style="float: right">
+                            <p:commandButton icon="ui-icon-trash"
+                                             id="btnEliminarProducto"
+                                             title="Eliminar producto"
+                                             disabled="#{mbListaPrecioIdeal.listaPrecioSeleccionSecundaria == null}"
+                                             actionListener="#{mbListaPrecioIdeal.eliminarProducto()}"
+                                             process="@this"
+                                             rendered="#{mbListaPrecioIdeal.actualizar==false}"
+                                             update=":form:btnEliminarProducto :form:tableProductos"
+                                             />
+                            <p:commandButton icon="ui-icon-search"
+                                             title="Buscar producto"
+                                             process="@this"
+                                             oncomplete="PF('buscarProductoDlg').show();"
+                                             id="btnBUscarProducto"
+                                             disabled="#{mbListaPrecioIdeal.actualizar==true}"
+                                             />
+                        </div>
+                        <br></br> 
+                        <br></br> 
+                        <br></br>
+                        <p:dataTable
+                            id="tableProductos"
+                            value="#{mbListaPrecioIdeal.lstListaPrecioIdeal}"
+                            var="tablaListaIdeal"
+                            scrollable="true"
+                            scrollHeight="250"
+                            style="width: 600px"
+                            selection="#{mbListaPrecioIdeal.listaPrecioSeleccionSecundaria}"
+                            selectionMode="single"
+                            rowKey="#{tablaListaIdeal}"
+                            >
+                            <p:ajax event="rowSelect"
+                                    update=":form:btnEliminarProducto"
+                                    />
+                            <p:column headerText="Producto" width="450">
+                                #{tablaListaIdeal.producto}
+                            </p:column>
+                            <p:column headerText="Precio Lista">
+                                <center>
+                                    <pe:inputNumber id="precio"
+                                                    value="#{tablaListaIdeal.precioLista}"
+                                                    emptyValue="zero"
+                                                    decimalPlaces="6"
+                                                    style="width: 80px"/> 
+                                </center>
+                            </p:column>
+                        </p:dataTable>
+                        <p:commandButton icon="ui-icon-disk"
+                                         actionListener="#{mbListaPrecioIdeal.guardar()}"
+                                         oncomplete="nuevaListaPrecioIdeal(xhr, status, args);"
+                                         update="growl 
+                                         :form:tablePrecioIdeal 
+                                         :form:tableProductos
+                                         :form:btnEliminarProducto"/>
+                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" 
+                                         title="Cancelar"
+                                         process="@this"
+                                         actionListener="#{mbListaPrecioIdeal.cancelar()}"
+                                         update=":form:tablePrecioIdeal 
+                                         :form:btnBUscarProducto
+                                         :form:tableProductos
+                                         :form:btnEliminarProducto"
+                                         oncomplete="PF('dlgPrecioIdeal').hide();"/>
+                    </p:dialog>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" 
+                              widgetVar="buscarProductoDlg" 
+                              resizable="false" style="width: 600px;" 
+                              modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column colspan="6" >
+                                    <p:selectOneRadio id="opciones" 
+                                                      value="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar}" 
+                                                      style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <f:selectItem itemLabel="Clasificacion" itemValue="4" />
+                                        <p:ajax listener="#{mbListaPrecioIdeal.mbBuscar.verCambio()}" update="buscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column style="width: 70px;" >
+                                    <h:outputLabel value="BUSCAR :" style="font-weight: bold; color: red; width: 70px;" />
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbListaPrecioIdeal.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-search" title="Buscar" 
+                                                     process="@this opcionSKU" 
+                                                     actionListener="#{mbListaPrecioIdeal.buscar()}"
+                                                     oncomplete="handleBuscar(xhr, status, args)"
+                                                     />
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbListaPrecioIdeal.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbListaPrecioIdeal.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-search" title="Buscar" 
+                                                     process="@this opcionParte" 
+                                                     update="multipleSelectProductos"
+                                                     actionListener="#{mbListaPrecioIdeal.buscar()}" />
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbListaPrecioIdeal.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-search" title="Buscar" 
+                                                     process="@this opcionDescripcion" 
+                                                     update="multipleSelectProductos" 
+                                                     actionListener="#{mbListaPrecioIdeal.buscar()}"/>
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:selectOneMenu id="grupo" value="#{mbListaPrecioIdeal.mbBuscar.mbGrupo.grupo}" style="width: 250px;" >
+                                        <f:converter converterId="converters.Grupos" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbBuscar.mbGrupo.listaGrupos}" />
+                                        <p:ajax event="change" listener="#{mbListaPrecioIdeal.mbBuscar.mbGrupo.cargaListaSubGrupos()}" 
+                                                update="subGrupo" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:selectOneMenu id="subGrupo" value="#{mbListaPrecioIdeal.mbBuscar.mbGrupo.mbSubGrupo.subGrupo}" style="width: 250px;" >
+                                        <f:converter converterId="converters.SubGrupos" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbBuscar.mbGrupo.mbSubGrupo.listaSubGrupos}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column rendered="#{mbListaPrecioIdeal.mbBuscar.tipoBuscar=='4'}" >
+                                    <p:commandButton id="btnBuscarClasificacion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" 
+                                                     update="multipleSelectProductos" 
+                                                     actionListener="#{mbListaPrecioIdeal.buscar()}"/>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="multipleSelectProductos" var="e" rowKey="#{e.cod_pro}"
+                                     value="#{mbListaPrecioIdeal.mbBuscar.productos}" 
+                                     selection="#{mbListaPrecioIdeal.mbBuscar.seleccionados}" 
+                                     scrollable="true"
+                                     scrollHeight="200"
+                                     style="width: 800px">
+                            <p:column selectionMode="multiple" style="width: 40px;" />
+                            <p:column headerText="SKU" style="width: 70px;" >
+                                <h:outputText value="#{e.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="Producto" style="width: 575px;" >
+                                <h:outputText value="#{e.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccionMultiple" value="Seleccionar" 
+                                                 oncomplete="PF('buscarProductoDlg').hide()"
+                                                 actionListener="#{mbListaPrecioIdeal.construir()}"
+                                                 update=":form:tableProductos"
+                                                 />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </div>
+                <ui:include src="footer.html" />
+            </div>
+        </h:form>
+    </h:body>
+
+    <script>
+        function nuevaListaPrecioIdeal(xhr, status, args) {
+            if (args.validationFailed || !args.ok) {
+                PF('dlgPrecioIdeal').jq.effect("shake", {times: 5}, 100);
+            }
+            else {
+                PF('dlgPrecioIdeal').hide();
+            }
+        }
+
+        function handleBuscar(xhr, status, args) {
+            if (!(args.validationFaild || !args.okBuscar)) {
+                PF('buscarProductoDlg').hide();
+            }
+        }
+
+
+
+
+    </script>
+
+</html>
+
+

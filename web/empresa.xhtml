@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Empresa</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center" >
+                <br></br>
+                <h:form >
+                    <div align="right" >
+                        |<p:commandLink styleClass="nueva"  action="menuEmpresas" value="Salir" ajax="false"/>
+                    </div>
+                </h:form>
+                <h:form id="form" onkeypress="return event.keyCode !== 13;" >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    <p:panel header="MANTENIMIENTO DE EMPRESAS" styleClass="quitaCuadro"  >
+                        <h:panelGrid id="panelCapturaEmpresas" frame="box"  columns="2" styleClass="quitaCuadro"  >
+                            <h:outputLabel value="Código:"   styleClass="colorLetra"  />
+                            <p:inputText id="codigo"
+                                         readonly="#{mbEmpresas.empresa.idEmpresa>0}"
+                                         value="#{mbEmpresas.empresa.codigoEmpresa}"
+                                         maxlength="6"
+                                         size="8" />
+                            <h:outputLabel value="Empresa:" styleClass="colorLetra" />
+                            <p:inputText id="empresa"
+                                         value="#{mbEmpresas.empresa.empresa}"
+                                         maxlength="100"
+                                         size="50"
+                                         required="true"
+                                         requiredMessage="Se requiera el nombre de la empresa" />
+
+                            <h:outputLabel value="N. Comercial"  styleClass="colorLetra"   />
+                            <p:inputText id="nombreComercial"
+                                         value="#{mbEmpresas.empresa.nombreComercial}"
+                                         maxlength="100"
+                                         size="50"
+                                         required="true"
+                                         requiredMessage="Se requiere el nombre comercial de la empresa"/>
+
+                            <h:outputLabel value="RFC:"  styleClass="colorLetra"  />
+                            <p:inputText id="rfc"
+                                         value="#{mbEmpresas.empresa.rfc}"
+                                         maxlength="13"
+                                         size="13" 
+                                         required="true"
+                                         requiredMessage="Se requiere el RFC" >
+                                <f:validator validatorId="RFCValidator"/>
+                            </p:inputText>
+
+                            <h:outputLabel value="Teléfono:" styleClass="colorLetra"  />
+                            <p:inputMask id="telefono"
+                                         value="#{mbEmpresas.empresa.telefono}"
+                                         maxlength="10"
+                                         mask="(999)9-99-99-99"
+                                         size="15"
+                                         required="true"
+                                         requiredMessage="Se requiere un numero telefonico"/>
+
+                            <h:outputLabel value="Fax:"  styleClass="colorLetra"  />
+                            <p:inputMask id="fax"
+                                         value="#{mbEmpresas.empresa.fax}"
+                                         maxlength="10"
+                                         mask="(999)9-99-99-99"                                             
+                                         size="15" 
+                                         required="true"
+                                         requiredMessage="Se requiere un numero fax"/>
+
+                            <h:outputLabel value="Correo:"  styleClass="colorLetra" />
+                            <p:inputText id="correo"
+                                         value="#{mbEmpresas.empresa.correo}"
+                                         maxlength="100"
+                                         size="50"
+                                         required="true"
+                                         requiredMessage="Se requiere una direccion de correo">
+
+                                <f:validator validatorId="EmailValidator"/>
+                            </p:inputText>
+
+                            <h:outputLabel value="R. Legal" styleClass="colorLetra"  />
+                            <p:inputText id="representanteLegal"
+                                         value="#{mbEmpresas.empresa.representanteLegal}"
+                                         maxlength="100"
+                                         size="50"
+                                         required="true"
+                                         requiredMessage="Se requiere un representante legal"/>
+
+                            <h:outputLabel value="Dirección:" styleClass="colorLetra"   />
+                            <h:panelGroup>
+                                <p:inputTextarea id="txtAreaDirFisica" disabled="true" rows="12" cols="50" 
+                                                 value="#{mbEmpresas.empresa.direccion.toString()}" />
+                                <p:commandButton icon="ui-icon-plus" title="Mantenimiento de Direccion" process="@this" 
+                                                 actionListener="#{mbEmpresas.mbDireccion.mttoDireccionDlg(mbEmpresas.empresa.direccion, ':form:txtAreaDirFisica')}"
+                                                 update="mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
+                            </h:panelGroup>
+
+                            <h:outputLabel />
+                            <h:panelGroup style="text-align: right">
+                                <p:commandButton value="Grabar" ajax="false" action="#{mbEmpresas.grabar()}" update="msgs" />
+                                <p:commandButton styleClass="nueva" immediate="true" action="#{mbEmpresas.salir()}" value="Cancelar" ajax="false"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </p:panel>
+                    <p:dialog header="Mantenimiento de Direccion" widgetVar="mttoDireccionDlg" modal="true" resizable="false" closable="false" >
+                        <p:messages id="msgsMttoDireccion" showDetail="true" closable="true" autoUpdate="false" />
+                        <p:panelGrid id="mttoDireccion" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText  id="calle" value="#{mbEmpresas.mbDireccion.direccion.calle}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Exterior:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noExterior" value="#{mbEmpresas.mbDireccion.direccion.numeroExterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Interior:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noInterior" value="#{mbEmpresas.mbDireccion.direccion.numeroInterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Referencia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="referencia" value="#{mbEmpresas.mbDireccion.direccion.referencia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="País:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboPaises" value="#{mbEmpresas.mbDireccion.direccion.pais}" style="width: 188px">
+                                        <f:converter converterId="converters.Pais" />
+                                        <f:selectItems value="#{mbEmpresas.mbDireccion.listaPaises}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Código Postal:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="codigoPostal" value="#{mbEmpresas.mbDireccion.direccion.codigoPostal}" 
+                                                 readonly="#{not mbEmpresas.mbDireccion.editarAsentamiento}"/>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton icon="#{mbEmpresas.mbDireccion.iconSearch}" 
+                                                     title="#{mbEmpresas.mbDireccion.iconSearchTitle}" 
+                                                     disabled="#{mbEmpresas.mbDireccion.direccion.pais.idPais!=1}"
+                                                     process="mttoDireccion" actionListener="#{mbEmpresas.mbDireccion.buscarAsentamientos()}"
+                                                     update="mttoDireccion" />
+                                </p:column>
+                            </p:row>
+                            <p:row id="editarAsentamiento" rendered="#{mbEmpresas.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtAsentamiento" value="#{mbEmpresas.mbDireccion.direccion.colonia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row id="seleccionarAsentamiento" rendered="#{!mbEmpresas.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboAsentamientos" value="#{mbEmpresas.mbDireccion.direccion.selAsentamiento}" >
+                                        <f:selectItems value="#{mbEmpresas.mbDireccion.listaAsentamientos}" />
+                                        <f:converter converterId="converters.Asentamiento" />
+                                        <p:ajax event="change" listener="#{mbEmpresas.mbDireccion.actualizaAsentamiento()}" 
+                                                update="panelCapturaDireccion" />             
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Ciudad/Localidad:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="localidad" value="#{mbEmpresas.mbDireccion.direccion.localidad}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Municipio/Delegación:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="municipio" value="#{mbEmpresas.mbDireccion.direccion.municipio}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel  value="Estado:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="estado" value="#{mbEmpresas.mbDireccion.direccion.estado}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="GLN:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="gln" value="#{mbEmpresas.mbDireccion.direccion.numeroLocalizacion}"/>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar Direccion"
+                                                         process="mttoDireccion" actionListener="#{mbEmpresas.mbDireccion.grabar()}"
+                                                         update="msgsMttoDireccion #{mbEmpresas.mbDireccion.actualiza}"
+                                                         oncomplete="mttoDireccion(xhr, status, args)" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar Direccion"
+                                                         process="@this" actionListener="#{mbEmpresas.mbDireccion.cancelarDireccion()}"
+                                                         oncomplete="PF('mttoDireccionDlg').hide();"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript" >
+                    function mttoDireccion(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okDireccion)) {
+                            PF('mttoDireccionDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

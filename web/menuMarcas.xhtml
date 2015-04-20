@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Marcas</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form>
+                    <div align="right">
+                        <p:commandLink styleClass="nueva" action="#{mbMarca.mantenimiento(0)}" value="Nueva" ajax="false"/>|
+                        <p:commandLink styleClass="nueva" action="#{mbMarca.terminar()}" value="Salir" ajax="false" />|
+                    </div>
+                </h:form>
+                <h:form >
+                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                    <p:panel header="RELACION DE MARCAS" styleClass="quitaCuadro" >
+
+                        <p:dataTable value="#{mbMarca.listaMarcas}" var="marca"
+                                     rendered="#{not empty mbMarca.listaMarcas}" 
+                                     widgetVar="marcasTable"
+                                     emptyMessage="No hay elementos que desplegar" >
+
+                            <f:facet name="header">
+                                <p:outputPanel>
+                                    <h:outputText value="Filtrado de campos: " />
+                                    <h:inputText   id="globalFilter" onkeyup="marcasTable.filter()"   />
+                                </p:outputPanel>
+                            </f:facet>
+
+                            <p:column filterBy="#{marca.codigoMarca}" headerText="Código" filterMatchMode="contains" style="width: 10px">
+                                <f:facet name="header">
+                                    <h:outputText value="codigo"/>
+                                </f:facet>
+                                <h:outputText value="#{marca.codigoMarca}"/>
+                            </p:column>
+
+                            <p:column filterBy="#{marca.marca}" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Marca"/>
+                                </f:facet>
+                                <h:outputText value="#{marca.marca}"/>
+                            </p:column>
+
+                            <p:column  headerText="Procesos" style="width: 5px; height: 10px" >
+                                <h:commandLink action="#{mbMarca.mantenimiento(marca.idMarca)}" >
+                                    <h:graphicImage  library="images" name="build.png" style="width: 15px; " /> 
+                                </h:commandLink>
+                            </p:column>
+                        </p:dataTable>
+
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>
+

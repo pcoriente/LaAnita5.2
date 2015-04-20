@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Mantenimiento de Agentes</title>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgsAgentes" autoUpdate="false" showDetail="true" />
+            <p:panel id="panelAgentes" header="Mantenimiento de Agentes" style="float: left" >
+                <p:panelGrid id="agentes" style="width: 910px;" >
+
+                </p:panelGrid>
+                <p:dataTable id="listaAgentes" value="#{mbAgentes.listaAgentes}"
+                             selection="#{mbAgentes.seleccionListaAgentes}" selectionMode="single"
+                             var="agentes" rowKey="#{agentes}" scrollable="true" scrollHeight="322"
+                             emptyMessage="No hay agentes disponibles" >
+                    <p:ajax event="rowSelect" process="@this" listener="#{mbAgentes.cargarDatosActualizar()}"
+                            update=":form:panelNuevoAgente :form:actualizar" />
+                    
+                    <p:column headerText="RFC" filterBy="#{agentes.contribuyente.rfc}" >
+                        #{agentes.contribuyente.rfc}
+                    </p:column>
+                    <p:column headerText="Nombre Agente" filterBy="#{agentes.agente}" >
+                        #{agentes.agente}
+                    </p:column>
+                    <p:column headerText="Cedis" filterBy="#{agentes.miniCedis.cedis}" >
+                        #{agentes.miniCedis.cedis}
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </h:form>
+        <ui:include src="footer.html" />
+    </body>
+</html>

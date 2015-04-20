@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Entradas de Oficina</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="ENTRADAS DE OFICINA"
+                             rendered="#{not empty mbEntradas.obtenerAcciones(20) and not mbEntradas.modoEdicion}">
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cedis" value="#{mbEntradas.mbComprobantes.mbAlmacenes.mbCedis.cedis}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbEntradas.mbComprobantes.mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" update="msgs" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <h:outputLabel value="PERIODO" style="font-weight: bold; color: red; text-align: center;" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html" 
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core" 
+      xmlns:pe="http://primefaces.org/ui/extensions" >
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Sustitucion de Insumos</title>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left" >
+                <h:form id="main" onkeypress="return event.keyCode !== 13;">
+                    <p:panel id="panelSustituirInsumo" header="Sustitucion de Insumos" style="float: left" >
+                        <p:messages id="messages" showDetail="true" closable="true" />
+                        <p:panelGrid >
+                            <p:row >
+                                <p:column style="width: 80px;" >
+                                    <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column style="width: 605px;" >
+                                    <p:selectOneMenu id="empresa" value="#{mbFormulas.mbEmpresas.empresa}" style="width: 200px;" >
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbFormulas.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" update="mttoSustituir mttoNuevo" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column style="width: 100px; text-align: right;" >
+                                    <p:commandButton icon="ui-icon-home" title="Terminar"
+                                                     ajax="false" action="#{mbFormulas.salir()}" immediate="true" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid id="mttoSustituir" >
+                            <p:row >
+                                <p:column style="width: 80px;" >
+                                    <h:outputLabel value="INSUMO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbFormulas.insumo1.cod_pro}" style="width: 65px;" readonly="true" />
+                                    <p:inputText value="#{mbFormulas.insumo1.toString()}" style="width: 520px;" readonly="true" />
+                                </p:column>
+                                <p:column style="width: 100px; text-align: left;" >
+                                    <p:commandButton id="btnBuscarInsumo" icon="ui-icon-search" title="Buscar Insumo" 
+                                                     disabled="#{mbFormulas.mbEmpresas.empresa.idEmpresa==0}"
+                                                     process="@this" actionListener="#{mbFormulas.buscarInsumo()}" 
+                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:panelGrid id="mttoNuevo" >
+                            <p:row >
+                                <p:column style="width: 80px;" >
+                                    <h:outputLabel value="NUEVO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbFormulas.insumo2.cod_pro}" style="width: 65px;" readonly="true" />
+                                    <p:inputText value="#{mbFormulas.insumo2.toString()}" style="width: 520px;" readonly="true" />
+                                </p:column>
+                                <p:column style="width: 40px; text-align: left;" >
+                                    <p:commandButton id="btnBuscarNuevo" icon="ui-icon-search" title="Buscar Insumo" 
+                                                     disabled="#{mbFormulas.mbEmpresas.empresa.idEmpresa==0}"
+                                                     process="@this" actionListener="#{mbFormulas.buscarNuevo()}" 
+                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                                <p:column style="width: 40px; text-align: right;" >
+                                    <p:commandButton id="btnEjecutar" icon="ui-icon-disk" title="Remplazar Insumo" 
+                                                     disabled="#{mbFormulas.mbEmpresas.empresa.idEmpresa==0}"
+                                                     process="@this" actionListener="#{mbFormulas.remplazar()}" update=":main:messages" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbFormulas.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <p:ajax listener="#{mbFormulas.mbBuscar.verCambio()}" 
+                                                update="buscarProductos listaBuscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbFormulas.buscar()}" 
+                                                     update="#{mbFormulas.mbBuscar.update}" 
+                                                     oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbFormulas.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbFormulas.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbFormulas.buscar()}" 
+                                                     update="listaBuscarProductos"  />
+                                </p:column>
+                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbFormulas.buscar()}" 
+                                                     update="listaBuscarProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaBuscarProductos" value="#{mbFormulas.mbBuscar.productos}" 
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbFormulas.mbBuscar.producto}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column headerText="SKU" style="width: 250px;" >
+                                <h:outputText value="#{prod.cod_pro}" />
+                            </p:column>
+
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbFormulas.mbBuscar.producto==null}"
+                                                 actionListener="#{mbFormulas.actualizaProductoSeleccionado()}"
+                                                 update="#{mbFormulas.mbBuscar.update}" 
+                                                 oncomplete="PF('buscarProductoDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            PF('buscarProductoDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

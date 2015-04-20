@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Solicitud de traspaso</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="SOLICITUD DE TRASPASO"
+                             rendered="#{not empty mbSolicitud.obtenerAcciones(17) and not mbSolicitud.modoEdicion}">
+                        <p:panelGrid >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu value="#{mbSolicitud.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs lnkEditarComprobante" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.cedis}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesEmpresa()}" 
+                                                update=":main:msgs almacenOrigen" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="almacenOrigen" value="#{mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbSolicitud.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs lnkEditarComprobante" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="2" style="text-align: right;" >
+                                    <p:commandLink id="lnkEditarComprobante" styleClass="nueva" value="Editar" 
+                                                   disabled="#{mbSolicitud.toAlmacen.idAlmacen==0 or mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                   update="main" actionListener="#{mbSolicitud.solicitud()}" process="@this" />|
+                                    <p:commandLink styleClass="nueva" action="#{mbSolicitud.terminar()}" value="Salir" ajax="false" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="mantenimiento" header="SOLICITUD DE TRASPASO" 
+                             rendered="#{mbSolicitud.modoEdicion}" >
+                        <p:panelGrid id="mttoEntradas" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbSolicitud.toAlmacen}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.cedis}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="2" style="text-align: right;" >
+                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar Solicitud" 
+                                                     process="@this" actionListener="#{mbSolicitud.grabarSolicitud()}" update="@this main :main:msgs" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                     process="@this" actionListener="#{mbSolicitud.salir()}" update="main" />
+                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                     process="@this" actionListener="#{mbSolicitud.mbBuscar.inicializar()}" 
+                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="detalleSolicitud" widgetVar="detalleSolicitud" value="#{mbSolicitud.solicitudDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbSolicitud.solicitudProducto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                            <p:ajax event="rowSelect" listener="#{mbSolicitud.respaldaFila()}" update="detalleSolicitud" />
+                            
+                            <p:column headerText="SKU" width="64"  >
+                                <h:outputText value="#{prod.producto.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="Producto" width="500" >
+                                <h:outputText value="#{prod.producto.toString()}" />
+                            </p:column>
+                            <p:column headerText="Solicitada" width="64" >
+                                <pe:inputNumber value="#{prod.cantOrdenada}" decimalPlaces="3"  minValue="0" 
+                                                disabled="#{prod.producto.idProducto!=mbSolicitud.solicitudProducto.producto.idProducto}" >
+                                    <p:ajax event="change" />
+                                </pe:inputNumber>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbSolicitud.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <p:ajax listener="#{mbSolicitud.mbBuscar.verCambio()}" update="buscarProductos listaBuscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbSolicitud.buscar()}" 
+                                                     update=":main:detalleSolicitud" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbSolicitud.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbSolicitud.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbSolicitud.buscar()}" 
+                                                     update="listaBuscarProductos"  />
+                                </p:column>
+                                <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbSolicitud.buscar()}" 
+                                                     update="listaBuscarProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaBuscarProductos" value="#{mbSolicitud.mbBuscar.productos}" 
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbSolicitud.mbBuscar.producto}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column headerText="SKU" style="width: 250px;" >
+                                <h:outputText value="#{prod.cod_pro}" />
+                            </p:column>
+
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbSolicitud.mbBuscar.producto==null}"
+                                                 actionListener="#{mbSolicitud.actualizaProductoSeleccionado()}"
+                                                 update=":main:detalleSolicitud" oncomplete="PF('buscarProductoDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            PF('buscarProductoDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Pedidos de clientes</title>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgsPedidos" autoUpdate="false" showDetail="true" />
+            <p:panel id="panelPedidos" header="Mantenimiento de Pedidos" style="float: left;" >
+                <p:panelGrid id="pedidos" >
+                    <f:facet name="header" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="almacen" value="#{mbPedidos.mbAlmacenes.almacen}" >
+                                    <f:converter converterId="converters.MiniAlmacenConverter" />
+                                    <f:selectItems value="#{mbPedidos.mbAlmacenes.listaAlmacenes}" />
+                                    <p:ajax event="change" listener="#{mbPedidos.obtenerPedidos()}" 
+                                            update=":main:msgsPedidos fechaInicial btnNuevoPedido listaDePedidos" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column style="text-align: right;" >
+                                <h:outputLabel for="chkTodosLosPedios" value="TODOS :" style="font-weight: bold; color: black;"
+                                               title="Ver a la fecha indicada, todos los pedidos o solo los pendientes" />
+                            </p:column>
+                            <p:column >
+                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbPedidos.todos}" >
+                                    <p:ajax listener="#{mbPedidos.regresarFechaActual()}" 
+                                            update=":main:msgsPedidos fechaInicial listaDePedidos" />
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="fechaInicial" value="#{mbPedidos.fechaInicial}" readonly="#{!mbPedidos.todos}" 
+                                            readonlyInput="true" disabled="#{mbPedidos.mbAlmacenes.almacen.idAlmacen==0}"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" listener="#{mbPedidos.obtenerPedidos()}" 
+                                            update=":main:msgsPedidos :main:listaDePedidos" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column colspan="5" style="text-align: right;" >
+                                <p:commandButton id="btnNuevoPedido" icon="ui-icon-document" title="Nuevo Pedido" 
+                                                 disabled="#{mbPedidos.mbAlmacenes.almacen.idAlmacen==0}"
+                                                 process="@this" actionListener="#{mbPedidos.nuevoPedido()}" 
+                                                 update=":main:nuevoPedido" oncomplete="PF('nuevoPedidoDlg').show();" />
+                                <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
+                                                 ajax="false" action="#{mbPedidos.terminar()}" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+                <p:dataTable id="listaDePedidos" value="#{mbPedidos.pedidos}" 
+                             var="pedido" rowKey="#{pedido.idPedido}" selectionMode="single" 
+                             style="border:solid 1px" emptyMessage="No existen pedidos" >
+                    <p:ajax event="rowSelect" listener="#{mbPedidos.obtenerDetalle}" 
+                            update=":main:msgsPedidos :main:pedido :main:detallePedido :main:totales" 
+                            oncomplete="abrirPedido(xhr, status, args);" />
+
+                    <p:column headerText="Formato" style="width: 200px;" >
+                        <h:outputText value="#{pedido.formato.formato}" />
+                    </p:column>
+                    <p:column headerText="Tienda" >
+                        <h:outputText value="#{pedido.tienda.tienda}" />
+                    </p:column>
+                    <p:column headerText="Pedido" style="width: 60px;" >
+                        <h:outputText value="#{pedido.idPedido}" />
+                    </p:column>
+                    <p:column headerText="Fecha" style="width: 70px;" >
+                        <h:outputText value="#{pedido.fecha}" >
+                            <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Orden De Compra" style="width: 60px;" >
+                        <h:outputText value="#{pedido.ordenDeCompra}" />
+                    </p:column>
+                    <p:column headerText="OC Fecha" style="width: 70px;" >
+                        <h:outputText value="#{pedido.ordenDeCompraFecha}" >
+                            <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+            <p:dialog header="Edicion" widgetVar="EdicionDlg" closable="false" resizable="false" style="width: 600px;" modal="true" >
+                <p:ajax event="close" update=":main:detallePedido" />
+                <p:messages id="msgsEdicion" showDetail="true" closable="true" />
+                <p:panelGrid id="panelEdicion" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtProducto" value="PRODUCTO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtProducto" value="#{mbPedidos.producto.toString()}" size="80" readonly="true" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="CANT.CON CARGO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <pe:inputNumber value="#{mbPedidos.producto.cantFacturada}" style="width: 120px;" maxlength="14" decimalPlaces="4" minValue="0" emptyValue="0"  >
+                                <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
+                                        update=":main:msgsEdicion :main:btnPedidoCerrar :main:btnPedidoEliminar" 
+                                        oncomplete="handleEdicion(xhr, status, args);" />
+                            </pe:inputNumber>
+                        </p:column>
+                    </p:row>
+                    <f:facet name="footer" >
+                        <p:row >
+                            <p:column colspan="5" style="text-align: right;" >
+                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
+                                                 immediate="true" onclick="PF('EdicionDlg').hide();" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+            </p:dialog>
+            <p:dialog header="Captura de Pedido" widgetVar="pedidoDlg" resizable="false" modal="true" >
+                <p:ajax event="close" listener="#{mbPedidos.liberarPedido()}" />
+                <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
+                <p:panelGrid id="pedido" style="width: 910px;" >
+                    <p:row >
+                        <p:column style="width: 100px;" >
+                            <h:outputLabel for="txtFormato" value="FORMATO:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="4" >
+                            <p:inputText id="txtFormato" value="#{mbPedidos.pedido.formato.formato}" readonly="true" size="35" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtTienda" value="TIENDA:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="4" >
+                            <p:inputText id="txtTienda" value="#{mbPedidos.pedido.tienda.tienda}" readonly="true" size="50" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtPedido" value="PEDIDO:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column style="width: 80px;" colspan="2" >
+                            <p:inputText id="txtPedido" value="#{mbPedidos.pedido.idPedido}" readonly="true" size="6" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtFecha" value="FECHA:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtFecha" value="#{mbPedidos.pedido.fecha}" readonly="true" size="11" >
+                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column colspan="3" ></p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column style="width: 140px;" colspan="2" >
+                            <h:outputLabel for="ordenDeCompra" value="ORDEN DE COMPRA:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="3" >
+                            <p:inputText id="ordenDeCompra" value="#{mbPedidos.pedido.ordenDeCompra}" readonly="true" size="29" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="ordenDeCompraFecha" value="FECHA:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="ordenDeCompraFecha" value="#{mbPedidos.pedido.ordenDeCompraFecha}" readonly="true" size="11" >
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column style="text-align: right;" >
+                            <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Buscar" title="Buscar productos"
+                                             process="@this" actionListener="#{mbPedidos.buscarProductos(':main:msgsPedido :main:detallePedido')}" 
+                                             update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show();" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="detallePedido" value="#{mbPedidos.detalle}"
+                             var="prod" rowKey="#{prod.producto}" selectionMode="single" 
+                             style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
+                    <p:ajax event="rowSelect" listener="#{mbPedidos.modificarProducto}"
+                            update=":main:msgsPedido :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
+
+                    <f:facet name="header" >Detalle del pedido</f:facet>
+                    <p:column headerText="Codigo" style="width: 50px;" >
+                        <h:outputText value="#{prod.producto.cod_pro}" />
+                    </p:column>
+                    <p:column headerText="Producto" >
+                        <h:outputText value="#{prod.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="Con Cargo" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantFacturada}" >
+                            <f:convertNumber pattern="###,##0.0000" />
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+                <p:panelGrid id="totales" styleClass="filaSinBorde colSinBorde" >
+                    <p:row >
+                        <p:column >
+                            <p:commandButton id="btnPedidoEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar el pedido" 
+                                             disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.status!=0}"
+                                             process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
+                                             update=":main:msgsPedido :main:listaDePedidos" 
+                                             oncomplete="handlePedido(xhr, status, args);" />
+                            <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Cerrar pedido, ya no se podra modificar" 
+                                             disabled="#{mbPedidos.pedido.status!=0 || mbPedidos.pedido.cantArticulos==0}"
+                                             process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
+                                             update=":main:msgsPedido :main:listaDePedidos" 
+                                             oncomplete="handlePedido(xhr, status, args);" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+            </p:dialog>
+            <p:dialog widgetVar="nuevoPedidoDlg" closable="true" header="Crear un nuevo pedido" modal="true" resizable="false" >
+                <p:messages id="msgsNuevoPedido" autoUpdate="false" showDetail="true" closable="true" />
+                <p:panelGrid id="nuevoPedido" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="grupo" value="GRUPO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="grupo" value="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado}" 
+                                             disabled="#{mbPedidos.mbFormatos.formatoSeleccion.idFormato!=0}" >
+                                <f:converter converterId="converters.ClientesGrupos" />
+                                <f:selectItems value="#{mbPedidos.mbGrupos.itemsClientesGrupos}" />
+                                <p:ajax event="change" listener="#{mbPedidos.cambioDeGrupo()}" 
+                                        update=":main:msgsNuevoPedido cliente formato tienda btnCrearPedido" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}" 
+                                             disabled="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado.idGrupoCte==0 || mbVentas.mbFormatos.formatoSeleccion.idFormato!=0}" >
+                                <f:converter converterId="converters.miniCliente" />
+                                <f:selectItems value="#{mbPedidos.mbClientes.listaClientes}" />
+                                <p:ajax event="change" listener="#{mbPedidos.cambioDeCliente()}" 
+                                        update=":main:msgsNuevoPedido grupo formato tienda btnCrearPedido" />
+                            </p:selectOneMenu>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="formato" value="FORMATO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="formato" value="#{mbPedidos.mbFormatos.formatoSeleccion}" 
+                                             disabled="#{mbPedidos.mbClientes.cliente.idCliente==0}" >
+                                <f:converter converterId="converter.formatos" />
+                                <f:selectItems value="#{mbPedidos.mbFormatos.lstFormatos}" />
+                                <p:ajax event="change" 
+                                        listener="#{mbPedidos.cambioDeFormato()}" 
+                                        update=":main:msgsNuevoPedido grupo cliente tienda btnCrearPedido" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="tienda" value="TIENDA :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="tienda" value="#{mbPedidos.mbTiendas.tienda}" 
+                                             disabled="#{mbPedidos.mbFormatos.formatoSeleccion.idFormato==0}" >
+                                <f:converter converterId="converters.miniTienda" />
+                                <f:selectItems value="#{mbPedidos.mbTiendas.listaTiendas}" />
+                                <p:ajax event="change" update=":main:msgsNuevoPedido grupo cliente formato btnCrearPedido" />
+                            </p:selectOneMenu>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtOrdenDeCompra" value="Orden de Compra:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtOrdenDeCompra" value="#{mbPedidos.ordenDeCompra}" size="30" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtOrdenDeCompraFecha" value="Orden de Compra:" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtOrdenDeCompraFecha" value="#{mbPedidos.ordenDeCompraFecha}" size="11" >
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <f:facet name="footer" >
+                        <p:row >
+                            <p:column colspan="4" style="text-align: right;" >
+                                <p:commandButton id="btnCrearPedido" icon="ui-icon-document" value="Crear" title="Crear pedido" 
+                                                 disabled="#{mbPedidos.mbTiendas.tienda.idTienda==0}"
+                                                 process="@this txtOrdenDeCompra txtOrdenDeCompraFecha" 
+                                                 actionListener="#{mbPedidos.crearPedido()}"
+                                                 update=":main:msgsNuevoPedido :main:listaDePedidos :main:pedido :main:detallePedido :main:totales" 
+                                                 oncomplete="nuevoPedido(xhr, status, args);" />
+                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Cancelar" title="Cancelar" 
+                                                 immediate="true" onclick="PF('nuevoPedidoDlg').hide();" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+            </p:dialog>
+            <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneRadio id="opciones" value="#{mbPedidos.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                <f:selectItem itemLabel="SKU" itemValue="1" />
+                                <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                <p:ajax listener="#{mbPedidos.mbBuscar.verCambio()}" 
+                                        update="buscarProductos listaBuscarProductos" />
+                            </p:selectOneRadio>
+                        </p:column>
+                        <p:column rendered="#{mbPedidos.mbBuscar.tipoBuscar=='1'}" >
+                            <p:inputText id="opcionSKU" value="#{mbPedidos.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                            <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                             process="@this opcionSKU" actionListener="#{mbPedidos.buscar()}" 
+                                             update=":main:msgBuscar #{mbPedidos.mbBuscar.update}" 
+                                             oncomplete="handleBuscar(xhr, status, args)" />
+                        </p:column>
+                        <p:column rendered="#{mbPedidos.mbBuscar.tipoBuscar=='2'}" >
+                            <p:autoComplete id="opcionParte" value="#{mbPedidos.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                            completeMethod="#{mbPedidos.mbBuscar.mbParte.completePartes}" 
+                                            var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                            forceSelection="true" />
+                            <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                             process="@this opcionParte" actionListener="#{mbPedidos.buscar()}" 
+                                             update="listaBuscarProductos"  />
+                        </p:column>
+                        <p:column rendered="#{mbPedidos.mbBuscar.tipoBuscar=='3'}" >
+                            <p:inputText id="opcionDescripcion" value="#{mbPedidos.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                            <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                             process="@this opcionDescripcion" actionListener="#{mbPedidos.buscar()}" 
+                                             update="listaBuscarProductos" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="listaBuscarProductos" value="#{mbPedidos.mbBuscar.productos}" 
+                             var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                             rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbPedidos.mbBuscar.producto}" >
+                    <p:ajax event = "rowSelect" update="seleccion" />
+
+                    <f:facet name="header">Seleccione un producto</f:facet>
+
+                    <p:column headerText="SKU" style="width: 250px;" >
+                        <h:outputText value="#{prod.cod_pro}" />
+                    </p:column>
+
+                    <p:column headerText="Producto" style="width: 250px;" >
+                        <h:outputText value="#{prod.toString()}" />
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <p:commandButton id="seleccion" value="Seleccionar" 
+                                         disabled="#{mbPedidos.mbBuscar.producto==null}"
+                                         process="@this" actionListener="#{mbPedidos.actualizaProductoSeleccionado()}"
+                                         update=":main:msgBuscar #{mbPedidos.mbBuscar.update}" 
+                                         oncomplete="handleBuscar(xhr, status, args);" />
+                    </f:facet>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <script type="text/javascript" >
+            function handleEdicion(xhr, status, args) {
+                if (!(args.validationFailed || !args.okEdicion)) {
+                    PF('EdicionDlg').hide();
+                }
+            }
+            function abrirEdicion(xhr, status, args) {
+                if (!(args.validationFailed || !args.okEdicion)) {
+                    PF('EdicionDlg').show();
+                }
+            }
+            function handleBuscar(xhr, status, args) {
+                if (!(args.validationFailed || !args.okBuscar)) {
+                    PF('buscarProductoDlg').hide();
+                }
+            }
+            function handlePedido(xhr, status, args) {
+                if (!(args.validationFailed || !args.okPedido)) {
+                    PF('pedidoDlg').hide();
+                }
+            }
+            function abrirPedido(xhr, status, args) {
+                if (!(args.validationFailed || !args.okPedido)) {
+                    PF('pedidoDlg').show();
+                }
+            }
+            function nuevoPedido(xhr, status, args) {
+                if (!(args.validationFailed || !args.okPedido)) {
+                    PF('nuevoPedidoDlg').hide();
+                    PF('pedidoDlg').show();
+                }
+            }
+        </script>
+        <ui:include src="footer.xhtml" />
+    </body>
+</html>

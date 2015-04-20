@@ -1,0 +1,832 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Proveedores</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left"  >
+                <h:form id="form" >
+                    <p:panel id="listas" header="LISTAS DE PROVEEDORES" styleClass="quitaCuadro" 
+                             rendered="#{not empty mbListas.acciones and not mbListas.modoEdicion}">
+                        <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column style="width: 700px;" >
+                                    <p:selectOneMenu id="proveedor" value="#{mbListas.mbProveedor.miniProveedor}" style="width: 300px" >
+                                        <f:converter converterId="converters.miniProveedor" />
+                                        <f:selectItems value="#{mbListas.mbProveedor.listaMiniProveedores}" />
+                                        <p:ajax event="change" listener="#{mbListas.cargaProductos()}" 
+                                                update="listaProductos lnkNuevoProductoProveedor msgs1" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:outputPanel >
+                                        <p:commandLink id="lnkNuevoProductoProveedor" styleClass="nueva" value="Nueva" 
+                                                       disabled="#{not mbListas.mbAcciones.validarAccion('lnkNuevoProductoProveedor') or mbListas.mbProveedor.miniProveedor.idProveedor==0}"
+                                                       ajax="false" action="#{mbListas.nuevoProductoLista()}" immediate="true" update="mttoProductoLista" />|
+                                        <p:commandLink id="lnkModifProductoProveedor" styleClass="nueva" value="Modificar" 
+                                                       disabled="#{not mbListas.mbAcciones.validarAccion('lnkModifProductoProveedor') or mbListas.mbProveedor.miniProveedor.idProveedor==0 or mbListas.producto==null}"
+                                                       ajax="false" action="#{mbListas.modificarProductoLista()}" immediate="true" update="mttoProductoLista" />|
+                                        <p:commandLink styleClass="nueva" action="#{mbListas.terminar()}" value="Salir" ajax="false" />
+                                    </p:outputPanel>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaProductos" widgetVar="productosTable" style="border:solid 1px"
+                                     value="#{mbListas.listaProductos}" filteredValue="#{mbListas.listaFiltrados}" emptyMessage="No hay elementos que desplegar"
+                                     var="producto" rowKey="#{producto.idProducto}" selectionMode="single" selection="#{mbListas.producto}"
+                                     scrollable="true" scrollHeight="300" >
+                            <p:ajax event="rowSelect" update=":form:lnkModifProductoProveedor" />
+
+                            <p:column filterBy="#{producto.sku}" filterMatchMode="contains" width="200" >
+                                <f:facet name="header" >
+                                    <h:outputText value="SKU" />
+                                </f:facet>
+                                <h:outputText value="#{producto.sku}" />
+                            </p:column>
+                            <p:column filterBy="#{producto.toString()}" filterMatchMode="contains" width="600" >
+                                <f:facet name="header" >
+                                    <h:outputText value="PRODUCTO" />
+                                </f:facet>
+                                <h:outputText value="#{producto.toString()}" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panel id="mttoProductoLista" header="CAMBIO DE PRECIO" styleClass="quitaCuadro" rendered="#{mbListas.modoEdicion}" >
+                        <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
+                        <p:panelGrid id="panelProductoLista" styleClass="quitaCuadro" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="sku" value="SKU :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="4" >
+                                    <p:inputText id="sku" value="#{mbListas.productoLista.producto.sku}" readonly="true" maxlength="20" size="25" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="producto" value="PRODUCTO :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:inputText id="producto" value="#{mbListas.productoLista.producto.toString()}" readonly="true" maxlength="124" size="80" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoProductos" icon="ui-icon-pencil" title="Mantenimiento de productos" 
+                                                     process="@this" actionListener="#{mbListas.mantenimientoProducto()}" 
+                                                     update="msgs2 mttoProductos" oncomplete="PF('mttoProdsDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="diasEntrega" value="DIAS ENTREGA :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="4" >
+                                    <p:inputText id="diasEntrega" value="#{mbListas.productoLista.producto.diasEntrega}" readonly="true" 
+                                                 maxlength="3" size="5" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="ultCompFecha" value="ULTIMA COMPRA :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="ultCompFecha" value="#{mbListas.productoLista.producto.ultimaCompraFecha}" readonly="true" 
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="ultCompCosto" value="PRECIO :" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="ultCompCosto" value="#{mbListas.productoLista.producto.ultimaCompraPrecio}" readonly="true" 
+                                                 maxlength="9" size="12" />
+                                </p:column>
+                                <p:column ></p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="equivalencia" value="EQUIVALENCIA :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="4" >
+                                    <p:inputText id="equivalencia" value="#{mbListas.productoLista.producto.equivalencia.toString()}" 
+                                                 readonly="true" maxlength="120" size="80" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="4" >
+                                    <p:dataTable id="listaPrecios" value="#{mbListas.mbPrecios.precios}"
+                                                 widgetVar="preciosTable" var="precio" style="border:solid 1px" 
+                                                 rowKey="#{precio.inicioVigencia}" selection="#{mbListas.precio}" selectionMode="single"
+                                                 emptyMessage="No hay elementos que desplegar">
+                                        <p:ajax event="rowSelect" update=":form:btnMttoPrecio" />
+
+                                        <p:column headerText="Precio Lista" >
+                                            <h:outputText value="#{precio.precioLista}" />
+                                        </p:column>
+                                        <p:column headerText="Descuento(1)" >
+                                            <h:outputText value="#{precio.desctoComercial1}" />
+                                        </p:column>
+                                        <p:column headerText="Descuento(2)" >
+                                            <h:outputText value="#{precio.desctoComercial2}" />
+                                        </p:column>
+                                        <p:column headerText="Confidencial" >
+                                            <h:outputText value="#{precio.desctoConfidencial}" />
+                                        </p:column>
+                                        <p:column headerText="Precio Neto" >
+                                            <h:outputText value="#{precio.precioNeto}" />
+                                        </p:column>
+                                        <p:column headerText="Inicia" >
+                                            <h:outputText value="#{precio.inicioVigencia}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Termina" >
+                                            <h:outputText value="#{precio.finVigencia}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnNuevoPrecio" icon="ui-icon-document" title="Nuevo cambio de precio" 
+                                                     process="@this" actionListener="#{mbListas.mantenimientoPrecio(true)}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevoPrecio') or mbListas.productoLista.producto.idProducto==0}"
+                                                     update="msgs2 mttoPrecios" oncomplete="PF('mttoPreciosDlg').show()" />
+                                    <p:commandButton id="btnMttoPrecio" icon="ui-icon-pencil" title="Modificar cambio de precio" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoPrecio') or mbListas.precio==null}"
+                                                     process="@this" actionListener="#{mbListas.mantenimientoPrecio(false)}" 
+                                                     update="msgs2 mttoPrecios" oncomplete="PF('mttoPreciosDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="4" >
+                                    <p:dataTable id="listaOfertas" value="#{mbListas.mbOfertas.ofertas}"
+                                                 widgetVar="ofertasTable" var="oferta" style="border:solid 1px" rowKey="#{oferta.inicioVigencia}"
+                                                 selection="#{mbListas.oferta}" selectionMode="single"
+                                                 emptyMessage="No hay elementos que desplegar">
+                                        <p:ajax event="rowSelect" update=":form:btnMttoOferta" />
+
+                                        <p:column headerText="% Oferta" >
+                                            <h:outputText value="#{oferta.ptjeOferta}" />
+                                        </p:column>
+                                        <p:column headerText="Precio Oferta" >
+                                            <h:outputText value="#{oferta.precioOferta}" />
+                                        </p:column>
+                                        <p:column headerText="Con Cargo" >
+                                            <h:outputText value="#{oferta.base}" />
+                                        </p:column>
+                                        <p:column headerText="Sin Cargo" >
+                                            <h:outputText value="#{oferta.sinCargo}" />
+                                        </p:column>
+                                        <p:column headerText="Inicia" >
+                                            <h:outputText value="#{oferta.inicioVigencia}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Termina" >
+                                            <h:outputText value="#{oferta.finVigencia}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnNuevaOferta" icon="ui-icon-document" title="Nueva Oferta" 
+                                                     process="@this" actionListener="#{mbListas.mantenimientoOferta(true)}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevaOferta') or mbListas.productoLista.producto.idProducto==0}"
+                                                     update="msgs2 mttoOfertas" oncomplete="PF('mttoOfertasDlg').show()" />
+                                    <p:commandButton id="btnMttoOferta" icon="ui-icon-pencil" title="Modificar Oferta" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoOferta') or mbListas.oferta==null}"
+                                                     process="@this" actionListener="#{mbListas.mantenimientoOferta(false)}" 
+                                                     update="msgs2 mttoOfertas" oncomplete="PF('mttoOfertasDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="5" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                         ajax="false" action="#{mbListas.salir()}" immediate="true" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="MANTENIMIENTO DE PRODUCTOS" widgetVar="mttoProdsDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="messages0" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoProductos" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtSKU" value="SKU :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <p:inputText id="txtSKU" value="#{mbListas.mbProducto.producto.sku}" maxlength="20" size="25" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="empaque" value="EMPAQUE :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column style="width: 150px;" >
+                                    <p:selectOneMenu id="empaque" value="#{mbListas.mbProducto.producto.empaque}" >
+                                        <f:converter converterId="converters.Empaque" />
+                                        <f:selectItems value="#{mbListas.mbProducto.listaEmpaques}" />
+                                        <p:ajax event="change" listener="#{mbListas.mbProducto.actualizarPiezas()}" process="@this" update="txtPiezas" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnMttoEmpaques" icon="ui-icon-pencil" title="Mantenimiento de Empaques"
+                                                     actionListener="#{mbListas.mbProducto.mttoUnidadesEmpaque()}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoEmpaques')}"
+                                                     process="@this empaque" update="mttoUnidadesEmpaque" 
+                                                     oncomplete="PF('mttoUnidadesEmpaqueDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPiezas" value="PIEZAS :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <pe:inputNumber id="txtPiezas" value="#{mbListas.mbProducto.producto.piezas}"
+                                                    disabled="#{mbListas.mbProducto.producto.empaque.idEmpaque==0 || mbListas.mbProducto.producto.empaque.idEmpaque==1}"
+                                                    decimalPlaces="0" minValue="0" maxlength="6" >
+                                    </pe:inputNumber>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtProducto" value="PRODUCTO :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <p:inputText id="txtProducto" value="#{mbListas.mbProducto.producto.producto}" maxlength="80" size="85" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="marca" value="MARCA :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column style="width: 150px;" >
+                                    <p:selectOneMenu id="marca" value="#{mbListas.mbProducto.producto.marca}" >
+                                        <f:converter converterId="converters.Marca" />
+                                        <f:selectItems value="#{mbListas.mbProducto.listaMarcas}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnMttoMarcas" icon="ui-icon-pencil" title="Mantenimiento de Marcas" 
+                                                     actionListener="#{mbListas.mbProducto.mttoMarcas()}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoMarcas')}"
+                                                     process="@this marca" update="mttoMarcas" 
+                                                     oncomplete="PF('mttoMarcasDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="presentacion" value="PRESENTACION :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column style="width: 150px;" >
+                                    <p:selectOneMenu id="presentacion" value="#{mbListas.mbProducto.producto.presentacion}" >
+                                        <f:converter converterId="converters.Presentacion" />
+                                        <f:selectItems value="#{mbListas.mbProducto.mbPresentacion.listaPresentaciones}" />
+                                        <p:ajax event="change" listener="#{mbListas.mbProducto.actualizarContenido()}" process="@this" update="contenido unimed" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnMttoPresentacion" icon="ui-icon-pencil" title="Mantenimiento de Presentaciones" 
+                                                     process="@this presentacion" actionListener="#{mbListas.mbProducto.mttoPresentacion()}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoPresentacion')}"
+                                                     update="mttoPresentaciones" oncomplete="PF('mttoPresentacionDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="contenido" value="CONTENIDO :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <pe:inputNumber id="contenido" value="#{mbListas.mbProducto.producto.contenido}"
+                                                    decimalPlaces="3" minValue="0" 
+                                                    required="true" requiredMessage="Se requiere un número" >
+                                    </pe:inputNumber>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="unimed" value="UNIDAD MEDIDA :"  style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:selectOneMenu id="unimed" value="#{mbListas.mbProducto.producto.unidadMedida}" 
+                                                     disabled="#{mbListas.mbProducto.producto.presentacion.idPresentacion==0 || mbListas.mbProducto.producto.presentacion.idPresentacion==1}" >
+                                        <f:converter converterId="converters.UnidadMedida" />
+                                        <f:selectItems value="#{mbListas.mbProducto.listaUnidadesMedida}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="impuesto" value="IMPUESTO :"  style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3" >
+                                    <p:selectOneMenu id="impuesto" value="#{mbListas.mbProducto.producto.impuestoGrupo}" >
+                                        <f:converter converterId="converters.ImpuestoGrupo" />
+                                        <f:selectItems value="#{mbListas.mbProducto.mbImpuestoGrupo.listaGrupos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtDiasEntrega" value="DIAS ENTREGA :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <pe:inputNumber id="txtDiasEntrega" value="#{mbListas.mbProducto.producto.diasEntrega}"
+                                                    decimalPlaces="0" minValue="0" maxValue="999"
+                                                    required="true" requiredMessage="Se requiere un número" >
+                                    </pe:inputNumber>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtEquivalencia" value="EQUIVALENCIA :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtEquivalencia" value="#{mbListas.mbProducto.producto.equivalencia.toString()}" 
+                                                 readonly="true" maxlength="120" size="80" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEquivalencias" icon="ui-icon-search" title="Buscar Productos" 
+                                                     process="@this" actionListener="#{mbListas.mbProducto.mbBuscar.inicializar()}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnEquivalencias')}"
+                                                     update="buscarProductos listaBuscarProductos" 
+                                                     oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="4" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar"
+                                                         actionListener="#{mbListas.grabarProducto()}" 
+                                                         update="messages0 panelProductoLista" 
+                                                         oncomplete="handleProveedorProducto(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE UNIDADES DE EMPAQUE" widgetVar="mttoUnidadesEmpaqueDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="msgEmpaques" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoUnidadesEmpaque" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadEmpaque" value="EMPAQUE :" 
+                                                   style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadEmpaque" value="#{mbListas.mbProducto.mbEmpaques.empaque.empaque}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtUnidadEmpaqueAbrev" value="ABREVIATURA :" 
+                                                   style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtUnidadEmpaqueAbrev" value="#{mbListas.mbProducto.mbEmpaques.empaque.abreviatura}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarUnidadEmpaque" icon="ui-icon-disk" title="Grabar Unidad de Empaque"
+                                                         process="@this txtUnidadEmpaque txtUnidadEmpaqueAbrev" 
+                                                         actionListener="#{mbListas.mbProducto.grabarUnidadEmpaque()}"
+                                                         update="msgEmpaques empaque txtPiezas" oncomplete="handleUnidadEmpaque(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarUnidadEmpaque" icon="ui-icon-trash" title="Eliminar Unidad de Empaque" 
+                                                         disabled="#{not mbListas.mbAcciones.validarAccion('btnEliminarUnidadEmpaque') or mbListas.mbProducto.mbEmpaques.empaque.idEmpaque==0}" 
+                                                         onclick="PF('eUnidadEmpaque').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog  message="Está seguro ?" header="Eliminar unidad de empaque ?" widgetVar="eUnidadEmpaque" >
+                        <p:commandButton value="No, cancelar" onclick="PF('eUnidadEmpaque').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbListas.mbProducto.eliminarUnidadEmpaque()}" 
+                                         update="msgEmpaques empaque txtPiezas" oncomplete="PF('eUnidadEmpaque').hide();handleUnidadEmpaque(xhr, status, args);" />
+                    </p:confirmDialog>
+                    <p:dialog header="MANTENIMIENTO DE MARCAS" widgetVar="mttoMarcasDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="msgMarcas" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoMarcas" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="fabricante" value="FABRICANTE :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="fabricante" value="#{mbListas.mbProducto.mbMarca.strFabricante}" 
+                                                      disabled="#{mbListas.mbProducto.mbMarca.marca.idMarca>0}"
+                                                      style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="La Anita" itemValue="1" />
+                                        <f:selectItem itemLabel="Externo " itemValue="2" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtMarca" value="MARCA :" style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtMarca" value="#{mbListas.mbProducto.mbMarca.marca.marca}" maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarMarca" icon="ui-icon-disk" title="Grabar Marca"
+                                                         process="@this fabricante txtMarca" actionListener="#{mbListas.mbProducto.grabarMarca()}" 
+                                                         update="msgMarcas marca" oncomplete="handleMarca(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarMarca" icon="ui-icon-trash" title="Eliminar Marca" 
+                                                         disabled="#{not mbListas.mbAcciones.validarAccion('btnEliminarMarca') or mbListas.mbProducto.mbMarca.marca.idMarca==0}"
+                                                         onclick="PF('eMarca').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog  message="Está seguro ?" header="Eliminar marca ?" widgetVar="eMarca" >
+                        <p:commandButton value="No, cancelar" onclick="eMarca.hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbListas.mbProducto.eliminarMarca()}" 
+                                         update="msgMarcas marca" oncomplete="PF('eMarca').hide();handleMarca(xhr, status, args);" />
+                    </p:confirmDialog>
+                    <p:dialog header="MANTENIMIENTO DE PRESENTACIONES" widgetVar="mttoPresentacionDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="msgPresentaciones" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoPresentaciones" styleClass="sinBorde">
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPresentacion" value="PRESENTACION :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtPresentacion" value="#{mbListas.mbProducto.mbPresentacion.presentacion.presentacion}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPresentacionAbrev" value="ABREVIATURA :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtPresentacionAbrev" value="#{mbListas.mbProducto.mbPresentacion.presentacion.abreviatura}" 
+                                                 maxlength="50" size="55" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarPresentacion" icon="ui-icon-disk" title="Grabar Presentación"
+                                                         process="@this txtPresentacion txtPresentacionAbrev" 
+                                                         actionListener="#{mbListas.mbProducto.grabarPresentacion()}"
+                                                         update="msgPresentaciones presentacion contenido unimed" oncomplete="handlePresentacion(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarPresentacion" icon="ui-icon-trash" title="Eliminar Presentacion" 
+                                                         disabled="#{not mbListas.mbAcciones.validarAccion('btnEliminarPresentacion') or mbListas.mbProducto.mbPresentacion.presentacion.idPresentacion==0}" 
+                                                         onclick="PF('ePresentacion').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog  message="Está seguro ?" header="Eliminar presentación ?" widgetVar="ePresentacion" >
+                        <p:commandButton value="No, cancelar" onclick="PF('ePresentacion').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbListas.mbProducto.eliminarPresentacion()}" 
+                                         update="msgPresentaciones presentacion contenido unimed" 
+                                         oncomplete="PF('ePresentacion').hide();handlePresentacion(xhr, status, args);" />
+                    </p:confirmDialog>
+                    <p:dialog header="MANTENIMIENTO DE OFERTA" widgetVar="mttoOfertasDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="msgOfertas" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoOfertas" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtFechaInicial" value="Fecha Inicial :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtFechaInicial" value="#{mbListas.mbOfertas.oferta.inicioVigencia}" 
+                                                 readonly="#{not mbListas.mbOfertas.oferta.nuevo}"
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtFechaFinal" value="Fecha Final :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtFechaFinal" value="#{mbListas.mbOfertas.oferta.finVigencia}" 
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPtjeOferta" value="Ptje.Oferta :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtPtjeOferta" value="#{mbListas.mbOfertas.oferta.ptjeOferta}"
+                                                    decimalPlaces="2" minValue="0" maxValue="99.99" >
+                                        <p:ajax event="change" listener="#{mbListas.mbOfertas.cambioPtjeOferta()}" 
+                                                update="txtPrecioOferta txtSinCargoBase txtSinCargoCant" />
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtPtjeOferta" maxlength="5" size="8" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPrecioOferta" value="Precio Oferta :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtPrecioOferta" value="#{mbListas.mbOfertas.oferta.precioOferta}"
+                                                    decimalPlaces="2" minValue="0" maxValue="999999.99" >
+                                        <p:ajax event="change" listener="#{mbListas.mbOfertas.cambioPrecioOferta()}" 
+                                                update="txtPtjeOferta txtSinCargoBase txtSinCargoCant" />
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtPrecioOferta" maxlength="18" size="20" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtSinCargoBase" value="Con Cargo :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtSinCargoBase" value="#{mbListas.mbOfertas.oferta.base}"
+                                                    decimalPlaces="0" minValue="0" maxValue="999" >
+                                        <p:ajax event="change" listener="#{mbListas.mbOfertas.cambioBase()}" 
+                                                update="txtPrecioOferta txtPtjeOferta txtSinCargoCant" />
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtSinCargoBase" maxlength="10" size="12" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtSinCargoCant" value="Sin Cargo :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtSinCargoCant" value="#{mbListas.mbOfertas.oferta.sinCargo}"
+                                                    decimalPlaces="0" minValue="0" maxValue="999" disabled="#{mbListas.mbOfertas.oferta.base==0}" >
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtSinCargoCant" maxlength="10" size="12" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton id="btnGrabarOferta" icon="ui-icon-disk" title="Grabar Oferta"
+                                                         process="@this txtFechaInicial txtFechaFinal txtPtjeOferta txtPrecioOferta txtSinCargoBase txtSinCargoCant" 
+                                                         actionListener="#{mbListas.grabarOferta()}" 
+                                                         update="msgOfertas panelProductoLista" oncomplete="handleOfertas(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarOferta" icon="ui-icon-trash" title="Eliminar Oferta" 
+                                                         disabled="#{not mbListas.mbAcciones.validarAccion('btnEliminarOferta') or mbListas.mbOfertas.oferta.nuevo}" 
+                                                         onclick="PF('eOferta').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog message="Esta seguro de eliminar la oferta ?" header="Eliminar una oferta" widgetVar="eOferta" >
+                        <p:commandButton value="No, cancelar" onclick="PF('eOferta').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbListas.eliminarOferta()}" 
+                                         update="msgOfertas panelProductoLista" 
+                                         oncomplete="eOferta.hide();handleOfertas(xhr, status, args);"/>
+                    </p:confirmDialog>
+                    <p:dialog header="MANTENIMIENTO DE CAMBIOS DE PRECIO" widgetVar="mttoPreciosDlg" resizable="false" style="width: 500px;" modal="true" >
+                        <p:messages id="msgPrecios" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoPrecios" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtFechaInicialPre" value="Fecha Inicial :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtFechaInicialPre" value="#{mbListas.mbPrecios.precio.inicioVigencia}" 
+                                                 readonly="#{not mbListas.mbPrecios.precio.nuevo}"
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtFechaFinalPre" value="Fecha Final :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtFechaFinalPre" value="#{mbListas.mbPrecios.precio.finVigencia}" 
+                                                 maxlength="10" size="12" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtCosto" value="Precio Lista :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtCosto" value="#{mbListas.mbPrecios.precio.precioLista}"
+                                                    decimalPlaces="2" minValue="0" maxValue="999999.99" >
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtCosto" maxlength="5" size="8" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtDescto1" value="Descuento(1) :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtDescto1" value="#{mbListas.mbPrecios.precio.desctoComercial1}"
+                                                    decimalPlaces="2" minValue="0" maxValue="99.99" >
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtDescto1" maxlength="5" size="8" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtDescto2" value="Descuento(2) :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtDescto2" value="#{mbListas.mbPrecios.precio.desctoComercial2}"
+                                                    decimalPlaces="2" minValue="0" maxValue="99.99" >
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtDescto2" maxlength="5" size="8" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtConfidencial" value="Confidencial :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <pe:inputNumber id="txtConfidencial" value="#{mbListas.mbPrecios.precio.desctoConfidencial}"
+                                                    decimalPlaces="2" minValue="0" maxValue="99.99" >
+                                    </pe:inputNumber>
+                                    <!--
+                                    <p:inputText id="txtConfidencial" maxlength="5" size="8" />
+                                    -->
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton id="btnGrabarPrecio" icon="ui-icon-disk" title="Grabar Precio"
+                                                         process="@this txtFechaInicialPre txtFechaFinalPre txtCosto txtDescto1 txtDescto2 txtConfidencial" 
+                                                         actionListener="#{mbListas.grabarPrecio()}" 
+                                                         update="msgPrecios panelProductoLista" oncomplete="handlePrecios(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarPrecio" icon="ui-icon-trash" title="Eliminar Precio" 
+                                                         disabled="#{not mbListas.mbAcciones.validarAccion('btnEliminarPrecio') or mbListas.mbPrecios.precio.nuevo}"
+                                                         onclick="PF('ePrecio').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog  message="Esta seguro de eliminar el cambio de precio ?" header="Eliminar cambio de precio" widgetVar="ePrecio" >
+                        <p:commandButton value="No, cancelar" onclick="PF('ePrecio').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbListas.eliminarPrecio()}" 
+                                         update="msgPrecios panelProductoLista" 
+                                         oncomplete="PF('ePrecio').hide();handlePrecios(xhr, status, args);"/>
+                    </p:confirmDialog>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbListas.mbProducto.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <p:ajax listener="#{mbListas.mbProducto.mbBuscar.verCambio()}" update="buscarProductos listaBuscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbListas.mbProducto.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbListas.mbProducto.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbListas.buscar()}" 
+                                                     oncomplete="handleBuscar(xhr, status, args)" />
+                                    <!--update=":main:mttoProductos"-->
+                                </p:column>
+                                <p:column rendered="#{mbListas.mbProducto.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbListas.mbProducto.mbBuscar.mbParte.parte}" maxlength="50" size="30"
+                                                    completeMethod="#{mbListas.mbProducto.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbListas.buscar()}" 
+                                                     update="listaBuscarProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaBuscarProductos" value="#{mbListas.mbProducto.mbBuscar.productos}" 
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbListas.mbProducto.mbBuscar.producto}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column headerText="SKU" style="width: 250px;" >
+                                <h:outputText value="#{prod.cod_pro}" />
+                            </p:column>
+
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbListas.mbProducto.mbBuscar.producto==null}"
+                                                 actionListener="#{mbListas.actualizaProductoSeleccionado()}"
+                                                 update=":form:txtEquivalencia" oncomplete="PF('buscarProductoDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            PF('buscarProductoDlg').hide();
+                        }
+                    }
+
+                    function handlePrecios(xhr, status, args) {
+                        if (args.validationFailed || !args.okPrecio) {
+                            PF('mttoPreciosDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoPreciosDlg').hide();
+                        }
+                    }
+
+                    function handleOfertas(xhr, status, args) {
+                        if (args.validationFailed || !args.okOferta) {
+                            PF('mttoOfertasDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoOfertasDlg').hide();
+                        }
+                    }
+
+                    function handlePresentacion(xhr, status, args) {
+                        if (args.validationFailed || !args.okPresentacion) {
+                            PF('mttoPresentacionDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoPresentacionDlg').hide();
+                        }
+                    }
+
+                    function handleMarca(xhr, status, args) {
+                        if (args.validationFailed || !args.okMarca) {
+                            PF('mttoMarcasDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoMarcasDlg').hide();
+                        }
+                    }
+
+                    function handleUnidadEmpaque(xhr, status, args) {
+                        if (args.validationFailed || !args.okUnidadEmpaque) {
+                            PF('mttoUnidadesEmpaqueDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoUnidadesEmpaqueDlg').hide();
+                        }
+                    }
+
+                    function handleProveedorProducto(xhr, status, args) {
+                        if (args.validationFailed || !args.okProveedorProducto) {
+                            PF('mttoProdsDlg').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoProdsDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" ></meta>
+        <title>Actualización de Cedis</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form id="form" >
+                    <p:messages id="msgs" showDetail="true" showSummary="false" />
+                    <p:panel header="MANTENIMIENTO DE CEDIS">
+
+                        <h:panelGrid id="panelCapturaCedis" frame="box" border="0" columns="3" >
+                            <h:outputLabel value="Cedis:" for="cedis" style="font-weight: bold; color: black;" />
+                            <p:inputText id="cedis" value="#{mbCedis.cedis.cedis}" maxlength="100" size="50"
+                                         required="true"
+                                         requiredMessage="Ingrese el nombre del CEDIS"/>
+                            <h:outputLabel/>
+
+                            <h:outputLabel value="Teléfono:" for="telefono" style="font-weight: bold; color: black;"/>
+                            <p:inputMask id="telefono" value="#{mbCedis.cedis.telefono}" maxlength="10" size="15" mask="(999)9-99-99-99" 
+                                         required="true"
+                                         requiredMessage="Ingrese un Telefono"/>
+                            <h:outputLabel/>
+
+                            <h:outputLabel value="Fax:" for="fax" style="font-weight: bold; color: black;"/>
+                            <p:inputMask id="fax" value="#{mbCedis.cedis.fax}" maxlength="10" size="15"
+                                         mask="(999)9-99-99-99"/>
+                            <h:outputLabel/>
+
+                            <h:outputLabel value="eMail:" 
+                                           for="correo" 
+                                           style="font-weight: bold; color: black;"/>
+                            <p:inputText id="correo" value="#{mbCedis.cedis.correo}"
+                                         maxlength="100" 
+                                         size="50" 
+                                         required="true"
+                                         requiredMessage="Ingrese un correo electronico">
+                                <f:validator validatorId="EmailValidator"/>
+                            </p:inputText>
+                            <h:outputLabel/>
+
+                            <h:outputLabel value="Representante:" for="representante" style="font-weight: bold; color: black;"/>
+                            <p:inputText id="representante" value="#{mbCedis.cedis.representante}" maxlength="100" size="50" 
+                                         required="true"
+                                         requiredMessage="Ingrese un Representante"/>
+                            <h:outputLabel/>
+
+                            <h:outputLabel value="Dirección:" style="font-weight: bold; color: black;" />
+                            <p:inputTextarea id="txtAreaDirFisica" disabled="true" rows="5" cols="50" 
+                                             value="#{mbCedis.cedis.direccion.toString()}"/>
+                            <p:commandButton icon="ui-icon-plus" title="Mantenimiento de Direccion" process="@this" 
+                                             actionListener="#{mbCedis.mbDireccion.mttoDireccionDlg(mbCedis.cedis.direccion, ':form:txtAreaDirFisica')}"
+                                             update=":form:mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
+                            <h:outputLabel />
+
+                            <h:panelGroup style="display: block; text-align: right" >
+                                <p:commandButton icon="ui-icon-disk" title="Grabar" ajax="false" action="#{mbCedis.grabar()}" />
+                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar" 
+                                                 immediate="true" ajax="false" action="#{mbCedis.cancelar()}" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </p:panel>
+                    <p:dialog header="Mantenimiento de Direccion" widgetVar="mttoDireccionDlg" modal="true" resizable="false" closable="false" >
+                        <p:messages id="msgsMttoDireccion" showDetail="true" closable="true" autoUpdate="false" />
+                        <p:panelGrid id="mttoDireccion" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText  id="calle" value="#{mbCedis.mbDireccion.direccion.calle}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Exterior:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noExterior" value="#{mbCedis.mbDireccion.direccion.numeroExterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Interior:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noInterior" value="#{mbCedis.mbDireccion.direccion.numeroInterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Referencia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="referencia" value="#{mbCedis.mbDireccion.direccion.referencia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="País:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboPaises" value="#{mbCedis.mbDireccion.direccion.pais}" style="width: 188px">
+                                        <f:converter converterId="converters.Pais" />
+                                        <f:selectItems value="#{mbCedis.mbDireccion.listaPaises}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Código Postal:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="codigoPostal" value="#{mbCedis.mbDireccion.direccion.codigoPostal}" 
+                                                 readonly="#{not mbCedis.mbDireccion.editarAsentamiento}"/>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton icon="#{mbCedis.mbDireccion.iconSearch}" 
+                                                     title="#{mbCedis.mbDireccion.iconSearchTitle}" 
+                                                     disabled="#{mbCedis.mbDireccion.direccion.pais.idPais!=1}"
+                                                     process="mttoDireccion" actionListener="#{mbCedis.mbDireccion.buscarAsentamientos()}"
+                                                     update="mttoDireccion" />
+                                </p:column>
+                            </p:row>
+                            <p:row id="editarAsentamiento" rendered="#{mbCedis.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtAsentamiento" value="#{mbCedis.mbDireccion.direccion.colonia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row id="seleccionarAsentamiento" rendered="#{!mbCedis.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboAsentamientos" value="#{mbCedis.mbDireccion.direccion.selAsentamiento}" >
+                                        <f:selectItems value="#{mbCedis.mbDireccion.listaAsentamientos}" />
+                                        <f:converter converterId="converters.Asentamiento" />
+                                        <p:ajax event="change" listener="#{mbCedis.mbDireccion.actualizaAsentamiento()}" 
+                                                update="panelCapturaDireccion" />             
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Ciudad/Localidad:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="localidad" value="#{mbCedis.mbDireccion.direccion.localidad}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Municipio/Delegación:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="municipio" value="#{mbCedis.mbDireccion.direccion.municipio}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel  value="Estado:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="estado" value="#{mbCedis.mbDireccion.direccion.estado}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="GLN:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="gln" value="#{mbCedis.mbDireccion.direccion.numeroLocalizacion}"/>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar Direccion"
+                                                         process="mttoDireccion" actionListener="#{mbCedis.mbDireccion.grabar()}"
+                                                         update="msgsMttoDireccion #{mbCedis.mbDireccion.actualiza}"
+                                                         oncomplete="mttoDireccion(xhr, status, args)" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar Direccion"
+                                                         process="@this" actionListener="#{mbCedis.mbDireccion.cancelarDireccion()}"
+                                                         oncomplete="PF('mttoDireccionDlg').hide();"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript" >
+                    function mttoDireccion(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okDireccion)) {
+                            PF('mttoDireccionDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>

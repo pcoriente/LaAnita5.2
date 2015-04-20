@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Salidas de oficina</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main" onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="SALIDA DE OFICINA"
+                             rendered="#{not empty mbSalidasOficina.obtenerAcciones(26) and not mbSalidasOficina.modoEdicion}">
+                        <p:panelGrid id="encabezadoSalida" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="almacen" value="#{mbSalidasOficina.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbSalidasOficina.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="concepto" value="#{mbSalidasOficina.tipo}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MovimientoTipo" />
+                                        <f:selectItems value="#{mbSalidasOficina.listaMovimientosTipos}" />
+                                        <p:ajax event="change" update=":main:msgs" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
+                                                     process="@this" actionListener="#{mbSalidasOficina.capturar()}" update="main" />
+                                    <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
+                                                     process="@this" actionListener="#{mbSalidasOficina.pendientes()}" 
+                                                     update=":main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
+                                    <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
+                                                     process="@this" action="#{mbSalidasOficina.terminar()}" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:panel id="mantenimiento" header="SALIDA DE ALMACEN" rendered="#{mbSalidasOficina.modoEdicion}" >
+                        <p:panelGrid id="mantenimientoSalida" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbSalidasOficina.mbComprobantes.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar salida" 
+                                                     process="@this" actionListener="#{mbSalidasOficina.grabar()}" update="main" />
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-trash" title="Cancelar salida de almacen" 
+                                                     process="@this" actionListener="#{mbSalidasOficina.cancelar()}" update="main" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
+                                                     process="@this" actionListener="#{mbSalidasOficina.salir()}" update="main" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Concepto :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbSalidasOficina.tipo}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                     process="@this" actionListener="#{mbSalidasOficina.mbBuscar.inicializar()}" 
+                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="detalleSalida" widgetVar="detalleSalida" value="#{mbSalidasOficina.salidaDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbSalidasOficina.salidaProducto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                            <p:ajax event="rowSelect" update="detalleSalida" />
+                            
+                            <p:column headerText="SKU" width="64"  >
+                                <h:outputText value="#{prod.producto.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="Producto" width="500" >
+                                <h:outputText value="#{prod.producto.toString()}" />
+                            </p:column>
+                            <p:column headerText="Solicitada" width="64" >
+                                <pe:inputNumber value="#{prod.cantidad}" decimalPlaces="3" minValue="0" 
+                                                disabled="#{mbSalidasOficina.comparaProducto(prod)}" >
+                                    <p:ajax event="change" process="@this" 
+                                            listener="#{mbSalidasOficina.gestionar()}" update=":main:msgs detalleSalida" />
+                                </pe:inputNumber>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE SALIDAS DE OFICINA PENDIENTES" 
+                              resizable="false" modal="true" >
+                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
+                                     value="#{mbSalidasOficina.salidasPendientes}" style="border: solid 1px; width: 800px;"
+                                     var="salida" rowKey="#{salida.idMovto}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasOficina.cargaDetalleSalida}" 
+                                    update=":main" oncomplete="PF('pendientesDlg').hide();" />
+                            <p:column headerText="ALMACEN" style="width: 150px;" >
+                                <h:outputText value="#{salida.almacen}" style="width: 150px;" />
+                            </p:column>
+                            <p:column headerText="TIPO" style="width: 150px;" >
+                                <h:outputText value="#{salida.tipo}" style="width: 150px;" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 60px;" >
+                                <h:outputText value="#{salida.fecha}" style="width: 150px;" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </p:dialog>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbSalidasOficina.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <p:ajax listener="#{mbSalidasOficina.mbBuscar.verCambio()}" update="buscarProductos listaBuscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbSalidasOficina.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbSalidasOficina.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbSalidasOficina.buscar()}" 
+                                                     update=":main:detalleSalida" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbSalidasOficina.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbSalidasOficina.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbSalidasOficina.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbSalidasOficina.buscar()}" 
+                                                     update="listaBuscarProductos"  />
+                                </p:column>
+                                <p:column rendered="#{mbSalidasOficina.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbSalidasOficina.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbSalidasOficina.buscar()}" 
+                                                     update="listaBuscarProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaBuscarProductos" value="#{mbSalidasOficina.mbBuscar.productos}" 
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbSalidasOficina.mbBuscar.producto}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column headerText="SKU" style="width: 250px;" >
+                                <h:outputText value="#{prod.cod_pro}" />
+                            </p:column>
+
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbSalidasOficina.mbBuscar.producto==null}"
+                                                 actionListener="#{mbSalidasOficina.actualizaProductoSeleccionado()}"
+                                                 update=":main:detalleSalida" oncomplete="PF('buscarProductoDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleAbrirPendientes(xhr, status, args) {
+                        if (!(args.validationFailed || !args.ok)) {
+                            PF('pendientesDlg').show();
+                        }
+                    }
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            PF('buscarProductoDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

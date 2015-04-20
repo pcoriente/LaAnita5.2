@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Actualización de Unidades de Medida</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left"  >
+                <h:form id="main" >
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" 
+                                                     title="Salir"
+                                                     process="@this"
+                                                     action="#{mbUnidadMedida.terminar()}"
+                                                     ajax="false"
+                                                     />
+                    <p:tabView orientation="left" effect="fold"
+                               id="tabMenu"
+                               >
+                        <p:tab title="Unidad de Medidas">
+                            <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                            <p:panel id="panelUnidadesMedida" header="RELACION DE UNIDADES DE MEDIDA" styleClass="quitaCuadro" 
+                                     rendered="#{not empty mbUnidadMedida.acciones and not mbUnidadMedida.modoEdicion}" >
+                                <div align="right" >
+                                    <p:commandButton icon="ui-icon-document" title="Nueva unidad de medida."/>
+                                    <p:commandButton id="btnActualizarUnidad" 
+                                                     icon="ui-icon-pencil" 
+                                                     title="Acualizar unidad de medida."
+                                                     disabled="#{mbUnidadMedida.unidadMedidaSeleccionada==null}"/>
+                                    
+                                </div>
+                                <p:dataTable id="listaUnidadesMedida" 
+                                             widgetVar="unidadMedidaTable" 
+                                             value="#{mbUnidadMedida.unidadesMedida}" 
+                                             emptyMessage="No hay elementos que desplegar"
+                                             var="unid" rowKey="#{unid.idUnidadMedida}" 
+                                             selectionMode="single" 
+                                             selection="#{mbUnidadMedida.unidadMedidaSeleccionada}" 
+                                             paginator="true"
+                                             rows="10">
+                                    <p:ajax event="rowSelect"
+                                            update=":main:tabMenu:btnActualizarUnidad"
+                                            />
+
+                                    <p:column width="250" >
+                                        <f:facet name="header" >
+                                            <h:outputText value="Unidad de Medida" />
+                                        </f:facet>
+                                        <h:outputText value="#{unid.unidadMedida}"/>
+                                    </p:column>
+
+                                    <p:column width="150" >
+                                        <f:facet name="header" >
+                                            <h:outputText value="Abreviatura" />
+                                        </f:facet>
+                                        <h:outputText value="#{unid.abreviatura}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:panel>
+                            <p:panel id="edicionUniadesMedida" header="MANTENIMIENTO DE UNIDADES DE MEDIDA" rendered="#{mbUnidadMedida.modoEdicion}" >
+                                <p:panelGrid id="mttoUnidadesMedida" styleClass="quitaCuadro" >
+                                    <p:row >
+                                        <p:column >
+                                            <h:outputLabel value="Unidad de Medida :"  style="font-weight: bold; width: 150px; color: red;" />
+                                        </p:column>
+                                        <p:column >
+                                            <p:inputText id="unidad" value="#{mbUnidadMedida.unidadMedida.unidadMedida}" maxlength="55" size="50" />
+                                        </p:column>
+                                    </p:row>
+
+                                    <p:row >
+                                        <p:column >
+                                            <h:outputLabel value="Abreviatura :"  style="font-weight: bold; width: 150px; color: red;" />
+                                        </p:column>
+                                        <p:column >
+                                            <p:inputText id="abreviatura" 
+                                                         value="#{mbUnidadMedida.unidadMedida.abreviatura}" 
+                                                         maxlength="10" size="15" />
+                                        </p:column>
+                                    </p:row>
+
+                                    <f:facet name="footer" >
+                                        <p:row >
+                                            <p:column colspan="2" >
+                                                <p:commandButton icon="ui-icon-disk" title="Grabar Unidad de Medida"
+                                                                 process="@this unidad abreviatura"
+                                                                 ajax="false" action="#{mbUnidadMedida.grabar()}" />
+                                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar edición"
+                                                                 ajax="false" action="#{mbUnidadMedida.cancelar()}" immediate="true" />
+                                            </p:column>
+                                        </p:row>
+                                    </f:facet>
+                                </p:panelGrid>
+                            </p:panel>
+                        </p:tab>
+                        <p:tab title="Monedas">
+                            aqui va el mantenimiento correspondiente
+                        </p:tab>
+                    </p:tabView>
+                </h:form>
+            </div>
+            <ui:include src="footer.html" />
+        </div>
+    </h:body>
+</html>

@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Proveedores</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <h:form >
+                    <p:panel header="LISTA DE ORDENES DE COMPRA" styleClass="quitaCuadro" rendered="#{not empty mbProveedores.acciones}">
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column style="width: 755px;" >
+                                    <p:selectOneMenu id="proveedor" value="#{mbProveedores.clasificacion}" style="width: 300px" >
+                                        <f:converter converterId="converters.Proveedor.Clasificacion" />
+                                        <f:selectItems value="#{mbProveedores.listaClasificaciones}" />
+                                        <p:ajax event="change" listener="#{mbProveedores.cargaProveedores(mbProveedores.clasificacion.idClasificacion)}" 
+                                                update="listaProveedores" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:outputPanel >
+                                        <p:commandLink id="lnkNuevoProveedor" styleClass="nueva" 
+                                                       disabled="#{not mbProveedores.mbAcciones.validarAccion('lnkNuevoProveedor')}" 
+                                                       action="#{mbProveedores.mantenimiento(0)}" value="Nueva" ajax="false" immediate="true" />|
+                                        <p:commandLink styleClass="nueva" action="#{mbProveedores.terminar()}" value="Salir" ajax="false" />|
+                                    </p:outputPanel>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </div>
+        </div>
+    </body>
+</html>

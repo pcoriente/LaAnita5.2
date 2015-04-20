@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title><ui:insert name="title" /></title>
+    </h:head>
+    <h:body>
+        <p:layout fullPage="true">
+            <p:layoutUnit position="north" size="150" closable="true" collapsible="true" >
+                <h:graphicImage name="/images/encabezado.jpg" style="width: 100%; height: 100%;" /> 
+            </p:layoutUnit>
+
+            <p:layoutUnit position="south" size="40" closable="true" collapsible="true" >
+                <div style="text-align: center" >
+                    <p>Teléfono: 01 (999) 930.18.00 Fax: 01 (999) 930.18.06. Dirección: Calle 19 No. 425 Ciudad Industrial C.P. 97288. Mérida, Yucatán, México</p>
+                </div>
+            </p:layoutUnit>
+
+            <p:layoutUnit position="center">
+                <ui:insert name="content">Main Content</ui:insert>
+            </p:layoutUnit>
+        </p:layout>
+        <p:dialog header="MANTENIMIENTO DE GRUPOS" widgetVar="mttoGruposDlg" resizable="false" style="width: 500px;" modal="true" >
+            <!--appendToBody="true" -->
+            <h:form id="frmMttoGrupos" >
+                <p:messages id="messages7" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="mttoGrupos" styleClass="sinBorde">
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtCodigoGrupo" value="CODIGO :" style="font-weight: bold; color: red; width: 80px;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtCodigoGrupo" required="true" requiredMessage="Se requiere un entero"
+                                         readonly="#{frmProducto.mbProducto.mbGrupo.grupo.idGrupo!=0}"
+                                         value="#{frmProducto.mbProducto.mbGrupo.grupo.codigo}" maxlength="3" size="5" >
+                                <f:convertNumber maxFractionDigits="0" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtGrupo" value="GRUPO :" style="font-weight: bold; color: red; width: 80px;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtGrupo" required="true" requiredMessage="Se requiere la descripcion del grupo" 
+                                         value="#{frmProducto.mbProducto.mbGrupo.grupo.grupo}" maxlength="50" size="55" />
+                        </p:column>
+                    </p:row>
+                    <f:facet name="footer" >
+                        <p:row >
+                            <p:column colspan="2" >
+                                <p:commandButton id="btnGrabarGrupo" value="Grabar" 
+                                                 process="@this txtCodigoGrupo txtGrupo" actionListener="#{frmProducto.mbProducto.grabarGrupo()}"
+                                                 update="main:grupo" oncomplete="handleGrupo(xhr, status, args)" />
+                                <p:commandButton id="btnEliminarGrupo" value="Eliminar" 
+                                                 disabled="#{frmProducto.mbProducto.mbGrupo.grupo.idGrupo==0}" 
+                                                 process="@this" actionListener="#{frmProducto.mbProducto.eliminarGrupo()}"
+                                                 oncomplete="handleGrupo(xhr, status, args)" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+            </h:form>
+        </p:dialog>
+    </h:body>
+</html>

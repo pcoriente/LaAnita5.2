@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+        <title>Relación de Almacenes</title>        
+    </h:head>
+    <h:body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="left">
+                <h:form id="main" onkeypress="return event.keyCode !== 13;">
+                    <p:panel header="MANTENIMIENTO DE ALMACENES" styleClass="quitaCuadro"  rendered="#{not empty mbAlmacenes.acciones}">
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: red; width: 50px;" />
+                                </p:column>
+                                <p:column>
+                                    <p:selectOneMenu id="cedis" value="#{mbAlmacenes.mbCedis.cedis}" disabled="#{mbAlmacenes.modoEdicion}" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.cargaAlmacenes()}" update="lnkNuevoAlmacen listaAlmacenes" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: red; width: 80px" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="empresa" value="#{mbAlmacenes.mbEmpresas.empresa}" disabled="#{mbAlmacenes.modoEdicion}" >
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbAlmacenes.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.cargaAlmacenes()}" update="lnkNuevoAlmacen listaAlmacenes" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:outputPanel >
+                                        <p:commandLink id="lnkNuevoAlmacen" styleClass="nueva" value="Nuevo" 
+                                                        disabled="#{not mbAlmacenes.mbAcciones.validarAccion('lnkNuevoAlmacen') or mbAlmacenes.mbCedis.cedis.idCedis==0 or mbAlmacenes.mbEmpresas.empresa.idEmpresa==0 or mbAlmacenes.modoEdicion}"
+                                                        ajax="false" action="#{mbAlmacenes.nuevoAlmacen()}" process="@this" />|
+                                         <p:commandLink id="lnkModifAlmacen" styleClass="nueva" value="Modificar" 
+                                                        disabled="#{not mbAlmacenes.mbAcciones.validarAccion('lnkModifAlmacen') or mbAlmacenes.almacenSeleccionado==null or mbAlmacenes.modoEdicion}"
+                                                        ajax="false" action="#{mbAlmacenes.modificarAlmacen()}" process="@this" />|
+                                         <p:commandLink styleClass="nueva" action="#{mbAlmacenes.terminar()}" value="Salir" ajax="false" />|
+                                    </p:outputPanel>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaAlmacenes" widgetVar="listaAlmacenes" value="#{mbAlmacenes.almacenes}" style="border:solid 1px"
+                                     var="almacen" rowKey="#{almacen.idAlmacen}" selection="#{mbAlmacenes.almacenSeleccionado}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" >
+                            <p:ajax event="rowSelect" update=":main:lnkModifAlmacen" />
+                            
+                            <p:column headerText="Almacén" >
+                                <h:outputText value="#{almacen.almacen}" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                </h:form>
+            </div> 
+        </div>
+    </h:body>
+</html>

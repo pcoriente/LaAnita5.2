@@ -1,0 +1,595 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!-- =========== FULL CONFIGURATION FILE ================================== -->
+
+<faces-config version="2.0"
+              xmlns="http://java.sun.com/xml/ns/javaee" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facesconfig_2_0.xsd">
+
+    <converter>
+        <converter-id>converters.Dbs</converter-id>
+        <converter-class>dbs.converters.DbsConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converter.envios</converter-id>
+        <converter-class>envios.converters.EnvioConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converter.formatos</converter-id>
+        <converter-class>formatos.Converter.ConverterFormatos</converter-class>
+    </converter>
+    
+     <converter>
+        <converter-id>agentes.Converter</converter-id>
+        <converter-class>agentes.converter.AgentesConverter</converter-class>
+    </converter>
+    
+    
+    <converter>
+        <converter-id>converter.rutas</converter-id>
+        <converter-class>rutas.converter.RutasConverter</converter-class>
+    </converter>
+    
+    <navigation-rule>
+        <from-view-id>/login.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>exito.login</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>fallo.login</from-outcome>
+            <to-view-id>/login.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/index.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>cedis.exito</from-outcome>
+            <to-view-id>/menuCedis.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuEmpresas.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>empresa.mantenimiento</from-outcome>
+            <to-view-id>/empresa.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuEmpresa.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/empresa.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>empresa.salir</from-outcome>
+            <to-view-id>/menuEmpresas.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuCedis.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>cedis.mantenimiento</from-outcome>
+            <to-view-id>/cedis.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuCedis.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/cedis.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>cedis.salir</from-outcome>
+            <to-view-id>/menuCedis.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuBancos.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>banco.mantenimiento</from-outcome>
+            <to-view-id>/banco.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuBancos.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/banco.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>banco.salir</from-outcome>
+            <to-view-id>/menuBancos.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuProveedores.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>proveedor.mantenimiento</from-outcome>
+            <to-view-id>/proveedor.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuProveedores.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/proveedor.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>proveedor.salir</from-outcome>
+            <to-view-id>/menuProveedores.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuAlmacenes.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>almacen.mantenimiento</from-outcome>
+            <to-view-id>/almacenes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuAlmacenes.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/almacenes.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>almacen.salir</from-outcome>
+            <to-view-id>/menuAlmacenes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuClientes.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>clientes.mantenimiento</from-outcome>
+            <to-view-id>/clientes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuClientes.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/clientes.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>clientes.salir</from-outcome>
+            <to-view-id>/menuClientes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>direccion.mantenimiento</from-outcome>
+            <to-view-id>/direccion.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/direccion.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>empresa.mantenimiento</from-outcome>
+            <to-view-id>/empresa.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>cedis.mantenimiento</from-outcome>
+            <to-view-id>/cedis.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>proveedor.mantenimiento</from-outcome>
+            <to-view-id>/proveedor.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>almacenes.mantenimiento</from-outcome>
+            <to-view-id>/almacenes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>clientes.mantenimiento</from-outcome>
+            <to-view-id>/clientes.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>banco.mantenimiento</from-outcome>
+            <to-view-id>/banco.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <converter>
+        <converter-id>converters.Pais</converter-id>
+        <converter-class>direccion.converters.PaisConverter</converter-class>
+    </converter>
+    
+    
+    <converter>
+        <converter-id>converters.ClientesGrupos</converter-id>
+        <converter-class>mbMenuClientesGrupos.Converter.MenuClientesConverter</converter-class>
+    </converter>
+    
+    
+    
+    <converter>
+        <converter-id>converters.Asentamiento</converter-id>
+        <converter-class>direccion.converters.AsentamientoConverter</converter-class>
+    </converter>
+    
+    <navigation-rule>
+        <from-view-id>/menuClasificaciones.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>clasificaciones.mantenimiento</from-outcome>
+            <to-view-id>/clasificaciones.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuClasificaciones.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/clasificaciones.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>clasificaciones.salir</from-outcome>
+            <to-view-id>/menuClasificaciones.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>grupos.mantenimiento</from-outcome>
+            <to-view-id>/grupos.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/grupos.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>clasificaciones.mantenimiento</from-outcome>
+            <to-view-id>/clasificaciones.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuMarcas.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>marcas.mantenimiento</from-outcome>
+            <to-view-id>/marcas.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuMarcas.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/marcas.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>marcas.salir</from-outcome>
+            <to-view-id>/menuMarcas.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/marcas.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>marcas.salir</from-outcome>
+            <to-view-id>/menuMarcas.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <!--    <navigation-rule>
+        <from-view-id>/pedidos.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>pedidos.salir</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>-->
+    
+    <navigation-rule>
+        <from-view-id>/AltasLeyenda.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>Salir</from-outcome>
+            <to-view-id>/menuLeyendas.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuLeyendas.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>Salir.f</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    
+    <converter>
+        <converter-id>converters.MiniCedis</converter-id>
+        <converter-class>cedis.converters.MiniCedisConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.AlmacenConverter</converter-id>
+        <converter-class>almacenes.converters.AlmacenConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.MiniAlmacenConverter</converter-id>
+        <converter-class>almacenes.converters.MiniAlmacenConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.TOAlmacenJSConverter</converter-id>
+        <converter-class>almacenes.converters.TOAlmacenJSConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.FacturaConverter</converter-id>
+        <converter-class>entradas.converters.FacturaConverter</converter-class>
+    </converter>
+    <converter>
+        <converter-id>converters.ComprobanteConverter</converter-id>
+        <converter-class>entradas.converters.ComprobanteConverter</converter-class>
+    </converter>
+    
+    
+    <converter>
+        <converter-id>converters.ClientesBancos</converter-id>
+        <converter-class>clientesBancos.converters.ConverterClientesBancos</converter-class>
+    </converter>
+    
+    <!--
+    <converter>
+        <converter-id>converters.Cliente</converter-id>
+        <converter-class>cliente.converters2.ClienteConverter</converter-class>
+    </converter>
+    -->
+    <converter>
+        <converter-id>converters.Banco</converter-id>
+        <converter-class>bancos.converters.BancoConverter</converter-class>
+    </converter>
+    
+    <navigation-rule>
+        <from-view-id>/menuProductosOld.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>productosOld.mantenimiento</from-outcome>
+            <to-view-id>/productosOld.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuProductosOld.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/productosOld.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>productosOld.menu</from-outcome>
+            <to-view-id>/menuProductosOld.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/productos.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>productos.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/menuUnidadesMedida.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>unidadesMedida.mantenimiento</from-outcome>
+            <to-view-id>/unidadesMedida.xhtml</to-view-id>
+        </navigation-case>
+        <navigation-case>
+            <from-outcome>menuUnidadesMedida.terminar</from-outcome>
+            <to-view-id>/index.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <navigation-rule>
+        <from-view-id>/unidadesMedida.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>unidadesMedida.salir</from-outcome>
+            <to-view-id>/menuUnidadesMedida.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>
+    
+    <!-- =========== CONVERTER PRODUCTOS  =========== -->
+    <converter>
+        <converter-id>converters.Upc</converter-id>
+        <converter-class>producto2.converters.UpcConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Empaque</converter-id>
+        <converter-class>producto2.converters.EmpaqueConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.SubProducto</converter-id>
+        <converter-class>producto2.converters.SubProductoConverter</converter-class>
+    </converter>
+    
+    <!-- =========== CONVERTERS ARTICULOS =========== -->
+    
+    <converter>
+        <converter-id>converters.Parte</converter-id>
+        <converter-class>producto2.converters.ParteConverter</converter-class>
+    </converter>
+    <!--
+    <converter>
+        <converter-id>converters.ParteBuscar</converter-id>
+        <converter-class>productos.converters.ParteBuscarConverter</converter-class>
+    </converter>
+    -->
+    <converter>
+        <converter-id>converters.TipoProducto</converter-id>
+        <converter-class>producto2.converters.TipoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Grupos</converter-id>
+        <converter-class>producto2.converters.GrupoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.SubGrupos</converter-id>
+        <converter-class>producto2.converters.SubGrupoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Marca</converter-id>
+        <converter-class>producto2.converters.MarcaConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Presentacion</converter-id>
+        <converter-class>producto2.converters.PresentacionConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.UnidadMedida</converter-id>
+        <converter-class>unidadesMedida.UnidadMedidaConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.MiniEmpresa</converter-id>
+        <converter-class>empresas.converters.MiniEmpresaConverter</converter-class>
+    </converter>
+    
+    <!-- =========== FINAL CONVERTER PRODUCTOS (JULIO) ================================== -->
+    
+    <converter>
+        <converter-id>converters.Proveedor.Clasificacion</converter-id>
+        <converter-class>proveedores.converters.ClasificacionConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Proveedor.SubClasificacion</converter-id>
+        <converter-class>proveedores.converters.SubClasificacionConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Proveedor.TipoTercero</converter-id>
+        <converter-class>proveedores.converters.TipoTerceroConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Proveedor.TipoOperacion</converter-id>
+        <converter-class>proveedores.converters.TipoOperacionConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Contribuyente</converter-id>
+        <converter-class>contribuyentes.ContribuyenteConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Contacto</converter-id>
+        <converter-class>contactos.converters.ContactoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Telefono</converter-id>
+        <converter-class>contactos.converters.TelefonoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.TelefonoTipo</converter-id>
+        <converter-class>contactos.converters.TipoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.ImpuestoGrupo</converter-id>
+        <converter-class>impuestos.converters.ImpuestoGrupoConverter</converter-class>
+    </converter>
+     
+    <converter>
+        <converter-id>converters.Impuesto</converter-id>
+        <converter-class>impuestos.converters.ImpuestoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.ImpuestoZona</converter-id>
+        <converter-class>impuestos.converters.ImpuestoZonaConverter</converter-class>
+    </converter>
+    
+    <navigation-rule>
+        <from-view-id>/menuBancos.xhtml</from-view-id>
+        <navigation-case>
+            <from-outcome>menu.banco</from-outcome>
+            <to-view-id>/AltasBanco.xhtml</to-view-id>
+        </navigation-case>
+    </navigation-rule>    
+    <converter>
+        <converter-id>converters.depto</converter-id>
+        <converter-class>requisiciones.converters.DeptoConverter</converter-class>
+    </converter>
+    <converter>
+        <converter-id>converters.subUsuario</converter-id>
+        <converter-class>requisiciones.converters.SubUsuarioConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.miniProveedor</converter-id>
+        <converter-class>proveedores.converters.MiniProveedorConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Moneda</converter-id>
+        <converter-class>monedas.MonedasConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.Empresa</converter-id>
+        <converter-class>empresas.converters.EmpresaConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.MovimientoTipo</converter-id>
+        <converter-class>movimientos.converters.MovimientoTipoConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.miniCliente</converter-id>
+        <converter-class>clientes.converters.MiniClienteConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>converters.miniTienda</converter-id>
+        <converter-class>tiendas.converters.MiniTiendaConverter</converter-class>
+    </converter>
+    
+    <converter>
+        <converter-id>tiendasFormatos.converter</converter-id>
+        <converter-class>clientes.converters.TiendasFormatosConverter</converter-class>
+    </converter>
+</faces-config>

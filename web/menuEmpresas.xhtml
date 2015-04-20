@@ -1,0 +1,83 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
+        <title>Relación de Empresas</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml" />
+            <div id="content" align="center"  >
+                <br></br>
+                <h:form >
+                    <div align="right">
+                        <h:commandLink> 
+                            <p:graphicImage  value="/images/pdf.png" style="width: 20px; alignment-adjust: middle"/> 
+                            <p:dataExporter type="pdf" target="empr" fileName="empresas"  />||  
+                        </h:commandLink>
+                        <h:commandLink >  
+                            <p:graphicImage  value="/images/excel.png" style="width: 20px; alignment-adjust: middle"/>
+                            <p:dataExporter type="xls" target="empr" fileName="empresas"  />||
+                        </h:commandLink>
+                        <p:commandLink styleClass="nueva" action="#{mbEmpresas.mantenimiento(0)}" value="Nueva" ajax="false"/>|
+                        <p:commandLink styleClass="nueva"  action="#{mbEmpresas.terminar()}" value="Salir" ajax="false" />|
+                    </div>
+                    <p:panel header="RELACION DE EMPRESAS" styleClass="quitaCuadro"  >
+                        <h:outputText value="No hay EMPRESAS que mostrar !!" rendered="#{empty mbEmpresas.listaEmpresas}" />
+                        <p:dataTable id="empr"  value="#{mbEmpresas.listaEmpresas}" var="emp" widgetVar="empresaTable" emptyMessage="No hay elementos que desplegar">
+                            <f:facet name="header">
+                                <p:outputPanel>
+                                    <h:outputText value="Filtrado de campos: " />
+                                    <h:inputText   id="globalFilter" onkeyup="empresaTable.filter();" />
+                                </p:outputPanel>
+                            </f:facet>
+
+                            <p:column filterBy="#{emp.codigoEmpresa}" headerText="Codigo" filterMatchMode="contains" style="width: 10px" >
+                                <h:outputText value="#{emp.codigoEmpresa}" style="width: 10px"/>
+                            </p:column>
+                            <p:column filterBy="#{emp.empresa}" headerText="Empresa" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Empresa"/>
+                                </f:facet>
+                                <h:outputText value="#{emp.empresa}"/>
+                            </p:column>
+                            <p:column id="nc" filterBy="#{emp.nombreComercial}" headerText="N. Comercial" filterMatchMode="contains" >
+                                <f:facet name="header">
+                                    <h:outputText value="Nombre Comercial"/>
+                                </f:facet>
+                                <h:outputText value="#{emp.nombreComercial}"/>
+                            </p:column>
+                            <p:column headerText="Más" >
+                                <p:rowToggler  />
+                            </p:column>
+                            <p:rowExpansion  >
+                                <h:outputText value="RFC: #{emp.rfc}" /><br></br>
+                                <h:outputText  value="TELEFONO: #{emp.telefono}"  /><br></br>
+                                <h:outputText value="FAX: #{emp.fax}" /><br></br>
+                                <h:outputText value="EMAIL: #{emp.correo}" /><br></br>
+                                <h:outputText value="R. LEGAL: #{emp.representanteLegal}" /><br></br>
+                                <h:outputText value="DIRECCION: " /><br></br>
+                                <p:inputTextarea id="direccion" readonly="true" value="#{emp.direccion.toString()}" rows="10" cols="50" />
+                            </p:rowExpansion>
+                            <p:column id="proc"  headerText="Procesos" >
+                                <h:commandLink action="#{mbEmpresas.mantenimiento(emp.idEmpresa)}" >
+                                    <h:graphicImage  library="images" name="build.png"  /> 
+                                </h:commandLink>
+                            </p:column>
+                            <p:resizable for="nc" maxWidth="15"/>
+                        </p:dataTable>
+                    </p:panel>
+                </h:form>
+            </div>
+            <!-- FIN DE CONTENIDO -->
+            <ui:include src="footer.html" />
+        </div>
+    </body>
+</html>
+

@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Mantenimiento Almacenes</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel header="CONSULTA DE ALMACENES" styleClass="quitaCuadro" 
+                             rendered="#{not empty mbAlmacenes.acciones and not mbAlmacenes.modoEdicion}">
+                        <p:panelGrid >
+                            <p:row>
+                                <p:column >
+                                    <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: red; width: 55px;" />
+                                </p:column>
+                                <p:column>
+                                    <p:selectOneMenu id="cedis" value="#{mbAlmacenes.mbCedis.cedis}" style="width: 250px;" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.cargaAlmacenes()}" update="lnkNuevoAlmacen listaAlmacenes" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: red; width: 80px" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="empresa" value="#{mbAlmacenes.mbEmpresas.empresa}" style="width: 250px;" >
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbAlmacenes.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.cargaAlmacenes()}" update="lnkNuevoAlmacen listaAlmacenes" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:outputPanel >
+                                        <p:commandLink id="lnkNuevoAlmacen" styleClass="nueva" value="Nuevo" 
+                                                        disabled="#{not mbAlmacenes.mbAcciones.validarAccion('lnkNuevoAlmacen') or mbAlmacenes.mbCedis.cedis.idCedis==0 or mbAlmacenes.mbEmpresas.empresa.idEmpresa==0}"
+                                                        ajax="false" action="#{mbAlmacenes.nuevoAlmacen()}" immediate="true" update="mttoAlmacen" />|
+                                         <p:commandLink id="lnkModifAlmacen" styleClass="nueva" value="Modificar" 
+                                                        disabled="#{not mbAlmacenes.mbAcciones.validarAccion('lnkModifAlmacen') or mbAlmacenes.almacenSeleccionado==null}"
+                                                        ajax="false" action="#{mbAlmacenes.modificarAlmacen()}" immediate="true" update="mttoAlmacen" />|
+                                         <p:commandLink styleClass="nueva" action="#{mbAlmacenes.terminar()}" value="Salir" ajax="false" />
+                                    </p:outputPanel>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaAlmacenes" widgetVar="listaAlmacenes" value="#{mbAlmacenes.almacenes}" style="border:solid 1px"
+                                     var="alm" rowKey="#{alm.idAlmacen}" selection="#{mbAlmacenes.almacenSeleccionado}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" >
+                            <p:ajax event="rowSelect" update=":main:lnkModifAlmacen" />
+                            
+                            <p:column headerText="Almacén" >
+                                <h:outputText value="#{alm.almacen}" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panel id="mttoAlmacen" header="MANTENIMIENTO DE ALMACENES" styleClass="quitaCuadro" rendered="#{mbAlmacenes.modoEdicion}" >
+                        <p:panelGrid id="edicionAlmacen" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="almacen" value="ALMACEN :" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="almacen" value="#{mbAlmacenes.almacen.almacen}" maxlength="60" size="65" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="direccion" value="DIRECCION :"  styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <h:panelGroup>
+                                        <p:inputTextarea id="direccion" disabled="true" rows="5" cols="50" 
+                                                         value="#{mbAlmacenes.almacen.direccion.toString()}" />
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEditarDireccion" icon="ui-icon-plus" title="Editar Direccion" 
+                                                     process="@this direccion" action="#{mbAlmacenes.mbDireccion.mttoDireccionDlg(mbAlmacenes.almacen.direccion, ':main:direccion')}" 
+                                                     update=":main:mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Contactos:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="contacto" value="#{mbAlmacenes.contacto}" style="width: 300px" >
+                                        <f:converter converterId="converters.Contacto" />
+                                        <f:selectItems value="#{mbAlmacenes.mbContactos.listaContactos}" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.cargarTelefonos()}" process="@this" update="telefono btnMttoTelefonos" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoContactos" icon="ui-icon-pencil" title="Mtto.Contactos" 
+                                                     process="@this contacto" actionListener="#{mbAlmacenes.mttoContacto()}" 
+                                                     update="msgs mttoContactos" oncomplete="PF('mttoContactosDialog').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Teléfonos:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="telefono" value="#{mbAlmacenes.telefono}" style="width: 300px;" >
+                                        <f:converter converterId="converters.Telefono" />
+                                        <f:selectItems value="#{mbAlmacenes.mbContactos.mbTelefonos.listaTelefonos}" />
+                                        <p:ajax event="change" process="@this" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoTelefonos" icon="ui-icon-pencil" title="Mtto.Teléfonos" 
+                                                     disabled="#{mbAlmacenes.contacto.idContacto==0}"
+                                                     process="@this telefono" actionListener="#{mbAlmacenes.mttoTelefono()}" 
+                                                     update="msgs mttoTelefonos" oncomplete="PF('mttoTelefonosDialog').show()" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar"
+                                                         actionListener="#{mbAlmacenes.grabarAlmacen()}" update="msgs" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                         ajax="false" action="#{mbAlmacenes.salir()}" immediate="true" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:panel>
+                    <p:dialog header="MANTENIMIENTO DE TIPOS DE TELEFONOS" widgetVar="mttoTelefonosTiposDialog" resizable="false"
+                              style="width: 500px;" modal="true" >
+                        <p:messages id="messages1" showDetail="true" closable="true" autoUpdate="true" />
+                        <p:panelGrid id="mttoTelefonosTipos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtTelefonoTipo" value="Tipo:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtTelefonoTipo" value="#{mbAlmacenes.mbContactos.mbTelefonos.tipo.tipo}" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" >
+                                        <p:commandButton id="btnGrabarTelefonoTipo" value="Grabar" 
+                                                         process="@this txtTelefonoTipo" 
+                                                         actionListener="#{mbAlmacenes.grabarTelefonoTipo()}"
+                                                         update="cmbTelefonoTipo" 
+                                                         oncomplete="handleTelefonoTipo(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarTelefonoTipo" value="Eliminar" 
+                                                         disabled="#{mbAlmacenes.mbContactos.mbTelefonos.tipo.idTipo==0}" process="@this" 
+                                                         actionListener="#{mbAlmacenes.eliminarTelefonoTipo()}"
+                                                         update="cmbTelefonoTipo" 
+                                                         oncomplete="handleTelefonoTipo(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE TELEFONOS" widgetVar="mttoTelefonosDialog" resizable="false"
+                              style="width: 500px;" modal="true" >
+                        <p:messages id="messages2" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoTelefonos" styleClass="sinBorde" >
+                            <p:row rendered="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.idTelefono==0}" >
+                                <p:column >
+                                    <h:outputLabel for="celular" value="Celular:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectBooleanCheckbox id="celular" value="#{mbAlmacenes.mbContactos.mbTelefonos.celular}" >
+                                        <p:ajax listener="#{mbAlmacenes.mbContactos.mbTelefonos.cargaTipos()}" update="cmbTelefonoTipo" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="cmbTelefonoTipo" value="Tipo:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="cmbTelefonoTipo" value="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.tipo}" style="margin: 0px;" >
+                                        <f:converter converterId="converters.TelefonoTipo" />
+                                        <f:selectItems value="#{mbAlmacenes.mbContactos.mbTelefonos.listaTipos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnAgregarTelefonosTipos" icon="ui-icon-pencil" title="Mtto. Telefonos Tipos" 
+                                                     process="@this cmbTelefonoTipo" actionListener="#{mbAlmacenes.mttoTelefonoTipo()}" 
+                                                     update="mttoTelefonosTipos" oncomplete="PF('mttoTelefonosTiposDialog').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtLada" value="Lada:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtLada" value="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.lada}" maxlength="3" size="5" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtTelefono" value="Teléfono:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtTelefono" value="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.telefono}" 
+                                                 maxlength="8" size="10" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtExtension" value="Extensión:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtExtension" value="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.extension}" maxlength="15" size="20" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" >
+                                        <p:commandButton id="btnGrabarTelefono" value="Grabar" 
+                                                         process="@this celular cmbTelefonoTipo txtLada txtTelefono txtExtension" 
+                                                         actionListener="#{mbAlmacenes.grabarTelefono()}"
+                                                         update="messages2 telefono" 
+                                                         oncomplete="handleTelefono(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarTelefono" value="Eliminar"
+                                                         disabled="#{mbAlmacenes.mbContactos.mbTelefonos.telefono.idTelefono==0}" 
+                                                         type="button" onclick="PF('eTel').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog message="Esta seguro de eliminar el teléfono ?" header="Eliminar un teléfono de un contacto" widgetVar="eTel" >
+                        <p:commandButton value="No, cancelar" onclick="PF('eTel').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbAlmacenes.eliminarTelefono()}" 
+                                         update="messages2 telefono" oncomplete="PF('eTel').hide();handleTelefono(xhr, status, args);"/>
+                    </p:confirmDialog>
+                    <p:dialog header="MANTENIMIENTO DE CONTACTOS" widgetVar="mttoContactosDialog" resizable="false"
+                              style="width: 500px;" modal="true" >
+                        <p:messages id="messages3" showDetail="true" closable="true" autoUpdate="true" />
+                        <p:panelGrid id="mttoContactos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtPuesto" value="Puesto:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtPuesto" value="#{mbAlmacenes.mbContactos.contacto.puesto}"
+                                                 maxlength="20" size="25" >
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtContacto" value="Contacto:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtContacto" value="#{mbAlmacenes.mbContactos.contacto.contacto}"
+                                                 maxlength="60" size="50" >
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtCorreo" value="Correo:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtCorreo" value="#{mbAlmacenes.mbContactos.contacto.correo}"
+                                                 maxlength="120" size="50" >
+                                    </p:inputText>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" >
+                                        <p:commandButton id="btnGrabarContacto" value="Grabar" 
+                                                         process="@this txtPuesto txtContacto txtCorreo" 
+                                                         actionListener="#{mbAlmacenes.grabarContacto()}"
+                                                         update="contacto telefono btnMttoTelefonos" 
+                                                         oncomplete="handleContacto(xhr, status, args)" />
+                                        <p:commandButton id="btnEliminarContacto" value="Eliminar" type="button" onclick="PF('eContacto').show();" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog message="Esta seguro de eliminar el contacto ?" header="Eliminar un contacto" widgetVar="eContacto" >
+                        <p:commandButton value="No, cancelar" onclick="PF('eContacto').hide();" type="button" />
+                        <p:commandButton value="Si, seguro" actionListener="#{mbAlmacenes.eliminarContacto()}" 
+                                         update="messages3 contacto telefono btnMttoTelefonos" 
+                                         oncomplete="PF('eContacto').hide();handleContacto(xhr, status, args);"/>
+                    </p:confirmDialog>
+                    <p:dialog header="Mantenimiento de Direccion" widgetVar="mttoDireccionDlg" modal="true" resizable="false" closable="false" >
+                        <p:messages id="msgsMttoDireccion" showDetail="true" closable="true" autoUpdate="false" />
+                        <p:panelGrid id="mttoDireccion" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText  id="calle" value="#{mbAlmacenes.mbDireccion.direccion.calle}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Exterior:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noExterior" value="#{mbAlmacenes.mbDireccion.direccion.numeroExterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="No.Interior:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="noInterior" value="#{mbAlmacenes.mbDireccion.direccion.numeroInterior}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Referencia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="referencia" value="#{mbAlmacenes.mbDireccion.direccion.referencia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="País:" styleClass="colorLetra"/>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboPaises" value="#{mbAlmacenes.mbDireccion.direccion.pais}" style="width: 188px">
+                                        <f:converter converterId="converters.Pais" />
+                                        <f:selectItems value="#{mbAlmacenes.mbDireccion.listaPaises}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Código Postal:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="codigoPostal" value="#{mbAlmacenes.mbDireccion.direccion.codigoPostal}" 
+                                                 readonly="#{not mbAlmacenes.mbDireccion.editarAsentamiento}"/>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton icon="#{mbAlmacenes.mbDireccion.iconSearch}" 
+                                                     title="#{mbAlmacenes.mbDireccion.iconSearchTitle}" 
+                                                     disabled="#{mbAlmacenes.mbDireccion.direccion.pais.idPais!=1}"
+                                                     process="mttoDireccion" actionListener="#{mbAlmacenes.mbDireccion.buscarAsentamientos()}"
+                                                     update="mttoDireccion" />
+                                </p:column>
+                            </p:row>
+                            <p:row id="editarAsentamiento" rendered="#{mbAlmacenes.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtAsentamiento" value="#{mbAlmacenes.mbDireccion.direccion.colonia}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row id="seleccionarAsentamiento" rendered="#{!mbAlmacenes.mbDireccion.editarAsentamiento}" >
+                                <p:column >
+                                    <h:outputLabel value="Colonia:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="cboAsentamientos" value="#{mbAlmacenes.mbDireccion.direccion.selAsentamiento}" >
+                                        <f:selectItems value="#{mbAlmacenes.mbDireccion.listaAsentamientos}" />
+                                        <f:converter converterId="converters.Asentamiento" />
+                                        <p:ajax event="change" listener="#{mbAlmacenes.mbDireccion.actualizaAsentamiento()}" 
+                                                update="panelCapturaDireccion" />             
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Ciudad/Localidad:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="localidad" value="#{mbAlmacenes.mbDireccion.direccion.localidad}"/>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Municipio/Delegación:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="municipio" value="#{mbAlmacenes.mbDireccion.direccion.municipio}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel  value="Estado:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="estado" value="#{mbAlmacenes.mbDireccion.direccion.estado}" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="GLN:" styleClass="colorLetra" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="gln" value="#{mbAlmacenes.mbDireccion.direccion.numeroLocalizacion}"/>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar Direccion"
+                                                         process="mttoDireccion" actionListener="#{mbAlmacenes.mbDireccion.grabar()}"
+                                                         update="msgsMttoDireccion #{mbAlmacenes.mbDireccion.actualiza}"
+                                                         oncomplete="mttoDireccion(xhr, status, args)" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar Direccion"
+                                                         process="@this" actionListener="#{mbAlmacenes.mbDireccion.cancelarDireccion()}"
+                                                         oncomplete="PF('mttoDireccionDlg').hide();"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript" >
+                    function mttoDireccion(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okDireccion)) {
+                            PF('mttoDireccionDlg').hide();
+                        }
+                    }
+                    function handleContacto(xhr, status, args) {
+                        if (args.validationFailed || !args.okContacto) {
+                            PF('mttoContactosDialog').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoContactosDialog').hide();
+                        }
+                    }
+                    
+                    function handleTelefono(xhr, status, args) {
+                        if (args.validationFailed || !args.okTelefono) {
+                            PF('mttoTelefonosDialog').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoTelefonosDialog').hide();
+                        }
+                    }
+                    
+                    function handleTelefonoTipo(xhr, status, args) {
+                        if (args.validationFailed || !args.okTelefonoTipo) {
+                            PF('mttoTelefonosTiposDialog').jq.effect("shake", {times: 5}, 100);
+                        } else {
+                            PF('mttoTelefonosTiposDialog').hide();
+                        }
+                    }
+                </script>
+            </div>>
+        </div>
+    </body>
+</html>

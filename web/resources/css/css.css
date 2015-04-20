@@ -1,0 +1,28 @@
+/* 
+    Document   : css
+    Created on : 9/07/2013, 01:01:23 PM
+    Author     : Comodoro
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+    display: block;
+}
+
+.ancho{
+    width: 960px;
+    margin: auto;
+}
+#ancho{
+    width: 960px;
+    margin: auto;
+}
+
+a.nueva{ 
+    display:  inline; 
+    float: right;
+    font: 15px bold;
+    color: #045FB4;
+}
+

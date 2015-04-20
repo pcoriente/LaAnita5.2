@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:body>
+        <ui:composition template="template.xhtml">
+            <ui:define name="title" >
+                <h:outputText value="Mtto.Productos" />
+            </ui:define>
+            <ui:define name="content" >
+                <h:outputScript library="javascript" name="productos.js" target="head" />
+                <h:form id="main" >
+                    <p:panel id="panelCapturaProductos" header="Mantenimiento de Productos" style="float: left" >
+                        <p:messages id="messages" showDetail="true" closable="true" />
+                        <p:panelGrid id="mttoProductos" >
+                            <f:facet name="header" >
+                                <p:row >
+                                    <p:column colspan="3" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-search" title="Buscar Productos" />
+                                        <p:commandButton icon="ui-icon-pencil" title="Mtto.Empaques" />
+                                        <p:commandButton icon="ui-icon-home" title="Terminar" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="grupo" value="GRUPO :"  style="font-weight: bold; color: red; width: 105px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="grupo" value="#{frmProducto.mbProducto.producto.grupo}" style="width: 300px" >
+                                        <f:converter converterId="converters.Grupos" />
+                                        <f:selectItems value="#{frmProducto.mbProducto.listaGrupos}" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnMttoGrupos" icon="ui-icon-pencil" title="Mtto.Grupos" 
+                                                     process="@this" actionListener="#{frmProducto.mbProducto.mttoGrupo()}"
+                                                     oncomplete="mttoGruposDlg.show()" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:form>
+            </ui:define>
+        </ui:composition>
+    </h:body>
+</html>
