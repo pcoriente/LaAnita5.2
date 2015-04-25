@@ -5,14 +5,13 @@
  */
 package agentes.converter;
 
-import Message.Mensajes;
 import agentes.dao.DaoAgentes;
 import agentes.dominio.Agente;
+//import agentes.dominio.Agentes;
 import java.sql.SQLException;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
-import javax.naming.NamingException;
 
 /**
  *
@@ -22,21 +21,19 @@ public class AgentesConverter implements Converter {
 
     @Override
     public Object getAsObject(FacesContext context, UIComponent component, String value) {
-        int idAgente = Integer.parseInt(value);
-        Agente agente = null;
-        if (idAgente == 0) {
-            agente = new Agente();
+        int id = Integer.parseInt(value);
+        Agente agentes = null;
+        if (id == 0) {
+            agentes = new Agente();
         } else {
+            DaoAgentes dao = new DaoAgentes();
             try {
-                DaoAgentes dao = new DaoAgentes();
-                agente = dao.obtenerAgente(idAgente);
+                agentes = dao.dameAgente(id);
             } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
+                Message.Mensajes.mensajeError(ex.getMessage());
             }
         }
-        return agente;
+        return agentes;
     }
 
     @Override
