@@ -1,6 +1,7 @@
 package envios.dominio;
 
 import producto2.dominio.Empaque;
+import producto2.dominio.Producto;
 
 /**
  *
@@ -9,25 +10,27 @@ import producto2.dominio.Empaque;
 public class EnvioProducto {
     private int idEnvio;
     private int idMovto;
-    private Empaque empaque;
-    private double cantidad;
+    private Producto producto;
+    private double enviados;
+    private double pendientes;
     private double peso;
+    private double pesoTotal;
 
     public EnvioProducto() {}
 
-    public EnvioProducto(Empaque empaque) {
-        this.empaque = empaque;
+    public EnvioProducto(Producto producto) {
+        this.producto = producto;
     }
 
     @Override
     public String toString() {
-        return this.empaque.toString();
+        return this.producto.toString();
     }
 
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 11 * hash + (this.empaque != null ? this.empaque.hashCode() : 0);
+        hash = 11 * hash + (this.producto != null ? this.producto.hashCode() : 0);
         return hash;
     }
 
@@ -40,7 +43,7 @@ public class EnvioProducto {
             return false;
         }
         final EnvioProducto other = (EnvioProducto) obj;
-        if (this.empaque != other.empaque && (this.empaque == null || !this.empaque.equals(other.empaque))) {
+        if (this.producto != other.producto && (this.producto == null || !this.producto.equals(other.producto))) {
             return false;
         }
         return true;
@@ -62,20 +65,28 @@ public class EnvioProducto {
         this.idMovto = idMovto;
     }
 
-    public Empaque getEmpaque() {
-        return empaque;
+    public Producto getProducto() {
+        return producto;
     }
 
-    public void setEmpaque(Empaque empaque) {
-        this.empaque = empaque;
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 
-    public double getCantidad() {
-        return cantidad;
+    public double getEnviados() {
+        return enviados;
     }
 
-    public void setCantidad(double cantidad) {
-        this.cantidad = cantidad;
+    public void setEnviados(double enviados) {
+        this.enviados = enviados;
+    }
+
+    public double getPendientes() {
+        return pendientes;
+    }
+
+    public void setPendientes(double pendientes) {
+        this.pendientes = pendientes;
     }
 
     public double getPeso() {
@@ -84,5 +95,13 @@ public class EnvioProducto {
 
     public void setPeso(double peso) {
         this.peso = peso;
+    }
+
+    public double getPesoTotal() {
+        return pesoTotal;
+    }
+
+    public void setPesoTotal(double pesoTotal) {
+        this.pesoTotal = pesoTotal;
     }
 }

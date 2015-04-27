@@ -2267,24 +2267,24 @@ public class DAOMovimientos {
             st.executeUpdate(strSQL);
 
             idMovto = 0;
-            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, status) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
+            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, status, propietario, idReferencia, referencia) "
+                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, 0, "+idAlmacenSolicita+", 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
                 idMovto = rs.getInt("idMovto");
             }
-            strSQL = "INSERT INTO comprobantes (idAlmacen, idProveedor, tipoComprobante, remision, serie, numero, idUsuario, fecha, statusOficina, statusAlmacen, propietario) "
-                    + "VALUES (" + idAlmacenSolicita + ", " + solicitud.getIdAlmacen() + ", 0, '" + idMovto + "', '', '', " + this.idUsuario + ", GETDATE(), 0, 0, 0)";
-            st.executeUpdate(strSQL);
-
+//            strSQL = "INSERT INTO comprobantes (idAlmacen, idProveedor, tipoComprobante, remision, serie, numero, idUsuario, fecha, statusOficina, statusAlmacen, propietario) "
+//                    + "VALUES (" + idAlmacenSolicita + ", " + solicitud.getIdAlmacen() + ", 0, '" + idMovto + "', '', '', " + this.idUsuario + ", GETDATE(), 0, 0, 0)";
+//            st.executeUpdate(strSQL);
+//
             idComprobante = 0;
-            rs = st.executeQuery("SELECT @@IDENTITY AS idComprobante");
-            if (rs.next()) {
-                idComprobante = rs.getInt("idComprobante");
-            }
-            strSQL = "UPDATE movimientos SET idComprobante=" + idComprobante + " WHERE idMovto=" + idMovto;
-            st.executeUpdate(strSQL);
+//            rs = st.executeQuery("SELECT @@IDENTITY AS idComprobante");
+//            if (rs.next()) {
+//                idComprobante = rs.getInt("idComprobante");
+//            }
+//            strSQL = "UPDATE movimientos SET idComprobante=" + idComprobante + " WHERE idMovto=" + idMovto;
+//            st.executeUpdate(strSQL);
 
             int folioAlmacen = 0;
             strSQL = "SELECT folio FROM movimientosFoliosAlmacen WHERE idAlmacen=" + solicitud.getIdAlmacen() + " AND idTipo=35";
@@ -2299,8 +2299,8 @@ public class DAOMovimientos {
             st.executeUpdate(strSQL);
 
             idMovtoAlmacen = 0;
-            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ")";
+            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, propietario, idReferencia, referencia, status) "
+                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ", 0, "+idAlmacenSolicita+", 0, 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {

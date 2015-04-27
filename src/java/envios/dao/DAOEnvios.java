@@ -35,21 +35,73 @@ public class DAOEnvios {
         ds = (DataSource) cI.lookup("java:comp/env/"+usuarioSesion.getJndi());
     }
     
+    public void enviarDirectos(TOEnvioProducto to, double oldValue) throws SQLException {
+        String strSQL;
+        Connection cn=this.ds.getConnection();
+        Statement st=cn.createStatement();
+        try {
+            if(oldValue==0) {
+                strSQL= "INSERT INTO enviosPedidosDetalle (idEnvio, idMovto, idEmpaque, cantidad, peso) " +
+                        "VALUES("+to.getIdEnvio()+", "+to.getIdMovto()+", "+to.getIdEmpaque()+", "+to.getEnviados()+", "+to.getPeso()+")";
+                st.executeUpdate(strSQL);
+                
+                strSQL= "UPDATE movimientosDetalle SET cantRecibida=cantRecibida+"+to.getEnviados()+" " +
+                        "WHERE idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                st.executeUpdate(strSQL);
+            } else if(to.getEnviados()==0) {
+                strSQL= "DELETE FROM enviosPedidosDetalle " +
+                        "WHERE idEnvio="+to.getIdEnvio()+" AND idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                st.executeUpdate(strSQL);
+                
+                strSQL= "UPDATE movimientosDetalle SET cantRecibida=cantRecibida-"+oldValue+" "+
+                        "WHERE idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                st.executeUpdate(strSQL);
+            } else {
+                strSQL= "UPDATE enviosPedidosDetalle SET cantidad="+to.getEnviados()+" "+
+                        "WHERE idEnvio="+to.getIdEnvio()+" AND idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                st.executeUpdate(strSQL);
+                
+                if(oldValue < to.getEnviados()) {
+                    strSQL= "UPDATE movimientosDetalle SET cantRecibida=cantRecibida+"+(to.getEnviados()-oldValue)+" " +
+                            "WHERE idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                    st.executeUpdate(strSQL);
+                } else {
+                    strSQL= "UPDATE movimientosDetalle SET cantRecibida=cantRecibida-"+(oldValue-to.getEnviados())+" " +
+                            "WHERE idMovto="+to.getIdMovto()+" AND idEmpaque="+to.getIdEmpaque();
+                    st.executeUpdate(strSQL);
+                }
+            }
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
+    
+    private TOEnvioProducto construir(ResultSet rs) throws SQLException {
+        TOEnvioProducto to= new TOEnvioProducto();
+        to.setIdEnvio(rs.getInt("idEnvio"));
+        to.setIdMovto(rs.getInt("idMovto"));
+        to.setIdEmpaque(rs.getInt("idEmpaque"));
+        to.setEnviados(rs.getDouble("enviados"));
+        to.setPendientes(rs.getDouble("pendientes"));
+        to.setPeso(rs.getDouble("peso"));
+        return to;
+    }
+    
     public ArrayList<TOEnvioProducto> obtenerEnvioDetalle(int idEnvio, int idMovto) throws SQLException {
         ArrayList<TOEnvioProducto> detalle=new ArrayList<TOEnvioProducto>();
-        String strSQL = "SELECT D.idMovto, D.idEmpaque, D.cantFacturada+D.cantSinCargo AS pedidos, E.peso\n" +
-                        "		, PD.idEnvio, ISNULL(PD.cantidad, 0) AS cantidad\n" +
-                        "FROM movimientosDetalle D\n" +
-                        "LEFT JOIN enviosPedidosDetalle PD ON PD.idMovto=D.idMovto AND PD.idProducto=D.idEmpaque\n" +
-                        "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n" +
-                        "WHERE D.idMovto="+idMovto+" AND (PD.idEnvio="+idEnvio+" OR PD.idEnvio IS NULL)\n" +
-                        "ORDER BY PD.idEnvio";
+        String strSQL = "SELECT CASE WHEN PD.idEnvio IS NULL THEN D.idEnvio ELSE PD.idEnvio END AS idEnvio, D.idMovto, D.idEmpaque\n" +
+            "		, ISNULL(PD.enviados,0) AS enviados, D.pendientes, D.peso\n" +
+            "FROM (SELECT 0 AS idEnvio, D.idMovto, D.idEmpaque, D.cantFacturada+D.cantSinCargo-D.cantRecibida AS pendientes, E.peso\n" +
+            "       FROM movimientosDetalle D INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque WHERE D.idMovto="+idMovto+") D\n" +
+            "LEFT JOIN (SELECT D.idEnvio, D.idMovto, D.idProducto, D.cantidad AS enviados\n" +
+            "		FROM enviosPedidosDetalle D WHERE D.idEnvio="+idEnvio+" AND D.idMovto="+idMovto+") PD ON PD.idProducto=D.idEmpaque";
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
-                
+                detalle.add(this.construir(rs));
             }
         } finally {
             st.close();
