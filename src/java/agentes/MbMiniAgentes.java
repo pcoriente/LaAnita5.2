@@ -9,13 +9,15 @@ package agentes;
 import Message.Mensajes;
 import agentes.dao.DaoAgentes;
 import agentes.dominio.Agente;
+//import agentes.dominio.Agentes;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.model.SelectItem;
 import javax.inject.Named;
-import javax.naming.NamingException;
 
 /**
  *
@@ -26,9 +28,12 @@ import javax.naming.NamingException;
 public class MbMiniAgentes implements Serializable {
     
     private Agente cmbAgentes = new Agente();
+    DaoAgentes dao = new DaoAgentes();
     private ArrayList<SelectItem> lstAgentes;
-    private DaoAgentes dao;
 
+    /**
+     * Creates a new instance of MbMiniAgentes
+     */
     public MbMiniAgentes() {
     }
     
@@ -40,40 +45,41 @@ public class MbMiniAgentes implements Serializable {
         this.cmbAgentes = cmbAgentes;
     }
     
-    public Agente obtenerAgente(int idAgente) {
-        Agente agente=null;
-        try {
-            this.dao=new DaoAgentes();
-            agente=this.dao.obtenerAgente(idAgente);
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
-        return agente;
+    public DaoAgentes getDao() {
+        return dao;
     }
     
-    private void cargaAgentes() {
-        this.lstAgentes = new ArrayList<SelectItem>();
-        Agente agentes = new Agente();
-        agentes.setIdAgente(0);
-        agentes.setAgente("Seleccione un agente");
-        lstAgentes.add(new SelectItem(agentes, agentes.getAgente()));
+    public void setDao(DaoAgentes dao) {
+        this.dao = dao;
+    }
+    
+    
+     public Agente obtenerAgente(int idAgente) {
+        Agente a = null;
         try {
-            this.dao=new DaoAgentes();
-            for (Agente ag : dao.listaAgentes()) {
-                this.lstAgentes.add(new SelectItem(ag, ag.getAgente()));
-            }
+            DaoAgentes dao = new DaoAgentes();
+            a = dao.dameAgentes(idAgente);
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
+            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return a;
     }
     
     public ArrayList<SelectItem> getLstAgentes() {
-        if (this.lstAgentes == null) {
-            this.cargaAgentes();
+        if (lstAgentes == null) {
+            try {
+                lstAgentes = new ArrayList<SelectItem>();
+                Agente agentes = new Agente();
+                agentes.setIdAgente(0);
+                agentes.setAgente("Seleccione un agente");
+                lstAgentes.add(new SelectItem(agentes, agentes.getAgente()));
+                for (Agente ag : dao.listaAgentes()) {
+                    lstAgentes.add(new SelectItem(ag, ag.getAgente()));
+                }
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+                Logger.getLogger(MbMiniAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         return lstAgentes;
     }

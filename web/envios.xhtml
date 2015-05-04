@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
         <h:outputStylesheet library="css" name="main.css"/>
@@ -165,7 +164,11 @@
                     <p:column headerText="ENVIADOS" style="width: 80px;">
                         <p:cellEditor>
                             <f:facet name="output"><h:outputText value="#{directo.enviados}" /></f:facet>
-                            <f:facet name="input"><p:inputText value="#{directo.enviados}" label="ENVIADOS" style="width:96%"/></f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{directo.enviados}" label="ENVIADOS" style="width:96%">
+                                    <f:validateDoubleRange minimum="5.5" maximum="8.5" />
+                                </p:inputText>
+                            </f:facet>
                         </p:cellEditor>
                     </p:column>
                     <p:column headerText="PESO" style="width: 100px;" >

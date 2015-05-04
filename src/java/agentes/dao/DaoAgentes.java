@@ -5,6 +5,7 @@
 package agentes.dao;
 
 import agentes.dominio.Agente;
+//import agentes.dominio.Agentes;
 import contactos.dominio.Telefono;
 import contribuyentes.Contribuyente;
 import direccion.dominio.Asentamiento;
@@ -33,79 +34,84 @@ public class DaoAgentes {
 
     private DataSource ds = null;
 
-    public DaoAgentes() throws NamingException {
-        FacesContext context = FacesContext.getCurrentInstance();
-        ExternalContext externalContext = context.getExternalContext();
-        HttpSession httpSession = (HttpSession) externalContext.getSession(false);
-        UsuarioSesion usuarioSesion = (UsuarioSesion) httpSession.getAttribute("usuarioSesion");
+    public DaoAgentes() {
+        try {
+            FacesContext context = FacesContext.getCurrentInstance();
+            ExternalContext externalContext = context.getExternalContext();
+            HttpSession httpSession = (HttpSession) externalContext.getSession(false);
+            UsuarioSesion usuarioSesion = (UsuarioSesion) httpSession.getAttribute("usuarioSesion");
 
-        Context cI = new InitialContext();
-        ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
-    }
-    
-    private Agente construir(ResultSet rs) throws SQLException {
-        Agente agente = new Agente();
-        agente.setIdAgente(rs.getInt("idAgente"));
-        agente.setAgente(rs.getString("agente"));
-        agente.getContribuyente().setIdContribuyente(rs.getInt("idContribuyente"));
-        agente.getMiniCedis().setIdCedis(rs.getInt("idCedis"));
-        agente.getContribuyente().setContribuyente(rs.getString("contribuyente"));
-        agente.getContribuyente().setIdRfc(rs.getInt("idRfc"));
-        agente.getContribuyente().getDireccion().setIdDireccion(rs.getInt(9));
-        agente.getContribuyente().getDireccion().setCalle(rs.getString("calle"));
-        agente.getContribuyente().getDireccion().setNumeroExterior(rs.getString("numeroExterior"));
-        agente.getContribuyente().getDireccion().setNumeroInterior(rs.getString("numeroInterior"));
-        agente.getContribuyente().getDireccion().setColonia(rs.getString("colonia"));
-        agente.getContribuyente().getDireccion().setLocalidad(rs.getString("localidad"));
-        agente.getContribuyente().getDireccion().setReferencia(rs.getString("referencia"));
-        agente.getContribuyente().getDireccion().setMunicipio(rs.getString("municipio"));
-        agente.getContribuyente().getDireccion().setEstado(rs.getString("estado"));
-        agente.getContribuyente().getDireccion().getPais().setIdPais(rs.getInt("idPais"));
-        agente.getContribuyente().getDireccion().setCodigoPostal(rs.getString("codigoPostal"));
-        agente.getContribuyente().getDireccion().setNumeroLocalizacion("");
-        agente.getDireccionAgente().setIdDireccion(rs.getInt(22));
-        agente.getDireccionAgente().setCalle(rs.getString(23));
-        agente.getDireccionAgente().setNumeroExterior(rs.getString(24));
-        agente.getDireccionAgente().setNumeroInterior(rs.getString(25));
-        agente.getDireccionAgente().setColonia(rs.getString(26));
-        agente.getDireccionAgente().setLocalidad(rs.getString(27));
-        agente.getDireccionAgente().setReferencia(rs.getString(28));
-        agente.getDireccionAgente().setMunicipio(rs.getString(29));
-        agente.getDireccionAgente().setEstado(rs.getString(30));
-        agente.getDireccionAgente().getPais().setIdPais(rs.getInt(31));
-        agente.getDireccionAgente().setCodigoPostal(rs.getString(32));
-        agente.getDireccionAgente().setNumeroLocalizacion("");
-        agente.getMiniCedis().setCedis(rs.getString("cedis"));
-        agente.getContribuyente().setRfc(rs.getString("rfc"));
-        agente.getContribuyente().setCurp(rs.getString("curp"));
-//            agentes.getContacto().setIdContacto(rs.getInt("idContacto"));
-//            agentes.getContacto().setCorreo(rs.getString("correo"));
-        return agente;
+            Context cI = new InitialContext();
+            ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
+        } catch (NamingException ex) {
+            try {
+                throw (ex);
+            } catch (NamingException ex1) {
+                Logger.getLogger(DaoAgentes.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        }
     }
 
     public ArrayList<Agente> listaAgentes() throws SQLException {
         ArrayList<Agente> listagentes = new ArrayList<Agente>();
-        String slq = "select * from agentes a \n"
-                + "inner join contribuyentes c\n"
-                + "on c.idContribuyente = a.idContribuyente \n"
-                + "inner join direcciones dc\n"
-                + "on dc.idDireccion = c.idDireccion\n"
-                + "inner join direcciones d \n"
-                + "on d.idDireccion = a.idDireccion\n"
-                + "inner join cedis cd\n"
-                + "on cd.idCedis = a.idCedis\n"
-                + "inner join contribuyentesRfc cR\n"
-                + "on cR.idRfc = c.idRfc\n";
+//        String slq = "select * from agentes a \n"
+//                + "inner join contribuyentes c\n"
+//                + "on c.idContribuyente = a.idContribuyente \n"
+//                + "inner join direcciones dc\n"
+//                + "on dc.idDireccion = c.idDireccion\n"
+//                + "inner join direcciones d \n"
+//                + "on d.idDireccion = a.idDireccion\n"
+//                + "inner join cedis cd\n"
+//                + "on cd.idCedis = a.idCedis\n"
+//                + "inner join contribuyentesRfc cR\n"
+//                + "on cR.idRfc = c.idRfc\n";
+        String sql ="SELECT * FROM agentes";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        try {
-            ResultSet rs = st.executeQuery(slq);
-            while(rs.next()) {
-                listagentes.add(this.construir(rs));
-            }
-        } finally {
-            st.close();
-            cn.close();
+        ResultSet rs = st.executeQuery(sql);
+        while (rs.next()) {
+            Agente agentes = new Agente();
+            agentes.setIdAgente(rs.getInt("idAgente"));
+            agentes.setAgente(rs.getString("agente"));
+            agentes.getContribuyente().setIdContribuyente(rs.getInt("idContribuyente"));
+            agentes.getDireccionAgente().setIdDireccion(rs.getInt("idDireccion"));
+            agentes.getMiniCedis().setIdCedis(rs.getInt("idCedis"));
+//            agentes.setIdAgente(rs.getInt("idAgente"));
+//            agentes.setAgente(rs.getString("agente"));
+//            agentes.getContribuyente().setIdContribuyente(rs.getInt("idContribuyente"));
+//            agentes.getMiniCedis().setIdCedis(rs.getInt("idCedis"));
+//            agentes.getContribuyente().setContribuyente(rs.getString("contribuyente"));
+//            agentes.getContribuyente().setIdRfc(rs.getInt("idRfc"));
+//            agentes.getContribuyente().getDireccion().setIdDireccion(rs.getInt("idDireccion"));
+//            agentes.getContribuyente().getDireccion().setCalle(rs.getString("calle"));
+//            agentes.getContribuyente().getDireccion().setNumeroExterior(rs.getString("numeroExterior"));
+//            agentes.getContribuyente().getDireccion().setNumeroInterior(rs.getString("numeroInterior"));
+//            agentes.getContribuyente().getDireccion().setColonia(rs.getString("colonia"));
+//            agentes.getContribuyente().getDireccion().setLocalidad(rs.getString("localidad"));
+//            agentes.getContribuyente().getDireccion().setReferencia(rs.getString("referencia"));
+//            agentes.getContribuyente().getDireccion().setMunicipio(rs.getString("municipio"));
+//            agentes.getContribuyente().getDireccion().setEstado(rs.getString("estado"));
+//            agentes.getContribuyente().getDireccion().getPais().setIdPais(rs.getInt("idPais"));
+//            agentes.getContribuyente().getDireccion().setCodigoPostal(rs.getString("codigoPostal"));
+//            agentes.getContribuyente().getDireccion().setNumeroLocalizacion("");
+//            agentes.getDireccionAgente().setIdDireccion(rs.getInt(22));
+//            agentes.getDireccionAgente().setCalle(rs.getString(23));
+//            agentes.getDireccionAgente().setNumeroExterior(rs.getString(24));
+//            agentes.getDireccionAgente().setNumeroInterior(rs.getString(25));
+//            agentes.getDireccionAgente().setColonia(rs.getString(26));
+//            agentes.getDireccionAgente().setLocalidad(rs.getString(27));
+//            agentes.getDireccionAgente().setReferencia(rs.getString(28));
+//            agentes.getDireccionAgente().setMunicipio(rs.getString(29));
+//            agentes.getDireccionAgente().setEstado(rs.getString(30));
+//            agentes.getDireccionAgente().getPais().setIdPais(rs.getInt(31));
+//            agentes.getDireccionAgente().setCodigoPostal(rs.getString(32));
+//            agentes.getDireccionAgente().setNumeroLocalizacion("");
+//            agentes.getMiniCedis().setCedis(rs.getString("cedis"));
+//            agentes.getContribuyente().setRfc(rs.getString("rfc"));
+//            agentes.getContribuyente().setCurp(rs.getString("curp"));
+//            agentes.getContacto().setIdContacto(rs.getInt("idContacto"));
+//            agentes.getContacto().setCorreo(rs.getString("correo"));
+            listagentes.add(agentes);
         }
         return listagentes;
     }
@@ -118,7 +124,7 @@ public class DaoAgentes {
         st = cn.createStatement();
         try {
             ResultSet rs;
-            int idPais = 0;
+//            int idPais = 0;
             int idDireccionContribuyente = 0;
             int idDireccionAgente = 0;
             int idRfc = 0;
@@ -126,30 +132,38 @@ public class DaoAgentes {
             int idAgente = 0;
             int idContacto = 0;
             st.executeUpdate("begin transaction");
-            String sqlContribuyenteRfc = "INSERT INTO contribuyentesRfc (rfc, curp) VALUES ('" + agente.getContribuyente().getRfc().toUpperCase() + "', '" + agente.getContribuyente().getCurp().toUpperCase() + "')";
-            st.executeUpdate(sqlContribuyenteRfc);
-            rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyenteRfc");
-            if (rs.next()) {
-                idRfc = rs.getInt("idContribuyenteRfc");
+
+            if (agente.getContribuyente().getRfc() != "") {
+                String sqlContribuyenteRfc = "INSERT INTO contribuyentesRfc (rfc, curp) VALUES ('" + agente.getContribuyente().getRfc().toUpperCase() + "', '" + agente.getContribuyente().getCurp().toUpperCase() + "')";
+                st.executeUpdate(sqlContribuyenteRfc);
+                rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyenteRfc");
+                if (rs.next()) {
+                    idRfc = rs.getInt("idContribuyenteRfc");
+                }
             }
-            String sqlDireccionAgente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal, numeroLocalizacion)VALUES('" + agente.getDireccionAgente().getCalle() + "', '" + agente.getDireccionAgente().getNumeroExterior() + "','" + agente.getDireccionAgente().getNumeroInterior() + "','" + agente.getDireccionAgente().getColonia() + "','" + agente.getDireccionAgente().getLocalidad() + "','" + agente.getDireccionAgente().getReferencia() + "','" + agente.getDireccionAgente().getMunicipio() + "','" + agente.getDireccionAgente().getEstado() + "','" + agente.getDireccionAgente().getPais().getIdPais() + "','" + agente.getDireccionAgente().getCodigoPostal() + "','0')";
-            st.executeUpdate(sqlDireccionAgente);
-            rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionAgente");
-            if (rs.next()) {
-                idDireccionAgente = rs.getInt("idDireccionAgente");
+            if (agente.getDireccionAgente().getCalle() != "") {
+                String sqlDireccionAgente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal, numeroLocalizacion)VALUES('" + agente.getDireccionAgente().getCalle() + "', '" + agente.getDireccionAgente().getNumeroExterior() + "','" + agente.getDireccionAgente().getNumeroInterior() + "','" + agente.getDireccionAgente().getColonia() + "','" + agente.getDireccionAgente().getLocalidad() + "','" + agente.getDireccionAgente().getReferencia() + "','" + agente.getDireccionAgente().getMunicipio() + "','" + agente.getDireccionAgente().getEstado() + "','" + agente.getDireccionAgente().getPais().getIdPais() + "','" + agente.getDireccionAgente().getCodigoPostal() + "','0')";
+                st.executeUpdate(sqlDireccionAgente);
+                rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionAgente");
+                if (rs.next()) {
+                    idDireccionAgente = rs.getInt("idDireccionAgente");
+                }
             }
-            String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
-            st.executeUpdate(sqlDireccionContribuyente);
-            rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionContribuyente");
-            if (rs.next()) {
-                idDireccionContribuyente = rs.getInt("idDireccionContribuyente");
+            if (agente.getContribuyente().getDireccion().getCalle() != "") {
+                String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
+                st.executeUpdate(sqlDireccionContribuyente);
+                rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionContribuyente");
+                if (rs.next()) {
+                    idDireccionContribuyente = rs.getInt("idDireccionContribuyente");
+                }
+                String sqlContribuyente = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) values('" + agente.getContribuyente().getContribuyente() + "','" + idRfc + "','" + idDireccionContribuyente + "')";
+                st.executeUpdate(sqlContribuyente);
+                rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
+                if (rs.next()) {
+                    idContribuyente = rs.getInt("idContribuyente");
+                }
             }
-            String sqlContribuyente = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) values('" + agente.getContribuyente().getContribuyente() + "','" + idRfc + "','" + idDireccionContribuyente + "')";
-            st.executeUpdate(sqlContribuyente);
-            rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
-            if (rs.next()) {
-                idContribuyente = rs.getInt("idContribuyente");
-            }
+
             String sqlAgentes = "INSERT INTO agentes (agente, idContribuyente, idDireccion, idCedis) VALUES('" + agente.getAgente() + "','" + idContribuyente + "','" + idDireccionAgente + "','" + agente.getMiniCedis().getIdCedis() + "')";
             st.executeUpdate(sqlAgentes);
             rs = st.executeQuery("SELECT @@IDENTITY AS idAgente");
@@ -207,29 +221,57 @@ public class DaoAgentes {
             st.executeUpdate("rollback transaction");
             throw (ex);
         } finally {
+
             cn.close();
             st.close();
         }
 
     }
 
-    public Agente obtenerAgente(int idAgente) throws SQLException {
+    public Agente dameAgentes(int idAgente) throws SQLException {
         Agente agente = new Agente();
-        String sql = "SELECT idAgente, agente FROM agentes WHERE idAgente="+idAgente;
-        Connection cn = ds.getConnection();
-        Statement st = cn.createStatement();
+        Connection cn = null;
+        String sql = "SELECT idAgente, agente FROM agentes "
+                + "WHERE idAgente = "+idAgente;
         try {
+            cn = ds.getConnection();
+            Statement st = cn.createStatement();
             ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {
                 agente.setIdAgente(rs.getInt("idAgente"));
                 agente.setAgente(rs.getString("agente"));
             }
         } finally {
-            st.close();
+            
             cn.close();
         }
         return agente;
     }
+    
+    
+    
+    
+    public Agente dameAgente(int idAgente) throws SQLException {
+        Agente agente = new Agente();
+        Connection cn = null;
+        String sql = "SELECT idAgente, agente FROM agentes "
+                + "WHERE idAgente = "+idAgente;
+        try {
+            cn = ds.getConnection();
+            Statement st = cn.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+                agente.setIdAgente(rs.getInt("idAgente"));
+                agente.setAgente(rs.getString("agente"));
+            }
+        } finally {
+            
+            cn.close();
+        }
+        return agente;
+    }
+    
+    
 
     public boolean guardarAgentesConContribuyente(Agente agente) throws SQLException {
         boolean x = false;
