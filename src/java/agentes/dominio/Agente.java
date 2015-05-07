@@ -19,6 +19,10 @@ public class Agente implements Serializable {
 
     private int idAgente;
     private String agente;
+    private int nivel;
+    private String nombreNivel;
+//    private EnumNivel nivel;
+    private int superior;
     private Direccion direccionAgente = new Direccion();
     private Contribuyente contribuyente = new Contribuyente();
     private MiniCedis miniCedis = new MiniCedis();
@@ -81,6 +85,22 @@ public class Agente implements Serializable {
         this.telefono = telefono;
     }
 
+    public int getNivel() {
+        return nivel;
+    }
+
+    public void setNivel(int nivel) {
+        this.nivel = nivel;
+    }
+
+    public int getSuperior() {
+        return superior;
+    }
+
+    public void setSuperior(int superior) {
+        this.superior = superior;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -106,6 +126,14 @@ public class Agente implements Serializable {
     @Override
     public String toString() {
         return agente;
+    }
+
+    public String getNombreNivel() {
+        return nombreNivel;
+    }
+
+    public void setNombreNivel(String nombreNivel) {
+        this.nombreNivel = nombreNivel;
     }
 
 }

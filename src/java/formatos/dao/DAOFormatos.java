@@ -95,7 +95,7 @@ public class DAOFormatos {
         to.setIdFormato(rs.getInt("idFormato"));
         to.setFormato(rs.getString("formato"));
         to.setIdGrupoCte(rs.getInt("idGrupoCte"));
-        to.setIdCliente(rs.getInt("idCliente"));
+//        to.setIdCliente(rs.getInt("idCliente"));
         return to;
     }
     

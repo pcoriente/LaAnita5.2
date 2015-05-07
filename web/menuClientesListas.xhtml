@@ -76,7 +76,7 @@
                                              style="width: 243px"
                                              value="#{mbClientesListas.mbClientesGrupos.mbFormatos.cmbClientesFormatos}">
                                 <f:selectItems value="#{mbClientesListas.mbClientesGrupos.mbFormatos.lstFormatos}"/>
-                                <f:converter converterId="CFormatos"/>
+                                <f:converter converterId="converter.formatos"/>
                                 <p:ajax event="change" 
                                         listener="#{mbClientesListas.traerInformacionClientesListas()}"
                                         update=":form:panel2 :form:txtDescuentos"/>

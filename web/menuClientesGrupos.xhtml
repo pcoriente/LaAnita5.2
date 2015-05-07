@@ -79,7 +79,7 @@
                                                      title="Detalle Formato:  #{lstClienteGrupos.grupoCte} "
                                                      oncomplete=" PF('dlgDetalleFormatos').show();"
                                                      actionListener="#{mbMenuClientesGrupos.dameDetalleFormato(lstClienteGrupos.idGrupoCte)}"
-                                                     update=":form:tableFormatoDetalle"/>
+                                                     update=":form:tableFormatoDetalle :form:growl"/>
                                 </center>
                             </p:column>
                             <p:column headerText="Contactos" width="60">
@@ -88,7 +88,7 @@
                                                      title="Detalle :  #{lstClienteGrupos.grupoCte} "
                                                      oncomplete=" PF('dlgDetalle').show();"
                                                      actionListener="#{mbMenuClientesGrupos.dameDetalle(lstClienteGrupos.idGrupoCte)}"
-                                                     update=":form:tableDetalle"
+                                                     update=":form:tableDetalle :form:growl"
                                                      />
                                 </center>
                             </p:column>
@@ -178,7 +178,7 @@
                                              id="cmbFormatos"
                                              rendered="#{mbMenuClientesGrupos.actualizar}"
                                              value="#{mbMenuClientesGrupos.mbFormatos.cmbClientesFormatos}">
-                                <f:converter converterId="CFormatos"/>
+                                <f:converter converterId="converter.formatos"/>
                                 <f:selectItems value="#{mbMenuClientesGrupos.mbFormatos.lstFormatos}"/>
                                 <p:ajax event="change" process="@this"/>
                             </p:selectOneMenu>

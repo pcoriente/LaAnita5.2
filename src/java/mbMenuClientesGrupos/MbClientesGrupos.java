@@ -10,6 +10,9 @@ import contactos.dao.DAOContactos;
 import contactos.dominio.Contacto;
 import contactos.dominio.Telefono;
 import contactos.dominio.TelefonoTipo;
+import formatos.MbFormatos;
+import formatos.dao.DAOFormatos;
+import formatos.dominio.ClienteFormato;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,8 +40,8 @@ public class MbClientesGrupos implements Serializable {
 
     @ManagedProperty(value = "#{mbContactos}")
     private MbContactos mbContactos = new MbContactos();
-//    @ManagedProperty(value = "#{mbFormatos}")
-//    private MbFormatos mbFormatos = new MbFormatos();
+    @ManagedProperty(value = "#{mbFormatos}")
+    private MbFormatos mbFormatos = new MbFormatos();
     
     private ClienteGrupo clientesGrupos = new ClienteGrupo();
     private ClienteGrupo cmbClientesGrupos = new ClienteGrupo();
@@ -75,7 +78,7 @@ public class MbClientesGrupos implements Serializable {
     }
 
     public void dameDetalleFormato(int grupoCliente) {
-//        mbFormatos.cargarArrayListListaFormatos(grupoCliente);
+        mbFormatos.cargarArrayListListaFormatos(grupoCliente);
     }
 
     public void dameDetalle(int idGrupoCliente) {
@@ -361,36 +364,36 @@ public class MbClientesGrupos implements Serializable {
         this.itemsClientesGrupos = itemsClientesGrupos;
     }
 
-//    public void guardarFormato() throws NamingException {
-//        boolean ok = false;
-//        ok = mbFormatos.validarFormatos();
-//        if (ok == true) {
-//            try {
-//                DAOFormatos dao = new DAOFormatos();
-//                mbFormatos.getClientesFormatos().setIdGrupoCte(clienteGrupoSeleccionado.getIdGrupoCte());
-//                if (mbFormatos.getCmbClientesFormatos().getIdFormato() == 0) {
-//                    dao.agregar(mbFormatos.getClientesFormatos());
-//                    Mensajes.mensajeSucces("Datos Almacenados");
-//                } else {
-//                    dao.actualizar(mbFormatos.getClientesFormatos());
-//                    Mensajes.mensajeSucces("Datos Actualizados Exitosamente");
-//                }
-//                mbFormatos.setLstFormatos(null);
-//                mbFormatos.cargarListaFormatos(clienteGrupoSeleccionado.getIdGrupoCte());
-//            } catch (SQLException ex) {
-//                Mensajes.mensajeError(ex.getMessage());
-//                Logger.getLogger(MbClientesGrupos.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//        }
-//    }
+    public void guardarFormato() throws NamingException {
+        boolean ok = false;
+        ok = mbFormatos.validarFormatos();
+        if (ok == true) {
+            try {
+                DAOFormatos dao = new DAOFormatos();
+                mbFormatos.getClientesFormatos().setIdGrupoCte(clienteGrupoSeleccionado.getIdGrupoCte());
+                if (mbFormatos.getCmbClientesFormatos().getIdFormato() == 0) {
+                    dao.agregar(mbFormatos.getClientesFormatos());
+                    Mensajes.mensajeSucces("Datos Almacenados");
+                } else {
+                    dao.actualizar(mbFormatos.getClientesFormatos());
+                    Mensajes.mensajeSucces("Datos Actualizados Exitosamente");
+                }
+                mbFormatos.setLstFormatos(null);
+                mbFormatos.cargarListaFormatos(clienteGrupoSeleccionado.getIdGrupoCte());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+                Logger.getLogger(MbClientesGrupos.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 
-//    public void limpiarCamposClientesFormatos() {
-//        if (mbFormatos.getCmbClientesFormatos().getIdFormato() > 0) {
-//            mbFormatos.setClientesFormatos(mbFormatos.getCmbClientesFormatos());
-//        } else {
-//            mbFormatos.setClientesFormatos(new ClienteFormato());
-//        }
-//    }
+    public void limpiarCamposClientesFormatos() {
+        if (mbFormatos.getCmbClientesFormatos().getIdFormato() > 0) {
+            mbFormatos.setClientesFormatos(mbFormatos.getCmbClientesFormatos());
+        } else {
+            mbFormatos.setClientesFormatos(new ClienteFormato());
+        }
+    }
 
     public String getLblNuevoContacto() {
         return lblNuevoContacto;
@@ -440,13 +443,13 @@ public class MbClientesGrupos implements Serializable {
         this.cmbClientesGrupos = cmbClientesGrupos;
     }
 
-//    public MbFormatos getMbFormatos() {
-//        return mbFormatos;
-//    }
-//
-//    public void setMbFormatos(MbFormatos mbFormatos) {
-//        this.mbFormatos = mbFormatos;
-//    }
+    public MbFormatos getMbFormatos() {
+        return mbFormatos;
+    }
+
+    public void setMbFormatos(MbFormatos mbFormatos) {
+        this.mbFormatos = mbFormatos;
+    }
 
     public void entroEvento() {
         System.err.println("entro al evento");

@@ -18,7 +18,7 @@
             <div id="content" align="center"  >
                 <br></br>
                 <h:form  id="form" onkeypress="return event.keyCode !== 13;">
-                    <p:growl id="growl" showDetail="true"/>  
+                    <p:growl id="growl" showDetail="true" autoUpdate="true"/>  
                     <p:panel>
                         <div align="right">
                             <p:commandButton icon="ui-icon-document" 
@@ -33,7 +33,7 @@
                                              process="@this"
                                              title="Actualizar Agente"
                                              disabled="#{mbAgentes.actualizar==0}"
-
+                                            
                                              />
                             <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
                                              ajax="false"
@@ -60,9 +60,9 @@
                                     process="@this"
                                     update=":form:panelNuevoAgente 
                                     :form:actualizar"/>
-                            <p:column headerText="RFC" 
-                                      filterBy="#{agentes.contribuyente.rfc}">
-                                #{agentes.contribuyente.rfc}
+                            <p:column headerText="Nivel" 
+                                      filterBy="#{agentes.nombreNivel}">
+                                #{agentes.nombreNivel}
                             </p:column>
                             <p:column headerText="Nombre Agente"
                                       filterBy="#{agentes.agente}">
@@ -102,18 +102,22 @@
                                                  filter="true"
                                                  value="#{mbAgentes.valorEnum}">
                                     <f:selectItems value="#{mbAgentes.lstNiveles}"/>
-                                    <p:ajax event="change"/>
+                                    <p:ajax event="change" 
+                                            listener="#{mbAgentes.cargarSuperVisor()}"
+                                            process="@this cmbCedis"
+                                            update="cmbSupervisor growl"/>
                                 </p:selectOneMenu>
                                 <h:outputLabel/>
-
-
-
                                 <h:outputText id="lblCedis" value="Cedis* :" />
                                 <p:selectOneMenu  id="cmbCedis" style="width: 175px" 
                                                   value="#{mbAgentes.agente.miniCedis}"
                                                   filter="true">
                                     <f:selectItems value="#{mbAgentes.listaMiniCedis}" />
                                     <f:converter converterId="converters.MiniCedis"/>
+                                    <p:ajax event="change" 
+                                            listener="#{mbAgentes.cargarSuperVisor()}"
+                                            update="cmbSupervisor growl"
+                                            process="@this cmbNivel"/>
                                 </p:selectOneMenu>
                                 <h:outputLabel/>
 
@@ -555,7 +559,7 @@
                             <f:facet name="footer">
                                 <p:commandButton id="seleccion" value="Seleccionar" 
                                                  disabled="#{mbAgentes.mbBuscarContribuyente.contribuyente==null}"
-                                                 
+
                                                  oncomplete="PF('buscarProvDlg').hide()" 
                                                  update=":form:panelNuevoAgente"/>
                             </f:facet>
@@ -587,7 +591,7 @@
                 }
             }
             function nuevaDireccion(xhr, status, args) {
-                if (args.validationFailed || !args.okContribuyente) {
+                if (args.validationFailed || !args.okDireccion) {
                     PF('dlgDireccion').jq.effect("shake", {times: 5}, 100);
                 }
                 else {
