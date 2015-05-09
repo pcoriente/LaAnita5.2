@@ -104,7 +104,7 @@ public class MbContribuyentes implements Serializable {
             fMsg.setDetail("Se requiere un contribuyente !!");
         } else if (this.contribuyente.getRfc().isEmpty()) {
             fMsg.setDetail("Se requiere el RFC !!");
-        } else if (this.contribuyente.getDireccion().getCalle().isEmpty()) {
+        } else if (this.contribuyente.getDireccion().getCalle().equals("")) {
             fMsg.setDetail("Direccion no valida !!");
         } else {
             this.contribuyente.setRfc(this.contribuyente.getRfc().trim().toUpperCase());

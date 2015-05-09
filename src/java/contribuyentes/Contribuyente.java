@@ -12,7 +12,7 @@ public class Contribuyente implements Serializable {
     private String contribuyente;
     private int idRfc;
     private String rfc;
-    private Direccion direccion;
+    private Direccion direccion = new Direccion();
     private String curp;
 
     public Contribuyente() {
