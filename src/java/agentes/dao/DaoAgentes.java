@@ -342,6 +342,7 @@ public class DaoAgentes {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         String sql = "SELECT * FROM agentes WHERE idCedis = '" + idCedis + "' and nivel >'" + valorEnum + "'";
+      try{
         ResultSet rs = st.executeQuery(sql);
         while (rs.next()) {
             Agente a = new Agente();
@@ -349,6 +350,10 @@ public class DaoAgentes {
             a.setAgente(rs.getString("agente"));
             lst.add(a);
         }
+      }
+      finally{
+          
+      }
         return lst;
     }
 

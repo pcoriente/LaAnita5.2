@@ -33,7 +33,7 @@
                                              process="@this"
                                              title="Actualizar Agente"
                                              disabled="#{mbAgentes.actualizar==0}"
-                                            
+
                                              />
                             <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
                                              ajax="false"
@@ -82,12 +82,15 @@
                               resizable="false"
                               closable="false">
                         <center>
-                            
+
                             <h:panelGrid columns="3" 
                                          id="panelNuevoAgente">
-                                 <h:outputText  value="Contribuyente:" />
-                                 <p:inputText value="#{mbAgentes.agente.contribuyente}"/>
-                                 <p:commandButton icon="ui-icon-note"
+                                <h:outputText  value="Contribuyente:" />
+                                <p:inputText id="txtAgenteContribuyente" 
+                                             value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
+                                             disabled="true"
+                                             style="background-color: white"/>
+                                <p:commandButton icon="ui-icon-note"
                                                  title="Mas datos"
                                                  oncomplete="PF('dlgContribuyente').show();"
                                                  process="@this"
@@ -215,16 +218,18 @@
 
                     <p:dialog widgetVar="dlgContribuyente"
                               modal="true"
+                              closable="false"
                               header="Datos del contribuyente">
-
                         <h:panelGrid columns="3" id="panelContribuyente">
                             <p:outputLabel style="color: black" value="Contribuyente:"/>
                             <p:inputText id="contribuyente" 
-                                value="#{mbAgentes.mbContribuyente.contribuyente.contribuyente}"/>
+                                         value="#{mbAgentes.mbContribuyente.contribuyente.contribuyente}"/>
                             <p:outputLabel/>
                             <p:outputLabel style="color: black"  value="Rfc:"/>
                             <p:inputText id="rfc" 
-                                         value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"/>
+                                         value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
+                                         disabled="#{mbAgentes.seleccionListaAgente !=null and mbAgentes.seleccionListaAgente.contribuyente.idContribuyente == 0}"
+                                         />
                             <p:outputLabel/>
                             <p:outputLabel style="color: black"  value="Direccion:"/>
                             <p:inputTextarea value="#{mbAgentes.agente.contribuyente.direccion}" 
@@ -235,6 +240,7 @@
                             <p:commandButton icon="ui-icon-plus" 
                                              title="Agregar Direccion"
                                              process="@this"
+                                             update="panelCapturaDireccion"
                                              actionListener="#{mbAgentes.direccionContirbuyente()}"
                                              oncomplete="PF('dlgDireccion').show()"/>
                             <h:outputText id="lblCorreo" value="Correo:" rendered="#{mbAgentes.actualizar==0}" />
@@ -244,12 +250,30 @@
                             <h:outputLabel rendered="#{mbAgentes.actualizar==0}"/>
                         </h:panelGrid>
                         <p:commandButton  actionListener="#{mbAgentes.guardarContribuyente()}"
-                                          value="Guardar"
-                                          update="growl"
+                                          icon="ui-icon-disk"
+                                          title="Guardar Contribuyente"
+                                          update="growl txtAgenteContribuyente"
                                           process="@this contribuyente correo rfc direccionContribuyente"
                                           oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)"/>
+                        <p:commandButton title="Salir"
+                                         icon="ui-icon-arrowreturnthick-1-w"
+                                         onclick="PF('confirmCancelar').show();"
+                                         />
                     </p:dialog>
 
+                    <p:confirmDialog message="¿Estas seguro de cancelar el contribuyente todos los datos se perderan?"
+                                     header="Cancelar Contribuyente"
+                                     widgetVar="confirmCancelar">
+                        <p:commandButton value="Salir" 
+                                         actionListener="#{mbAgentes.limpiarContriuyente()}"
+                                         update="panelContribuyente"
+                                         onclick="ocularTodo();"
+                                         />
+                        <p:commandButton value="Permanecer" 
+                                         oncomplete="PF('confirmCancelar').hide();"
+                                         />
+
+                    </p:confirmDialog>
                     <!--- Dialog de Direccion -->
                     <p:dialog  header="Nueva Dirección" 
                                widgetVar="dlgDireccion"
@@ -580,6 +604,12 @@
         </div>
         <script type="text/javascript">
 
+            function ocularTodo() {
+                PF('dlgContribuyente').hide();
+                PF('confirmCancelar').hide();
+            }
+
+
             function nuevoCorreos(xhr, status, args) {
                 if (args.validationFailed || !args.ok) {
                     PF('dlgCorreos').jq.effect("shake", {times: 5}, 100);
@@ -596,7 +626,7 @@
                     PF('dlg').hide();
                 }
             }
-            
+
             function guardarMasDatosCOntribuyentes(xhr, status, args) {
                 if (args.validationFailed || !args.ok) {
                     PF('dlgContribuyente').jq.effect("shake", {times: 5}, 100);
@@ -605,9 +635,9 @@
                     PF('dlgContribuyente').hide();
                 }
             }
-            
-            
-            
+
+
+
             function nuevaDireccion(xhr, status, args) {
                 if (args.validationFailed || !args.okDireccion) {
                     PF('dlgDireccion').jq.effect("shake", {times: 5}, 100);

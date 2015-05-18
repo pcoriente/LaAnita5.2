@@ -54,7 +54,7 @@ public class MbAgentes implements Serializable {
     private MbContribuyentes mbContribuyente = new MbContribuyentes();
     @ManagedProperty(value = "#{mbDireccion}")
     private MbDireccion mbDireccion = new MbDireccion();
-    private Agente seleccionListaAgente = new Agente();
+    private Agente seleccionListaAgente = null;
     private Agente agente = new Agente();
     private ArrayList<Agente> listaAgente;
     private ArrayList<SelectItem> listaAsentamientos = new ArrayList<SelectItem>();
@@ -181,6 +181,7 @@ public class MbAgentes implements Serializable {
         boolean ok = false;
         ok = validarAgente();
         if (ok == true) {
+//            mbContribuyente.valida();
             try {
                 listaAgente = null;
                 DaoAgentes daoAgente = new DaoAgentes();
@@ -294,6 +295,8 @@ public class MbAgentes implements Serializable {
     }
 
     public void direccionContirbuyente() {
+        mbDireccion.setDireccion(agente.getContribuyente().getDireccion());
+//        mbContribuyente.getContribuyente().setDireccion(mbDireccion.getDireccion());
         flgDireccion = 1;
     }
 
@@ -321,6 +324,7 @@ public class MbAgentes implements Serializable {
 //            }
         }
         mbDireccion.setDireccion(new Direccion());
+
     }
 
     public void validarContacto() {
@@ -667,23 +671,58 @@ public class MbAgentes implements Serializable {
         this.agente.getContribuyente().setDireccion(new Direccion());
     }
 
+    public void limpiarContriuyente() {
+        mbContribuyente.setContribuyente(new Contribuyente());
+    }
+
     public void guardarContribuyente() {
         mbContribuyente.getContribuyente().setDireccion(agente.getContribuyente().getDireccion());
         boolean ok = mbContribuyente.valida();
         if (ok == true) {
-            if (agente.getContacto().getCorreo() != "") {
-                ok = utilerias.Utilerias.validarEmail(agente.getContacto().getCorreo());
-            }
-            if (ok == true) {
-                if (seleccionListaAgente.getContribuyente().getIdContribuyente() == 0) {
-                    DaoAgentes dao = new DaoAgentes();
-                    try {
-                        dao.agregarDireccionAgentesContribuyentes(mbContribuyente.getContribuyente().getDireccion(), seleccionListaAgente.getIdAgente(), mbContribuyente.getContribuyente());
-                    } catch (SQLException ex) {
-                        Mensajes.mensajeError(ex.getMessage());
-                    }
-                } else {
-                }
+//            if (agente.getContacto().getCorreo().equals("")) {
+//                Mensajes.mensajeAlert("Se requiere un correo");
+//            } else {
+//                ok = utilerias.Utilerias.validarEmail(agente.getContacto().getCorreo());
+//                if (ok == false) {
+//                    Mensajes.mensajeAlert("Correo no valido");
+//                }
+//                if (ok == true) {
+                    if (seleccionListaAgente != null && seleccionListaAgente.getContribuyente().getIdContribuyente() == 0) {
+                        DaoAgentes dao = new DaoAgentes();
+                        try {
+                            dao.agregarDireccionAgentesContribuyentes(mbContribuyente.getContribuyente().getDireccion(), seleccionListaAgente.getIdAgente(), mbContribuyente.getContribuyente());
+                        } catch (SQLException ex) {
+                            Mensajes.mensajeError(ex.getMessage());
+                        }
+                    } else if (actualizar == 1) {
+                        try {
+                            DAOContribuyentes dao = new DAOContribuyentes();
+                            dao.actualizarContribuyente(mbContribuyente.getContribuyente());
+                            Mensajes.mensajeSucces("Contribuyente Actualizado");
+                        } catch (NamingException ex) {
+                            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (SQLException ex) {
+                            Mensajes.mensajeError(ex.getMessage());
+                            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } else {
+                        try {
+                            DAOContribuyentes dao = new DAOContribuyentes();
+                            boolean okVericiar = dao.verificarContribuyente(mbContribuyente.getContribuyente().getRfc());
+                            if (okVericiar == true) {
+                                Mensajes.mensajeAlert("Este Rfc ya esta asignado a un contribuyente");
+                            } else {
+                                Mensajes.mensajeSucces("Exito !! Datos de Contribuyente correctos");
+                            }
+                        } catch (NamingException ex) {
+                            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (SQLException ex) {
+                            System.err.println(ex.getMessage());
+                            Mensajes.mensajeError(ex.getMessage());
+                        }
+//                    }
+
+//                }
             }
         }
     }
@@ -693,11 +732,13 @@ public class MbAgentes implements Serializable {
             try {
                 DAOContribuyentes daoContribuyente = new DAOContribuyentes();
                 mbContribuyente.setContribuyente(daoContribuyente.obtenerContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente()));
+                DAODireccion dao = new DAODireccion();
+                agente.getContribuyente().setDireccion(dao.obtenerDireccion(mbContribuyente.getContribuyente().getDireccion().getIdDireccion()));
+//                mbDireccion.setDireccion();
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {
-                Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                Mensajes.mensajeError(ex.getMessage());
             }
         }
     }
