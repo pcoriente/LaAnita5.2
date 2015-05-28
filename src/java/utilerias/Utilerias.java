@@ -154,7 +154,7 @@ public class Utilerias {
         return paso;
     }
 
-    public boolean validarEmail(String email) {
+    public static  boolean validarEmail(String email) {
         email.trim();
         boolean validar = false;
         Pattern pattern = Pattern.compile("[\\w\\.-]*[a-zA-Z0-9_]@[\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]");

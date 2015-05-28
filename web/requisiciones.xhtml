@@ -22,9 +22,6 @@
                         <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
                         <h:panelGrid id="cabecero" columns="6" style="width: 855px; margin:0 auto;" > 
                             <p:row>
-                                <!--  <p:column >
-                                      <h:outputLabel for="empresa" value="Empresa :"  style="font-weight: bold; color: black;" />
-                                  </p:column>-->
                                 <p:column >
                                     <p:selectOneMenu id="empresa" 
                                                      value="#{mbRequisiciones.mbMiniEmpresa.empresa}" 
@@ -36,9 +33,6 @@
                                 </p:column>
                             </p:row>
                             <p:row >
-                                <!--  <p:column >
-                                      <h:outputLabel for="departamento" value="Departamento :"  style="font-weight: bold; color: black; width: 120px;" />
-                                  </p:column>-->
                                 <p:column >
                                     <p:selectOneMenu id="departamento" 
                                                      value="#{mbRequisiciones.mbDepto.deptos}" 
@@ -50,14 +44,10 @@
                                                 listener="#{mbRequisiciones.cargaSubUsuarios()}"
                                                 update="solicitante"
                                                 process="@this"/>
-
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
                             <p:row >
-                                <!--  <p:column >
-                                      <h:outputLabel for="solicitante" value="Solicitante :"  style="font-weight: bold; color: black; width: 105px;" />
-                                  </p:column>-->
                                 <p:column >
                                     <p:selectOneMenu id="solicitante" value="#{mbRequisiciones.mbUsuarios.usuario}" style="width: 300px;" filter="true" >
                                         <f:converter converterId="converters.subUsuario" />
@@ -70,6 +60,30 @@
                         </h:panelGrid >   
 
                         <p:toolbar id="tb" style="width: 845px; margin:0 auto;" >
+                            <f:facet name="left">
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
+                                <p:commandButton icon="ui-icon-trash"
+                                                 title="Eliminar Producto"
+                                                 process="@this"
+                                                 id="eliminarProducto"
+                                                 update=":main:detalleRequisicion 
+                                                 :main:eliminarProducto" 
+                                                 actionListener="#{mbRequisiciones.eliminar()}"
+                                                 disabled="#{mbRequisiciones.seleccion == null}"
+                                                 />
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
+                                <p:commandButton  icon="ui-icon-search" title="Buscar Productos" 
+                                                  process="@this" actionListener="#{mbRequisiciones.mbBuscar.inicializar()}" 
+                                                  update="buscarProductos multipleSelectProductos" oncomplete="PF('buscarProductoDlg').show();"
+                                                  />
+
+
+                            </f:facet>
+
                             <f:facet name="right">
 
                                 <p:commandButton
@@ -81,20 +95,7 @@
 
                                     />
                                 <p:separator />
-                                <p:commandButton icon="ui-icon-trash"
-                                                
-                                                 title="Eliminar Producto"
-                                                 process="@this"
-                                                 id="eliminarProducto"
-                                                 update=":main:detalleRequisicion 
-                                                 :main:eliminarProducto" 
-                                                 actionListener="#{mbRequisiciones.eliminar()}"
-                                                 disabled="#{mbRequisiciones.seleccion == null}"
-                                                 />
-                                <p:commandButton  icon="ui-icon-search" title="Buscar Productos" 
-                                                  process="@this" actionListener="#{mbRequisiciones.mbBuscar.inicializar()}" 
-                                                  update="buscarProductos multipleSelectProductos" oncomplete="PF('buscarProductoDlg').show();"
-                                                  />
+
                                 <p:separator />
                                 <p:commandButton id="Limpiar"
                                                  icon="ui-icon-refresh"
@@ -102,7 +103,6 @@
                                                  action="#{mbRequisiciones.limpiaRequisicion()}"
                                                  update=":main:detalleRequisicion solicitante departamento empresa cabecero"
                                                  />
-
                                 <p:separator />
                                 <p:commandButton id="salir"
                                                  icon="ui-icon-arrowreturnthick-1-w"
@@ -111,11 +111,8 @@
                                                  update=":main:detalleRequisicion solicitante departamento empresa cabecero"
                                                  process="@this"
                                                  />
-
-
                             </f:facet>
                         </p:toolbar>
-
                         <p:dataTable id="detalleRequisicion"
                                      value="#{mbRequisiciones.requisicionDetalles}"
                                      var="det"

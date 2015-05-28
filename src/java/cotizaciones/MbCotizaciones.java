@@ -1,32 +1,48 @@
 package cotizaciones;
 
+//import cotizaciones.dominio.CotizacionDetalle;
+//import cotizaciones.dominio.CotizacionEncabezado;
+//import cotizaciones.to.TOCotizacionDetalle;
+//import java.util.HashSet;
+//import monedas.MbMonedas;
+//import proveedores.MbMiniProveedor;
 import cotizaciones.dao.DAOCotizaciones;
 import cotizaciones.dominio.CotizacionDetalle;
 import cotizaciones.dominio.CotizacionEncabezado;
+import cotizaciones.to.TOCotizacionDetalle;
+import empresas.MbMiniEmpresa;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
 import javax.inject.Named;
 import javax.naming.NamingException;
+import monedas.MbMonedas;
 import producto2.MbProductosBuscar;
+//import producto2.dominio.Producto;
+import proveedores.MbMiniProveedor;
 import proveedores.MbProveedores;
+import requisiciones.dao.DAORequisiciones;
+//import requisiciones.dominio.RequisicionDetalle;
+import requisiciones.mb.MbRequisiciones;
 
 @Named(value = "mbCotizaciones")
 @SessionScoped
 public class MbCotizaciones implements Serializable {
+
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-
     private ArrayList<CotizacionEncabezado> listaCotizacionEncabezado;
-    private CotizacionEncabezado cotizacionEncabezado;
+    private CotizacionEncabezado cotizacionEncabezado = new CotizacionEncabezado();
     private ArrayList<CotizacionDetalle> listaCotizacionDetalle;
 //    ----------------Pablo-------------------------
     private CotizacionDetalle cotizacionDeta = new CotizacionDetalle();
@@ -43,13 +59,16 @@ public class MbCotizaciones implements Serializable {
 
     //CONSTRUCTORES-------------------------------------------------------------------------------------------------------------------------------------------------------
     public MbCotizaciones() {
-        this.mbBuscar=new MbProductosBuscar();
+        this.mbBuscar = new MbProductosBuscar();
+
+        this.mbMiniProveedor = new MbMiniProveedor();
+        this.mbMonedas = new MbMonedas();
     }
     //METODOS ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
     private void cargaCotizaciones() throws NamingException, SQLException {
 
-        listaCotizacionEncabezado = new ArrayList<CotizacionEncabezado>();
+        //   listaCotizacionEncabezado = new ArrayList<CotizacionEncabezado>();
         DAOCotizaciones daoCot = new DAOCotizaciones();
         ArrayList<CotizacionEncabezado> lista = daoCot.listaCotizaciones();
         for (CotizacionEncabezado d : lista) {
@@ -98,7 +117,7 @@ public class MbCotizaciones implements Serializable {
 
             for (CotizacionDetalle d : listaCotizacionDetalleProductos) {
                 d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
-                
+
                 double neto = d.getNeto();
                 double neto2 = neto - neto * (d.getCotizacionEncabezado().getDescuentoCotizacion() / 100);
                 double neto3 = neto2 - neto2 * (d.getCotizacionEncabezado().getDescuentoProntoPago() / 100);
@@ -337,5 +356,399 @@ public class MbCotizaciones implements Serializable {
 
     public void setMbBuscar(MbProductosBuscar mbBuscar) {
         this.mbBuscar = mbBuscar;
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    //COTIZACION
+    @ManagedProperty(value = "#{mbMiniEmpresa}")
+    private MbMiniEmpresa mbMiniEmpresa;
+    private ArrayList<SelectItem> listaMini = new ArrayList<SelectItem>();
+    private ArrayList<CotizacionDetalle> cotizacionDetalles;
+    private ArrayList<CotizacionDetalle> cotizacionDetallesG = new ArrayList<>();
+    private CotizacionDetalle cotizacionDetalle = new CotizacionDetalle();
+    private int numCotizacion = 0;
+    private double subtotalGeneral;
+    private double sumaDescuentosProductos;
+    private double impuesto;
+    private double total;
+    private double iva = 0.16;
+    private double descuentoGeneralAplicado;
+    private double sumaDescuentoTotales;
+    @ManagedProperty(value = "#{mbMiniProveedor}")
+    private MbMiniProveedor mbMiniProveedor = new MbMiniProveedor();
+    @ManagedProperty(value = "#{mbMonedas}")
+    private MbMonedas mbMonedas = new MbMonedas();
+    private ArrayList<CotizacionEncabezado> cotizacionesEncabezado;
+    // private CotizacionEncabezado cotizacionEncabezado = new CotizacionEncabezado();
+    private double subtotalBruto;
+    private String subtotalBrutoF;
+
+    //CAMBIANDO DE PRODUCTOS A EMPAQUES
+//    @ManagedProperty(value = "#{mbProductosBuscar}")
+//    private MbProductosBuscar mbBuscar;
+//    private ArrayList<Producto> listaEmpaque = new ArrayList<Producto>();
+//    private Producto empaque;
+    //GET Y SETS 25MAYO2015
+    public ArrayList<SelectItem> getListaMini() throws SQLException {
+        listaMini = this.mbMiniEmpresa.obtenerListaMiniEmpresas();
+        return listaMini;
+    }
+
+    public void setListaMini(ArrayList<SelectItem> listaMini) {
+        this.listaMini = listaMini;
+    }
+
+    public CotizacionDetalle getCotizacionDetalle() {
+        return cotizacionDetalle;
+    }
+
+    public void setCotizacionDetalle(CotizacionDetalle cotizacionDetalle) {
+        this.cotizacionDetalle = cotizacionDetalle;
+    }
+
+    public int getNumCotizacion() {
+        return numCotizacion;
+    }
+
+    public void setNumCotizacion(int numCotizacion) {
+        this.numCotizacion = numCotizacion;
+    }
+
+    public ArrayList<CotizacionDetalle> getCotizacionDetalles() {
+        return cotizacionDetalles;
+    }
+
+    public void setCotizacionDetalles(ArrayList<CotizacionDetalle> cotizacionDetalles) {
+        this.cotizacionDetalles = cotizacionDetalles;
+    }
+
+    public double getSubtotalGeneral() {
+        this.calculoSubtotalGeneral();
+        return subtotalGeneral;
+    }
+
+    public void setSubtotalGeneral(double subtotalGeneral) {
+        this.subtotalGeneral = subtotalGeneral;
+    }
+
+    public double getSumaDescuentosProductos() {
+        this.calculoDescuentoProducto();
+        return sumaDescuentosProductos;
+    }
+
+    public void setSumaDescuentosProductos(double sumaDescuentosProductos) {
+        this.sumaDescuentosProductos = sumaDescuentosProductos;
+    }
+
+    public double getImpuesto() {
+        this.calculoIVA();
+        return impuesto;
+    }
+
+    public void setImpuesto(double impuesto) {
+        this.impuesto = impuesto;
+    }
+
+    public double getTotal() {
+        this.calculoTotal();
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
+    public double getDescuentoGeneralAplicado() {
+        this.calculoDescuentoGeneral();
+        return descuentoGeneralAplicado;
+    }
+
+    public void setDescuentoGeneralAplicado(double descuentoGeneralAplicado) {
+        this.descuentoGeneralAplicado = descuentoGeneralAplicado;
+    }
+
+    public double getSumaDescuentoTotales() {
+        this.calculoDescuentoTotales();
+        return sumaDescuentoTotales;
+    }
+
+    public void setSumaDescuentoTotales(double sumaDescuentoTotales) {
+        this.sumaDescuentoTotales = sumaDescuentoTotales;
+    }
+
+    public MbMiniProveedor getMbMiniProveedor() {
+        return mbMiniProveedor;
+    }
+
+    public void setMbMiniProveedor(MbMiniProveedor mbMiniProveedor) {
+        this.mbMiniProveedor = mbMiniProveedor;
+    }
+
+    public ArrayList<CotizacionEncabezado> getCotizacionesEncabezado() {
+        return cotizacionesEncabezado;
+    }
+
+    public void setCotizacionesEncabezado(ArrayList<CotizacionEncabezado> cotizacionesEncabezado) {
+        this.cotizacionesEncabezado = cotizacionesEncabezado;
+    }
+
+    //LOS COMENTE CUANDO LOS PASE PORQUE SUPUESTAMENTE ESTAN DUPLICADOS
+//    public CotizacionEncabezado getCotizacionEncabezado() {
+//        return cotizacionEncabezado;
+//    }
+//
+//    public void setCotizacionEncabezado(CotizacionEncabezado cotizacionEncabezado) {
+//        this.cotizacionEncabezado = cotizacionEncabezado;
+//    }
+    public double getSubtotalBruto() {
+        this.calcularSubtotalBruto();
+        return subtotalBruto;
+    }
+
+    public void setSubtotalBruto(double subtotalBruto) {
+        this.subtotalBruto = subtotalBruto;
+    }
+
+    public MbMonedas getMbMonedas() {
+        return mbMonedas;
+    }
+
+    public void setMbMonedas(MbMonedas mbMonedas) {
+        this.mbMonedas = mbMonedas;
+    }
+
+    public String getSubtotalBrutoF() {
+        subtotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
+        return subtotalBrutoF;
+    }
+
+    public void setSubtotalBrutoF(String subtotalBrutoF) {
+
+        this.subtotalBrutoF = subtotalBrutoF;
+    }
+
+    public ArrayList<CotizacionDetalle> getCotizacionDetallesG() {
+        return cotizacionDetallesG;
+    }
+
+    public void setCotizacionDetallesG(ArrayList<CotizacionDetalle> cotizacionDetallesG) {
+        this.cotizacionDetallesG = cotizacionDetallesG;
+    }
+
+    //COTIZACIONES 24mayo2015
+    public void guardaCotizacion(int idReq, double dc, double dpp) throws SQLException, NamingException {
+        DAORequisiciones daoReq = new DAORequisiciones();
+        FacesMessage msg;
+        //  cotizacionDetallesG = new ArrayList<CotizacionDetalle>();
+        try {
+            int idProv = this.mbMiniProveedor.getMiniProveedor().getIdProveedor();
+            int idMon = this.mbMonedas.getMoneda().getIdMoneda();
+            if (idProv != 0 && idMon != 0) {
+                if (this.total != 0) {
+                    this.cotizacionEncabezado.setIdRequisicion(idReq);
+                    this.cotizacionEncabezado.setIdProveedor(idProv);
+                    this.cotizacionEncabezado.setDescuentoCotizacion(dc);
+                    this.cotizacionEncabezado.setDescuentoProntoPago(dpp);
+                    this.cotizacionEncabezado.setIdMoneda(idMon);
+                    for (CotizacionDetalle cd : cotizacionDetalles) {
+                        if (cd.getCostoCotizado() != 0) {
+                            cotizacionDetallesG.add(cd);
+                        }
+                    }
+                    daoReq.grabarCotizacion(this.cotizacionEncabezado, this.cotizacionDetallesG);
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La cotización ha sido registrada..");
+                    this.limpiaCotizacion();
+                    mbMiniProveedor.getMiniProveedor().setIdProveedor(0);
+                    mbMonedas.getMoneda().setIdMoneda(0);
+
+                    int coti = daoReq.numCotizaciones(idReq);
+                    this.setNumCotizacion(coti);
+                } else {
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Capture al menos la cotización para un empaque..");
+                }
+
+            } else {
+                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Falta información para realizar la cotización");
+            }
+        } catch (NamingException ex) {
+            Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
+            msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
+        }
+        FacesContext.getCurrentInstance().addMessage(null, msg);
+    }
+
+    public void limpiaCotizacion() throws NamingException {
+        //ACTUALIZACION DE CODIGO
+        for (CotizacionDetalle d : cotizacionDetalles) {
+            //    d.setCantidadCotizada(0);
+            d.setCostoCotizado(0);
+            d.setDescuentoProducto(0);
+            d.setDescuentoProducto2(0);
+            d.setNeto(0);
+            d.setSubtotal(0);
+        }
+        this.subtotalGeneral = 0.00;
+        this.sumaDescuentosProductos = 0.00;
+        this.descuentoGeneralAplicado = 0.00;
+        this.sumaDescuentoTotales = 0.00;
+        this.subtotalBruto = 0.00;
+        this.impuesto = 0.00;
+        this.total = 0.00;
+        this.mbMiniProveedor = new MbMiniProveedor();
+    }
+
+    ///nueva propuesta
+    public void cargaRequisicionesDetalleCotizar(int id, int modi) {
+
+        //      int id = seleccionRequisicionEncabezado.getIdRequisicion();
+        try {
+            DAORequisiciones daoReq = new DAORequisiciones();
+            this.setNumCotizacion(0);
+            this.subtotalGeneral = 0;
+            this.sumaDescuentosProductos = 0;
+            this.descuentoGeneralAplicado = 0;
+            this.sumaDescuentoTotales = 0;
+            this.impuesto = 0;
+            this.total = 0;
+            mbMiniProveedor = new MbMiniProveedor();
+            cotizacionDetalles = new ArrayList<CotizacionDetalle>();
+            for (TOCotizacionDetalle rd : daoReq.dameRequisicionDetalleCotizar(id)) {
+                cotizacionDetalles.add(this.convertir(rd));
+            }
+            int coti = daoReq.numCotizaciones(id);
+            this.setNumCotizacion(coti);
+        } catch (NamingException ex) {
+            Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private CotizacionDetalle convertir(TOCotizacionDetalle to) {
+        CotizacionDetalle rd = new CotizacionDetalle();
+        rd.setIdRequisicion(to.getIdRequisicion());
+        rd.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
+        rd.setCantidadAutorizada(to.getCantidadAutorizada());
+        rd.setCantidadCotizada(to.getCantidadAutorizada());
+        return rd;
+    }
+
+    public void calculoSubtotalGeneral() {
+        subtotalGeneral = 0;
+        for (CotizacionDetalle e : cotizacionDetalles) {
+            subtotalGeneral = subtotalGeneral + e.getSubtotal();
+        }
+    }
+
+    public void calculoIVA() {
+        impuesto = 0;
+        double desc = this.subtotalBruto;                           //subtotalGeneral - descuentoGeneralAplicado;
+        if (desc > 0) {
+            impuesto = (desc) * this.iva;
+        } else {
+            impuesto = 0;
+        }
+    }
+
+    public void calculoTotal() {
+        total = 0;
+        double desc = this.subtotalBruto;                                           //subtotalGeneral - descuentoGeneralAplicado;
+        if (desc > 0) {
+            total = (desc) + this.getImpuesto();
+        } else {
+            total = 0;
+        }
+    }
+
+    public void calculoDescuentoGeneral() {
+        descuentoGeneralAplicado = 0;
+        double sumaCostoCotizado = 0;
+        double descuentoC;
+        double descuentoPP;
+        double descuentoGA;
+        for (CotizacionDetalle e : cotizacionDetalles) {
+            sumaCostoCotizado += (e.getCantidadCotizada() * e.getNeto());
+        }
+        descuentoC = sumaCostoCotizado * (this.mbMiniProveedor.getMiniProveedor().getDesctoComercial() / 100);
+        sumaCostoCotizado = sumaCostoCotizado - descuentoC;
+        descuentoPP = sumaCostoCotizado * (this.mbMiniProveedor.getMiniProveedor().getDesctoProntoPago() / 100);
+        descuentoGA = descuentoC + descuentoPP;
+        this.setDescuentoGeneralAplicado(descuentoGA);
+    }
+
+    public void calculaPrecioDescuento(int idEmp) {
+        System.out.println("entr");
+        subtotalGeneral = 0;
+        try {
+            for (CotizacionDetalle e : cotizacionDetalles) {
+                if (e.getProducto().getIdProducto() == idEmp) {
+                    double neto = e.getCostoCotizado() - (e.getCostoCotizado() * (e.getDescuentoProducto() / 100));
+                    double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
+                    e.setNeto(neto2);
+                    e.setSubtotal(e.getNeto() * e.getCantidadCotizada());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    public void calculoDescuentoProducto() {
+        sumaDescuentosProductos = 0;
+        for (CotizacionDetalle e : cotizacionDetalles) {
+            sumaDescuentosProductos += (e.getCantidadCotizada() * (e.getCostoCotizado() - e.getNeto()));
+        }
+    }
+
+    public void calculoDescuentoTotales() {
+        sumaDescuentoTotales = 0;
+        sumaDescuentoTotales = this.getSumaDescuentosProductos() + this.getDescuentoGeneralAplicado();
+    }
+
+    public void limpiaDetalle() throws NamingException {
+        //ACTUALIZACION CODIGO
+        for (CotizacionDetalle d : cotizacionDetalles) {
+            d.setCostoCotizado(0);
+            d.setDescuentoProducto(0);
+            d.setNeto(0);
+            d.setSubtotal(0);
+        }
+        this.subtotalGeneral = 0;
+        this.sumaDescuentosProductos = 0;
+        this.descuentoGeneralAplicado = 0;
+        this.sumaDescuentoTotales = 0;
+        this.subtotalBruto = 0.0;
+        this.impuesto = 0;
+        this.total = 0;
+    }
+
+    public void calcularSubtotalBruto() {
+        subtotalBruto = 0.0;
+        subtotalBruto = this.getSubtotalGeneral() - this.getDescuentoGeneralAplicado();
+    }
+
+    public void irMenuCotizaciones() {
+    }
+    // EMPAQUES
+
+    public void cerrarCotizacion(int idReq) throws SQLException {
+        FacesMessage msg;
+        try {
+            if (numCotizacion == 0) {
+                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No ha realizado ninguna cotización, por lo que no puede ser CERRADA..");
+            } else {
+                DAORequisiciones daoReq = new DAORequisiciones();
+                daoReq.cerrarCotizacion(idReq);
+                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La cotización ha sido CERRADA..");
+                //    this.setNumCotizacion(numCotizacion);
+                this.limpiaCotizacion();
+                mbMiniProveedor.getMiniProveedor().setIdProveedor(0);
+                mbMonedas.getMoneda().setIdMoneda(0);
+            }
+        } catch (NamingException ex) {
+            Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
+            msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
+        }
+        FacesContext.getCurrentInstance().addMessage(null, msg);
     }
 }

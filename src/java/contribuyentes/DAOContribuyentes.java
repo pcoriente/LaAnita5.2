@@ -385,14 +385,15 @@ public class DAOContribuyentes {
     public boolean verificarContribuyente(String rfc) throws SQLException {
         boolean ok = false;
         Contribuyente contribuyente = new Contribuyente();
-        String sqlVerificar = "SELECT * FROM contribuyentes con "
-                + "inner join contribuyentesRfc crRfc "
-                + "on con.idRfc = crRfc.idRfc "
-                + "where crRfc.rfc='" + rfc.trim() + "';";
+//        String sqlVerificar = "SELECT * FROM contribuyentes con "
+//                + "inner join contribuyentesRfc crRfc "
+//                + "on con.idRfc = crRfc.idRfc "
+//                + "where crRfc.rfc='" + rfc.trim() + "';";
+        String sql ="SELECT * FROM contribuyentesRfc WHERE rfc='"+rfc+"'";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
-            ResultSet rs = st.executeQuery(rfc);
+            ResultSet rs = st.executeQuery(sql);
             if (rs.getRow() > 0) {
                 ok = true;
             }

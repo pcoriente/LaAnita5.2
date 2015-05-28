@@ -125,6 +125,7 @@ public class DaoAgentes {
                     idDireccionAgente = rs.getInt("idDireccionAgente");
                 }
             }
+
             if (agente.getContribuyente().getDireccion().getCalle() != "") {
                 String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
                 st.executeUpdate(sqlDireccionContribuyente);
@@ -341,6 +342,7 @@ public class DaoAgentes {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         String sql = "SELECT * FROM agentes WHERE idCedis = '" + idCedis + "' and nivel >'" + valorEnum + "'";
+      try{
         ResultSet rs = st.executeQuery(sql);
         while (rs.next()) {
             Agente a = new Agente();
@@ -348,6 +350,53 @@ public class DaoAgentes {
             a.setAgente(rs.getString("agente"));
             lst.add(a);
         }
+      }
+      finally{
+          
+      }
         return lst;
     }
+
+    public void agregarDireccionAgentesContribuyentes(Direccion d, int idAgente, Contribuyente contribuyente) throws SQLException {
+        Connection cn = ds.getConnection();
+        Statement st = cn.createStatement();
+        ResultSet rs = null;
+        int idDireccion = 0;
+        int idContribuyente = 0;
+        int idContribuyenteRfc = 0;
+        try {
+            st.executeUpdate("BEGIN TRANSACTION");
+            String sqlContribuyenteRfc = "INSERT INTO contribuyentesRfc (rfc, curp) VALUES ('" + contribuyente.getRfc() + "','" + contribuyente.getCurp() + "')";
+
+            String sqlDireccion = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, referencia, idPais, codigoPostal, estado, municipio, localidad, colonia, numeroLocalizacion) "
+                    + "VALUES('" + d.getCalle() + "', '" + d.getNumeroExterior() + "', '" + d.getNumeroInterior() + "', '" + d.getReferencia() + "', " + d.getPais().getIdPais() + ", '" + d.getCodigoPostal() + "', '" + d.getEstado() + "', '" + d.getMunicipio() + "', '" + d.getLocalidad() + "', '" + d.getColonia() + "', '" + d.getNumeroLocalizacion() + "')";
+
+            st.executeUpdate(sqlDireccion);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idDireccion");
+            if (rs.next()) {
+                idDireccion = rs.getInt("idDireccion");
+            }
+            st.executeUpdate(sqlContribuyenteRfc);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyenteRfc");
+            while (rs.next()) {
+                idContribuyenteRfc = rs.getInt("idContribuyenteRfc");
+            }
+            String sqlContribuyente = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) VALUES ('" + contribuyente.getContribuyente() + "', '" + idContribuyenteRfc + "', '" + idDireccion + "')";
+            st.executeUpdate(sqlContribuyente);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
+            while (rs.next()) {
+                idContribuyente = rs.getInt("idContribuyente");
+            }
+            String sqlAgregarContribuyenteAgentes = "UPDATE agentes SET idContribuyente = '" + idContribuyente + "' WHERE idAgente = '" + idAgente + "'";
+            st.executeUpdate(sqlAgregarContribuyenteAgentes);
+            st.executeUpdate("COMMIT TRANSACTION");
+        } catch (SQLException e) {
+            st.executeUpdate("ROLLBACK TRANSACTION");
+            throw (e);
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
+
 }
