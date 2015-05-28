@@ -10,8 +10,8 @@
         <Node id="menuLeyendas.xhtml" x="400" y="600" zoom="true"/>
         <Node id="footer.html" x="1650" y="450" zoom="true"/>
         <Node id="wrapper.xhtml" x="650" y="600" zoom="true"/>
-        <Node id="productosOld.xhtml" x="1900" y="300" zoom="true"/>
         <Node id="menuAlmacenes.xhtml" x="650" y="450" zoom="true"/>
+        <Node id="productosOld.xhtml" x="1900" y="300" zoom="true"/>
         <Node id="wrapperMenu_1.xhtml" x="1400" y="450" zoom="true"/>
         <Node id="cotizacionProveedores.xhtml" x="400" y="1350" zoom="true"/>
         <Node id="menuEmpresas.xhtml" x="150" y="1350" zoom="true"/>
@@ -21,20 +21,20 @@
         <Node id="prods.xhtml" x="1150" y="150" zoom="true"/>
         <Node id="banco.xhtml" x="1650" y="150" zoom="true"/>
         <Node id="proveedor.xhtml" x="400" y="1200" zoom="true"/>
-        <Node id="pLayout.xhtml" x="1400" y="750" zoom="true"/>
         <Node id="AltasLeyenda.xhtml" x="900" y="450" zoom="true"/>
+        <Node id="pLayout.xhtml" x="1400" y="750" zoom="true"/>
         <Node id="menuClasificaciones.xhtml" x="150" y="1050" zoom="true"/>
-        <Node id="proveedoresListas.xhtml" x="150" y="1200" zoom="true"/>
         <Node id="resources/ezcomp/out.xhtml" x="650" y="900" zoom="true"/>
+        <Node id="proveedoresListas.xhtml" x="150" y="1200" zoom="true"/>
         <Node id="menuUnidadesMedida.xhtml" x="1400" y="300" zoom="true"/>
         <Node id="cedis.xhtml" x="1650" y="600" zoom="true"/>
         <Node id="wrapperMenu.xhtml" x="150" y="300" zoom="true"/>
         <Node id="footer.xhtml" x="1400" y="600" zoom="true"/>
-        <Node id="menuProveedores.xhtml" x="900" y="750" zoom="true"/>
         <Node id="unidadesMedida.xhtml" x="2150" y="300" zoom="true"/>
+        <Node id="menuProveedores.xhtml" x="900" y="750" zoom="true"/>
         <Node id="template.xhtml" x="2400" y="150" zoom="true"/>
-        <Node id="ordenDeCompra.xhtml" x="400" y="750" zoom="true"/>
         <Node id="requisiciones.xhtml" x="900" y="900" zoom="true"/>
+        <Node id="ordenDeCompra.xhtml" x="400" y="750" zoom="true"/>
         <Node id="menuOrdenesDeCompra.xhtml" x="1900" y="450" zoom="true"/>
         <Node id="wrapperLogin.xhtml" x="650" y="300" zoom="true"/>
         <Node id="menuCedis.xhtml" x="150" y="450" zoom="true"/>
