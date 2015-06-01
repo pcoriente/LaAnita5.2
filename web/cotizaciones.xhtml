@@ -22,11 +22,13 @@
                         <p:toolbar  id="tb" style="width: 845px; height: auto; margin:0 auto; " >  
                             <f:facet name="right">
                                 <p:commandButton
+                                    id="btnGuardarCotizacion"
                                     icon="ui-icon-disk"
                                     title="Guardar cotización"
-                                    actionListener="#{mbCotizaciones.guardaCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion,mbCotizaciones.mbMiniProveedor.miniProveedor.desctoComercial,mbCotizaciones.mbMiniProveedor.miniProveedor.desctoProntoPago)}"
-                                    update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie"
+                                    actionListener="#{mbCotizaciones.guardaCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
+                                    update="btnGuardarCotizacion :fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie"
                                     process="@this moneda :fc:detalleCotizacion :fc:numCotizacion "
+                                    
                                     />
                                 <p:commandButton id="limpiarCotizacion"
                                                  icon="ui-icon-refresh"
@@ -39,7 +41,7 @@
                                 <p:commandButton id="cerrarCotizacion"
                                                  icon="ui-icon-unlocked"
                                                  title="Cerrar el proceso de cotización"
-                                                 actionListener="#{mbCotizacion.cerrarCotizacion(mbRequisiciones.requisicionEncabezado.idRequisicion)}"
+                                                 actionListener="#{mbCotizaciones.cerrarCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
                                                  update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie"
                                                  process="@this :fc:numCotizacion"
                                                  />
@@ -175,10 +177,11 @@
                                                 decimalPlaces="2"
                                                 thousandSeparator=","
                                                 onblur="#{mbCotizaciones.calculaPrecioDescuento(cot.producto.idProducto)}"
+                                                disabled="#{cot.descuentoProducto eq 0 and cot.descuentoProducto2 eq 0 and cot.costoCotizado eq 0 }"
                                                 >
                                     <p:ajax 
                                         process="@this"
-                                        update=":fc:detalleCotizacion :fc:pie"
+                                        update=":fc:detalleCotizacion :fc:pie "
                                         />
                                 </pe:inputNumber>
                             </p:column>
@@ -190,6 +193,7 @@
                                                 decimalPlaces="2"
                                                 thousandSeparator=","
                                                 onblur="#{mbCotizaciones.calculaPrecioDescuento(cot.producto.idProducto)}"
+                                                disabled="#{cot.descuentoProducto2 eq 0 and cot.descuentoProducto eq 0 and cot.costoCotizado eq 0 }"
                                                 >
                                     <p:ajax 
                                         process="@this"

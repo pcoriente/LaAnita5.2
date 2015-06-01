@@ -206,9 +206,9 @@ public class DAOOrdenDeCompra {
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
-            String stringSQL = "select oc.idOrdenCompra, oc.idCotizacion, ocd.idProducto, ocd.cantOrdenada, ocd.costoOrdenado"
+            String stringSQL = "select oc.idOrdenCompra, oc.idCotizacion, ocd.idEmpaque, ocd.cantOrdenada, ocd.costoOrdenado"
                     + "           , ocd.descuentoProducto, ocd.descuentoProducto2, ocd.sku, isnull(r.idEmpresa, 0) as idEmpresa "
-                    + "from ordencompra oc "
+                    + "from ordenCompra oc "
                     + "inner join ordenCompraDetalle ocd on ocd.idOrdenCompra = oc.idOrdenCompra "
                     + "left join cotizaciones c on c.idCotizacion=oc.idCotizacion "
                     + "left join requisiciones r on r.idRequisicion=c.idRequisicion "
@@ -230,7 +230,7 @@ public class DAOOrdenDeCompra {
         DAOCotizaciones daoC = new DAOCotizaciones();
         ocd.setCotizacionDetalle(daoC.dameCotizacion(rs.getInt("idCotizacion")));
         ocd.setProducto(new Producto());
-        ocd.getProducto().setIdProducto(rs.getInt("idProducto"));
+        ocd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
         ocd.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
         ocd.setCantOrdenada(rs.getDouble("cantOrdenada"));
         ocd.setCantidadSolicitada(rs.getDouble("cantOrdenada"));
@@ -247,7 +247,7 @@ public class DAOOrdenDeCompra {
         PreparedStatement ps2;
         try {
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompraDetalle SET cantOrdenada=" + cc + "  WHERE idOrdenCompra=" + idOrden + " and idProducto=" + idProd + "";
+            String strSQL2 = "UPDATE ordenCompraDetalle SET cantOrdenada=" + cc + "  WHERE idOrdenCompra=" + idOrden + " and idEmpaque=" + idProd + "";
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {

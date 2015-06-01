@@ -38,7 +38,7 @@ public class DAOCotizaciones {
     }
 
     public ArrayList<CotizacionEncabezado> listaCotizaciones() throws SQLException {
-        ArrayList<CotizacionEncabezado> lista = new ArrayList<CotizacionEncabezado>();
+        ArrayList<CotizacionEncabezado> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
@@ -83,7 +83,7 @@ public class DAOCotizaciones {
         Connection cn = ds.getConnection();
         try {
 
-            String stringSQL = "select distinct( cd.idProducto),c.idRequisicion from cotizacionesDetalle cd\n"
+            String stringSQL = "select distinct(cd.idEmpaque),c.idRequisicion from cotizacionesDetalle cd\n"
                     + "       inner join cotizaciones c on c.idCotizacion = cd.idCotizacion\n"
                     + "       where c.idRequisicion=" + idReq;
             Statement sentencia = cn.createStatement();
@@ -96,7 +96,7 @@ public class DAOCotizaciones {
         }
         return lista;
     }
-    
+
     private CotizacionDetalle construirConsultaProducto(ResultSet rs) throws SQLException, NamingException {
 //        DAOEmpaques daoE = new DAOEmpaques();
 //        CotizacionEncabezado ce = new CotizacionEncabezado();
@@ -105,12 +105,12 @@ public class DAOCotizaciones {
 //        Empaque empaque = convertir(to, daoProds.obtenerProducto(to.getIdProducto()));
         CotizacionDetalle cd = new CotizacionDetalle();
         cd.setProducto(new Producto());
-        cd.getProducto().setIdProducto(rs.getInt("idProducto"));
+        cd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
         cd.setIdCotizacion(rs.getInt("idRequisicion"));
         return cd;
     }
 
-    public ArrayList<CotizacionDetalle> consultaCotizacionesProveedores(int idReq, int idProducto) throws SQLException, NamingException {
+    public ArrayList<CotizacionDetalle> consultaCotizacionesProveedores(int idRequi, int idProducto) throws SQLException, NamingException {
         ArrayList<CotizacionDetalle> lista = new ArrayList<CotizacionDetalle>();
         ResultSet rs;
         Connection cn = ds.getConnection();
@@ -120,8 +120,8 @@ public class DAOCotizaciones {
                     + " inner join cotizaciones c on c.idCotizacion = cd.idCotizacion\n"
                     + " inner join proveedores pro on c.idProveedor = pro.idProveedor\n"
                     + " inner join contribuyentes cb on cb.idContribuyente = pro.idContribuyente\n"
-                    + " where c.idRequisicion=" + idReq
-                    + " and cd.idProducto = " + idProducto;
+                    + " where c.idRequisicion=" + idRequi
+                    + " and cd.idEmpaque = " + idProducto;  //checar si lo cambio
             Statement sentencia = cn.createStatement();
             rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
@@ -138,17 +138,17 @@ public class DAOCotizaciones {
 //        DAOProductos daoProds = new DAOProductos();
 //        TOEmpaque to = daoE.obtenerEmpaque(rs.getInt("idEmpaque"));
 //        Empaque empaque = convertir(to, daoProds.obtenerProducto(to.getIdProducto()));
-        
+
         CotizacionEncabezado ce = new CotizacionEncabezado();
         ce.setIdProveedor(rs.getInt("idProveedor"));
         ce.setDescuentoCotizacion(rs.getDouble("descuentoCotizacion"));
         ce.setDescuentoProntoPago(rs.getDouble("descuentoProntoPago"));
-        
+
         CotizacionDetalle cd = new CotizacionDetalle();
         cd.getProveedor().setNombreComercial(rs.getString("contribuyente"));
         cd.setIdCotizacion(rs.getInt("idCotizacion"));
         cd.setProducto(new Producto());
-        cd.getProducto().setIdProducto(rs.getInt("idProducto"));
+        cd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
 //        cd.setEmpaque(empaque);
         cd.setCantidadCotizada(rs.getDouble("cantidadCotizada"));
         cd.setCostoCotizado(rs.getDouble("costoCotizado"));
@@ -203,7 +203,6 @@ public class DAOCotizaciones {
 //        ce.setCotizacionDetalle(cd);
 //        return ce;
 //    }
-
     public void guardarOrdenCompraTotal(CotizacionEncabezado ce, ArrayList<CotizacionDetalle> ordenCompra) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
@@ -243,7 +242,7 @@ public class DAOCotizaciones {
 
 
             // DETALLE
-            String stringSQL2 = "INSERT INTO ordenCompraDetalle (idOrdenCompra,interno, idProducto, sku, cantOrdenada, costoOrdenado, descuentoProducto, descuentoProducto2, desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen, idImpuestosGrupo, idMarca)"
+            String stringSQL2 = "INSERT INTO ordenCompraDetalle (idOrdenCompra,interno, idEmpaque, sku, cantOrdenada, costoOrdenado, descuentoProducto, descuentoProducto2, desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen, idImpuestosGrupo, idMarca)"
                     + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement ps = cn.prepareStatement(stringSQL2);
 
@@ -286,7 +285,7 @@ public class DAOCotizaciones {
             ResultSet rs = st.executeQuery("SELECT * FROM cotizacionesDetalle WHERE idCotizacion=" + idCot);
             if (rs.next()) {
                 cd = construirCD(rs); //CHECAR.... SOLAMENTE TRAE UN PRODUCTO
-           }
+            }
         } finally {
             cn.close();
         }
@@ -297,7 +296,7 @@ public class DAOCotizaciones {
         CotizacionDetalle cd = new CotizacionDetalle();
         cd.setIdCotizacion(rs.getInt("idCotizacion"));
         cd.setProducto(new Producto());
-        cd.getProducto().setIdProducto(rs.getInt("idProducto"));
+        cd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
         cd.setCantidadCotizada(rs.getDouble("cantidadCotizada"));
         cd.setCostoCotizado(rs.getDouble("costoCotizado"));
         cd.setDescuentoProducto(rs.getDouble("descuentoProducto"));
@@ -361,7 +360,6 @@ public class DAOCotizaciones {
 //        
 //        return ce;
 //    }
-
 //    private Empaque convertir(TOEmpaque to, Producto p) {
 //        Empaque e = new Empaque();
 //        e.setIdEmpaque(to.getIdEmpaque());

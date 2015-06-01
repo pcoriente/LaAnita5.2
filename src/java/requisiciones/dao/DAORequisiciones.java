@@ -264,7 +264,7 @@ public class DAORequisiciones {
 
             String stringSQL = "select rd.idRequisicion,rd.idEmpaque,rd.cantidadSolicitada, rd.cantidadAutorizada "
                     + "from requisicionDetalle rd\n"
-                    + "                    where idRequisicion=" + idRequisi;
+                    + "                    where cantidadAutorizada <> 0 and idRequisicion=" + idRequisi;
 
             Statement sentencia = cn.createStatement();
             rs = sentencia.executeQuery(stringSQL);
@@ -387,7 +387,7 @@ public class DAORequisiciones {
 
             String stringSQL = "select rd.idRequisicion, rd.idEmpaque, rd.cantidadSolicitada, rd.cantidadAutorizada "
                     + "from requisicionDetalle rd "
-                    + "where cantidadAutorizada>0 and idRequisicion=" + idRequisi;
+                    + "where cantidadAutorizada > 0 and idRequisicion=" + idRequisi;
             Statement sentencia = cn.createStatement();
             rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {

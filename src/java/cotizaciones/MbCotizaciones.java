@@ -56,6 +56,8 @@ public class MbCotizaciones implements Serializable {
     private String nombreProduc;
     private CotizacionEncabezado cotizacionesEncabezadoToOrden;
     private String navega;
+    
+    private int miIdReq;
 
     //CONSTRUCTORES-------------------------------------------------------------------------------------------------------------------------------------------------------
     public MbCotizaciones() {
@@ -64,11 +66,20 @@ public class MbCotizaciones implements Serializable {
         this.mbMiniProveedor = new MbMiniProveedor();
         this.mbMonedas = new MbMonedas();
     }
-    //METODOS ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    //METODOS ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    public int getMiIdReq() {
+        return miIdReq;
+    }
+
+    public void setMiIdReq(int miIdReq) {
+        this.miIdReq = miIdReq;
+    }
+
+    
     private void cargaCotizaciones() throws NamingException, SQLException {
 
-        //   listaCotizacionEncabezado = new ArrayList<CotizacionEncabezado>();
+          listaCotizacionEncabezado = new ArrayList<>();
         DAOCotizaciones daoCot = new DAOCotizaciones();
         ArrayList<CotizacionEncabezado> lista = daoCot.listaCotizaciones();
         for (CotizacionEncabezado d : lista) {
@@ -100,9 +111,6 @@ public class MbCotizaciones implements Serializable {
 //    }
     public void cotizacionxProveedor() {
         miniCotizacionProveedor = new ArrayList<CotizacionEncabezado>();
-
-
-
     }
 //    Pablo
 
@@ -110,10 +118,13 @@ public class MbCotizaciones implements Serializable {
 
         listaCotizacionDetalleProductos = new ArrayList<CotizacionDetalle>();
         try {
-            int idCotizacionDetalle = cotizacionDeta.getIdCotizacion();
+            
+            int idRequi= this.cotizacionesEncabezadoToOrden.getIdRequisicion();
+          //  int idRequi = cotizacionDeta.getIdRequisicion();
+          //  int idRequi= cotizacionDeta.getCotizacionEncabezado().getIdRequisicion();
             int idProducto = cotizacionDeta.getProducto().getIdProducto();
             DAOCotizaciones daoCot = new DAOCotizaciones();
-            listaCotizacionDetalleProductos = daoCot.consultaCotizacionesProveedores(idCotizacionDetalle, idProducto);
+            listaCotizacionDetalleProductos = daoCot.consultaCotizacionesProveedores(idRequi, idProducto);
 
             for (CotizacionDetalle d : listaCotizacionDetalleProductos) {
                 d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
@@ -157,7 +168,8 @@ public class MbCotizaciones implements Serializable {
 
         for (CotizacionDetalle d : listaCotizacionDetalle) {
 
-            if (d.getProducto().getIdProducto() == productoElegido.getProducto().getIdProducto()) {
+           if (d.getProducto().getIdProducto() == productoElegido.getProducto().getIdProducto()) {
+              //  if (d.getProveedor().getIdProveedor() == productoElegido.getProveedor().getIdProveedor()) {
                 listaCotizacionDetalle.remove(d);
                 break;
             }
@@ -224,12 +236,13 @@ public class MbCotizaciones implements Serializable {
         }
     }
 
-    public void eliminarProducto(int idProd) {
-        int idProducto;
+    public void eliminarProducto(int idProveedor) {
+    //    int idProducto;
         int longitud = ordenCompra.size();
         for (int y = 0; y < longitud; y++) {
-            idProducto = ordenCompra.get(y).getProducto().getIdProducto();
-            if (idProducto == idProd) {
+    //        idProducto = ordenCompra.get(y).getProducto().getIdProducto();
+           int idProv= ordenCompra.get(y).getProveedor().getIdProveedor();
+            if (idProveedor == idProv) {
                 listaCotizacionDetalle.add(ordenCompra.get(y));
                 ordenCompra.remove(y);
                 break;
@@ -237,19 +250,20 @@ public class MbCotizaciones implements Serializable {
         }
     }
 
-    public String menu(int opcion) throws NamingException {
-        if (opcion == 0) {
-            navega = "index.xhtml";
-        } else if (opcion == 1) {
-            navega = "menuRequisiciones.xhtml";
-        } else if (opcion == 2) {
-            navega = "menuCotizaciones.xhtml";
-        } else if (opcion == 3) {
-            navega = "menuOrdenesDeCompra.xhtml";
-        }
-
-        return navega;
-    }
+//    public String menu(int opcion) throws NamingException {
+//        
+//        if (opcion == 0) {
+//            navega = "index.xhtml";
+//        } else if (opcion == 1) {
+//            navega = "menuRequisiciones.xhtml";
+//        } else if (opcion == 2) {
+//            navega = "menuCotizaciones.xhtml";
+//        } else if (opcion == 3) {
+//            navega = "menuOrdenesDeCompra.xhtml";
+//        }
+//
+//        return navega;
+//    }
 
     //GETS Y SETS------------------------------------------------------------------------------------------------------------------------------------------------------
     public ArrayList<CotizacionEncabezado> getListaCotizacionEncabezado() throws SQLException {
@@ -535,10 +549,12 @@ public class MbCotizaciones implements Serializable {
     }
 
     //COTIZACIONES 24mayo2015
-    public void guardaCotizacion(int idReq, double dc, double dpp) throws SQLException, NamingException {
+    public void guardaCotizacion(int idReq) throws SQLException, NamingException {
+        double dc= mbMiniProveedor.getMiniProveedor().getDesctoComercial();
+        double dpp=mbMiniProveedor.getMiniProveedor().getDesctoProntoPago();
         DAORequisiciones daoReq = new DAORequisiciones();
         FacesMessage msg;
-        //  cotizacionDetallesG = new ArrayList<CotizacionDetalle>();
+          cotizacionDetallesG = new ArrayList<CotizacionDetalle>();
         try {
             int idProv = this.mbMiniProveedor.getMiniProveedor().getIdProveedor();
             int idMon = this.mbMonedas.getMoneda().getIdMoneda();
@@ -559,9 +575,11 @@ public class MbCotizaciones implements Serializable {
                     this.limpiaCotizacion();
                     mbMiniProveedor.getMiniProveedor().setIdProveedor(0);
                     mbMonedas.getMoneda().setIdMoneda(0);
-
+                    this.setMiIdReq(idReq);
                     int coti = daoReq.numCotizaciones(idReq);
                     this.setNumCotizacion(coti);
+                    
+                    
                 } else {
                     msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Capture al menos la cotización para un empaque..");
                 }
@@ -586,6 +604,15 @@ public class MbCotizaciones implements Serializable {
             d.setNeto(0);
             d.setSubtotal(0);
         }
+        
+//        for (CotizacionDetalle d : cotizacionDetallesG) {
+//            //    d.setCantidadCotizada(0);
+//            d.setCostoCotizado(0);
+//            d.setDescuentoProducto(0);
+//            d.setDescuentoProducto2(0);
+//            d.setNeto(0);
+//            d.setSubtotal(0);
+//        }
         this.subtotalGeneral = 0.00;
         this.sumaDescuentosProductos = 0.00;
         this.descuentoGeneralAplicado = 0.00;
@@ -594,6 +621,7 @@ public class MbCotizaciones implements Serializable {
         this.impuesto = 0.00;
         this.total = 0.00;
         this.mbMiniProveedor = new MbMiniProveedor();
+         
     }
 
     ///nueva propuesta
