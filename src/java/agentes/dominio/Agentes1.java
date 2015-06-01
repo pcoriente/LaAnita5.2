@@ -15,7 +15,7 @@ import java.io.Serializable;
  *
  * @author Anita
  */
-public class Agentes implements Serializable {
+public class Agentes1 implements Serializable {
 
     private int idAgente;
     private String agente;
@@ -96,7 +96,7 @@ public class Agentes implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Agentes other = (Agentes) obj;
+        final Agentes1 other = (Agentes1) obj;
         if (this.idAgente != other.idAgente) {
             return false;
         }

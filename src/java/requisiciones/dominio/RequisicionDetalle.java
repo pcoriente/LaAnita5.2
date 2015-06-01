@@ -6,8 +6,8 @@ public class RequisicionDetalle {
 
     private int idRequisicion;
     private Producto producto;
-    private int cantidad;
-    private int cantidadAutorizada;
+    private double cantidad;
+    private double cantidadAutorizada;
 
     public int getIdRequisicion() {
         return idRequisicion;
@@ -25,19 +25,35 @@ public class RequisicionDetalle {
         this.producto = producto;
     }
 
-    public int getCantidad() {
+    //    public int getCantidad() {
+    //        return cantidad;
+    //    }
+    //
+    //    public void setCantidad(int cantidad) {
+    //        this.cantidad = cantidad;
+    //    }
+    //
+    //    public int getCantidadAutorizada() {
+    //        return cantidadAutorizada;
+    //    }
+    //
+    //    public void setCantidadAutorizada(int cantidadAutorizada) {
+    //        this.cantidadAutorizada = cantidadAutorizada;
+    //    }
+    public double getCantidad() {
         return cantidad;
     }
 
-    public void setCantidad(int cantidad) {
+    public void setCantidad(double cantidad) {
         this.cantidad = cantidad;
     }
 
-    public int getCantidadAutorizada() {
+    public double getCantidadAutorizada() {
+       
         return cantidadAutorizada;
     }
 
-    public void setCantidadAutorizada(int cantidadAutorizada) {
+    public void setCantidadAutorizada(double cantidadAutorizada) {
         this.cantidadAutorizada = cantidadAutorizada;
     }
 
@@ -62,8 +78,4 @@ public class RequisicionDetalle {
         }
         return true;
     }
-
-    
-
-    
 }

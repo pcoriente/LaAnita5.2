@@ -30,7 +30,7 @@ public class MbContribuyentes implements Serializable {
     private ArrayList<Contribuyente> contribuyentes;
     private ArrayList<SelectItem> listaContribuyentes;
     private DAOContribuyentes dao;
-    
+
     private boolean personaFisica;
 
     public MbContribuyentes() {
@@ -43,20 +43,20 @@ public class MbContribuyentes implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okContribuyente", ok);
     }
-    
+
     public void validaSalir() {
-        boolean ok=false;
-        if(this.contribuyente.getIdContribuyente()==0) {
-            ok=true;
-        } else if(this.contribuyente.getDireccion().getIdDireccion()!=0) {
-            ok=true;
+        boolean ok = false;
+        if (this.contribuyente.getIdContribuyente() == 0) {
+            ok = true;
+        } else if (this.contribuyente.getDireccion().getIdDireccion() != 0) {
+            ok = true;
         } else {
             Mensajes.mensajeError("Capture la direccion del contribuyente !!!");
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okContribuyente", ok);
     }
-    
+
     private void actualizaContribuyente() {
         this.respaldo.setIdContribuyente(this.contribuyente.getIdContribuyente());
         this.respaldo.setContribuyente(this.contribuyente.getContribuyente());
@@ -65,15 +65,15 @@ public class MbContribuyentes implements Serializable {
         this.respaldo.setCurp(this.contribuyente.getCurp());
         this.respaldo.setDireccion(this.contribuyente.getDireccion());
     }
-    
+
     public boolean grabar() {
-        boolean ok=false;
-        if(this.valida()) {
+        boolean ok = false;
+        if (this.valida()) {
             try {
-                this.dao=new DAOContribuyentes();
-                if(this.contribuyente.getIdContribuyente()==0) {
+                this.dao = new DAOContribuyentes();
+                if (this.contribuyente.getIdContribuyente() == 0) {
                     this.contribuyente.setIdContribuyente(this.dao.agregar(this.contribuyente));
-                    Contribuyente tmp=this.dao.obtenerContribuyente(this.contribuyente.getIdContribuyente());
+                    Contribuyente tmp = this.dao.obtenerContribuyente(this.contribuyente.getIdContribuyente());
                     this.contribuyente.setIdRfc(tmp.getIdRfc());
                     this.contribuyente.getDireccion().setIdDireccion(tmp.getDireccion().getIdDireccion());
                 } else {
@@ -81,60 +81,65 @@ public class MbContribuyentes implements Serializable {
                 }
                 this.actualizaContribuyente();
                 Mensajes.mensajeSucces("El contribuyente se grabo correctamente !!!");
-                ok=true;
+                ok = true;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             }
         }
         return ok;
     }
-    
+
     public boolean valida(Contribuyente c) {
-        this.contribuyente=c;
+        this.contribuyente = c;
         return valida();
     }
 
     public boolean valida() {
         boolean ok = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         if (this.contribuyente.getContribuyente().equals("")) {
-            fMsg.setDetail("Se requiere un contribuyente !!");
+            Mensajes.mensajeAlert("Se requiere un contribuyente");
+//            fMsg.setDetail("Se requiere un contribuyente !!");
         } else if (this.contribuyente.getRfc().isEmpty()) {
-            fMsg.setDetail("Se requiere el RFC !!");
-        } else if (this.contribuyente.getDireccion().getCalle().isEmpty()) {
-            fMsg.setDetail("Direccion no valida !!");
+            Mensajes.mensajeAlert("Se requiere el RFC !!");
+//            fMsg.setDetail("Se requiere el RFC !!");
+        } else if (this.contribuyente.getDireccion().getCalle().equals("")) {
+            Mensajes.mensajeAlert("Direccion no valida !!");
+//            fMsg.setDetail("");
         } else {
             this.contribuyente.setRfc(this.contribuyente.getRfc().trim().toUpperCase());
             this.contribuyente.setCurp(this.contribuyente.getCurp().trim().toUpperCase());
             Utilerias utilerias = new Utilerias();
             String mensaje = utilerias.verificarRfc(this.contribuyente.getRfc());
             if (!mensaje.equals("")) {
-                fMsg.setDetail(mensaje);
-            } else if(this.contribuyente.getRfc().length()==12 || this.contribuyente.getCurp().equals("") || utilerias.validarCurp(this.contribuyente.getCurp())) {
-                ok=true;
+                Mensajes.mensajeAlert(mensaje);
+//                fMsg.setDetail(mensaje);
+            } else if (this.contribuyente.getRfc().length() == 12 || this.contribuyente.getCurp().equals("") || utilerias.validarCurp(this.contribuyente.getCurp())) {
+                ok = true;
             } else {
-                fMsg.setDetail("Error! Curp no valido");
+                Mensajes.mensajeAlert("Error! Curp no valido");
+//                fMsg.setDetail("Error! Curp no valido");
             }
         }
         if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
-        context.addCallbackParam("okContribuyente", ok);
+//        context.addCallbackParam("okContribuyente", ok);
         return ok;
     }
-    
+
     public void dameStatusRfc() {
         this.personaFisica = false;
         if (this.contribuyente.getRfc().length() == 13) {
             this.personaFisica = true;
         }
     }
-    
+
     private void copiaContribuyente(Contribuyente contribuyente) {
-        this.contribuyente=new Contribuyente();
+        this.contribuyente = new Contribuyente();
         this.contribuyente.setIdContribuyente(contribuyente.getIdContribuyente());
         this.contribuyente.setContribuyente(contribuyente.getContribuyente());
         this.contribuyente.setIdRfc(contribuyente.getIdRfc());
@@ -142,10 +147,10 @@ public class MbContribuyentes implements Serializable {
         this.contribuyente.setCurp(contribuyente.getCurp());
         this.contribuyente.setDireccion(contribuyente.getDireccion());
     }
-    
+
     public void mttoContribuyente(Contribuyente contribuyente) {
         this.copiaContribuyente(contribuyente);
-        this.respaldo=contribuyente;
+        this.respaldo = contribuyente;
         this.dameStatusRfc();
     }
 
@@ -176,15 +181,15 @@ public class MbContribuyentes implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
         return lstContribuyentes;
     }
-    
+
     public Contribuyente obtenerContribuyenteRfc(String rfc) {
-        boolean ok=false;
+        boolean ok = false;
         Contribuyente c = null;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "obtenerContribuyenteRfc");
         try {
             this.dao = new DAOContribuyentes();
-            c=this.dao.obtenerContribuyenteRfc(rfc);
-            ok=true;
+            c = this.dao.obtenerContribuyenteRfc(rfc);
+            ok = true;
         } catch (SQLException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
@@ -192,7 +197,7 @@ public class MbContribuyentes implements Serializable {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
         }
-        if(!ok) {
+        if (!ok) {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
         return c;
@@ -278,7 +283,6 @@ public class MbContribuyentes implements Serializable {
 //
 //        return ok;
 //    }
-
     public Contribuyente getContribuyente() {
         return contribuyente;
     }

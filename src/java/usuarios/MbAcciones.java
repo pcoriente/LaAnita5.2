@@ -26,7 +26,11 @@ public class MbAcciones implements Serializable {
     public MbAcciones() {
     }
     
-    public boolean validarAccion(String idComando) {
+    public MbAcciones(int idModulo){
+        obtenerAcciones(idModulo);
+    }
+    
+    public boolean validarAccion(String idComando) throws  NullPointerException{
         boolean ok=false;
         for(Accion a: this.acciones) {
             if(a.getIdBoton().equals(idComando)) {

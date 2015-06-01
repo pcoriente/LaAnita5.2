@@ -48,13 +48,22 @@ public class DAOMonedas {
         try {
             ResultSet rs = st.executeQuery("SELECT * FROM monedas WHERE idMoneda=" + idMoneda);
             if (rs.next()) {
-                mon = construirMoneda(rs);
+                mon = construirMonedaDaap(rs);
             }
         } finally {
             st.close();
             cn.close();
         }
         return mon;
+    }
+    
+    private Moneda construirMonedaDaap(ResultSet rs) throws SQLException {
+        Moneda mone = new Moneda();
+        mone.setIdMoneda(rs.getInt("idMoneda"));
+        mone.setMoneda(rs.getString("moneda"));
+        mone.setCodigoIso(rs.getString("codigoIso"));
+       
+        return mone;
     }
 
     private Moneda construirMoneda(ResultSet rs) throws SQLException {
