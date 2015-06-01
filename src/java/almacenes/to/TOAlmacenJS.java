@@ -8,17 +8,15 @@ public class TOAlmacenJS {
     private int idAlmacen;
     private String almacen;
     private int idCedis;
+    private String cedis;
     private int idEmpresa;
     private String empresa;
     private int idDireccion;
     
     public TOAlmacenJS() {
-        this.idAlmacen=0;
         this.almacen="";
-        this.idCedis=0;
-        this.idEmpresa=0;
+        this.cedis="";
         this.empresa="";
-        this.idDireccion=0;
     }
     
     @Override
@@ -70,6 +68,14 @@ public class TOAlmacenJS {
 
     public void setIdCedis(int idCedis) {
         this.idCedis = idCedis;
+    }
+
+    public String getCedis() {
+        return cedis;
+    }
+
+    public void setCedis(String cedis) {
+        this.cedis = cedis;
     }
 
     public int getIdEmpresa() {

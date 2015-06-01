@@ -3,7 +3,7 @@ package envios;
 import Message.Mensajes;
 import almacenes.MbMiniAlmacenes;
 import cedis.MbMiniCedis;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import envios.dao.DAOEnvios;
 import envios.dominio.Envio;
 import envios.dominio.EnvioPedido;
@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
+import movimientos.dao.DAOMovimientos;
 import movimientos.to.TOMovimiento;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
@@ -141,7 +142,9 @@ public class MbEnvios implements Serializable {
         try {
             DAOMovimientos daoMv = new DAOMovimientos();
             TOMovimiento toMv = daoMv.obtenerMovimientoRelacionado(this.fincado.getIdMovto());
-            daoMv.cambiarDirecto(agregar, toMv.getIdAlmacen(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdImpuestoZona());
+            
+            DAOMovimientos1 daoMv1=new DAOMovimientos1();
+            daoMv1.cambiarDirecto(agregar, this.envio.getIdEnvio(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdReferencia(), toMv.getIdImpuestoZona());
 
             this.dao = new DAOEnvios();
             this.detalle = new ArrayList<EnvioProducto>();

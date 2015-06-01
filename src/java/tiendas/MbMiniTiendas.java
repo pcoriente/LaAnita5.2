@@ -20,10 +20,20 @@ import tiendas.to.TOTienda;
 public class MbMiniTiendas implements Serializable {
     private TOTienda tienda;
     private ArrayList<SelectItem> listaTiendas;
+    private ArrayList<TOTienda> tiendas;
     private DAOTiendas dao;
     
     public MbMiniTiendas() {
+        this.inicializa();
+    }
+    
+    private void inicializa() {
+        this.tiendas=new ArrayList<TOTienda>();
         this.tienda=new TOTienda();
+    }
+    
+    public void inicializar() {
+        this.inicializa();
     }
     
     public void nuevaTienda() {
@@ -43,6 +53,20 @@ public class MbMiniTiendas implements Serializable {
         return to;
     }
     
+    public void obtenerTiendasFormato(int idFormato) {
+        this.tiendas=new ArrayList<TOTienda>();
+        try {
+            this.dao=new DAOTiendas();
+            for(TOTienda to:this.dao.obtenerTiendasFormato(idFormato)) {
+                this.tiendas.add(to);
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+        }
+    }
+    
     public void cargaTiendasFormato(int idFormato) {
         this.listaTiendas=new ArrayList<SelectItem>();
         this.listaTiendas.add(new SelectItem(new TOTienda(), "Seleccione una tienda"));
@@ -56,7 +80,6 @@ public class MbMiniTiendas implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
         }
-        
     }
 
     public TOTienda getTienda() {
@@ -73,5 +96,13 @@ public class MbMiniTiendas implements Serializable {
 
     public void setListaTiendas(ArrayList<SelectItem> listaTiendas) {
         this.listaTiendas = listaTiendas;
+    }
+
+    public ArrayList<TOTienda> getTiendas() {
+        return tiendas;
+    }
+
+    public void setTiendas(ArrayList<TOTienda> tiendas) {
+        this.tiendas = tiendas;
     }
 }

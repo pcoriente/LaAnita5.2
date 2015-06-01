@@ -1,7 +1,7 @@
 package movimientos;
 
 import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import entradas.dominio.MovimientoProducto;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
@@ -40,7 +40,7 @@ public class MbRecepcion implements Serializable {
     private MbComprobantes mbComprobantes;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
 //    private DAOImpuestosProducto daoImps;
     private DAOLotes daoLotes;
     
@@ -66,7 +66,7 @@ public class MbRecepcion implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabarRecepcion");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.grabarTraspasoRecepcion(this.convertirTOMovimiento(), this.convertirDetalle());
             this.modoEdicion=false;
             ok=true;
@@ -112,7 +112,7 @@ public class MbRecepcion implements Serializable {
         toMovimiento.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
         toMovimiento.setIdTipo(3);
         toMovimiento.setFolio(this.recepcion.getFolio());
-        toMovimiento.setIdCedis(this.recepcion.getAlmacen().getCedis().getIdCedis());
+        toMovimiento.setIdCedis(this.recepcion.getAlmacen().getIdCedis());
         toMovimiento.setIdEmpresa(this.recepcion.getAlmacen().getEmpresa().getIdEmpresa());
         toMovimiento.setIdAlmacen(this.recepcion.getAlmacen().getIdAlmacen());
         toMovimiento.setIdComprobante(this.recepcion.getComprobante().getIdComprobante());
@@ -122,7 +122,7 @@ public class MbRecepcion implements Serializable {
         toMovimiento.setFecha(this.recepcion.getFecha());
         toMovimiento.setIdUsuario(this.recepcion.getIdUsuario());
         toMovimiento.setIdMoneda(this.recepcion.getMoneda().getIdMoneda());
-        toMovimiento.setTipoCambio(this.recepcion.getTipoCambio());
+        toMovimiento.setTipoDeCambio(this.recepcion.getTipoCambio());
         return toMovimiento;
     }
     
@@ -206,7 +206,7 @@ public class MbRecepcion implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaDetalleRecepcion");
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientos1();
             //this.idMovtoAlmacen=this.dao.obtenerIdMovtoAlmacen(this.recepcion.getComprobante().getAlmacen().getIdAlmacen(), 9, this.recepcion.getComprobante().getNumero());
             this.daoLotes = new DAOLotes();
             this.recepcionDetalle = new ArrayList<EntradaProducto>();
@@ -258,13 +258,13 @@ public class MbRecepcion implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerRecepciones");
         this.recepciones = new ArrayList<Recepcion>();
         try {
-            this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), 9, 0, null)) {
-                this.recepciones.add(this.convertir(m));
-            }
+            this.dao = new DAOMovimientos1();
+//            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), 9, 0, null)) {
+//                this.recepciones.add(this.convertir(m));
+//            }
             ok = true;
-        } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (SQLException ex) {
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         }
@@ -277,7 +277,7 @@ public class MbRecepcion implements Serializable {
         Recepcion e = new Recepcion();
         e.setIdMovto(to.getIdMovto());
         e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerAlmacen(to.getIdAlmacen()));
+//        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerAlmacen(to.getIdAlmacen()));
         e.setComprobante(this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
         e.setFolio(to.getFolio());
         e.setFecha(to.getFecha());
@@ -361,8 +361,8 @@ public class MbRecepcion implements Serializable {
     }
 
     public void inicializar() {
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
+////        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
         this.mbBuscar.inicializar();
         inicializaLocales();
     }

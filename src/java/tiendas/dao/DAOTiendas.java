@@ -95,9 +95,11 @@ public class DAOTiendas {
 
     public ArrayList<TOTienda> obtenerTiendasFormato(int idFormato) throws SQLException {
         ArrayList<TOTienda> tos = new ArrayList<TOTienda>();
-        String strSQL = "SELECT T.*, ISNULL(C.codigoTienda, 0) AS codigoTienda "
-                + "FROM clientesTiendas T "
-                + "LEFT JOIN clientesTiendasCodigos C ON C.idCliente=T.idCliente AND C.idFormato=T.idFormato AND C.idTienda=T.idTienda "
+        String strSQL = "SELECT T.*, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
+                + "FROM clientesTiendas T\n"
+                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
+                + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda\n"
                 + "WHERE T.idFormato=" + idFormato;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
@@ -118,6 +120,8 @@ public class DAOTiendas {
         to.setIdTienda(rs.getInt("idTienda"));
         to.setTienda(rs.getString("tienda"));
         to.setIdDireccion(rs.getInt("idDireccion"));
+        to.setIdCliente(rs.getInt("idCliente"));
+        to.setContribuyente(rs.getString("contribuyente"));
         to.setIdFormato(rs.getInt("idFormato"));
         to.setIdAgente(rs.getInt("idAgente"));
         to.setIdRuta(rs.getInt("idRuta"));
@@ -129,9 +133,11 @@ public class DAOTiendas {
 
     public TOTienda obtenerTienda(int idTienda) throws SQLException {
         TOTienda to = null;
-        String strSQL = "SELECT T.*, ISNULL(C.codigoTienda, 0) AS codigoTienda "
-                + "FROM clientesTiendas T "
-                + "LEFT JOIN clientesTiendasCodigos C ON C.idCliente=T.idCliente AND C.idFormato=T.idFormato AND C.idTienda=T.idTienda "
+        String strSQL = "SELECT T.*, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
+                + "FROM clientesTiendas T\n"
+                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
+                + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda\n"
                 + "WHERE T.idTienda=" + idTienda;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();

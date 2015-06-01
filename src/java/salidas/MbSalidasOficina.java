@@ -1,7 +1,7 @@
 package salidas;
 
 import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -44,7 +44,7 @@ public class MbSalidasOficina implements Serializable {
     private ArrayList<SalidaOficinaProducto> salidaDetalle;
     private Salida salida;
     private ArrayList<Salida> salidasPendientes;
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
     
     public MbSalidasOficina() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -57,7 +57,7 @@ public class MbSalidasOficina implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelar");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.cancelarSalidaOficina(this.salida.getIdMovto());
             this.modoEdicion=false;
             ok=true;
@@ -78,10 +78,10 @@ public class MbSalidasOficina implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaDetalleOrdenCompra");
         this.salida=((Salida) event.getObject());
         this.salidaDetalle=new ArrayList<SalidaOficinaProducto>();
-        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.salida.getAlmacen());
+//        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.salida.getAlmacen());
         this.tipo=this.salida.getTipo();
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientos1();
             for(TOSalidaOficinaProducto to:this.dao.obtenerDetalleSalidaOficina(this.salida.getAlmacen().getIdAlmacen(), this.salida.getIdMovto())) {
                 this.salidaDetalle.add(this.convertirProductoOficina(to));
             }
@@ -115,7 +115,7 @@ public class MbSalidasOficina implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         this.salidasPendientes=new ArrayList<Salida>();
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             for(TOMovimiento to: this.dao.movimientosPendientes(true, 0)) {
                 this.salidasPendientes.add(this.convertir(to));
             }
@@ -134,7 +134,7 @@ public class MbSalidasOficina implements Serializable {
     private Salida convertir(TOMovimiento to) throws SQLException {
         Salida s=new Salida();
         s.setIdMovto(to.getIdMovto());
-        s.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
+//        s.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
         s.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         s.setFecha(to.getFecha());
         s.setIdUsuario(to.getIdUsuario());
@@ -145,7 +145,7 @@ public class MbSalidasOficina implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabar");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.grabarSalidaOficina(this.convertirTO());
             this.modoEdicion=false;
             ok=true;
@@ -164,7 +164,7 @@ public class MbSalidasOficina implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "gestionar");
         double separados;
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             double separar = this.salidaProducto.getCantidad() - this.salidaProducto.getSeparados();
             if (separar > 0) {
                 separados = this.dao.separaSalida(this.salida.getIdMovto(), this.salida.getAlmacen().getIdAlmacen(), this.salidaProducto.getProducto().getIdProducto(), separar);
@@ -214,7 +214,7 @@ public class MbSalidasOficina implements Serializable {
             boolean ok=false;
             FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "actualizaProductoSeleccionado");
             try {
-                this.dao=new DAOMovimientos();
+                this.dao=new DAOMovimientos1();
                 this.dao.agregarProductoSalidaOficina(this.salida.getIdMovto(), this.convertirTOProducto(productoSeleccionado));
                 this.salidaDetalle.add(productoSeleccionado);
                 this.salidaProducto=productoSeleccionado;
@@ -253,18 +253,19 @@ public class MbSalidasOficina implements Serializable {
     public void capturar() {
         boolean ok=false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "capturar");
-        if(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen()==0) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
-            fMsg.setDetail("Se requiere seleccionar un almacen");
-        } else if(this.tipo.getIdTipo()==0) {
+//        if(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen()==0) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
+//            fMsg.setDetail("Se requiere seleccionar un almacen");
+//        } else 
+            if(this.tipo.getIdTipo()==0) {
             fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
             fMsg.setDetail("Se requiere seleccionar un concepto");
         } else {
             this.salida=new Salida();
-            this.salida.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
+//            this.salida.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
             this.salida.setTipo(this.tipo);
             try {
-                this.dao=new DAOMovimientos();
+                this.dao=new DAOMovimientos1();
                 this.salida.setIdMovto(this.dao.agregarMovimientoOficina(this.convertirTO()));
                 this.salidaDetalle=new ArrayList<SalidaOficinaProducto>();
                 this.salidaProducto=new SalidaOficinaProducto();
@@ -308,7 +309,7 @@ public class MbSalidasOficina implements Serializable {
             this.tipo=new MovimientoTipo(0, "Seleccione");
             this.listaMovimientosTipos.add(new SelectItem(this.tipo, this.tipo.toString()));
             
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             for(MovimientoTipo t: this.dao.obtenerMovimientosTipos(false)) {
                 this.listaMovimientosTipos.add(new SelectItem(t, t.toString()));
             }
@@ -328,8 +329,8 @@ public class MbSalidasOficina implements Serializable {
     }
     
     public void inicializar() {
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
         this.mbBuscar.inicializar();
         this.modoEdicion=false;
         this.listaMovimientosTipos=null;

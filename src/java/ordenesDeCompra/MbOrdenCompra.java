@@ -1,5 +1,6 @@
 package ordenesDeCompra;
 
+import Message.Mensajes;
 import cedis.MbMiniCedis;
 import cedis.dominio.Cedis;
 import contactos.dominio.Contacto;
@@ -131,12 +132,32 @@ public class MbOrdenCompra implements Serializable {
         }
     }
 
+    public void cargaOrdenesEncabezadoAlmacen(int idProveedor, int status) throws NamingException, SQLException {
+        this.listaOrdenesEncabezado = new ArrayList<OrdenCompraEncabezado>();
+//        try {
+            DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
+            for (OrdenCompraEncabezado d : daoOC.listaOrdenesAlmacen(idProveedor, status)) {
+                listaOrdenesEncabezado.add(d);
+            }
+//        } catch (SQLException ex) {
+//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (NamingException ex) {
+//            Mensajes.mensajeError(ex.getMessage());
+//        }
+    }
+    
     public void cargaOrdenesEncabezado(int idProveedor, int status) throws NamingException, SQLException {
         this.listaOrdenesEncabezado = new ArrayList<OrdenCompraEncabezado>();
-        DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
-        for (OrdenCompraEncabezado d : daoOC.listaOrdenes(idProveedor, status)) {
-            listaOrdenesEncabezado.add(d);
-        }
+//        try {
+            DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
+            for (OrdenCompraEncabezado d : daoOC.listaOrdenes(idProveedor, status)) {
+                listaOrdenesEncabezado.add(d);
+            }
+//        } catch (SQLException ex) {
+//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (NamingException ex) {
+//            Mensajes.mensajeError(ex.getMessage());
+//        }
     }
 
     public void dameEmpaqueSeleccionado() {

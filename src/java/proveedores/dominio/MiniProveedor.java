@@ -16,10 +16,8 @@ public class MiniProveedor {
     private OrdenCompraEncabezado ordenCompraEncabezado;
 
     public MiniProveedor() {
-        this.idProveedor=0;
         this.proveedor="";
         this.rfc="";
-        this.idImpuestoZona=0;
     }
 
     public MiniProveedor(int idProveedor, String proveedor, String rfc) {
