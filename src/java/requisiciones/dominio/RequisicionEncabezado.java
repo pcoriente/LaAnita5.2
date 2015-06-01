@@ -102,6 +102,7 @@ public class RequisicionEncabezado {
     }
 
     public void setEstado(String Estado) {
+       
         this.Estado = Estado;
     }
 }

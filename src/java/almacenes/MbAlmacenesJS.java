@@ -1,10 +1,9 @@
 package almacenes;
 
 import almacenes.dao.DAOAlmacenesJS;
-import almacenes.dominio.AlmacenJS;
+//import almacenes.dominio.AlmacenJS;
 import almacenes.to.TOAlmacenJS;
-import cedis.MbMiniCedis;
-import direccion.dominio.Direccion;
+//import direccion.dominio.Direccion;
 import empresas.MbMiniEmpresas;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -25,44 +24,44 @@ import javax.naming.NamingException;
 @SessionScoped
 public class MbAlmacenesJS implements Serializable {
     private TOAlmacenJS toAlmacen;
-    private ArrayList<AlmacenJS> almacenes;
+//    private ArrayList<AlmacenJS> almacenes;
     private ArrayList<SelectItem> listaAlmacenes;
     private DAOAlmacenesJS dao;
     
-    @ManagedProperty(value = "#{mbMiniCedis}")
-    private MbMiniCedis mbCedis;
+//    @ManagedProperty(value = "#{mbMiniCedis}")
+//    private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbMiniEmpresas}")
     private MbMiniEmpresas mbEmpresas;
     
     public MbAlmacenesJS() throws NamingException {
         this.mbEmpresas=new MbMiniEmpresas();
-        this.mbCedis=new MbMiniCedis();
+//        this.mbCedis=new MbMiniCedis();
         this.inicializaLocales();
     }
     
     public void inicializar() {
         this.mbEmpresas.inicializar();
-        this.mbCedis.inicializar();
+//        this.mbCedis.inicializar();
         this.inicializaLocales();
     }
     
     private void inicializaLocales() {
         this.toAlmacen=new TOAlmacenJS();
-        this.setAlmacenes(null);
+//        this.setAlmacenes(null);
         this.setListaAlmacenes(null);
     }
     
     public void inicializaConAlmacen(TOAlmacenJS toAlmacen) {
-        this.mbCedis.cargaMiniCedisTodos();
-        this.mbCedis.setCedis(this.mbCedis.obtenerCedis(toAlmacen.getIdCedis()));
-        this.mbCedis.obtenerDefaultCedis();
+//        this.mbCedis.cargaMiniCedisTodos();
+//        this.mbCedis.setCedis(this.mbCedis.obtenerCedis(toAlmacen.getIdCedis()));
+//        this.mbCedis.obtenerDefaultCedis();
         this.cargaAlmacenesEmpresa(toAlmacen.getIdEmpresa(), 0);
         this.setToAlmacen(toAlmacen);
     }
     
     public void inicializaAlmacen() {
-        this.mbCedis.cargaMiniCedisZona();
-        this.mbCedis.obtenerDefaultCedis();
+//        this.mbCedis.cargaMiniCedisZona();
+//        this.mbCedis.obtenerDefaultCedis();
         this.cargaAlmacenes();
         this.toAlmacen=(TOAlmacenJS)this.listaAlmacenes.get(0).getValue();
     }
@@ -73,7 +72,7 @@ public class MbAlmacenesJS implements Serializable {
         try {
             if(idEmpresa!=0) {
                 this.dao=new DAOAlmacenesJS();
-                this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(this.mbCedis.getCedis().getIdCedis(), idEmpresa), noSelect);
+                this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idEmpresa), noSelect);
                 ok=true;
             } else {
                 fMsg.setDetail("Debe seleccionar un cedis y un almacen");
@@ -95,7 +94,7 @@ public class MbAlmacenesJS implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaAlmacenes");
         try {
             this.dao=new DAOAlmacenesJS();
-            this.cargaListaAlmacenes(this.dao.obtenerAlmacenes(this.mbCedis.getCedis().getIdCedis()), 0);
+            this.cargaListaAlmacenes(this.dao.obtenerAlmacenes(), 0);
             ok=true;
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
@@ -118,29 +117,34 @@ public class MbAlmacenesJS implements Serializable {
         this.listaAlmacenes.add(new SelectItem(this.toAlmacen, this.toAlmacen.toString()));
         for(TOAlmacenJS a: lstAlmacenes) {
             disabled=false;
-            if(a.getIdAlmacen()==noSelect) disabled=true;
+            if(a.getIdAlmacen()==noSelect) {
+                disabled=true;
+            }
             listaAlmacenes.add(new SelectItem(a, a.toString(),"",disabled));
         }
     }
     
-    private AlmacenJS convertir(TOAlmacenJS to) {
-        AlmacenJS a=new AlmacenJS();
-        a.setIdAlmacen(to.getIdAlmacen());
-        a.setAlmacen(to.getAlmacen());
-        a.setEmpresa(this.mbEmpresas.obtenerEmpresa(to.getIdEmpresa()));
-        a.setCedis(this.mbCedis.obtenerCedis(to.getIdCedis()));
-        a.setDireccion(new Direccion());
-        a.getDireccion().setIdDireccion(to.getIdDireccion());
-        return a;
-    }
+//    private AlmacenJS convertir(TOAlmacenJS to) {
+//        AlmacenJS a=new AlmacenJS();
+//        a.setIdAlmacen(to.getIdAlmacen());
+//        a.setAlmacen(to.getAlmacen());
+//        a.setEmpresa(this.mbEmpresas.obtenerEmpresa(to.getIdEmpresa()));
+////        a.setCedis(this.mbCedis.obtenerCedis(to.getIdCedis()));
+//        a.setIdCedis(to.getIdCedis());
+//        a.setCedis(to.getCedis());
+//        a.setDireccion(new Direccion());
+//        a.getDireccion().setIdDireccion(to.getIdDireccion());
+//        return a;
+//    }
     
-    public AlmacenJS obtenerAlmacen(int idAlmacen) {
+    public TOAlmacenJS obtenerAlmacen(int idAlmacen) {
         boolean ok=false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "obtenerAlmacen");
-        AlmacenJS a=null;
+        TOAlmacenJS a=null;
         try {
             this.dao=new DAOAlmacenesJS();
-            a=convertir(this.dao.obtenerAlmacen(idAlmacen));
+//            a=convertir(this.dao.obtenerAlmacen(idAlmacen));
+            a=this.dao.obtenerAlmacen(idAlmacen);
             ok=true;
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
@@ -187,13 +191,13 @@ public class MbAlmacenesJS implements Serializable {
         this.listaAlmacenes = listaAlmacenes;
     }
 
-    public MbMiniCedis getMbCedis() {
-        return mbCedis;
-    }
-
-    public void setMbCedis(MbMiniCedis mbCedis) {
-        this.mbCedis = mbCedis;
-    }
+//    public MbMiniCedis getMbCedis() {
+//        return mbCedis;
+//    }
+//
+//    public void setMbCedis(MbMiniCedis mbCedis) {
+//        this.mbCedis = mbCedis;
+//    }
 
     public MbMiniEmpresas getMbEmpresas() {
         return mbEmpresas;
@@ -203,13 +207,13 @@ public class MbAlmacenesJS implements Serializable {
         this.mbEmpresas = mbEmpresas;
     }
 
-    public ArrayList<AlmacenJS> getAlmacenes() {
-        return almacenes;
-    }
-
-    public void setAlmacenes(ArrayList<AlmacenJS> almacenes) {
-        this.almacenes = almacenes;
-    }
+//    public ArrayList<AlmacenJS> getAlmacenes() {
+//        return almacenes;
+//    }
+//
+//    public void setAlmacenes(ArrayList<AlmacenJS> almacenes) {
+//        this.almacenes = almacenes;
+//    }
 
     public TOAlmacenJS getToAlmacen() {
         return toAlmacen;

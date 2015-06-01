@@ -17,28 +17,34 @@
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="center"  >
                 <h:form id="form" >
-                    <div align="right">
-
-                        <p:commandButton 
-                            icon="ui-icon-plus"
-                            title="Crear orden de compra directa"
-                            oncomplete="odecD.show();"   
-
-                            />
-                        <p:commandButton 
-                            icon="ui-icon-note"
-                            title="ir a Menú a Cotizaciones"
-                            action="menuCotizaciones.xhtml"
-
-                            />
-                        <p:commandButton id="salir"
-                                         icon="ui-icon-arrowreturnthick-1-w"
-                                         title="Salir de Listado de Requisiciones"
-                                         action="index.xhtml"
-
-                                         />
-                    </div>
-
+                    <p:toolbar>
+                        <f:facet name="right">
+                            <span class="ui-separator">
+                                <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                            </span>
+                            <p:commandButton 
+                                icon="ui-icon-plus"
+                                title="Crear orden de compra directa"
+                                oncomplete="odecD.show();"   
+                                />
+                            <span class="ui-separator">
+                                <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                            </span>
+                            <p:commandButton 
+                                icon="ui-icon-document"
+                                title="ir a Menú a Cotizaciones"
+                                action="menuCotizaciones.xhtml"
+                                />
+                            <span class="ui-separator">
+                                <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                            </span>
+                            <p:commandButton id="salir"
+                                             icon="ui-icon-arrowreturnthick-1-w"
+                                             title="Salir de Listado de Requisiciones"
+                                             action="index.xhtml"
+                                             />
+                        </f:facet>
+                    </p:toolbar>
                     <!-- P A N E L   D E  A D M I N I S T R A C I O N... -->
                     <p:panel header="PANEL DE ADMINISTRACION DE ORDENES DE COMPRA" styleClass="quitaCuadro"  >
                         <h:outputText value="No hay ORDENES DE COMPRA que mostrar !!" rendered="#{empty mbOrdenCompra.listaOrdenesEncabezado}" />

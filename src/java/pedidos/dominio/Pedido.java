@@ -11,6 +11,7 @@ import tiendas.to.TOTienda;
  */
 public class Pedido {
     private int idPedido;
+    private int idEmpresa;
     private int idAlmacen;
     private TOTienda tienda;
     private ClienteFormato formato;
@@ -139,5 +140,13 @@ public class Pedido {
 
     public void setCancelacionMotivo(String cancelacionMotivo) {
         this.cancelacionMotivo = cancelacionMotivo;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 }

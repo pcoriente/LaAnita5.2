@@ -69,8 +69,8 @@ public class DAOOrdenDeCompra {
         }
         return propietario;
     }
-
-    public ArrayList<OrdenCompraEncabezado> listaOrdenes() throws SQLException, NamingException {
+    
+        public ArrayList<OrdenCompraEncabezado> listaOrdenes() throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
@@ -103,15 +103,45 @@ public class DAOOrdenDeCompra {
         }
         return lista;
     }
-
-    public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
+        
+        public ArrayList<OrdenCompraEncabezado> listaOrdenesAlmacen(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
+                    + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
+                    + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
+                    + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
+                    + "                                       , isnull(c.nombreComercial,'') as nombreComercial, isnull(c.idDirEmp,0) as idDireEmpre,  isnull(c.idDireccion, 0) as idDireccion\n"
+                    + "                               from ordenCompra oc\n"
+                    + "                               inner join webSystem.dbo.monedas m on m.idMoneda=oc.idMoneda\n"
+                    + "                               left join (select c.idCotizacion, c.idRequisicion, c.descuentoCotizacion as desctoComercial, c.descuentoProntoPago as desctoProntoPago\n"
+                    + "                                               , p.idProveedor, p.idDireccionEntrega, eg.nombreComercial, eg.idDireccion as idDirEmp, d.idDireccion\n"
+                    + "                                           from cotizaciones c\n"
+                    + "                                           inner join proveedores p on p.idProveedor = c.idProveedor\n"
+                    + "                                           inner join contribuyentes co on co.idContribuyente = p.idContribuyente\n"
+                    + "                                           inner join requisiciones r on r.idRequisicion = c.idRequisicion\n"
+                    + "                                           inner join empresasGrupo eg on eg.idEmpresa = r.idEmpresa\n"
+                    + "                                           inner join direcciones d on d.idDireccion = co.idDireccion) c on c.idCotizacion=oc.idCotizacion\n"
+                    + "                               where oc.idProveedor=" + idProveedor + " and oc.estadoAlmacen=" + status + "\n"
+                    + "                               order by oc.fechaCreacion desc";
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
         try {
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            ResultSet rs = sentencia.executeQuery(stringSQL);
+            while (rs.next()) {
+                lista.add(construirOCEncabezado(rs));
+            }
+        } finally {
+            sentencia.close();
+            cn.close();
+        }
+        return lista;
+    }
+
+    public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
+        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
-                    + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
+                    + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
                     + "                                       , isnull(c.nombreComercial,'') as nombreComercial, isnull(c.idDirEmp,0) as idDireEmpre,  isnull(c.idDireccion, 0) as idDireccion\n"
                     + "                               from ordenCompra oc\n"
@@ -125,13 +155,16 @@ public class DAOOrdenDeCompra {
                     + "                                           inner join empresasGrupo eg on eg.idEmpresa = r.idEmpresa\n"
                     + "                                           inner join direcciones d on d.idDireccion = co.idDireccion) c on c.idCotizacion=oc.idCotizacion\n"
                     + "                               where oc.idProveedor=" + idProveedor + " and oc.estado=" + status + "\n"
-                    + "                               order by oc.idOrdenCompra desc";
-
+                    + "                               order by oc.fechaCreacion desc";
+        Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
+        try {
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construirOCEncabezado(rs));
             }
         } finally {
+            sentencia.close();
             cn.close();
         }
         return lista;
@@ -203,23 +236,23 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraDetalle> consultaOrdenCompra(int idOC) throws SQLException, NamingException {
         ArrayList<OrdenCompraDetalle> lista = new ArrayList<OrdenCompraDetalle>();
-        ResultSet rs;
         Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
         try {
-            String stringSQL = "select oc.idOrdenCompra, oc.idCotizacion, ocd.idProducto, ocd.cantOrdenada, ocd.costoOrdenado"
+            String stringSQL = "select oc.idOrdenCompra, oc.idCotizacion, ocd.idEmpaque, ocd.cantOrdenada, ocd.costoOrdenado"
+                    + "           , ocd.cantRecibidaOficina, ocd.cantRecibidaAlmacen, ocd.cantOrdenadaSinCargo"
                     + "           , ocd.descuentoProducto, ocd.descuentoProducto2, ocd.sku, isnull(r.idEmpresa, 0) as idEmpresa "
-                    + "from ordencompra oc "
+                    + "from ordenCompra oc "
                     + "inner join ordenCompraDetalle ocd on ocd.idOrdenCompra = oc.idOrdenCompra "
                     + "left join cotizaciones c on c.idCotizacion=oc.idCotizacion "
                     + "left join requisiciones r on r.idRequisicion=c.idRequisicion "
                     + "where oc.idOrdenCompra=" + idOC;
-
-            Statement sentencia = cn.createStatement();
-            rs = sentencia.executeQuery(stringSQL);
+            ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construirOCDetalle(rs));
             }
         } finally {
+            sentencia.close();
             cn.close();
         }
         return lista;
@@ -230,9 +263,12 @@ public class DAOOrdenDeCompra {
         DAOCotizaciones daoC = new DAOCotizaciones();
         ocd.setCotizacionDetalle(daoC.dameCotizacion(rs.getInt("idCotizacion")));
         ocd.setProducto(new Producto());
-        ocd.getProducto().setIdProducto(rs.getInt("idProducto"));
+        ocd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
         ocd.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
         ocd.setCantOrdenada(rs.getDouble("cantOrdenada"));
+        ocd.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
+        ocd.setCantRecibidaOficina(rs.getDouble("cantRecibidaOficina"));
+        ocd.setCantRecibidaAlmacen(rs.getDouble("cantRecibidaAlmacen"));
         ocd.setCantidadSolicitada(rs.getDouble("cantOrdenada"));
         ocd.setCostoOrdenado(rs.getDouble("costoOrdenado"));
         ocd.setDescuentoProducto(rs.getDouble("descuentoProducto"));
@@ -247,7 +283,7 @@ public class DAOOrdenDeCompra {
         PreparedStatement ps2;
         try {
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompraDetalle SET cantOrdenada=" + cc + "  WHERE idOrdenCompra=" + idOrden + " and idProducto=" + idProd + "";
+            String strSQL2 = "UPDATE ordenCompraDetalle SET cantOrdenada=" + cc + "  WHERE idOrdenCompra=" + idOrden + " and idEmpaque=" + idProd + "";
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {

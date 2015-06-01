@@ -8,6 +8,7 @@ import java.util.Date;
  */
 public class TOPedido {
     private int idPedido;
+    private int idEmpresa;
     private int idAlmacen;
     private int idTienda;
     private String ordenDeCompra;
@@ -95,5 +96,13 @@ public class TOPedido {
 
     public void setCancelacionMotivo(String cancelacionMotivo) {
         this.cancelacionMotivo = cancelacionMotivo;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 }

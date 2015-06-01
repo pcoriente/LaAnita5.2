@@ -7,20 +7,23 @@ package movimientos.to;
 public class TOMovimientoProducto {
     private int idMovto;
     private int idProducto;
-    private double costoOrdenado;
     private double cantOrdenada;
+    private double cantOrdenadaSinCargo;
+    private double costoOrdenado;
+    private double cantRecibida;
+    private double cantRecibidaSinCargo;
     private double cantFacturada;
     private double cantSinCargo;
-    private double cantRecibida;
     private double costo;
 //    private double precio;
     private double desctoProducto1;
     private double desctoProducto2;
     private double desctoConfidencial;
     private double unitario;
+    private double costoPromedio;
     private int idImpuestoGrupo;
-    private double neto;
-    private double importe;
+//    private double neto;
+//    private double importe;
     
     public TOMovimientoProducto() {}
 
@@ -78,6 +81,14 @@ public class TOMovimientoProducto {
         this.cantOrdenada = cantOrdenada;
     }
 
+    public double getCantOrdenadaSinCargo() {
+        return cantOrdenadaSinCargo;
+    }
+
+    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
+        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
+    }
+
     public double getCantFacturada() {
         return cantFacturada;
     }
@@ -100,6 +111,14 @@ public class TOMovimientoProducto {
 
     public void setCantRecibida(double cantRecibida) {
         this.cantRecibida = cantRecibida;
+    }
+
+    public double getCantRecibidaSinCargo() {
+        return cantRecibidaSinCargo;
+    }
+
+    public void setCantRecibidaSinCargo(double cantRecibidaSinCargo) {
+        this.cantRecibidaSinCargo = cantRecibidaSinCargo;
     }
 
     public double getCosto() {
@@ -150,6 +169,14 @@ public class TOMovimientoProducto {
         this.unitario = unitario;
     }
 
+    public double getCostoPromedio() {
+        return costoPromedio;
+    }
+
+    public void setCostoPromedio(double costoPromedio) {
+        this.costoPromedio = costoPromedio;
+    }
+
     public int getIdImpuestoGrupo() {
         return idImpuestoGrupo;
     }
@@ -158,19 +185,19 @@ public class TOMovimientoProducto {
         this.idImpuestoGrupo = idImpuestoGrupo;
     }
 
-    public double getNeto() {
-        return neto;
-    }
+//    public double getNeto() {
+//        return neto;
+//    }
+//
+//    public void setNeto(double neto) {
+//        this.neto = neto;
+//    }
 
-    public void setNeto(double neto) {
-        this.neto = neto;
-    }
-
-    public double getImporte() {
-        return importe;
-    }
-
-    public void setImporte(double importe) {
-        this.importe = importe;
-    }
+//    public double getImporte() {
+//        return importe;
+//    }
+//
+//    public void setImporte(double importe) {
+//        this.importe = importe;
+//    }
 }

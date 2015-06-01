@@ -1,5 +1,6 @@
 package pedidos.DAO;
 
+import entradas.dao.DAOMovimientos1;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -112,31 +113,125 @@ public class DAOPedidos {
         return liberado;
     }
     
-    public void grabarMovimiento(TOPedidoProducto to) throws SQLException {
-        String strSQL = "UPDATE pedidosOCTiendaDetalle "+
-                        "SET cantFacturada="+to.getCantFacturada()+" "+
-                        "WHERE idPedido="+to.getIdPedido()+" AND idEmpaque="+to.getIdEmpaque();
+//    public void grabarMovimiento(TOPedidoProducto to) throws SQLException {
+//        String strSQL = "UPDATE pedidosOCTiendaDetalle "+
+//                        "SET cantFacturada="+to.getCantFacturada()+" "+
+//                        "WHERE idPedido="+to.getIdPedido()+" AND idEmpaque="+to.getIdEmpaque();
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        try {
+//            st.executeUpdate(strSQL);
+//        } finally {
+//            st.close();
+//            cn.close();
+//        }
+//    }
+    
+//    public void traspasarSinCargo(int idPedido, int idProdOrigen, TOPedidoProducto to, double cantidad) throws SQLException {
+//        String strSQL="";
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        try {
+//            st.execute("BEGIN TRANSACTION");
+//            
+//            if(to.getIdPedido()==0) {
+//                to.setIdPedido(idPedido);
+//                to.setCantSinCargo(cantidad);
+//                this.agregarProducto(to);
+//            } else {
+//                strSQL= "UPDATE pedidosOCTiendaDetalle\n" +
+//                        "SET cantSinCargo=cantSinCargo+"+cantidad+"\n" +
+//                        "WHERE idPedido="+idPedido+" AND idEmpaque="+to.getIdEmpaque();
+//                st.executeUpdate(strSQL);
+//            }
+//            strSQL= "UPDATE pedidosOCTiendaDetalle SET cantSinCargo=cantSinCargo-"+cantidad+"\n" +
+//                    "WHERE idPedido="+idPedido+" AND idEmpaque="+idProdOrigen;
+//            st.executeUpdate(strSQL);
+//            
+//            st.execute("COMMIT TRANSACTION");
+//        } finally {
+//            st.close();
+//            cn.close();
+//        }
+//    }
+    
+//    public void agregarProducto(int idPedido, int idEmpresa, TOPedidoProducto to, int idTienda) throws SQLException {
+//        String strSQL = "INSERT INTO pedidosOCTiendaDetalle (idPedido, idEmpaque, cantFacturada, cantSinCargo, unitario, idImpuestoGrupo)\n" +
+//                        "VALUES ("+idPedido+", "+to.getIdEmpaque()+", "+to.getCantFacturada()+", "+to.getCantSinCargo()+", "+to.getUnitario()+", "+to.getIdImpuestoGrupo()+")";
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        try {
+//            st.executeUpdate(strSQL);
+//            to.setIdPedido(idPedido);
+//            
+//            this.calcularPrecioNeto(idPedido, to, idTienda);
+//        } finally {
+//            st.close();
+//            cn.close();
+//        }
+//    }
+    
+    public TOPedidoProducto obtenerPedidoProducto(int idPedido, int idProducto) throws SQLException {
+        TOPedidoProducto to=null;
+        String strSQL= "SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido="+idPedido+" AND idEmpaque="+idProducto;
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
-            st.executeUpdate(strSQL);
+            ResultSet rs=st.executeQuery(strSQL);
+            if(rs.next()) {
+                to=this.construirProducto(rs);
+            }
         } finally {
             st.close();
             cn.close();
         }
+        return to;
     }
     
-    public void agregarProducto(TOPedidoProducto to) throws SQLException {
-        String strSQL = "INSERT INTO pedidosOCTiendaDetalle (idPedido, idEmpaque, cantFacturada, cantSinCargo, unitario, idImpuestoGrupo)\n" +
-                        "VALUES ("+to.getIdPedido()+", "+to.getIdEmpaque()+", "+to.getCantFacturada()+", "+to.getCantSinCargo()+", "+to.getUnitario()+", "+to.getIdImpuestoGrupo()+")";
+    public ArrayList<TOPedidoProducto> obtenerSimilaresPedido(int idPedido, int idProducto) throws SQLException {
+        ArrayList<TOPedidoProducto> productos=new ArrayList<TOPedidoProducto>();
+        String strSQL= "SELECT CASE WHEN S.idEmpaque=S.idSimilar THEN 1 ELSE 0 END AS principal\n" +
+                        "	, ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idEmpaque,S.idEmpaque) AS idEmpaque\n" +
+                        "	, ISNULL(D.cantFacturada, 0) AS cantFacturada, ISNULL(D.cantSinCargo, 0) AS cantSinCargo\n" +
+                        "	, ISNULL(D.unitario, 0) AS unitario, P.idImpuesto AS idImpuestoGrupo\n" +
+                        "FROM empaquesSimilares S\n" +
+                        "LEFT JOIN (SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido="+idPedido+") D ON D.idEmpaque=S.idEmpaque\n" +
+                        "INNER JOIN empaques E ON E.idEmpaque=S.idEmpaque\n" +
+                        "INNER JOIN productos P ON P.idProducto=E.idProducto\n" +
+                        "WHERE S.idSimilar="+idProducto+" AND S.idSimilar!=S.idEmpaque\n" +
+                        "ORDER BY principal DESC, idPedido DESC";
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
-            st.executeUpdate(strSQL);
+            ResultSet rs=st.executeQuery(strSQL);
+            while(rs.next()) {
+                productos.add(this.construirProducto(rs));
+            }
         } finally {
             st.close();
             cn.close();
         }
+        return productos;
+    }
+    
+    public ArrayList<TOPedidoProducto> obtenerPedidoSimilares(int idPedido, int idProducto) throws SQLException {
+        ArrayList<TOPedidoProducto> productos=new ArrayList<TOPedidoProducto>();
+        String strSQL= "SELECT D.*\n" +
+                        "FROM empaquesSimilares S\n" +
+                        "INNER JOIN pedidosOCTiendaDetalle D ON D.idEmpaque=S.idEmpaque\n" +
+                        "WHERE D.idPedido="+idPedido+" AND S.idSimilar="+idProducto;
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
+        try {
+            ResultSet rs=st.executeQuery(strSQL);
+            while(rs.next()) {
+                productos.add(this.construirProducto(rs));
+            }
+        } finally {
+            st.close();
+            cn.close();
+        }
+        return productos;
     }
     
     public TOPedidoProducto construirProducto(ResultSet rs) throws SQLException {
@@ -244,6 +339,7 @@ public class DAOPedidos {
     private TOPedido construirPedido(ResultSet rs) throws SQLException {
         TOPedido to=new TOPedido();
         to.setIdPedido(rs.getInt("idPedido"));
+        to.setIdEmpresa(rs.getInt("idEmpresa"));
         to.setIdAlmacen(rs.getInt("idAlmacen"));
         to.setIdTienda(rs.getInt("idTienda"));
         to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
@@ -261,8 +357,10 @@ public class DAOPedidos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOPedido> pedidos=new ArrayList<TOPedido>();
-        String strSQL = "SELECT * FROM pedidosOC " +
-                        "WHERE idAlmacen="+idAlmacen+" AND status BETWEEN 0 AND "+status+" AND CONVERT(date, fecha) <= '" + format.format(fechaInicial) + "'";
+        String strSQL = "SELECT P.*, A.idEmpresa\n" +
+                        "FROM pedidosOC P\n" +
+                        "INNER JOIN almacenes A on A.idAlmacen=P.idAlmacen\n" +
+                        "WHERE P.idAlmacen="+idAlmacen+" AND P.status BETWEEN 0 AND "+status+" AND CONVERT(date, P.fecha) <= '" + format.format(fechaInicial) + "'";
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {

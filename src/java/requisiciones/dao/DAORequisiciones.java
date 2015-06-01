@@ -47,18 +47,19 @@ public class DAORequisiciones {
     public void guardarRequisicion(int idEmpresa, int idDepto, int idSolicito, ArrayList<RequisicionDetalle> pr) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
-        PreparedStatement ps1;
+       Statement ps1;
         PreparedStatement ps2;
 
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
             String strSQL1 = "INSERT INTO requisiciones(idEmpresa, idDepto, idSolicito, fechaRequisicion) VALUES (" + idEmpresa + ", " + idDepto + ", " + idSolicito + ",GETDATE())";
-            String strSQLIdentity = "SELECT @@IDENTITY as idReq";
-            ps1 = cn.prepareStatement(strSQL1);
-            ps1.executeUpdate();
-            ps1 = cn.prepareStatement(strSQLIdentity);
-            ResultSet rs = ps1.executeQuery();
+            String strSQLIdentity = "SELECT @@IDENTITY AS idReq"; //CAMBIO IDENTITY
+            
+            ps1 = cn.createStatement();
+            ps1.executeUpdate(strSQL1);
+//            ps1 = cn.CStatement(strSQLIdentity);
+            ResultSet rs = ps1.executeQuery(strSQLIdentity);
             int identity = 0;
             if (rs.next()) {
                 identity = rs.getInt("idReq");
@@ -72,8 +73,8 @@ public class DAORequisiciones {
             for (RequisicionDetalle e : pr) {
                 ps2.setInt(1, identity);
                 ps2.setInt(2, e.getProducto().getIdProducto()); //cambio a Empaque
-                ps2.setInt(3, e.getCantidad());
-                ps2.setInt(4, e.getCantidad());
+                ps2.setDouble(3, e.getCantidad());
+                ps2.setDouble(4, e.getCantidad());
                 ps2.executeUpdate();
             }
             st.executeUpdate("COMMIT TRANSACTION");
@@ -172,8 +173,8 @@ public class DAORequisiciones {
      //   to.setEmpaque(daoEmp.obtenerEmpaque(rs.getInt("idEmpaque")));
 //        to.setEmpaque(empaque);
         to.setIdProducto(rs.getInt("idEmpaque"));
-        to.setCantidad(rs.getInt("cantidadSolicitada"));
-        to.setCantidadAutorizada(rs.getInt("cantidadAutorizada"));
+        to.setCantidad(rs.getDouble("cantidadSolicitada"));
+        to.setCantidadAutorizada(rs.getDouble("cantidadAutorizada"));
         return to;
     }
 
@@ -263,7 +264,7 @@ public class DAORequisiciones {
 
             String stringSQL = "select rd.idRequisicion,rd.idEmpaque,rd.cantidadSolicitada, rd.cantidadAutorizada "
                     + "from requisicionDetalle rd\n"
-                    + "                    where idRequisicion=" + idRequisi;
+                    + "                    where cantidadAutorizada <> 0 and idRequisicion=" + idRequisi;
 
             Statement sentencia = cn.createStatement();
             rs = sentencia.executeQuery(stringSQL);
@@ -276,7 +277,7 @@ public class DAORequisiciones {
         return lista;
     }
 
-    public void modificaProductoAprobar(int idReq, int idEmp, int cantidad) throws SQLException {
+    public void modificaProductoAprobar(int idReq, int idEmp, double cantidad) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         PreparedStatement ps2;
@@ -295,10 +296,11 @@ public class DAORequisiciones {
         }
     }
 
-    public void modificarAprobacion(int idReq, int idEmp, int cant) throws SQLException {
+    public void modificarAprobacion(int idReq, int idEmp) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         PreparedStatement ps2, ps3;
+        int cant=2;
         try {
             if (cant != 0) {
                 st.executeUpdate("begin transaction");
@@ -308,7 +310,7 @@ public class DAORequisiciones {
                 st.executeUpdate("commit transaction");
             } else {
                 st.executeUpdate("begin transaction");
-                String strSQL3 = "UPDATE requisicionDetalle SET cantidadAutorizada=cantidadSolicitada WHERE idRequisicion=" + idReq + " and idEmpaque=" + idEmp;
+                String strSQL3 = "UPDATE requisicionDetalle SET cantidadAutorizada==cantidadSolicitada  WHERE idRequisicion=" + idReq + " and idEmpaque=" + idEmp;
                 ps3 = cn.prepareStatement(strSQL3);
                 ps3.executeUpdate();
                 st.executeUpdate("commit transaction");
@@ -332,9 +334,9 @@ public class DAORequisiciones {
         try {
             st.executeUpdate("begin transaction");
             //CABECERO
-            String strSQL1 = "INSERT INTO cotizaciones(idRequisicion, idProveedor, idMoneda, folioProveedor, fechaCotizacion, descuentoCotizacion,descuentoProntoPago, observaciones)"
-                    + " VALUES (" + ce.getIdRequisicion() + ", " + idProv + ", " + ce.getIdMoneda() + ",'Folio' ,GETDATE(), " + ce.getDescuentoCotizacion() + ", " + ce.getDescuentoProntoPago() + ", 'hola')";
-            String strSQLIdentity = "SELECT @@IDENTITY as idCot";
+            String strSQL1 = "INSERT INTO cotizaciones(idRequisicion, idProveedor, idMoneda, folioProveedor, fechaCotizacion, descuentoCotizacion,descuentoProntoPago, observaciones, estado, numCotizaciones )"
+                    + " VALUES (" + ce.getIdRequisicion() + ", " + idProv + ", " + ce.getIdMoneda() + ",'Folio' ,GETDATE(), " + ce.getDescuentoCotizacion() + ", " + ce.getDescuentoProntoPago() + ", 'hola', "+ 1 +", "+ 1 +")";
+            String strSQLIdentity =  "SELECT @@IDENTITY AS idCot";
             ps1 = cn.prepareStatement(strSQL1);
             ps1.executeUpdate();
             ps3 = cn.prepareStatement(strSQLIdentity);
@@ -345,7 +347,7 @@ public class DAORequisiciones {
 
             }
             // DETALLE
-            String strSQL2 = "INSERT INTO cotizacionesDetalle(idCotizacion,idProducto, cantidadCotizada, costoCotizado, descuentoProducto, descuentoProducto2,neto,subtotal) VALUES (?,?,?,?,?,?,?,?)";
+            String strSQL2 = "INSERT INTO cotizacionesDetalle(idCotizacion,idEmpaque, cantidadCotizada, costoCotizado, descuentoProducto, descuentoProducto2,neto,subtotal) VALUES (?,?,?,?,?,?,?,?)";
             ps2 = cn.prepareStatement(strSQL2);
 
             for (CotizacionDetalle e : cd) {
@@ -385,7 +387,7 @@ public class DAORequisiciones {
 
             String stringSQL = "select rd.idRequisicion, rd.idEmpaque, rd.cantidadSolicitada, rd.cantidadAutorizada "
                     + "from requisicionDetalle rd "
-                    + "where cantidadAutorizada>0 and idRequisicion=" + idRequisi;
+                    + "where cantidadAutorizada > 0 and idRequisicion=" + idRequisi;
             Statement sentencia = cn.createStatement();
             rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {

@@ -7,7 +7,7 @@ package formatos;
 
 import Message.Mensajes;
 import clientesListas.formatosDetalleDominio.ClienteListasDetalle;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import formatos.dao.DAOFormatos;
 import formatos.dominio.ClienteFormato;
 import java.sql.SQLException;
@@ -49,7 +49,7 @@ public class MbFormatos {
     
     private boolean actualizar = false;
     ArrayList<ClienteListasDetalle> lstFormatoDetalle = new ArrayList<ClienteListasDetalle>();
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
 
     /**
      * Creates a new instance of MbFormatos
@@ -93,17 +93,18 @@ public class MbFormatos {
         return f;
     }
     
-    public void cargarFormatosCliente(int idCliente) {
+    public void cargarFormatosCliente(int idGrupoCte) {
+        this.lstFormatos=new ArrayList<SelectItem>();
         try {
             this.formatoSeleccion=new ClienteFormato();
-            this.lstFormatos=new ArrayList<SelectItem>();
-            DAOFormatos dao1 = new DAOFormatos();
-            ClienteFormato cli = new ClienteFormato();
-            cli.setIdFormato(0);
-            cli.setFormato("Nuevo Formato");
-            lstFormatos.add(new SelectItem(cli, cli.getFormato()));
-            for (ClienteFormato clientes : dao1.dameFormatosCliente(idCliente)) {
-                lstFormatos.add(new SelectItem(clientes, clientes.getFormato()));
+            this.formatoSeleccion.setIdFormato(0);
+            this.formatoSeleccion.setFormato("Nuevo Formato");
+            lstFormatos.add(new SelectItem(this.formatoSeleccion, this.formatoSeleccion.getFormato()));
+            if(idGrupoCte!=0) {
+                DAOFormatos dao1 = new DAOFormatos();
+                for (ClienteFormato clientes : dao1.dameFormatosGrupoCte(idGrupoCte)) {
+                    lstFormatos.add(new SelectItem(clientes, clientes.getFormato()));
+                }
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
@@ -132,10 +133,14 @@ public class MbFormatos {
         }
     }
 
-    public void cargarArrayListListaFormatos(int idGrupoCliete) {
+    public void cargarArrayListListaFormatos(int idGrupoCliente) {
         try {
-            DAOFormatos dao1 = new DAOFormatos();
-            listaFormatosFormatos = dao1.dameFormatos(idGrupoCliete);
+            if(idGrupoCliente==0) {
+                this.listaFormatosFormatos=new ArrayList<ClienteFormato>();
+            } else {
+                DAOFormatos dao1 = new DAOFormatos();
+                this.listaFormatosFormatos = dao1.dameFormatos(idGrupoCliente);
+            }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
             Logger.getLogger(MbFormatos.class.getName()).log(Level.SEVERE, null, ex);
@@ -351,11 +356,11 @@ public class MbFormatos {
         this.formatoSeleccion = formatoSeleccion;
     }
 
-    public DAOMovimientos getDao() {
+    public DAOMovimientos1 getDao() {
         return dao;
     }
 
-    public void setDao(DAOMovimientos dao) {
+    public void setDao(DAOMovimientos1 dao) {
         this.dao = dao;
     }
 

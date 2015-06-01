@@ -17,204 +17,197 @@
             <div id="content" align="left">
                 <h:form id="main"  onkeypress="return event.keyCode !== 14;">
                     <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
-                    <p:panel id="encabezado" header="COMPRAS ALMACEN" styleClass="quitaCuadro" 
+                    <p:panel id="encabezado" header="COMPRAS" style="width: 800px;"
                              rendered="#{not empty mbEntradas.obtenerAcciones(14) and not mbEntradas.modoEdicion}">
                         <p:panelGrid >
-                            <p:row>
-                                <p:column >
-                                    <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column colspan="3" >
-                                    <p:selectOneMenu id="cedis" value="#{mbEntradas.mbComprobantes.mbAlmacenes.mbCedis.cedis}" style="width: 450px;" >
-                                        <f:converter converterId="converters.MiniCedis" />
-                                        <f:selectItems value="#{mbEntradas.mbComprobantes.mbAlmacenes.mbCedis.listaMiniCedis}" />
-                                        <p:ajax event="change" listener="#{mbEntradas.mbComprobantes.cargaAlmacenes()}" 
-                                                update=":main:msgs almacen" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column colspan="2" >
-                                    <h:outputLabel value="PERIODO" style="font-weight: bold; color: red; text-align: center;" />
-                                </p:column>
-                            </p:row>
                             <p:row >
-                                <p:column >
+                                <p:column style="width: 120px;" >
                                     <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="3" >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradas.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                <p:column style="width: 350px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradas.mbAlmacenes.toAlmacen}" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbEntradas.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" listener="#{mbEntradas.mbComprobantes.cargaListaComprobantes()}" 
-                                                update=":main:msgs cmbComprobante" />
+                                        <f:selectItems value="#{mbEntradas.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" />
                                     </p:selectOneMenu>
                                 </p:column>
-                                <p:column >
-                                    <h:outputLabel for="txtIniPeriodo" value="DEL :" style="font-weight: bold; color: red; text-align: right; width: 35px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtIniPeriodo" value="#{mbEntradas.fechaIniPeriodo}" size="8" >
-                                        <f:convertDateTime pattern="dd/MM/yyyy" />
-                                    </p:inputText>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnSalir" icon="ui-icon-home" title="Salir" 
+                                                     immediate="true" action="#{mbEntradas.terminar()}" ajax="false" />
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
                                     <h:outputLabel value="PROVEEDOR :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="3" >
-                                    <p:selectOneMenu id="proveedor" value="#{mbEntradas.mbComprobantes.mbProveedores.miniProveedor}" style="width: 550px;"
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="proveedor" value="#{mbEntradas.mbProveedores.miniProveedor}"
                                                      filter="true" filterMatchMode="contains" >
                                         <f:converter converterId="converters.miniProveedor" />
-                                        <f:selectItems value="#{mbEntradas.mbComprobantes.mbProveedores.listaMiniProveedores}" />
-                                        <p:ajax event="change" listener="#{mbEntradas.mbComprobantes.cargaListaComprobantes()}" 
-                                                update=":main:msgs cmbComprobante" />
+                                        <f:selectItems value="#{mbEntradas.mbProveedores.listaMiniProveedores}" />
+                                        <p:ajax event="change" listener="#{mbEntradas.actualizaComprobanteProveedor()}"
+                                                update="comprobanteComplete btnMttoComprobante" />
                                     </p:selectOneMenu>
-                                </p:column>
-                                <p:column >
-                                    <h:outputLabel for="txtFinPeriodo" value="AL :" style="font-weight: bold; color: red; text-align: right;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtFinPeriodo" value="#{mbEntradas.fechaFinPeriodo}" size="8" >
-                                        <f:convertDateTime pattern="dd/MM/yyyy" />
-                                    </p:inputText>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red; width: 120px;" />
+                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="cmbTipoComprobante" value="#{mbEntradas.mbComprobantes.tipoComprobante}" style="width: 150px;" >
-                                        <f:selectItem itemLabel="Seleccione" itemValue="0" />
-                                        <f:selectItem itemLabel="FACTURA" itemValue="1" />
-                                        <f:selectItem itemLabel="REMISION" itemValue="2" />
-                                        <p:ajax event="change" listener="#{mbEntradas.mbComprobantes.cargaListaComprobantes()}" 
-                                                update=":main:msgs cmbComprobante" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column >
-                                    <p:selectOneMenu id="cmbComprobante" value="#{mbEntradas.mbComprobantes.toComprobante}" 
-                                                     filter="true" filterMatchMode="contains" style="width: 220px;" >
-                                        <f:converter converterId="converters.ComprobanteConverter" />
-                                        <f:selectItems value="#{mbEntradas.mbComprobantes.listaComprobantes}" />
-                                        <p:ajax event="change" update="btnMttoComprobante lnkEditarComprobante" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column style="width: 120px;" >
-                                    <p:commandButton id="btnMttoComprobante" icon="ui-icon-pencil" title="Mantenimiento de Facturas" 
-                                                     actionListener="#{mbEntradas.mbComprobantes.mttoComprobante(false)}" 
-                                                     process="@this" oncomplete="handleAbrirMttoComprobanteDlg(xhr, status, args);" 
+                                    <p:autoComplete id="comprobanteComplete" value="#{mbEntradas.mbComprobantes.comprobante}"
+                                                    disabled="#{mbEntradas.mbProveedores.miniProveedor.idProveedor==0}"
+                                                    completeMethod="#{mbEntradas.mbComprobantes.completeComprobantes}" 
+                                                    var="c" itemValue="#{c}" itemLabel="#{c.toString()}" converter="converters.ComprobanteConverter" 
+                                                    maxlength="24" size="24" forceSelection="true" />
+                                    <p:commandButton id="btnMttoComprobante" icon="ui-icon-pencil" title="Mantenimiento de Comprobantes" 
+                                                     disabled="#{mbEntradas.mbProveedores.miniProveedor.idProveedor==0}"
+                                                     process="@this comprobanteComplete" actionListener="#{mbEntradas.mbComprobantes.mttoComprobante()}" 
+                                                     oncomplete="handleAbrirMttoComprobanteDlg(xhr, status, args);" 
                                                      update=":main:msgs mttoComprobanteDlg" />
-                                    <p:commandButton id="btnImprimirFactura" icon="ui-icon-print" title="Imprimir Factura" />
                                 </p:column>
-                                <p:column colspan="2" style="text-align: right;" >
-                                    <p:commandLink id="lnkEditarComprobante" styleClass="nueva" value="Editar" 
-                                                   disabled="#{mbEntradas.mbComprobantes.toComprobante.idComprobante==0}"
-                                                   update="main" actionListener="#{mbEntradas.nuevaEntrada()}" process="@this" />|
-                                    <p:commandLink styleClass="nueva" action="#{mbEntradas.terminar()}" value="Salir" ajax="false" />
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Nueva compra" 
+                                                     process="@this comprobanteComplete" actionListener="#{mbEntradas.nuevaCompra()}" 
+                                                     update="main" />
+                                    <p:commandButton id="btnEditar" icon="ui-icon-pencil" title="Editar una Compra" 
+                                                     process="@this comprobanteComplete" actionListener="#{mbEntradas.mttoCompraAlmacen()}" 
+                                                     update="main" />
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{mbEntradas.entradas.size()>1}" >
+                                <p:column colspan="5" >
+                                    <p:dataTable id="listaEntradas" widgetVar="listaEntradas" value="#{mbEntradas.entradas}" style="width: 250px;"
+                                                 var="entrada" rowKey="#{entrada.idEntrada}" selection="#{mbEntradas.entrada}" selectionMode="single" >
+                                        <p:ajax event="rowSelect" listener="#{mbEntradas.editaCompraAlmacenSeleccionada()}" update="main" />
+                                        
+                                        <p:column headerText="Folio" style="width: 50px;" >
+                                            <h:outputText value="#{entrada.folio}" />
+                                        </p:column>
+                                        <p:column headerText="Fecha" style="width: 50px;" >
+                                            <h:outputText value="#{entrada.fecha}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column headerText="Estatus" style="width: 60px;" >
+                                            <h:outputText value="#{entrada.estatus==1?'Cerrada':'Cancelada'}" />
+                                        </p:column>
+                                    </p:dataTable>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
                     </p:panel>
-                    <p:panel id="mantenimiento" header="COMPRAS ALMACEN: #{mbEntradas.mbComprobantes.comprobante.almacen.empresa.nombreComercial}" 
-                             rendered="#{mbEntradas.modoEdicion}" >
+                    <p:panel id="mantenimiento" header="MANTENIMIENTO DE COMPRAS" rendered="#{mbEntradas.modoEdicion}" style="width: 880px;" >
                         <p:panelGrid id="mttoEntradas" >
                             <p:row >
-                                <p:column style="width: 85px;" >
-                                    <h:outputLabel value="CEDIS :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column colspan="5" >
-                                    <p:inputText value="#{mbEntradas.mbComprobantes.comprobante.almacen.cedis.cedis}" readonly="true" size="52" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 70px;" />
+                                    <h:outputLabel value="Almacen :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="5" >
-                                    <p:inputText value="#{mbEntradas.mbComprobantes.comprobante.almacen.almacen}" readonly="true" size="52" />
+                                <p:column colspan="7" >
+                                    <p:inputText value="#{mbEntradas.entrada.almacen.almacen}" readonly="true" size="60" maxlength="60" />
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
                                     <h:outputLabel value="Proveedor :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="5" >
-                                    <p:inputText value="#{mbEntradas.mbComprobantes.comprobante.proveedor.proveedor}" readonly="true" size="64" />
+                                <p:column colspan="7" >
+                                    <p:inputText value="#{mbEntradas.entrada.proveedor.proveedor}" readonly="true" size="70" maxlength="70" />
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="#{mbEntradas.mbComprobantes.tipoComprobante==1?'Factura :':'Remision :'}" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="Comprobante :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="3" >
-                                    <p:inputText value="#{mbEntradas.mbComprobantes.comprobante.toString()}" maxlength="32" size="24" title="No. de Factura" readonly="true" />
+                                <p:column colspan="2" >
+                                    <p:inputText value="#{mbEntradas.entrada.comprobante.toString()}" style="width: 120px;" readonly="true" />
                                 </p:column>
-                                <p:column style="text-align: right; width: 100px;" >
+                                <p:column style="text-align: right; width: 55px;" >
                                     <h:outputLabel value="Fecha :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbEntradas.mbComprobantes.comprobante.fecha}" 
-                                                 maxlength="10" size="10" readonly="true" >
-                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                <p:column style="width: 65px;" >
+                                    <p:inputText value="#{mbEntradas.entrada.comprobante.fecha}" maxlength="10" size="12" style="width: 70px;" readonly="true" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
                                     </p:inputText>
                                 </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column colspan="2" style="text-align: right;" >
-                                    <h:outputLabel value="Orden de Compra :" style="font-weight: bold; color: red; width: 135px;" />
+                                <p:column style="width: 120px;" >
+                                    <h:outputLabel value="Orden d'Compra :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column style="width: 80px;" >
+                                <p:column style="width: 75px;" >
                                     <p:inputText id="txtOrdenCompra" value="#{mbEntradas.entrada.idOrdenCompra}" readonly="true"
                                                  size="8" style="width: 70px;" />
                                 </p:column>
                                 <p:column style="width: 30px;" >
-                                    <p:commandButton id="btnBuscarOC" icon="ui-icon-search" title="Buscar Orden de Compra" 
-                                                     disabled="#{mbEntradas.entrada.idOrdenCompra!=0 or mbEntradas.sinOrden}" 
-                                                     actionListener="#{mbEntradas.cargaOrdenes()}"
+                                    <p:commandButton id="btnBuscarOC" icon="ui-icon-search" title="Buscar Orden de Compra"
+                                                     disabled="#{mbEntradas.entrada.idOrdenCompra!=0 or mbEntradas.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradas.cargaOrdenes()}"
                                                      update="listaOrdenes" oncomplete="PF('listaOrdenesDlg').show();" />
                                 </p:column>
-                                <p:column >
-                                    <p:selectBooleanCheckbox id="chkSinOrden" itemLabel="Sin Orden" 
-                                                             style="font-weight: bold; color: red; font-size: medium; text-align: right;" 
-                                                             value="#{mbEntradas.sinOrden}" 
-                                                             disabled="#{mbEntradas.entrada.idOrdenCompra!=0}" >
-                                        <p:ajax update="btnBuscarOC :main:btnEquivalencias" />
-                                    </p:selectBooleanCheckbox>
-                                </p:column>
-                                <p:column >
-                                    <p:commandButton id="btnGrabarEntrada" icon="ui-icon-disk" title="Grabar Entrada" 
-                                                     process="@this" actionListener="#{mbEntradas.grabarEntradaAlmacen()}" update="@this main :main:msgs" />
-                                    <p:commandButton id="btnEquivalencias" icon="ui-icon-search" title="Buscar Productos" 
-                                                     disabled="#{not mbEntradas.sinOrden}"
-                                                     process="@this" actionListener="#{mbEntradas.mbBuscar.inicializar()}" 
-                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
-                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
-                                                     process="@this" actionListener="#{mbEntradas.salir()}" update="main" />
-                                </p:column>
                             </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column style="text-align: left;" >
+                                        <p:commandButton id="btnEquivalencias" icon="ui-icon-search" title="Buscar Productos" 
+                                                         disabled="#{mbEntradas.entrada.idOrdenCompra!=0 or mbEntradas.entrada.estatus!=0}"
+                                                         process="@this" actionListener="#{mbEntradas.mbBuscar.inicializar()}" 
+                                                         update="buscarProductos listaBuscarProductos" 
+                                                         oncomplete="PF('buscarProductoDlg').show()" />
+                                    </p:column>
+                                    <p:column colspan="7" style="text-align: right;" >
+                                        <p:commandButton id="btnGrabarEntrada" icon="ui-icon-disk" title="Grabar Entrada"
+                                                         disabled="#{mbEntradas.entrada.estatus!=0}"
+                                                         process="@this :main:mttoEntradas :main:detalleEntrada" 
+                                                         actionListener="#{mbEntradas.grabarCompraAlmacen()}" 
+                                                         update="@this :main:msgs :main:btnEquivalencias :main:btnCancelar :main:btnImprimir" />
+                                        <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelacion de Compra" 
+                                                         disabled="#{mbEntradas.entrada.estatus!=1}"
+                                                         process="@this" actionListener="#{mbEntradas.cancelarCompra()}" 
+                                                         update="main" />
+                                        <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Imprimir una Compra" 
+                                                         disabled="#{mbEntradas.entrada.estatus==0}" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                         process="@this" actionListener="#{mbEntradas.salir()}" update="main" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbEntradas.entradaDetalle}" style="border:solid 1px"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbEntradas.entradaProducto}" selectionMode="single" 
+                        <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbEntradas.entradaDetalle}"
+                                     var="prod" editable="true" editMode="cell" style="border:solid 1px; width: 835px;"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="rowSelect" listener="#{mbEntradas.respaldaFila()}" update="detalleEntrada" />
-
-                            <p:column headerText="SKU" width="64"  >
+                            <p:column headerText="SKU" style="width: 50px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
                             </p:column>
-                            <p:column headerText="Producto" width="272" >
+                            <p:column headerText="Producto" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
-                            <p:column headerText="Ordenada" width="64" >
-                                <h:outputText value="#{prod.cantOrdenada}" >
-                                    <f:convertNumber type="number" maxFractionDigits="3" />
+                            <p:column headerText="Ordenada" style="width: 90px; text-align: right;" >
+                                <h:outputText value="#{prod.cantOrdenada}" style="width: 80px;" >
+                                    <f:convertNumber pattern="###,##0.0000" maxIntegerDigits="6" maxFractionDigits="4" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="Recibida" width="64" >
-                                <pe:inputNumber value="#{prod.cantRecibida}" decimalPlaces="3" minValue="0"
-                                                disabled="#{prod.producto.idProducto!=mbEntradas.entradaProducto.producto.idProducto}" >
-                                    <p:ajax event="change" listener="#{mbEntradas.validaCantidadRecibida()}" process="@this" update=":main:msgs detalleEntrada" />
-                                </pe:inputNumber>
+                            <p:column headerText="Recibida" style="width: 90px; text-align: right;" >
+                                <h:outputText value="#{prod.cantRecibida}" style="width: 80px;" >
+                                    <f:convertNumber pattern="###,##0.0000" maxIntegerDigits="6" maxFractionDigits="4" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Facturada" style="width: 90px; text-align: right;" >
+                                <p:cellEditor >
+                                    <f:facet name="output" >
+                                        <h:outputText value="#{prod.cantFacturada}" >
+                                            <f:convertNumber pattern="###,##0.0000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input" >
+                                        <p:inputText value="#{prod.cantFacturada}" readonly="#{mbEntradas.entrada.estatus!=0}"
+                                                     converterMessage="Se requiere un numero" 
+                                                     validatorMessage="Se requiere un valor entre 0 y 999,999.9999" >
+                                            <f:convertNumber pattern="###,##0.0000" maxIntegerDigits="6" maxFractionDigits="4" />
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.9999" />
+                                            <p:ajax event="change" process="@this" listener="#{mbEntradas.validaCantidadRecibida()}" 
+                                                    update=":main:msgs :main:btnGrabarEntrada" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -282,15 +275,20 @@
                         </p:dataTable>
                     </p:dialog>
                     <p:dialog id="listaOrdenesDlg" widgetVar="listaOrdenesDlg" header="LISTA DE ORDENES DE COMPRA" resizable="false" modal="true" >
-                        <p:messages id="msgListaOCs" showDetail="true" autoUpdate="true" closable="true" />
-                        <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbEntradas.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px"
+                        <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbEntradas.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 800px;"
                                      var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbEntradas.cargaDetalleOrdenCompra}" 
-                                    update=":main:msgs :main:txtOrdenCompra :main:btnBuscarOC :main:chkSinOrden :main:detalleEntrada" 
+                                    update=":main:msgs :main:mttoEntradas :main:detalleEntrada" 
                                     oncomplete="PF('listaOrdenesDlg').hide();" />
                             <p:column headerText="OC" style="width: 60px;" >
                                 <h:outputText value="#{orden.idOrdenCompra}" style="width: 60px;" />
+                            </p:column>
+                            <p:column headerText="F. Creacion" style="width: 80px;" >
+                                <h:outputText value="#{orden.fechaCreacion}" />
+                            </p:column>
+                            <p:column headerText="F. Finalizacion" style="width: 80px;" >
+                                <h:outputText value="#{orden.fechaFinalizacion}" />
                             </p:column>
                             <p:column headerText="F. Puesta" style="width: 80px;" >
                                 <h:outputText value="#{orden.fechaPuesta}" />
@@ -298,20 +296,32 @@
                             <p:column headerText="F. Entrega" style="width: 85px;" >
                                 <h:outputText value="#{orden.fechaEntrega}" />
                             </p:column>
-                            <p:column headerText="Status" style="width: 60px;" >
-                                <h:outputText value="#{orden.estado}" />
-                            </p:column>
                         </p:dataTable>
                     </p:dialog>
-                    <p:dialog id="mttoComprobanteDlg" widgetVar="mttoComprobanteDlg" header="COMPROBANTE" resizable="false" modal="true" closable="false" >
-                        <p:messages id="msgMttoComprobante" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:dialog id="mttoComprobanteDlg" widgetVar="mttoComprobanteDlg" header="Mantenimiento de Comprobantes" resizable="false" modal="true" closable="true" >
+                        <p:messages id="msgMttoComprobante" showDetail="true" autoUpdate="false" closable="true" />
+                        <p:ajax event="close" listener="#{mbEntradas.mbComprobantes.cancelar()}" update=":main:comprobanteComplete" />
                         <p:panelGrid id="mttoComprobante" >
-                            <p:row rendered="#{mbEntradas.mbComprobantes.tipoComprobante==1}" >
+                            <p:row >
+                                <p:column colspan="2" >
+                                    <p:selectOneRadio id="selectTipoComprobante" value="#{mbEntradas.mbComprobantes.tipo}" 
+                                                      disabled="#{mbEntradas.mbComprobantes.comprobante.idComprobante!=0}"
+                                                      style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="Factura" itemValue="3" />
+                                        <f:selectItem itemLabel="Remision" itemValue="2" />
+                                        <f:selectItem itemLabel="Interno" itemValue="1" />
+                                        <p:ajax event="change" update="txtSerie" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row >
                                 <p:column >
                                     <h:outputLabel for="txtSerie" value="SERIE :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtSerie" value="#{mbEntradas.mbComprobantes.edicion.serie}" maxlength="3" size="5" />
+                                    <p:inputText id="txtSerie" value="#{mbEntradas.mbComprobantes.edicion.serie}" 
+                                                 disabled="#{mbEntradas.mbComprobantes.tipo!='3'}"
+                                                 maxlength="3" size="5" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -327,20 +337,24 @@
                                     <h:outputLabel for="txtFechaFactura" value="FECHA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtFechaFactura" value="#{mbEntradas.mbComprobantes.edicion.fecha}" maxlength="8" size="10" >
-                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                    <p:inputText id="txtFechaFactura" value="#{mbEntradas.mbComprobantes.edicion.fecha}" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
                                     </p:inputText>
                                 </p:column>
                             </p:row>
                             <f:facet name="footer" >
                                 <p:row >
                                     <p:column colspan="2" >
-                                        <p:commandButton icon="ui-icon-disk" title="Grabar Factura" 
-                                                         process="@this txtSerie txtNumero txtFechaFactura" 
-                                                         actionListener="#{mbEntradas.mbComprobantes.grabar()}" update=":main:cmbComprobante lnkEditarComprobante" 
-                                                         oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" />
-                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar" 
-                                                         onclick="PF('mttoComprobanteDlg').hide();" immediate="true" />
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar Comprobante" 
+                                                         process="@this selectTipoComprobante txtSerie txtNumero txtFechaFactura" 
+                                                         actionListener="#{mbEntradas.mbComprobantes.grabar()}" 
+                                                         oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
+                                                         update="comprobanteComplete" />
+                                        <p:commandButton icon="ui-icon-trash" title="Eliminar" 
+                                                         disabled="#{mbEntradas.mbComprobantes.edicion.idComprobante==0}"
+                                                         actionListener="#{mbEntradas.mbComprobantes.eliminar()}"
+                                                         oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
+                                                         update="comprobanteComplete" />
                                     </p:column>
                                 </p:row>
                             </f:facet>
@@ -348,6 +362,11 @@
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">
+                    function handleListaOrdenesDeCompraDlg(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okOrdenDeCompra)) {
+                            PF('listaOrdenesDlg').show();
+                        }
+                    }
                     function handleBuscar(xhr, status, args) {
                         if (!(args.validationFailed || !args.okBuscar)) {
                             PF('buscarProductoDlg').hide();

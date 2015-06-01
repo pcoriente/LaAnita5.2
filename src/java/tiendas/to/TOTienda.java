@@ -9,6 +9,7 @@ public class TOTienda {
     private String tienda;
     private int idDireccion;
     private int idCliente;
+    private String contribuyente;
     private int idFormato;
     private int idAgente;
     private int idRuta;
@@ -18,6 +19,7 @@ public class TOTienda {
     
     public TOTienda() {
         this.tienda="";
+        this.contribuyente="";
     }
 
     @Override
@@ -125,5 +127,13 @@ public class TOTienda {
 
     public void setEstado(int estado) {
         this.estado = estado;
+    }
+
+    public String getContribuyente() {
+        return contribuyente;
+    }
+
+    public void setContribuyente(String contribuyente) {
+        this.contribuyente = contribuyente;
     }
 }

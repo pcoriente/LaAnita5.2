@@ -2,6 +2,7 @@ package movimientos.dominio;
 
 import almacenes.dominio.AlmacenJS;
 import entradas.dominio.Comprobante;
+import entradas.to.TOComprobante;
 import java.util.Date;
 import monedas.Moneda;
 
@@ -14,7 +15,7 @@ public class Recepcion {
     private int idMovtoAlmacen;
     private AlmacenJS almacen;
     private int folio;
-    private Comprobante comprobante;
+    private TOComprobante comprobante;
     private int idImpuestoZona;
     private Moneda moneda;
     private double tipoCambio;
@@ -29,7 +30,7 @@ public class Recepcion {
     
     public Recepcion() {
         this.almacen=new AlmacenJS();
-        this.comprobante=new Comprobante();
+        this.comprobante=new TOComprobante();
         this.moneda=new Moneda();
         this.tipoCambio=1;
         this.fecha=new Date();
@@ -67,11 +68,11 @@ public class Recepcion {
         this.folio = folio;
     }
 
-    public Comprobante getComprobante() {
+    public TOComprobante getComprobante() {
         return comprobante;
     }
 
-    public void setComprobante(Comprobante comprobante) {
+    public void setComprobante(TOComprobante comprobante) {
         this.comprobante = comprobante;
     }
 

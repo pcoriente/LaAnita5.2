@@ -8,34 +8,24 @@ import java.util.Date;
  */
 public class TOComprobante {
     private int idComprobante;
-    private int idAlmacen;
-    private int idProveedor;
-    private int tipoComprobante;
-    private String remision;
+    private int idReferencia;
+    private int tipo;
     private String serie;
     private String numero;
     private Date fecha;
-    private byte statusOficina;
-    private byte statusAlmacen;
     private int propietario;
+    private int idMovto;
 
     public TOComprobante() {
-        this.idComprobante=0;
-        this.idAlmacen=0;
-        this.idProveedor=0;
-        this.tipoComprobante=0;
-        this.remision="";
+        this.tipo=2;
         this.serie="";
         this.numero="";
         this.fecha=new Date();
     }
     
-    public TOComprobante(int idAlmacen, int idProveedor, int tipoComprobante) {
-        this.idComprobante=0;
-        this.idAlmacen=idAlmacen;
-        this.idProveedor=idProveedor;
-        this.tipoComprobante=tipoComprobante;
-        this.remision="";
+    public TOComprobante(int idProveedor) {
+        this.idReferencia=idProveedor;
+        this.tipo=2;
         this.serie="";
         this.numero="";
         this.fecha=new Date();
@@ -43,7 +33,8 @@ public class TOComprobante {
     
     @Override
     public String toString() {
-        return this.remision.isEmpty()?((this.serie.isEmpty()?"":this.serie+"-")+this.numero):this.remision;
+//        return this.remision.isEmpty()?((this.serie.isEmpty()?"":this.serie+"-")+this.numero):this.remision;
+        return (this.tipo==3?"Factura "+this.serie+"-":(this.tipo==2?"Remision ":"Interno "))+this.numero;
     }
 
     @Override
@@ -76,28 +67,20 @@ public class TOComprobante {
         this.idComprobante = idComprobante;
     }
 
-    public int getIdAlmacen() {
-        return idAlmacen;
+    public int getIdReferencia() {
+        return idReferencia;
     }
 
-    public void setIdAlmacen(int idAlmacen) {
-        this.idAlmacen = idAlmacen;
+    public void setIdReferencia(int idReferencia) {
+        this.idReferencia = idReferencia;
     }
 
-    public int getIdProveedor() {
-        return idProveedor;
+    public int getTipo() {
+        return tipo;
     }
 
-    public void setIdProveedor(int idProveedor) {
-        this.idProveedor = idProveedor;
-    }
-
-    public int getTipoComprobante() {
-        return tipoComprobante;
-    }
-
-    public void setTipoComprobante(int tipoComprobante) {
-        this.tipoComprobante = tipoComprobante;
+    public void setTipo(int tipo) {
+        this.tipo = tipo;
     }
 
     public String getSerie() {
@@ -124,35 +107,19 @@ public class TOComprobante {
         this.fecha = fecha;
     }
 
-    public byte getStatusOficina() {
-        return statusOficina;
-    }
-
-    public void setStatusOficina(byte statusOficina) {
-        this.statusOficina = statusOficina;
-    }
-
-    public byte getStatusAlmacen() {
-        return statusAlmacen;
-    }
-
-    public void setStatusAlmacen(byte statusAlmacen) {
-        this.statusAlmacen = statusAlmacen;
-    }
-
-    public String getRemision() {
-        return remision;
-    }
-
-    public void setRemision(String remision) {
-        this.remision = remision;
-    }
-
     public int getPropietario() {
         return propietario;
     }
 
     public void setPropietario(int propietario) {
         this.propietario = propietario;
+    }
+
+    public int getIdMovto() {
+        return idMovto;
+    }
+
+    public void setIdMovto(int idMovto) {
+        this.idMovto = idMovto;
     }
 }

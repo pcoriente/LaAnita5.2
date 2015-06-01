@@ -1,7 +1,7 @@
 package movimientos;
 
 import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import entradas.dominio.MovimientoProducto;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
@@ -43,7 +43,7 @@ public class MbTraspaso implements Serializable {
     private ArrayList<SalidaProducto> envioDetalle;
     private SalidaProducto envioProducto;
     private SalidaProducto resEnvioProducto;
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
     private DAOImpuestosProducto daoImps;
     private DAOLotes daoLotes;
     private ArrayList<Accion> acciones;
@@ -66,8 +66,8 @@ public class MbTraspaso implements Serializable {
     }
 
     public void inicializar() {
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
         this.mbBuscar.inicializar();
         inicializaLocales();
     }
@@ -80,10 +80,10 @@ public class MbTraspaso implements Serializable {
 
     public void grabarEnvio() {
         boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "gestionLotes");
-        int idAlmacenDestino=this.envio.getComprobante().getAlmacen().getIdAlmacen();
+        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabarEnvio");
+        int idAlmacenDestino=this.envio.getAlmacen().getIdAlmacen();
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.grabarTraspasoEnvio(idAlmacenDestino, this.convertirTOMovimiento(), this.convertirDetalle());
             this.modoEdicion=false;
             ok=true;
@@ -113,7 +113,7 @@ public class MbTraspaso implements Serializable {
         to.setCantRecibida(0);
         to.setCantSinCargo(0);
         to.setCostoOrdenado(0);
-        to.setNeto(0);
+//        to.setNeto(0);
         to.setDesctoConfidencial(0);
         to.setDesctoProducto1(0);
         to.setDesctoProducto2(0);
@@ -128,7 +128,7 @@ public class MbTraspaso implements Serializable {
         toMovimiento.setIdMovtoAlmacen(this.envio.getIdMovtoAlmacen());
         toMovimiento.setIdTipo(2);
         toMovimiento.setFolio(this.envio.getFolio());
-        toMovimiento.setIdCedis(this.envio.getAlmacen().getCedis().getIdCedis());
+//        toMovimiento.setIdCedis(this.envio.getAlmacen().getCedis().getIdCedis());
         toMovimiento.setIdEmpresa(this.envio.getAlmacen().getEmpresa().getIdEmpresa());
         toMovimiento.setIdAlmacen(this.envio.getAlmacen().getIdAlmacen());
         toMovimiento.setIdComprobante(this.envio.getComprobante().getIdComprobante());
@@ -138,7 +138,7 @@ public class MbTraspaso implements Serializable {
         toMovimiento.setFecha(this.envio.getFecha());
         toMovimiento.setIdUsuario(this.envio.getIdUsuario());
         toMovimiento.setIdMoneda(this.envio.getMoneda().getIdMoneda());
-        toMovimiento.setTipoCambio(this.envio.getTipoCambio());
+        toMovimiento.setTipoDeCambio(this.envio.getTipoCambio());
         return toMovimiento;
     }
 
@@ -244,13 +244,13 @@ public class MbTraspaso implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerSolicitudes");
         this.envios = new ArrayList<Envio>();
         try {
-            this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), 35, 0, null)) {
-                this.envios.add(this.convertir(m));
-            }
+            this.dao = new DAOMovimientos1();
+//            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), 35, 0, null)) {
+//                this.envios.add(this.convertir(m));
+//            }
             ok = true;
-        } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (SQLException ex) {
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         }
@@ -263,7 +263,7 @@ public class MbTraspaso implements Serializable {
         Envio e = new Envio();
         e.setIdMovto(to.getIdMovto());
         e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerAlmacen(to.getIdAlmacen()));
+//        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerAlmacen(to.getIdAlmacen()));
         e.setComprobante(this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
         e.setFolio(to.getFolio());
         e.setFecha(to.getFecha());
@@ -285,7 +285,7 @@ public class MbTraspaso implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaDetalleSolicitud");
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientos1();
 //            this.idMovtoAlmacen=this.dao.obtenerIdMovtoAlmacen(this.envio.getAlmacen().getIdAlmacen(), 35, this.envio.getComprobante().getNumero());
             this.daoLotes = new DAOLotes();
             this.daoImps = new DAOImpuestosProducto();
@@ -317,10 +317,9 @@ public class MbTraspaso implements Serializable {
         p.setDesctoConfidencial(to.getDesctoConfidencial());
         p.setDesctoProducto1(to.getDesctoProducto1());
         p.setDesctoProducto2(to.getDesctoProducto2());
-        p.setImporte(to.getImporte());
-        p.setImpuestos(this.daoImps.obtenerImpuestosProducto(this.envio.getIdMovto(), to.getIdProducto()));
-        p.setNeto(to.getNeto());
         p.setUnitario(to.getUnitario());
+//        p.setNeto(to.getUnitario()+this.dao.obtenerImpuestosProducto(this.envio.getIdMovto(), to.getIdProducto(), p.getImpuestos()));
+        p.setImporte(to.getUnitario()*(to.getCantFacturada()+to.getCantSinCargo()));
         p.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
         this.sumaLotes = 0;
         for (Lote l : p.getLotes()) {

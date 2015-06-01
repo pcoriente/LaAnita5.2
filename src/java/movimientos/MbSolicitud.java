@@ -3,7 +3,7 @@ package movimientos;
 import almacenes.to.TOAlmacenJS;
 import cedis.dominio.MiniCedis;
 import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import entradas.dominio.MovimientoProducto;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
@@ -34,7 +34,7 @@ public class MbSolicitud implements Serializable {
     private ArrayList<MovimientoProducto> solicitudDetalle;
     private MovimientoProducto solicitudProducto;
     private MovimientoProducto resSolicitudProducto;
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
     
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
@@ -56,17 +56,17 @@ public class MbSolicitud implements Serializable {
     private void inicializa() {
         this.resSolicitudProducto=new MovimientoProducto();
         
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
         
-        this.cedis=this.mbComprobantes.getMbAlmacenes().getMbCedis().getCedis();
-        this.listaAlmacenes=this.mbComprobantes.getMbAlmacenes().getListaAlmacenes();
+//        this.cedis=this.mbComprobantes.getMbAlmacenes().getMbCedis().getCedis();
+//        this.listaAlmacenes=this.mbComprobantes.getMbAlmacenes().getListaAlmacenes();
         this.toAlmacen=(TOAlmacenJS)this.listaAlmacenes.get(0).getValue();
         
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().cargaMiniCedisTodos();
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().setCedis((MiniCedis)this.mbComprobantes.getMbAlmacenes().getMbCedis().getListaMiniCedis().get(0).getValue());
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().cargaMiniCedisTodos();
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().setCedis((MiniCedis)this.mbComprobantes.getMbAlmacenes().getMbCedis().getListaMiniCedis().get(0).getValue());
         this.cargaAlmacenesEmpresa();
-        this.mbComprobantes.getMbAlmacenes().setToAlmacen((TOAlmacenJS)this.mbComprobantes.getMbAlmacenes().getListaAlmacenes().get(0).getValue());
+//        this.mbComprobantes.getMbAlmacenes().setToAlmacen((TOAlmacenJS)this.mbComprobantes.getMbAlmacenes().getListaAlmacenes().get(0).getValue());
         
         this.mbBuscar.inicializar();
     }
@@ -75,19 +75,19 @@ public class MbSolicitud implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             TOMovimiento solicitud=new TOMovimiento();
-//            solicitud.setIdCedis(this.toAlmacen.getIdCedis());
-//            solicitud.setIdEmpresa(this.toAlmacen.getIdEmpresa());
-//            solicitud.setIdAlmacen(this.toAlmacen.getIdAlmacen());
-            solicitud.setIdCedis(this.mbComprobantes.getMbAlmacenes().getMbCedis().getCedis().getIdCedis());
+////            solicitud.setIdCedis(this.toAlmacen.getIdCedis());
+////            solicitud.setIdEmpresa(this.toAlmacen.getIdEmpresa());
+////            solicitud.setIdAlmacen(this.toAlmacen.getIdAlmacen());
+//            solicitud.setIdCedis(this.mbComprobantes.getMbAlmacenes().getMbCedis().getIdCedis());
             solicitud.setIdEmpresa(this.toAlmacen.getIdEmpresa());
-            solicitud.setIdAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen());
+//            solicitud.setIdAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen());
             solicitud.setIdMoneda(1);
-            solicitud.setTipoCambio(1);
+            solicitud.setTipoDeCambio(1);
             solicitud.setIdTipo(2); // Entrada por traspaso
             solicitud.setIdImpuestoZona(0);
-//            if(this.dao.grabarSolicitudTraspaso(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), solicitud, this.solicitudDetalle)) {
+////            if(this.dao.grabarSolicitudTraspaso(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), solicitud, this.solicitudDetalle)) {
             if(this.dao.grabarTraspasoSolicitud(this.toAlmacen.getIdAlmacen(), solicitud, this.solicitudDetalle)) {    
                 fMsg.setSeverity(FacesMessage.SEVERITY_INFO);
                 fMsg.setDetail("La solicitud se grabo correctamente !!!");
@@ -163,7 +163,7 @@ public class MbSolicitud implements Serializable {
     }
     
     public void cargaAlmacenesEmpresa() {
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenesEmpresa(this.toAlmacen.getIdEmpresa(), this.toAlmacen.getIdAlmacen());
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenesEmpresa(this.toAlmacen.getIdEmpresa(), this.toAlmacen.getIdAlmacen());
     }
 
     public MovimientoProducto getResSolicitudProducto() {

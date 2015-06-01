@@ -3,7 +3,7 @@ package envios;
 import Message.Mensajes;
 import almacenes.MbMiniAlmacenes;
 import cedis.MbMiniCedis;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import envios.dao.DAOEnvios;
 import envios.dominio.Envio;
 import envios.dominio.EnvioPedido;
@@ -20,8 +20,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
+import movimientos.dao.DAOMovimientos;
 import movimientos.to.TOMovimiento;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
@@ -56,18 +58,58 @@ public class MbEnvios implements Serializable {
         this.mbMiniCedis = new MbMiniCedis();
         this.mbMiniAlmacenes = new MbMiniAlmacenes();
         this.mbBuscar = new MbProductosBuscar();
-
-//        this.mbMiniCedis.cargaMiniCedisZona();
-//        this.envios=new ArrayList<TOEnvio>();
         this.inicializa();
+    }
+
+    private TOEnvioProducto convertir(EnvioProducto prod) {
+        TOEnvioProducto to = new TOEnvioProducto();
+        to.setIdEnvio(prod.getIdEnvio());
+        to.setIdMovto(prod.getIdMovto());
+        to.setIdEmpaque(prod.getProducto().getIdProducto());
+        to.setPendientes(prod.getPendientes());
+        to.setEnviados(prod.getEnviados());
+        to.setPeso(prod.getPeso());
+        return to;
+    }
+
+    public void onCellEdit(CellEditEvent event) {
+        boolean ok = false;
+        EnvioProducto prod = this.detalle.get(event.getRowIndex());
+        Double oldValue = (Double) event.getOldValue();
+        Double newValue = (Double) event.getNewValue();
+        if (newValue == null) {
+            Mensajes.mensajeError("null -- Valor no valido --");
+        } else if (newValue.equals(oldValue)) {
+            ok = true;
+        } else {
+            if (newValue > prod.getPendientes()) {
+                Mensajes.mensajeAlert("No se pueden enviar mas que los pendientes !");
+            } else {
+                try {
+                    this.dao = new DAOEnvios();
+                    this.dao.enviarDirectos(this.convertir(prod), oldValue);
+                    ok = true;
+                } catch (NamingException ex) {
+                    Mensajes.mensajeError(ex.getMessage());
+                } catch (SQLException ex) {
+                    Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+                }
+            }
+        }
+        if (!ok) {
+            prod.setEnviados(oldValue);
+        }
     }
 
     private EnvioProducto convertir(TOEnvioProducto to) {
         EnvioProducto prod = new EnvioProducto();
         prod.setIdEnvio(to.getIdEnvio());
         prod.setIdMovto(to.getIdMovto());
-        prod.setCantidad(to.getCantidad());
+        prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdEmpaque()));
+        prod.setEnviados(to.getEnviados());
+        prod.setPendientes(to.getPendientes());
         prod.setPeso(to.getPeso());
+        prod.setPesoTotal(to.getPeso() * to.getEnviados());
         return prod;
     }
 
@@ -94,16 +136,18 @@ public class MbEnvios implements Serializable {
 //        RequestContext context = RequestContext.getCurrentInstance();
 //        context.addCallbackParam("okEnvio", ok);
 //    }
-
-    public void agregaPedido() {
+    public void agregaPedido(boolean agregar) {
         boolean ok = true;
         this.detalle = new ArrayList<EnvioProducto>();
         try {
             DAOMovimientos daoMv = new DAOMovimientos();
             TOMovimiento toMv = daoMv.obtenerMovimientoRelacionado(this.fincado.getIdMovto());
-            daoMv.cambiarDirecto(true, toMv.getIdAlmacen(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdImpuestoZona());
             
+            DAOMovimientos1 daoMv1=new DAOMovimientos1();
+            daoMv1.cambiarDirecto(agregar, this.envio.getIdEnvio(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdReferencia(), toMv.getIdImpuestoZona());
+
             this.dao = new DAOEnvios();
+            this.detalle = new ArrayList<EnvioProducto>();
             for (TOEnvioProducto to : this.dao.obtenerEnvioDetalle(this.envio.getIdEnvio(), toMv.getIdMovto())) {
                 this.detalle.add(this.convertir(to));
             }
@@ -122,6 +166,7 @@ public class MbEnvios implements Serializable {
         try {
             if (this.fincado.isDirecto()) {
                 this.dao = new DAOEnvios();
+                this.detalle = new ArrayList<EnvioProducto>();
                 for (TOEnvioProducto to : this.dao.obtenerEnvioDetalle(this.envio.getIdEnvio(), this.fincado.getIdMovto())) {
                     this.detalle.add(this.convertir(to));
                 }
@@ -204,7 +249,8 @@ public class MbEnvios implements Serializable {
     }
 
     public void inicializar() {
-        this.mbMiniCedis.cargaMiniCedisZona();
+        this.mbMiniCedis.inicializar();
+        this.mbMiniAlmacenes.cargaListaAlmacenesCedis(this.mbMiniCedis.getCedis().getIdCedis());
         this.mbBuscar.inicializar();
         this.envios = new ArrayList<TOEnvio>();
     }

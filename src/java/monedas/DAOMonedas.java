@@ -46,15 +46,24 @@ public class DAOMonedas {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
-            ResultSet rs = st.executeQuery("SELECT idMoneda, moneda, codigoIso FROM Monedas\n"
-                    + "WHERE idMoneda=" + idMoneda);
+            ResultSet rs = st.executeQuery("SELECT * FROM monedas WHERE idMoneda=" + idMoneda);
             if (rs.next()) {
-                mon = construirMoneda(rs);
+                mon = construirMonedaDaap(rs);
             }
         } finally {
+            st.close();
             cn.close();
         }
         return mon;
+    }
+    
+    private Moneda construirMonedaDaap(ResultSet rs) throws SQLException {
+        Moneda mone = new Moneda();
+        mone.setIdMoneda(rs.getInt("idMoneda"));
+        mone.setMoneda(rs.getString("moneda"));
+        mone.setCodigoIso(rs.getString("codigoIso"));
+       
+        return mone;
     }
 
     private Moneda construirMoneda(ResultSet rs) throws SQLException {
@@ -74,16 +83,15 @@ public class DAOMonedas {
 //        DataSource ds2 = (DataSource) cI.lookup("java:comp/env/jdbc/__webSystem");
         ArrayList<Moneda> lista = new ArrayList<Moneda>();
         Connection cn = ds.getConnection();
+        Statement st = cn.createStatement();
         try {
-
             String stringSQL = "SELECT * FROM monedas";
-
-            Statement sentencia = cn.createStatement();
-            ResultSet rs = sentencia.executeQuery(stringSQL);
+            ResultSet rs = st.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construirMoneda(rs));
             }
         } finally {
+            st.close();
             cn.close();
         }
         return lista;

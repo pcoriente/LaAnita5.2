@@ -44,9 +44,9 @@ public class DAOFormatos {
         }
     }
     
-    public ArrayList<ClienteFormato> dameFormatosCliente(int idCliente) throws SQLException {
+    public ArrayList<ClienteFormato> dameFormatosGrupoCte(int idGrupoCte) throws SQLException {
         ArrayList<ClienteFormato> lstFormatos = null;
-        String sql = "SELECT * FROM  clientesFormatos WHERE idCliente=" + idCliente;
+        String sql = "SELECT * FROM  clientesFormatos WHERE idGrupoCte=" + idGrupoCte;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
@@ -56,6 +56,7 @@ public class DAOFormatos {
                 lstFormatos.add(this.construir(rs));
             }
         } finally {
+            st.close();
             cn.close();
         }
         return lstFormatos;
@@ -73,6 +74,7 @@ public class DAOFormatos {
                 lstFormatos.add(this.construir(rs));
             }
         } finally {
+            st.close();
             cn.close();
         }
         return lstFormatos;
@@ -82,10 +84,15 @@ public class DAOFormatos {
         ClienteFormato formato = new ClienteFormato();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT * FROM clientesFormatos WHERE idFormato = " + id;
-        ResultSet rs = st.executeQuery(sql);
-        if(rs.next()) {
-            formato=this.construir(rs);
+        try {
+            String sql = "SELECT * FROM clientesFormatos WHERE idFormato = " + id;
+            ResultSet rs = st.executeQuery(sql);
+            if(rs.next()) {
+                formato=this.construir(rs);
+            }
+        } finally {
+            st.close();
+            cn.close();
         }
         return formato;
     }
@@ -106,6 +113,7 @@ public class DAOFormatos {
         try {
             st.executeUpdate(sql);
         } finally {
+            st.close();
             cn.close();
         }
     }
@@ -118,6 +126,7 @@ public class DAOFormatos {
         try {
             st.executeUpdate(sql);
         } finally {
+            st.close();
             cn.close();
         }
     }
