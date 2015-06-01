@@ -480,6 +480,7 @@ public class MbClientes implements Serializable {
                 this.clientes.add(this.convertir(to));
             }
         } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
             Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());

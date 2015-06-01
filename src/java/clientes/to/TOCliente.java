@@ -11,8 +11,8 @@ public class TOCliente {
     private int idGrupoCte;
     private String grupoCte;
     private String grupoClienteCodigo;
-//    private int idFormato;
-//    private String formato;
+    private int idFormato;
+    private String formato;
     private int idEsquema;
     private int idContribuyente;
     private String contribuyente;
@@ -94,21 +94,22 @@ public class TOCliente {
         this.grupoClienteCodigo = grupoClienteCodigo;
     }
 
-//    public int getIdFormato() {
-//        return idFormato;
-//    }
-//
-//    public void setIdFormato(int idFormato) {
-//        this.idFormato = idFormato;
-//    }
-//
-//    public String getFormato() {
-//        return formato;
-//    }
-//
-//    public void setFormato(String formato) {
-//        this.formato = formato;
-//    }
+    public int getIdFormato() {
+        return idFormato;
+    }
+
+    public void setIdFormato(int idFormato) {
+        this.idFormato = idFormato;
+    }
+
+    public String getFormato() {
+        return formato;
+    }
+
+    public void setFormato(String formato) {
+        this.formato = formato;
+    }
+ 
 
     public int getIdEsquema() {
         return idEsquema;
