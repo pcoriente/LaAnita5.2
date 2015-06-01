@@ -13,6 +13,7 @@ public class PedidoProducto {
     private Producto producto;
     private double cantFacturada;
     private double cantSinCargo;
+    private double separados;
     private double precio;
     private double descuento;
     private double unitario;
@@ -124,5 +125,13 @@ public class PedidoProducto {
 
     public void setImpuestos(ArrayList<ImpuestosProducto> impuestos) {
         this.impuestos = impuestos;
+    }
+
+    public double getSeparados() {
+        return separados;
+    }
+
+    public void setSeparados(double separados) {
+        this.separados = separados;
     }
 }

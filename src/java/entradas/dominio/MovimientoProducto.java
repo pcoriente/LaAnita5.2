@@ -10,15 +10,19 @@ import producto2.dominio.Producto;
  */
 public class MovimientoProducto {
     private Producto producto;
-    private double costoOrdenado;
     private double cantOrdenada;
+    private double cantOrdenadaSinCargo;
+    private double costoOrdenado;
+    private String cantOrdenadaTotal;
+    private double cantRecibida;
+    private double cantRecibidaSinCargo;
     private double cantFacturada;
     private double cantSinCargo;
-    private double cantRecibida;
     private double costo;
     private double desctoProducto1;
     private double desctoProducto2;
     private double desctoConfidencial;
+    private double costoPromedio;
     private double unitario;
     private ArrayList<ImpuestosProducto> impuestos;
     private double neto;
@@ -26,18 +30,20 @@ public class MovimientoProducto {
 
     public MovimientoProducto() {
         this.producto=new Producto();
-        this.costoOrdenado=0.00;
-        this.cantOrdenada=0.00;
-        this.cantFacturada=0.00;
-        this.cantSinCargo=0.00;
-        this.cantRecibida=0.00;
-        this.costo=0.00;
-        this.desctoProducto1=0.00;
-        this.desctoProducto2=0.00;
-        this.desctoConfidencial=0.00;
-        this.unitario=0.00;
-        this.neto=0.00;
-        this.importe=0.00;
+        this.cantOrdenadaTotal="";
+//        this.costoOrdenado=0.00;
+//        this.cantOrdenada=0.00;
+//        this.cantFacturada=0.00;
+//        this.cantSinCargo=0.00;
+//        this.cantRecibida=0.00;
+//        this.costo=0.00;
+//        this.desctoProducto1=0.00;
+//        this.desctoProducto2=0.00;
+//        this.desctoConfidencial=0.00;
+//        this.unitario=0.00;
+////        this.impuestos=new ArrayList<ImpuestosProducto>();
+//        this.neto=0.00;
+//        this.importe=0.00;
     }
 
     @Override
@@ -83,12 +89,36 @@ public class MovimientoProducto {
         this.cantOrdenada = cantOrdenada;
     }
 
+    public double getCantOrdenadaSinCargo() {
+        return cantOrdenadaSinCargo;
+    }
+
+    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
+        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
+    }
+
+    public String getCantOrdenadaTotal() {
+        return cantOrdenadaTotal;
+    }
+
+    public void setCantOrdenadaTotal(String cantOrdenadaTotal) {
+        this.cantOrdenadaTotal = cantOrdenadaTotal;
+    }
+
     public double getCantRecibida() {
         return cantRecibida;
     }
 
     public void setCantRecibida(double cantRecibida) {
         this.cantRecibida = cantRecibida;
+    }
+
+    public double getCantRecibidaSinCargo() {
+        return cantRecibidaSinCargo;
+    }
+
+    public void setCantRecibidaSinCargo(double cantRecibidaSinCargo) {
+        this.cantRecibidaSinCargo = cantRecibidaSinCargo;
     }
 
     public double getCosto() {
@@ -129,6 +159,14 @@ public class MovimientoProducto {
 
     public void setImporte(double importe) {
         this.importe = importe;
+    }
+
+    public double getCostoPromedio() {
+        return costoPromedio;
+    }
+
+    public void setCostoPromedio(double costoPromedio) {
+        this.costoPromedio = costoPromedio;
     }
 
     public double getUnitario() {

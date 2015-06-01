@@ -8,7 +8,8 @@ public class TOEnvioProducto {
     private int idEnvio;
     private int idMovto;
     private int idEmpaque;
-    private double cantidad;
+    private double enviados;
+    private double pendientes;
     private double peso;
 
     public int getIdEnvio() {
@@ -35,12 +36,20 @@ public class TOEnvioProducto {
         this.idEmpaque = idEmpaque;
     }
 
-    public double getCantidad() {
-        return cantidad;
+    public double getEnviados() {
+        return enviados;
     }
 
-    public void setCantidad(double cantidad) {
-        this.cantidad = cantidad;
+    public void setEnviados(double enviados) {
+        this.enviados = enviados;
+    }
+
+    public double getPendientes() {
+        return pendientes;
+    }
+
+    public void setPendientes(double pendientes) {
+        this.pendientes = pendientes;
     }
 
     public double getPeso() {

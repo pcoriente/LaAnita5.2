@@ -13,8 +13,10 @@ public class OrdenCompraDetalle implements Serializable {
     private int idEmpaque;
 //    private String sku;
     private double cantOrdenada;
+    private double cantOrdenadaSinCargo;
     private double cantidadSolicitada;
-    private double cantRecibida;
+    private double cantRecibidaOficina;
+    private double cantRecibidaAlmacen;
     private double costoOrdenado;
     private double descuentoProducto;
     private double descuentoProducto2;
@@ -45,7 +47,6 @@ public class OrdenCompraDetalle implements Serializable {
 //        this.sku = "";
         this.cantOrdenada = 0.00;
         this.cantidadSolicitada=0.00;
-        this.cantRecibida=0;
         this.costoOrdenado = 0.00;
         this.descuentoProducto = 0.00;
         this.descuentoProducto2 = 0.00;
@@ -101,6 +102,14 @@ public class OrdenCompraDetalle implements Serializable {
 
     public void setCantOrdenada(double cantOrdenada) {
         this.cantOrdenada = cantOrdenada;
+    }
+
+    public double getCantOrdenadaSinCargo() {
+        return cantOrdenadaSinCargo;
+    }
+
+    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
+        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
 
     public double getCantidadSolicitada() {
@@ -236,12 +245,20 @@ public class OrdenCompraDetalle implements Serializable {
         this.nombreProducto = nombreProducto;
     }
 
-    public double getCantRecibida() {
-        return cantRecibida;
+    public double getCantRecibidaOficina() {
+        return cantRecibidaOficina;
     }
 
-    public void setCantRecibida(double cantRecibida) {
-        this.cantRecibida = cantRecibida;
+    public void setCantRecibidaOficina(double cantRecibidaOficina) {
+        this.cantRecibidaOficina = cantRecibidaOficina;
+    }
+
+    public double getCantRecibidaAlmacen() {
+        return cantRecibidaAlmacen;
+    }
+
+    public void setCantRecibidaAlmacen(double cantRecibidaAlmacen) {
+        this.cantRecibidaAlmacen = cantRecibidaAlmacen;
     }
 
     public Producto getProducto() {

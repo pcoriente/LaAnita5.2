@@ -1,6 +1,6 @@
 package movimientos.converters;
 
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import java.util.ResourceBundle;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -23,7 +23,7 @@ public class MovimientoTipoConverter implements Converter {
             if(idTipo == 0) {
                 tipo=new MovimientoTipo();
             } else {
-                DAOMovimientos dao=new DAOMovimientos();
+                DAOMovimientos1 dao=new DAOMovimientos1();
                 tipo=dao.obtenerMovimientoTipo(idTipo);
             }
         } catch(Throwable ex) {

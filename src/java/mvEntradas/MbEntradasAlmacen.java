@@ -1,7 +1,7 @@
 package mvEntradas;
 
 import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos;
+import entradas.dao.DAOMovimientos1;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -47,7 +47,7 @@ public class MbEntradasAlmacen implements Serializable {
     private Lote lote;
     private ArrayList<Entrada> entradasPendientes;
 //    private double sumaLotes;
-    private DAOMovimientos dao;
+    private DAOMovimientos1 dao;
     private DAOLotes daoLotes;
     
     public MbEntradasAlmacen() throws NamingException {
@@ -61,7 +61,7 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelar");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.cancelarEntradaAlmacen(this.entrada.getIdMovto());
             this.modoEdicion=false;
             ok=true;
@@ -81,7 +81,7 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabar");
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             this.dao.grabarEntradaAlmacen(this.convertirTO());
             this.modoEdicion=false;
             ok=true;
@@ -113,11 +113,11 @@ public class MbEntradasAlmacen implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaDetalleEntrada");
         this.entrada=((Entrada) event.getObject());
         this.entradaDetalle=new ArrayList<EntradaAlmacenProducto>();
-        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.entrada.getAlmacen());
+//        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.entrada.getAlmacen());
         this.tipo=this.entrada.getTipo();
         try {
             this.daoLotes=new DAOLotes();
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientos1();
             for(TOMovimientoAlmacenProducto1 to:this.dao.obtenerDetalleMovimientoAlmacen(this.entrada.getIdMovto())) {
                 this.entradaDetalle.add(this.convertirProductoAlmacen(to));
             }
@@ -151,7 +151,7 @@ public class MbEntradasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         this.entradasPendientes=new ArrayList<Entrada>();
         try {
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             for(TOMovimiento to: this.dao.movimientosPendientes(false, 1)) {
                 this.entradasPendientes.add(this.convertir(to));
             }
@@ -170,7 +170,7 @@ public class MbEntradasAlmacen implements Serializable {
     private Entrada convertir(TOMovimiento to) throws SQLException {
         Entrada e=new Entrada();
         e.setIdMovto(to.getIdMovto());
-        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
+//        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
         e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
@@ -329,18 +329,19 @@ public class MbEntradasAlmacen implements Serializable {
     public void capturar() {
         boolean ok=false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "capturar");
-        if(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen()==0) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
-            fMsg.setDetail("Se requiere seleccionar un almacen");
-        } else if(this.tipo.getIdTipo()==0) {
+//        if(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen()==0) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
+//            fMsg.setDetail("Se requiere seleccionar un almacen");
+//        } else 
+        if(this.tipo.getIdTipo()==0) {
             fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
             fMsg.setDetail("Se requiere seleccionar un concepto");
         } else {
             this.entrada=new Entrada();
-            this.entrada.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
+//            this.entrada.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
             this.entrada.setTipo(this.tipo);
             try {
-                this.dao=new DAOMovimientos();
+                this.dao=new DAOMovimientos1();
                 this.entrada.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
                 this.entradaDetalle=new ArrayList<EntradaAlmacenProducto>();
                 this.entradaProducto=new EntradaAlmacenProducto();
@@ -385,7 +386,7 @@ public class MbEntradasAlmacen implements Serializable {
             this.tipo=new MovimientoTipo(0, "Seleccione");
             this.listaMovimientosTipos.add(new SelectItem(this.tipo, this.tipo.toString()));
             
-            this.dao=new DAOMovimientos();
+            this.dao=new DAOMovimientos1();
             for(MovimientoTipo t: this.dao.obtenerMovimientosTipos(true)) {
                 this.listaMovimientosTipos.add(new SelectItem(t, t.toString()));
             }
@@ -405,8 +406,8 @@ public class MbEntradasAlmacen implements Serializable {
     }
     
     public void inicializar() {
-        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
-        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
+//        this.mbComprobantes.getMbAlmacenes().getMbCedis().obtenerDefaultCedis();
+//        this.mbComprobantes.getMbAlmacenes().cargaAlmacenes();
         this.mbBuscar.inicializar();
         this.modoEdicion=false;
         this.listaMovimientosTipos=null;

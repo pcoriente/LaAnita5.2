@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
         <h:outputStylesheet library="css" name="main.css"/>
@@ -45,7 +44,7 @@
                         </p:column>
                         <p:column >
                             <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
-                                                 ajax="false" action="#{mbEnvios.terminar()}" />
+                                             ajax="false" action="#{mbEnvios.terminar()}" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>
@@ -108,7 +107,7 @@
                              rowKey="#{fincado.idMovto}" selectionMode="single" 
                              style="border:solid 1px" emptyMessage="No existen pedidos directos" >
                     <p:ajax event="rowSelect" listener="#{mbEnvios.agregarPedido}" 
-                            update=":main:msgsEnvios" oncomplete="handleAgregarPedido(xhr, status, args);" />
+                            update=":main:msgsEnvios :main:directo" oncomplete="handleAgregarPedido(xhr, status, args);" />
 
                     <p:column headerText="Formato" >
                         <h:outputText value="#{fincado.formato}" />
@@ -135,29 +134,62 @@
             <p:confirmDialog widgetVar="agregarPedidoDlg" showEffect="fade" hideEffect="explode" 
                              header="Convertir pedido a Directo" message="Desea convertir el pedido a Directo ?" >
                 <p:commandButton icon="ui-icon-close" value="No" title="Cancelar" onclick="PF('agregarPedidoDlg').hide();" update=":main:envioSeleccionado" />
-                <p:commandButton icon="ui-icon-check" value="Si" title="Agregar" onclick="PF('agregarPedidoDlg').hide();" actionListener="#{mbEnvios.agregaPedido()}" 
-                                 update=":main:msgsEnvios :main:envioSeleccionado" oncomplete="handlePedidoAgregado(xhr, status, args)"/>
+                <p:commandButton icon="ui-icon-check" value="Si" title="Agregar" onclick="PF('agregarPedidoDlg').hide();" actionListener="#{mbEnvios.agregaPedido(1==1)}" 
+                                 update=":main:msgsEnvios :main:envioSeleccionado :main:directo" oncomplete="handlePedidoAgregado(xhr, status, args)"/>
             </p:confirmDialog>
             <p:dialog header="Captura de Pedido" widgetVar="editarPedidoDlg" closable="true" resizable="false" modal="true" >
                 <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panelGrid id="pedido" style="width: 910px;" >
-                    
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="folio" value="FOLIO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText id="folio" value="#{mbEnvios.fincado.folio}" style="font-size: medium; width: 160px;" readonly="true" />
+                        </p:column>
+                    </p:row>
                 </p:panelGrid>
+                <p:dataTable id="directo" value="#{mbEnvios.detalle}" var="directo" rowKey="#{directo.producto}" selectionMode="single" style="width: 910px;" editable="true" editMode="cell" >
+                    <p:ajax event="cellEdit" listener="#{mbEnvios.onCellEdit}" update=":main:msgsPedido" />
+
+                    <p:column headerText="SKU" style="width: 60px;" >
+                        <h:outputText value="#{directo.producto.cod_pro}" />
+                    </p:column>
+                    <p:column headerText="PRODUCTO" >
+                        <h:outputText value="#{directo.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="PENDIENTES" style="width: 80px;" >
+                        <h:outputText value="#{directo.pendientes}" />
+                    </p:column>
+                    <p:column headerText="ENVIADOS" style="width: 80px;">
+                        <p:cellEditor>
+                            <f:facet name="output"><h:outputText value="#{directo.enviados}" /></f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{directo.enviados}" label="ENVIADOS" style="width:96%">
+                                    <f:validateDoubleRange minimum="5.5" maximum="8.5" />
+                                </p:inputText>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="PESO" style="width: 100px;" >
+                        <h:outputText value="#{directo.pesoTotal}" />
+                    </p:column>
+                </p:dataTable>
             </p:dialog>
         </h:form>
         <script type="text/javascript">
             function handlePedidoAgregado(xhr, status, args) {
                 PF('nuevoEnvioDlg').hide();
-                if(args.validationFailed) {
+                if (args.validationFailed) {
                     alert("Error en la validacion de paso de los parametros");
-                } else if(args.okDirecto) {
+                } else if (args.okDirecto) {
                     PF('editarPedidoDlg').show();
                 }
             }
             function handleAgregarPedido(xhr, status, args) {
-                if(args.validationFailed) {
+                if (args.validationFailed) {
                     alert("Error en la validacion de paso de los parametros");
-                } else if(args.okDirecto) {
+                } else if (args.okDirecto) {
                     PF('editarPedidoDlg').show();
                 } else {
                     PF('agregarPedidoDlg').show();

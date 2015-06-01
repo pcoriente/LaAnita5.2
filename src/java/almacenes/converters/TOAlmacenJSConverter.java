@@ -22,7 +22,6 @@ public class TOAlmacenJSConverter implements Converter {
             int idAlmacen = Integer.parseInt(value);
             if (idAlmacen == 0) {
                 mini = new TOAlmacenJS();
-                mini.setAlmacen("Seleccione un Almacén");
             } else {
                 DAOAlmacenesJS dao = new DAOAlmacenesJS();
                 mini = dao.obtenerAlmacen(idAlmacen);

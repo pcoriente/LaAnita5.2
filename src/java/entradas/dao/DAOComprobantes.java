@@ -39,20 +39,29 @@ public class DAOComprobantes {
         }
     }
     
-    public boolean cancelar(int idComprobante) throws SQLException {
-        boolean ok=false;
+    public void eliminar(int idComprobante) throws SQLException {
+        Connection cn=this.ds.getConnection();
+        Statement st=cn.createStatement();
+        try {
+            st.executeUpdate("DELETE FROM comprobantes WHERE idComprobante="+idComprobante);
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
+    
+    public void liberaComprobante(int idComprobante) throws SQLException {
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
             st.executeUpdate("UPDATE comprobantes SET propietario=0 WHERE idComprobante="+idComprobante);
-            ok=true;
         } finally {
+            st.close();
             cn.close();
         }
-        return ok;
     }
     
-    public boolean asegurarComprobante(int idComprobante, boolean oficina) throws SQLException {
+    public boolean asegurarComprobante(int idComprobante) throws SQLException {
         boolean ok=true;
         int propietario=0;
         Connection cn=this.ds.getConnection();
@@ -75,64 +84,66 @@ public class DAOComprobantes {
             st.execute("ROLLBACK TRANSACTION");
             throw ex;
         } finally {
+            st.close();
             cn.close();
         }
         return ok;
     }
     
-    public boolean obtenerEstadoAlmacen(int idComprobante) throws SQLException {
-        boolean cerrada=false;   // 0.-Abierta; 1.-Cerrada
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
-            ResultSet rs=st.executeQuery("SELECT statusAlmacen FROM comprobantes WHERE idComprobante="+idComprobante);
-            if(rs.next()) {
-                cerrada=rs.getBoolean("statusAlmacen");
-            }
-        } finally {
-            cn.close();
-        }
-        return cerrada;
-    }
+//    public boolean obtenerEstadoAlmacen(int idComprobante) throws SQLException {
+//        boolean cerrada=false;   // 0.-Abierta; 1.-Cerrada
+//        Connection cn=this.ds.getConnection();
+//        Statement st=cn.createStatement();
+//        try {
+//            ResultSet rs=st.executeQuery("SELECT statusAlmacen FROM comprobantes WHERE idComprobante="+idComprobante);
+//            if(rs.next()) {
+//                cerrada=rs.getBoolean("statusAlmacen");
+//            }
+//        } finally {
+//            cn.close();
+//        }
+//        return cerrada;
+//    }
+//    
+//    public boolean obtenerEstadoOficina(int idComprobante) throws SQLException {
+//        boolean cerrada=false;   // 0.-Abierta; 1.-Cerrada
+//        Connection cn=this.ds.getConnection();
+//        Statement st=cn.createStatement();
+//        try {
+//            ResultSet rs=st.executeQuery("SELECT statusOficina FROM comprobantes WHERE idComprobante="+idComprobante);
+//            if(rs.next()) {
+//                cerrada=rs.getBoolean("statusOficina");
+//            }
+//        } finally {
+//            cn.close();
+//        }
+//        return cerrada;
+//    }
     
-    public boolean obtenerEstadoOficina(int idComprobante) throws SQLException {
-        boolean cerrada=false;   // 0.-Abierta; 1.-Cerrada
+    public void modificar(TOComprobante to) throws SQLException {
+        Date fechaFactura=new java.sql.Date(to.getFecha().getTime());
+        String strSQL = "UPDATE comprobantes " +
+                        "SET serie='"+to.getSerie()+"', numero='"+to.getNumero()+"', fecha='"+fechaFactura.toString()+"' " +
+                        "WHERE idComprobante="+to.getIdComprobante();
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            ResultSet rs=st.executeQuery("SELECT statusOficina FROM comprobantes WHERE idComprobante="+idComprobante);
-            if(rs.next()) {
-                cerrada=rs.getBoolean("statusOficina");
-            }
-        } finally {
-            cn.close();
-        }
-        return cerrada;
-    }
-    
-    public void modificar(TOComprobante c) throws SQLException {
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
-            Date fechaFactura=new java.sql.Date(c.getFecha().getTime());
-            String strSQL="UPDATE comprobantes "
-                    + "SET remision='"+c.getRemision()+"', serie='"+c.getSerie()+"', numero='"+c.getNumero()+"', fecha='"+fechaFactura.toString()+"', propietario=0 "
-                    + "WHERE idComprobante="+c.getIdComprobante();
             st.executeUpdate(strSQL);
         } finally {
+            st.close();
             cn.close();
         }
     }
     
-    public int agregar(TOComprobante c) throws SQLException {
+    public int agregar(TOComprobante to) throws SQLException {
         int idComprobante=0;
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
             st.executeUpdate("BEGIN TRANSACTION");
-            Date fechaFactura=new java.sql.Date(c.getFecha().getTime());
-            st.executeUpdate("INSERT INTO comprobantes (idAlmacen, idProveedor, tipoComprobante, remision, serie, numero, fecha, idUsuario, statusOficina, statusAlmacen, propietario) "
-                            + "VALUES ("+c.getIdAlmacen()+", "+c.getIdProveedor()+", "+c.getTipoComprobante()+", '"+c.getRemision()+"', '"+c.getSerie()+"', '"+c.getNumero()+"', '"+fechaFactura.toString()+"', "+this.idUsuario+", 0, 0, 0)");
+            Date fechaFactura=new java.sql.Date(to.getFecha().getTime());
+            st.executeUpdate("INSERT INTO comprobantes (idReferencia, tipo, serie, numero, fecha, propietario, idMovto) "
+                            + "VALUES ("+to.getIdReferencia()+", "+to.getTipo()+", '"+to.getSerie()+"', '"+to.getNumero()+"', '"+fechaFactura.toString()+"', "+this.idUsuario+", 0)");
             ResultSet rs=st.executeQuery("SELECT @@IDENTITY AS idComprobante");
             if(rs.next()) {
                 idComprobante=rs.getInt("idComprobante");
@@ -142,22 +153,61 @@ public class DAOComprobantes {
             st.executeUpdate("ROLLBACK TRANSACTION");
             throw(e);
         } finally {
+            st.close();
             cn.close();
         }
         return idComprobante;
     }
     
-    public TOComprobante obtenerComprobante(int idAlmacen, int idProveedor, int tipoComprobante, String serie, String numero) throws SQLException {
+    public ArrayList<TOComprobante> completeComprobantes(int idReferencia, String strComprobante) throws SQLException {
+        ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
+        String strSQL="SELECT *\n"
+                + "FROM comprobantes\n"
+                + "WHERE idReferencia="+idReferencia+" AND numero like '%"+strComprobante+"%'\n"
+                + "ORDER BY numero";
+        Connection cn=ds.getConnection();
+        Statement st=cn.createStatement();
+        try {
+            ResultSet rs=st.executeQuery(strSQL);
+            while(rs.next()) {
+                comprobantes.add(this.construir(rs));
+            }
+        } finally {
+            st.close();
+            cn.close();
+        }
+        return comprobantes;
+    }
+    
+    public ArrayList<TOComprobante> obtenerComprobantes(int idReferencia) throws SQLException {
+        ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
+        String strSQL="SELECT * FROM comprobantes WHERE idReferencia="+idReferencia+" ORDER BY comprobante";
+        Connection cn=ds.getConnection();
+        Statement st=cn.createStatement();
+        try {
+            ResultSet rs=st.executeQuery(strSQL);
+            while(rs.next()) {
+                comprobantes.add(this.construir(rs));
+            }
+        } finally {
+            st.close();
+            cn.close();
+        }
+        return comprobantes;
+    }
+    
+    public TOComprobante obtenerComprobante(int tipo, String serie, String numero) throws SQLException {
         TOComprobante c=null;
+        String strSQL="SELECT * FROM comprobantes WHERE tipo="+tipo+" AND serie='"+serie+"' AND numero='"+numero+"'";
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            ResultSet rs=st.executeQuery("SELECT * FROM comprobantes "
-                    + "WHERE idProveedor="+idProveedor+" AND tipoComprobante="+tipoComprobante+" AND serie='"+serie+"' AND numero='"+numero+"'");
+            ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 c=construir(rs);
             }
         } finally {
+            st.close();
             cn.close();
         }
         return c;
@@ -165,88 +215,89 @@ public class DAOComprobantes {
     
     public TOComprobante obtenerComprobante(int idComprobante) throws SQLException {
         TOComprobante f=null;
+        String strSQL="SELECT * FROM comprobantes WHERE idComprobante="+idComprobante;
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            ResultSet rs=st.executeQuery("SELECT * FROM comprobantes "
-                    + "WHERE idComprobante="+idComprobante);
+            ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 f=construir(rs);
             }
         } finally {
+            st.close();
             cn.close();
         }
         return f;
     }
     
-    public ArrayList<TOComprobante> obtenerComprobantes(int idAlmacen, int idProveedor, int tipoComprobante, Date fechaInicial, Date fechaFinal) throws SQLException {
+    public ArrayList<TOComprobante> obtenerComprobantes(int tipo, Date fechaInicial, Date fechaFinal) throws SQLException {
+        ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
+        String strSQL = "SELECT *\n" +
+                        "FROM comprobantes\n" +
+                        "WHERE tipo="+tipo+" AND FECHA BETWEEN '"+fechaInicial+"' AND '"+fechaFinal+"'\n" +
+                        "ORDER BY FECHA DESC";
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
-        ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
         try {
-            ResultSet rs=st.executeQuery("SELECT * FROM comprobantes " +
-                    "WHERE idAlmacen="+idAlmacen+" AND idProveedor=" + idProveedor + " AND tipoComprobante="+tipoComprobante+" AND FECHA BETWEEN '"+fechaInicial+"' AND '"+fechaFinal+"' " +
-                    "ORDER BY FECHA DESC");
+            ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 comprobantes.add(construir(rs));
             }
         } finally {
+            st.close();
             cn.close();
         }
         return comprobantes;
+    }
+    
+//    public ArrayList<Comprobante> obtenerComprobantes(int tipo) throws SQLException {
+//        ArrayList<Comprobante> comprobantes=new ArrayList<Comprobante>();
+//        String strSQL="SELECT * FROM comprobantes WHERE tipo=" + tipo+ " ORDER BY fecha DESC";
+//        Connection cn=this.ds.getConnection();
+//        Statement st=cn.createStatement();
+//        try {
+//            ResultSet rs=st.executeQuery(strSQL);
+//            while(rs.next()) {
+//                comprobantes.add(construir(rs));
+//            }
+//        } finally {
+//            st.close();
+//            cn.close();
+//        }
+//        return comprobantes;
+//    }
+    
+    private TOComprobante construir(ResultSet rs) throws SQLException {
+        TOComprobante to=new TOComprobante();
+        to.setIdComprobante(rs.getInt("idComprobante"));
+        to.setIdReferencia(rs.getInt("idReferencia"));
+        to.setTipo(rs.getInt("tipo"));
+        to.setSerie(rs.getString("serie"));
+        to.setNumero(rs.getString("numero"));
+        to.setFecha(new java.util.Date(rs.getDate("fecha").getTime()));
+        to.setPropietario(rs.getInt("propietario"));
+        to.setIdMovto(rs.getInt("idMovto"));
+        return to;
     }
     
     public ArrayList<TOComprobante> obtenerSolicitudes(int idAlmacen) throws SQLException {
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
         ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
-        String strSQL="SELECT c.idComprobante, m.idAlmacen, c.idProveedor, c.tipoComprobante, c.serie, c.numero, c.idUsuario, c.fecha, c.statusOficina, c.statusAlmacen " +
-                        "FROM movimientos m " +
-                        "INNER JOIN comprobantes c ON c.idComprobante=m.idReferencia " +
-                        "WHERE m.idTipo=2 AND m.status=1 AND c.idAlmacen="+idAlmacen+" " +
+        String strSQL = "SELECT c.*\n" +
+                        "FROM movimientos m\n" +
+                        "INNER JOIN comprobantes c ON c.idComprobante=m.idComprobante\n" +
+                        "WHERE m.idTipo=2 AND m.status=1 AND c.idAlmacen="+idAlmacen+"\n" +
                         "ORDER BY c.fecha DESC";
-        try {
-            ResultSet rs=st.executeQuery(strSQL);
-            while(rs.next()) {
-                comprobantes.add(construir(rs));
-            }
-        } finally {
-            cn.close();
-        }
-        return comprobantes;
-    }
-    
-    public ArrayList<TOComprobante> obtenerComprobantes(int idAlmacen, int idProveedor, int tipoComprobante) throws SQLException {
         Connection cn=this.ds.getConnection();
         Statement st=cn.createStatement();
-        ArrayList<TOComprobante> comprobantes=new ArrayList<TOComprobante>();
         try {
-            String strSQL="SELECT * FROM comprobantes " +
-                            "WHERE idAlmacen="+idAlmacen+" AND idProveedor="+idProveedor+" AND tipoComprobante="+tipoComprobante+ " " +
-                            "ORDER BY fecha DESC";
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 comprobantes.add(construir(rs));
             }
         } finally {
+            st.close();
             cn.close();
         }
         return comprobantes;
-    }
-    
-    private TOComprobante construir(ResultSet rs) throws SQLException {
-        TOComprobante c=new TOComprobante();
-        c.setIdComprobante(rs.getInt("idComprobante"));
-        c.setIdAlmacen(rs.getInt("idAlmacen"));
-        c.setIdProveedor(rs.getInt("idProveedor"));
-        c.setTipoComprobante(rs.getInt("tipoComprobante"));
-        c.setRemision(rs.getString("remision"));
-        c.setSerie(rs.getString("serie"));
-        c.setNumero(rs.getString("numero"));
-        c.setFecha(new java.util.Date(rs.getDate("fecha").getTime()));
-        c.setStatusOficina(rs.getByte("statusOficina"));
-        c.setStatusAlmacen(rs.getByte("statusAlmacen"));
-        c.setPropietario(rs.getInt("propietario"));
-        return c;
     }
 }

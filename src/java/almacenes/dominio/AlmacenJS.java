@@ -11,14 +11,17 @@ import empresas.dominio.MiniEmpresa;
 public class AlmacenJS {
     private int idAlmacen;
     private String almacen;
-    private MiniCedis cedis;
+//    private MiniCedis cedis;
+    private int idCedis;
+    private String cedis;
     private MiniEmpresa empresa;
     private Direccion direccion;
 
     public AlmacenJS() {
-        this.idAlmacen=0;
+//        this.idAlmacen=0;
         this.almacen="";
-        this.cedis=new MiniCedis();
+        this.cedis="";
+//        this.cedis=new MiniCedis();
         this.empresa=new MiniEmpresa();
         this.direccion=new Direccion();
     }
@@ -66,11 +69,27 @@ public class AlmacenJS {
         this.almacen = almacen;
     }
 
-    public MiniCedis getCedis() {
+    //    public MiniCedis getCedis() {
+    //        return cedis;
+    //    }
+    //
+    //    public void setCedis(MiniCedis cedis) {
+    //        this.cedis = cedis;
+    //    }
+    
+    public int getIdCedis() {
+        return idCedis;
+    }
+
+    public void setIdCedis(int idCedis) {
+        this.idCedis = idCedis;
+    }
+
+    public String getCedis() {
         return cedis;
     }
 
-    public void setCedis(MiniCedis cedis) {
+    public void setCedis(String cedis) {
         this.cedis = cedis;
     }
 

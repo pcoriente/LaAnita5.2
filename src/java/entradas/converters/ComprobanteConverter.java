@@ -2,12 +2,9 @@ package entradas.converters;
 
 import entradas.dao.DAOComprobantes;
 import entradas.to.TOComprobante;
-import java.util.ResourceBundle;
-import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
-import javax.faces.convert.ConverterException;
 
 /**
  *
@@ -22,17 +19,15 @@ public class ComprobanteConverter implements Converter {
             int idComprobante = Integer.parseInt(value);
             if (idComprobante == 0) {
                 comprobante = new TOComprobante();
-                comprobante.setSerie("");
-                comprobante.setNumero("Seleccione");
             } else {
                 DAOComprobantes dao = new DAOComprobantes();
                 comprobante = dao.obtenerComprobante(idComprobante);
             }
         } catch (Throwable ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Comprobante_getAsObject"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            throw new ConverterException(msg);
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Comprobante_getAsObject"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            throw new ConverterException(msg);
         }
         return comprobante;
     }
@@ -44,10 +39,10 @@ public class ComprobanteConverter implements Converter {
             TOComprobante comprobante = (TOComprobante) value;
             val = Integer.toString(comprobante.getIdComprobante());
         } catch (Exception ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Comprobante_getAsString"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            throw new ConverterException(msg);
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Comprobante_getAsString"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            throw new ConverterException(msg);
         }
         return val;
     }

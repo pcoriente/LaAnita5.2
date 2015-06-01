@@ -1,8 +1,10 @@
 package entradas.dominio;
 
-import almacenes.dominio.AlmacenJS;
+import almacenes.to.TOAlmacenJS;
+import entradas.to.TOComprobante;
 import java.util.Date;
 import monedas.Moneda;
+import proveedores.dominio.MiniProveedor;
 
 /**
  *
@@ -10,39 +12,51 @@ import monedas.Moneda;
  */
 public class Entrada {
     private int idEntrada;
-    private AlmacenJS almacen;
+    private TOAlmacenJS almacen;
+    private MiniProveedor proveedor;
+    private TOComprobante comprobante;
     private int folio;
-    private Comprobante comprobante;
-    private int idImpuestoZona;
+//    private int idImpuestoZona;
     private int idOrdenCompra;
     private Moneda moneda;
-    private double tipoCambio;
+    private double tipoDeCambio;
     private double desctoComercial;
     private double desctoProntoPago;
     private Date fecha;
     private int idUsuario;
+    private int estatus;
     private double subTotal;
     private double descuento;
     private double impuesto;
     private double total;
 
     public Entrada() {
-        this.idEntrada=0;
-        this.folio=0;
-        this.almacen=new AlmacenJS();
-        this.comprobante=new Comprobante();
-        this.idImpuestoZona=0;
-        this.idOrdenCompra=0;
+//        this.idEntrada=0;
+//        this.folio=0;
+        this.almacen=new TOAlmacenJS();
+        this.proveedor=new MiniProveedor();
+        this.comprobante=new TOComprobante();
+//        this.idImpuestoZona=0;
+//        this.idOrdenCompra=0;
         this.moneda=new Moneda();
-        this.tipoCambio=1.00;
-        this.desctoComercial=0.00;
-        this.desctoProntoPago=0.00;
+        this.tipoDeCambio=1.00;
+//        this.desctoComercial=0.00;
+//        this.desctoProntoPago=0.00;
         this.fecha=new Date();
-        this.idUsuario=0;
-        this.subTotal=0.00;
-        this.descuento=0.00;
-        this.impuesto=0.00;
-        this.total=0.00;
+//        this.idUsuario=0;
+//        this.subTotal=0.00;
+//        this.descuento=0.00;
+//        this.impuesto=0.00;
+//        this.total=0.00;
+    }
+    
+    public Entrada(TOAlmacenJS almacen, MiniProveedor proveedor, TOComprobante comprobante) {
+        this.almacen=almacen;
+        this.proveedor=proveedor;
+        this.comprobante=comprobante;
+        this.moneda=new Moneda();
+        this.tipoDeCambio=1;
+        this.fecha=new Date();
     }
 
     public int getIdEntrada() {
@@ -53,21 +67,45 @@ public class Entrada {
         this.idEntrada = idEntrada;
     }
 
-    public Comprobante getComprobante() {
+    public TOAlmacenJS getAlmacen() {
+        return almacen;
+    }
+
+    public void setAlmacen(TOAlmacenJS almacen) {
+        this.almacen = almacen;
+    }
+
+    public MiniProveedor getProveedor() {
+        return proveedor;
+    }
+
+    public void setProveedor(MiniProveedor proveedor) {
+        this.proveedor = proveedor;
+    }
+
+    public TOComprobante getComprobante() {
         return comprobante;
     }
 
-    public void setComprobante(Comprobante comprobante) {
+    public void setComprobante(TOComprobante comprobante) {
         this.comprobante = comprobante;
     }
 
-    public int getIdImpuestoZona() {
-        return idImpuestoZona;
+    public int getFolio() {
+        return folio;
     }
 
-    public void setIdImpuestoZona(int idImpuestoZona) {
-        this.idImpuestoZona = idImpuestoZona;
+    public void setFolio(int folio) {
+        this.folio = folio;
     }
+
+//    public int getIdImpuestoZona() {
+//        return idImpuestoZona;
+//    }
+//
+//    public void setIdImpuestoZona(int idImpuestoZona) {
+//        this.idImpuestoZona = idImpuestoZona;
+//    }
 
     public int getIdOrdenCompra() {
         return idOrdenCompra;
@@ -85,12 +123,12 @@ public class Entrada {
         this.moneda = moneda;
     }
 
-    public double getTipoCambio() {
-        return tipoCambio;
+    public double getTipoDeCambio() {
+        return tipoDeCambio;
     }
 
-    public void setTipoCambio(double tipoCambio) {
-        this.tipoCambio = tipoCambio;
+    public void setTipoDeCambio(double tipoDeCambio) {
+        this.tipoDeCambio = tipoDeCambio;
     }
 
     public double getDesctoComercial() {
@@ -157,19 +195,11 @@ public class Entrada {
         this.total = total;
     }
 
-    public int getFolio() {
-        return folio;
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setFolio(int folio) {
-        this.folio = folio;
-    }
-
-    public AlmacenJS getAlmacen() {
-        return almacen;
-    }
-
-    public void setAlmacen(AlmacenJS almacen) {
-        this.almacen = almacen;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }
