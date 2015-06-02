@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  *
  * @author Julio
  */
-public class Utilerias {
+public  class Utilerias {
 
     public static String date2String(Date fecha) {
         String strFecha = "";
@@ -162,5 +162,14 @@ public class Utilerias {
         validar = matcher.matches();
         return validar;
     }
+    
+    public static String darFormatoFecha(Date fechaFormato) {
+        String fecha = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        fecha = sdf.format(fechaFormato);
+        System.out.println(fecha);
+        return fecha;
+    }
+    
 
 }

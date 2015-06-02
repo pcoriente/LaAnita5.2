@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public class ReporteProveedorEncabezado {
 
-//    private int idEmpresa;
+    private int idEmpresa;
     private int codigoProductoInicial;
     private int codigoProductoFinal;
     private Date fechaInicial;
@@ -50,6 +50,14 @@ public class ReporteProveedorEncabezado {
 
     public void setFechaFinal(Date fechaFinal) {
         this.fechaFinal = fechaFinal;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     
