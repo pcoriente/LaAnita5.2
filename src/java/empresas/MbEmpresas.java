@@ -4,6 +4,7 @@ import direccion.MbDireccion;
 import empresas.dao.DAOEmpresas;
 import empresas.dominio.Empresa;
 import empresas.to.TOEmpresa;
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +21,7 @@ import utilerias.Utilerias;
 
 @ManagedBean(name = "mbEmpresas")
 @SessionScoped
-public class MbEmpresas {
+public class MbEmpresas implements Serializable{
 
     private Empresa empresa;
     private ArrayList<Empresa> listaEmpresas;

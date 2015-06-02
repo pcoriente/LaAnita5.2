@@ -27,10 +27,10 @@ public class MiniEmpresaConverter implements Converter {
                 mini=dao.obtenerMiniEmpresa(idMini);
             }
         } catch(Throwable ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            throw new ConverterException(msg);
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            throw new ConverterException(msg);
         }
         return mini;
     }
@@ -42,10 +42,10 @@ public class MiniEmpresaConverter implements Converter {
             MiniEmpresa mini = (MiniEmpresa) value;
             val = Integer.toString(mini.getIdEmpresa());
         }catch(Throwable ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pedido_getAsString"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            throw new ConverterException(msg);
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pedido_getAsString"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            throw new ConverterException(msg);
         }
         return val;
     }
