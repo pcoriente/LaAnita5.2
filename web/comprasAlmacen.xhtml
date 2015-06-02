@@ -161,10 +161,11 @@
                                                          update="@this :main:msgs :main:btnEquivalencias :main:btnCancelar :main:btnImprimir" />
                                         <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelacion de Compra" 
                                                          disabled="#{mbEntradas.entrada.estatus!=1}"
-                                                         process="@this" actionListener="#{mbEntradas.cancelarCompra()}" 
+                                                         process="@this" actionListener="#{mbEntradas.cancelarCompraAlmacen()}" 
                                                          update="main" />
                                         <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Imprimir una Compra" 
-                                                         disabled="#{mbEntradas.entrada.estatus==0}" />
+                                                         disabled="#{mbEntradas.entrada.estatus==0}" 
+                                                         ajax="false" action="#{mbEntradas.imprimirCompraAlmacenPdf()}" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                          process="@this" actionListener="#{mbEntradas.salir()}" update="main" />
                                     </p:column>

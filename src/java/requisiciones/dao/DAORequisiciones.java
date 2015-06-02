@@ -47,7 +47,7 @@ public class DAORequisiciones {
     public void guardarRequisicion(int idEmpresa, int idDepto, int idSolicito, ArrayList<RequisicionDetalle> pr) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
-       Statement ps1;
+        Statement ps1;
         PreparedStatement ps2;
 
         try {
@@ -55,7 +55,7 @@ public class DAORequisiciones {
             //CABECERO
             String strSQL1 = "INSERT INTO requisiciones(idEmpresa, idDepto, idSolicito, fechaRequisicion) VALUES (" + idEmpresa + ", " + idDepto + ", " + idSolicito + ",GETDATE())";
             String strSQLIdentity = "SELECT @@IDENTITY AS idReq"; //CAMBIO IDENTITY
-            
+
             ps1 = cn.createStatement();
             ps1.executeUpdate(strSQL1);
 //            ps1 = cn.CStatement(strSQLIdentity);
@@ -138,7 +138,7 @@ public class DAORequisiciones {
 
     public ArrayList<TORequisicionDetalle> dameRequisicionDetalle(int idReq) throws SQLException {
         ArrayList<TORequisicionDetalle> lista = new ArrayList<TORequisicionDetalle>();
-        
+
         Connection cn = ds.getConnection();
         try {
 
@@ -167,10 +167,10 @@ public class DAORequisiciones {
 //        DAOProductos daoProds = new DAOProductos();
 //        TOEmpaque toE = daoEmp.obtenerEmpaque(rs.getInt("idEmpaque"));
 //        Empaque empaque = this.convertir(toE, daoProds.obtenerProducto(toE.getIdProducto()));
-        
-        TORequisicionDetalle to=new TORequisicionDetalle();
+
+        TORequisicionDetalle to = new TORequisicionDetalle();
         to.setIdRequisicion(rs.getInt("idRequisicion"));
-     //   to.setEmpaque(daoEmp.obtenerEmpaque(rs.getInt("idEmpaque")));
+        //   to.setEmpaque(daoEmp.obtenerEmpaque(rs.getInt("idEmpaque")));
 //        to.setEmpaque(empaque);
         to.setIdProducto(rs.getInt("idEmpaque"));
         to.setCantidad(rs.getDouble("cantidadSolicitada"));
@@ -300,7 +300,7 @@ public class DAORequisiciones {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         PreparedStatement ps2, ps3;
-        int cant=2;
+        int cant = 2;
         try {
             if (cant != 0) {
                 st.executeUpdate("begin transaction");
@@ -335,8 +335,8 @@ public class DAORequisiciones {
             st.executeUpdate("begin transaction");
             //CABECERO
             String strSQL1 = "INSERT INTO cotizaciones(idRequisicion, idProveedor, idMoneda, folioProveedor, fechaCotizacion, descuentoCotizacion,descuentoProntoPago, observaciones, estado, numCotizaciones )"
-                    + " VALUES (" + ce.getIdRequisicion() + ", " + idProv + ", " + ce.getIdMoneda() + ",'Folio' ,GETDATE(), " + ce.getDescuentoCotizacion() + ", " + ce.getDescuentoProntoPago() + ", 'hola', "+ 1 +", "+ 1 +")";
-            String strSQLIdentity =  "SELECT @@IDENTITY AS idCot";
+                    + " VALUES (" + ce.getIdRequisicion() + ", " + idProv + ", " + ce.getIdMoneda() + ",'Folio' ,GETDATE(), " + ce.getDescuentoCotizacion() + ", " + ce.getDescuentoProntoPago() + ", 'hola', " + 1 + ", " + 1 + ")";
+            String strSQLIdentity = "SELECT @@IDENTITY AS idCot";
             ps1 = cn.prepareStatement(strSQL1);
             ps1.executeUpdate();
             ps3 = cn.prepareStatement(strSQLIdentity);
@@ -422,8 +422,8 @@ public class DAORequisiciones {
 //        cd.setSubtotal(0);
 //        cd.setDescuentoProducto(0);
 //        cd.setDescuentoProducto2(0);
-        
-        TOCotizacionDetalle to=new TOCotizacionDetalle();
+
+        TOCotizacionDetalle to = new TOCotizacionDetalle();
         to.setIdRequisicion(rs.getInt("idRequisicion"));
         to.setIdProducto(rs.getInt("idEmpaque"));
         to.setCantidadAutorizada(rs.getDouble("cantidadAutorizada"));
@@ -510,7 +510,6 @@ public class DAORequisiciones {
 //
 //        return ce;
 //    }
-
 //    private Empaque convertir(TOEmpaque to, Producto p) {
 //        Empaque e = new Empaque();
 //        e.setIdEmpaque(to.getIdEmpaque());

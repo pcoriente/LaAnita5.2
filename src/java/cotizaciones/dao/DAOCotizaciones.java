@@ -115,11 +115,12 @@ public class DAOCotizaciones {
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
-            String stringSQL = "select c.idProveedor, c.descuentoCotizacion, c.descuentoProntoPago, c.idProveedor, cd.*, pro.nombreComercial, cb.contribuyente   "
+            String stringSQL = "select c.idProveedor, c.descuentoCotizacion, c.descuentoProntoPago, c.idProveedor, cd.*, pro.nombreComercial, cb.contribuyente, emp.cod_pro   "
                     + "from cotizacionesDetalle cd\n"
                     + " inner join cotizaciones c on c.idCotizacion = cd.idCotizacion\n"
                     + " inner join proveedores pro on c.idProveedor = pro.idProveedor\n"
                     + " inner join contribuyentes cb on cb.idContribuyente = pro.idContribuyente\n"
+                    + "inner join empaques emp on emp.idEmpaque= cd.idEmpaque\n"
                     + " where c.idRequisicion=" + idRequi
                     + " and cd.idEmpaque = " + idProducto;  //checar si lo cambio
             Statement sentencia = cn.createStatement();
@@ -149,6 +150,9 @@ public class DAOCotizaciones {
         cd.setIdCotizacion(rs.getInt("idCotizacion"));
         cd.setProducto(new Producto());
         cd.getProducto().setIdProducto(rs.getInt("idEmpaque"));
+        cd.getProducto().setCod_pro(rs.getString("cod_pro"));
+
+
 //        cd.setEmpaque(empaque);
         cd.setCantidadCotizada(rs.getDouble("cantidadCotizada"));
         cd.setCostoCotizado(rs.getDouble("costoCotizado"));
@@ -206,75 +210,82 @@ public class DAOCotizaciones {
     public void guardarOrdenCompraTotal(CotizacionEncabezado ce, ArrayList<CotizacionDetalle> ordenCompra) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
-        PreparedStatement ps1;
-        PreparedStatement ps2;
+        Statement cs1 = cn.createStatement();
+        Statement cs2 = cn.createStatement();
         PreparedStatement ps3;
         int idProveedor = 0;
         int ident = 0;
 
-        for (CotizacionDetalle c : ordenCompra) {
-
-            int idCot = c.getIdCotizacion();
-            int idMon = ce.getIdMoneda();
-            int idProv = c.getCotizacionEncabezado().getIdProveedor();
-            //   double cantAutorizada = c.getCantidadAutorizada();
-            double dC = c.getCotizacionEncabezado().getDescuentoCotizacion();
-            double dPP = c.getCotizacionEncabezado().getDescuentoProntoPago();
-
-            this.cambiaEstadoCotizacion(idCot);
-            int identity = 0;
+        try {
+            st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
-            if (idProv != idProveedor) {
-                idProveedor = idProv;
-
-                String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor) VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 1, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ")";
-                ps1 = cn.prepareStatement(strSQL1);
-                ps1.executeUpdate();
-                String strSQLIdentity = "SELECT @@IDENTITY as idOrd";
-                ps1 = cn.prepareStatement(strSQLIdentity);
-                ResultSet rs = ps1.executeQuery();
-                while (rs.next()) {
-                    identity = rs.getInt("idOrd");
+            for (CotizacionDetalle c : ordenCompra) {
+                int idCot = c.getIdCotizacion();
+                int idMon = ce.getIdMoneda();
+                int idProv = c.getCotizacionEncabezado().getIdProveedor();
+                //   double cantAutorizada = c.getCantidadAutorizada();
+                double dC = c.getCotizacionEncabezado().getDescuentoCotizacion();
+                double dPP = c.getCotizacionEncabezado().getDescuentoProntoPago();
+                //     this.cambiaEstadoCotizacion(idCot);
+                int identity = 0;
+                if (idProv != idProveedor) {
+                    idProveedor = idProv;
+                    String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen) VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 1, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",1)";
+                    //  cs1 = cn.prepareStatement();
+                    cs1.executeUpdate(strSQL1);
+                    String strSQLIdentity = "SELECT @@IDENTITY as idOrd";
+                    //   cs2 = cn.prepareStatement(strSQLIdentity);
+                    ResultSet rs = cs2.executeQuery(strSQLIdentity);
+                    while (rs.next()) {
+                        identity = rs.getInt("idOrd");
+                    }
+                    ident = identity;
                 }
-                ident = identity;
+                // DETALLE
+                String stringSQL2 = "INSERT INTO ordenCompraDetalle "
+                        + "(idOrdenCompra, interno, idEmpaque, sku, cantOrdenada, cantRecibidaOficina,"
+                        + "cantRecibidaAlmacen, costoOrdenado, descuentoProducto, descuentoProducto2,"
+                        + "desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen,"
+                        + "idImpuestosGrupo, idMarca, cantOrdenadaSinCargo)"
+                        + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                ps3 = cn.prepareStatement(stringSQL2);
 
-            }
+                ps3.setInt(1, ident);
+                ps3.setInt(2, 1); //interno
+                ps3.setInt(3, c.getProducto().getIdProducto()); //idEmpaque
+                ps3.setString(4, "null"); //sku
+                ps3.setDouble(5, c.getCantidadCotizada()); //cantOrdenada
+                ps3.setDouble(6, 0.00); //cantRecibidaOficina
+                ps3.setDouble(7, 0.00); //cantRecibidaAlmacen
+                ps3.setDouble(8, c.getCostoCotizado()); //costoOrdenado
+                ps3.setDouble(9, c.getDescuentoProducto()); //descuentoProducto
+                ps3.setDouble(10, c.getDescuentoProducto2()); //descuentoProducto2
+                ps3.setDouble(11, 0.00); //desctoConfidencial
+                ps3.setInt(12, 0); //sinCargoBase
+                ps3.setInt(13, 0); //sinCargoCant
+                ps3.setDouble(14, 0.00); //ptjeOferta
+                ps3.setDouble(15, 0.00); //margen
+                ps3.setInt(16, 0); //idImpuestosGrupo
+                ps3.setInt(17, 0); //idMarca
+                ps3.setDouble(18, 0.00); // cantOrdenadaSinCargo
+                //    try {
+                ps3.executeUpdate();
 
-
-            // DETALLE
-            String stringSQL2 = "INSERT INTO ordenCompraDetalle (idOrdenCompra,interno, idEmpaque, sku, cantOrdenada, costoOrdenado, descuentoProducto, descuentoProducto2, desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen, idImpuestosGrupo, idMarca)"
-                    + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement ps = cn.prepareStatement(stringSQL2);
-
-            ps.setInt(1, ident);
-            ps.setInt(2, 1);
-            ps.setInt(3, c.getProducto().getIdProducto());
-            ps.setString(4, "null");
-            ps.setDouble(5, c.getCantidadCotizada());
-            ps.setDouble(6, c.getCostoCotizado());
-            ps.setDouble(7, c.getDescuentoProducto());
-            ps.setDouble(8, c.getDescuentoProducto2());
-            ps.setDouble(9, 0.00);
-            ps.setInt(10, 0);
-            ps.setInt(11, 0);
-            ps.setDouble(12, 0.00);
-            ps.setDouble(13, 0.00);
-            ps.setInt(14, 0);
-            ps.setInt(15, 0);
-
-            try {
-                ps.executeUpdate();
-                String sql = "UPDATE cotizaciones set estado = '2' WHERE  idRequisicion = " + ce.getIdRequisicion();
+                String sql = "UPDATE cotizaciones set estado = 2 WHERE  idCotizacion = " + idCot;
                 st.executeUpdate(sql);
-            } catch (Exception e) {
-                System.err.println(e);
-            }
-
-
-        } //FOR DETALLE
-
-
-        cn.close();
+                //    } catch (Exception e) {
+                //     System.err.println(e + "Entro en la excepcion");
+                //  }
+            } //FOR DETALLE
+            st.executeUpdate("COMMIT TRANSACTION");
+        } catch (SQLException e) {
+            st.executeUpdate("ROLLBACK TRANSACTION");
+            System.err.println(e);
+            throw (e);
+        } finally {
+            cn.close();
+        }
+        //  cn.close();
     }// FOR CABECERO
 
     public CotizacionDetalle dameCotizacion(int idCot) throws SQLException, NamingException {

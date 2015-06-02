@@ -9,24 +9,25 @@ public class OrdenCompraDetalle implements Serializable {
  //   private Empaque producto;
     private Producto producto;
     private CotizacionDetalle cotizacionDetalle;
-    private int idOrdenCompra;
-    private int idEmpaque;
-//    private String sku;
+    private int idOrdenCompra; //1
+    private int idEmpaque; //2
+//    private String sku;   //JULIO
     private double cantOrdenada;
-    private double cantOrdenadaSinCargo;
+    private double cantOrdenadaSinCargo; //JULIO
     private double cantidadSolicitada;
-    private double cantRecibidaOficina;
-    private double cantRecibidaAlmacen;
+    private double cantRecibidaOficina;  //JULIO
+    private double cantRecibidaAlmacen; //JULIO
     private double costoOrdenado;
     private double descuentoProducto;
     private double descuentoProducto2;
     private double desctoConfidencial;
     private int sinCargoBase;
     private int sinCargoCant;
-    private double ptjeOferte;
+    private double ptjeOferta; //ptjeOferta
     private double margen;
     private int IdImpuestosGrupo;
     private int idMarca;
+    // ADICIONAL
     private double neto;
     private double subtotal;
     private String netoF;
@@ -46,14 +47,17 @@ public class OrdenCompraDetalle implements Serializable {
         this.idEmpaque = 0;
 //        this.sku = "";
         this.cantOrdenada = 0.00;
+        this.cantOrdenadaSinCargo=0.00;
         this.cantidadSolicitada=0.00;
+        this.cantRecibidaAlmacen=0.00;
+        this.cantRecibidaOficina=0.00;
         this.costoOrdenado = 0.00;
         this.descuentoProducto = 0.00;
         this.descuentoProducto2 = 0.00;
         this.desctoConfidencial = 0.00;
         this.sinCargoBase = 0;
         this.sinCargoCant = 0;
-        this.ptjeOferte = 0.00;
+        this.ptjeOferta = 0.00;
         this.margen = 0.00;
         this.IdImpuestosGrupo = 0;
         this.idMarca = 0;
@@ -168,15 +172,15 @@ public class OrdenCompraDetalle implements Serializable {
         this.sinCargoCant = sinCargoCant;
     }
 
-    public double getPtjeOferte() {
-        return ptjeOferte;
+    public double getPtjeOferta() {
+        return ptjeOferta;
     }
 
-    public void setPtjeOferte(double ptjeOferte) {
-        this.ptjeOferte = ptjeOferte;
+    public void setPtjeOferta(double ptjeOferta) {
+        this.ptjeOferta = ptjeOferta;
     }
 
-    public double getMargen() {
+       public double getMargen() {
         return margen;
     }
 

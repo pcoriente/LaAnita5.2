@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
@@ -36,7 +38,6 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import ordenesDeCompra.MbOrdenCompra;
-import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
@@ -99,6 +100,51 @@ public class MbEntradas implements Serializable {
         this.inicializaLocales();
     }
     
+    public void imprimirCompraAlmacenPdf() {
+        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+        ArrayList<MovimientoProductoReporte> detalleReporte=new ArrayList<>();
+        for(MovimientoProducto p: this.entradaDetalle) {
+            if(p.getCantFacturada()+p.getCantSinCargo()!=0) {
+                detalleReporte.add(this.convertir(p));
+            }
+        }
+        String sourceFileName = "E:\\LaAnita\\Reportes\\CompraAlmacen.jasper";
+        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+        Map parameters = new HashMap();
+        parameters.put("empresa", this.entrada.getAlmacen().getEmpresa());
+        
+        parameters.put("cedis", this.entrada.getAlmacen().getCedis());
+        parameters.put("almacen", this.entrada.getAlmacen().getAlmacen());
+        
+        parameters.put("proveedor", this.entrada.getProveedor().getProveedor());
+        
+        parameters.put("comprobante", this.entrada.getComprobante().toString());
+        parameters.put("comprobanteFecha", this.entrada.getComprobante().getFecha());
+        parameters.put("capturaFolio", this.entrada.getFolio());
+        parameters.put("capturaFecha", formatoFecha.format(this.entrada.getFecha()));
+        parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));
+        
+        parameters.put("idUsuario", this.entrada.getIdUsuario());
+        parameters.put("idOrdenDeCompra", this.entrada.getIdOrdenCompra());
+        
+        try {
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+            
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=CompraAlmacen "+this.entrada.getFolio()+" "+this.entrada.getComprobante().toString()+".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
     private MovimientoProductoReporte convertir(MovimientoProducto prod) {
         MovimientoProductoReporte rep=new MovimientoProductoReporte();
         rep.setCantFacturada(prod.getCantFacturada());
@@ -123,9 +169,11 @@ public class MbEntradas implements Serializable {
     public void imprimirCompraOficinaPdf() {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
-        ArrayList<MovimientoProductoReporte> detalleReporte=new ArrayList<MovimientoProductoReporte>();
+        ArrayList<MovimientoProductoReporte> detalleReporte=new ArrayList<>();
         for(MovimientoProducto p: this.entradaDetalle) {
-            detalleReporte.add(this.convertir(p));
+            if(p.getCantFacturada()+p.getCantSinCargo()!=0) {
+                detalleReporte.add(this.convertir(p));
+            }
         }
         String sourceFileName = "E:\\LaAnita\\Reportes\\CompraOficina.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
@@ -173,12 +221,12 @@ public class MbEntradas implements Serializable {
     }
     
     public void inicializaListaCompras() {
-        this.entradas=new ArrayList<Entrada>();
+        this.entradas=new ArrayList<>();
     }
     
     public void editaCompraAlmacenSeleccionada() {
         this.modoEdicion = true;
-        this.entradaDetalle = new ArrayList<MovimientoProducto>();
+        this.entradaDetalle = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
             for (TOMovimientoProducto to : this.dao.obtenerMovimientoDetalleAlmacen(this.entrada.getIdEntrada())) {
@@ -195,7 +243,7 @@ public class MbEntradas implements Serializable {
 
     public void editaCompraSeleccionada() {
         this.modoEdicion = true;
-        this.entradaDetalle = new ArrayList<MovimientoProducto>();
+        this.entradaDetalle = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
             for (TOMovimientoProducto to : this.dao.obtenerMovimientoDetalle(this.entrada.getIdEntrada())) {
@@ -231,7 +279,7 @@ public class MbEntradas implements Serializable {
     public void mttoCompraAlmacen() {
         if (validaCompra()) {
             this.modoEdicion = true;
-            this.entradas = new ArrayList<Entrada>();
+            this.entradas = new ArrayList<>();
             try {
                 this.dao = new DAOMovimientos();
                 for (TOMovimiento to : this.dao.obtenerMovimientosAlmacen(this.mbComprobantes.getComprobante().getIdComprobante())) {
@@ -239,11 +287,11 @@ public class MbEntradas implements Serializable {
                 }
                 if (entradas.isEmpty()) {
                     this.entrada = new Entrada(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-                    this.entradaDetalle = new ArrayList<MovimientoProducto>();
+                    this.entradaDetalle = new ArrayList<>();
                 } else if (this.entradas.size() == 1) {
                     this.entrada = this.entradas.get(0);
 
-                    this.entradaDetalle = new ArrayList<MovimientoProducto>();
+                    this.entradaDetalle = new ArrayList<>();
                     for (TOMovimientoProducto to : this.dao.obtenerMovimientoDetalleAlmacen(this.entrada.getIdEntrada())) {
                         this.entradaProducto = this.convertir(this.entrada.getIdEntrada(), to);
                         this.entradaDetalle.add(this.entradaProducto);
@@ -263,7 +311,7 @@ public class MbEntradas implements Serializable {
     public void mttoCompra() {
         if (validaCompra()) {
             this.modoEdicion = true;
-            this.entradas = new ArrayList<Entrada>();
+            this.entradas = new ArrayList<>();
             try {
                 this.dao = new DAOMovimientos();
                 for (TOMovimiento to : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getComprobante().getIdComprobante())) {
@@ -271,11 +319,11 @@ public class MbEntradas implements Serializable {
                 }
                 if (this.entradas.isEmpty()) {
                     this.entrada = new Entrada(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-                    this.entradaDetalle = new ArrayList<MovimientoProducto>();
+                    this.entradaDetalle = new ArrayList<>();
                 } else if (this.entradas.size() == 1) {
                     this.entrada = this.entradas.get(0);
 
-                    this.entradaDetalle = new ArrayList<MovimientoProducto>();
+                    this.entradaDetalle = new ArrayList<>();
                     for (TOMovimientoProducto to : this.dao.obtenerMovimientoDetalle(this.entrada.getIdEntrada())) {
                         this.entradaProducto = this.convertir(this.entrada.getIdEntrada(), to);
                         this.entradaDetalle.add(this.entradaProducto);
@@ -309,9 +357,10 @@ public class MbEntradas implements Serializable {
     public void nuevaCompra() {
         if (validaCompra()) {
             this.modoEdicion = true;
-            this.entradas = new ArrayList<Entrada>();
+            this.entradas = new ArrayList<>();
             this.entrada = new Entrada(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-            this.entradaDetalle = new ArrayList<MovimientoProducto>();
+            this.entrada.setMoneda(this.mbMonedas.obtenerMoneda(1));
+            this.entradaDetalle = new ArrayList<>();
         }
     }
 
@@ -346,7 +395,7 @@ public class MbEntradas implements Serializable {
         this.modoEdicion = false;
         this.entrada = new Entrada();
         this.resEntradaProducto = new MovimientoProducto();
-        this.entradas = new ArrayList<Entrada>();
+        this.entradas = new ArrayList<>();
     }
 
 //    public void cargaAlmacenesEmpresa() {
@@ -435,6 +484,7 @@ public class MbEntradas implements Serializable {
             this.dao = new DAOMovimientos();
             TOMovimiento toEntrada = convertirTO(this.entrada);
             this.dao.grabarCompraAlmacen(toEntrada, this.entradaDetalle);
+            this.entrada.setFolio(toEntrada.getFolio());
             this.entrada.setEstatus(1);
             Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
         } catch (SQLException ex) {
@@ -449,6 +499,7 @@ public class MbEntradas implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.grabarCompraOficina(toEntrada, this.entradaDetalle);
+            this.entrada.setFolio(toEntrada.getFolio());
             this.entrada.setEstatus(1);
             Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
         } catch (SQLException ex) {
@@ -524,7 +575,7 @@ public class MbEntradas implements Serializable {
 //        TOEmpaque to;
 //        DAOProductos daoProds=new DAOProductos();
 //        this.entradaDetalle = this.dao.obtenerDetalleMovimiento(idEntrada);
-        this.entradaDetalle = new ArrayList<MovimientoProducto>();
+        this.entradaDetalle = new ArrayList<>();
 //        this.dao.obtenerMovimientoDetalle(idEntrada);
         for (TOMovimientoProducto to : this.dao.obtenerMovimientoDetalle(idEntrada)) {
             this.convertir(idEntrada, to);
@@ -551,13 +602,28 @@ public class MbEntradas implements Serializable {
         p.setNeto(to.getUnitario() + this.dao.obtenerImpuestosProducto(idEntrada, to.getIdProducto(), p.getImpuestos()));
         return p;
     }
+    
+    public void cancelarCompraAlmacen() {
+        try {
+            this.dao = new DAOMovimientos();
+            this.dao.cancelarCompraAlmacen(this.entrada.getIdEntrada(), this.entrada.getAlmacen().getIdAlmacen(), this.entrada.getIdOrdenCompra());
+            this.entrada.setEstatus(3);
+            this.modoEdicion = false;
+            Mensajes.mensajeSucces("La compra de Almacen se cancelo correctamente !!!");
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
 
     public void cancelarCompra() {
         try {
             this.dao = new DAOMovimientos();
             this.dao.cancelarCompra(this.entrada.getIdEntrada(), this.entrada.getAlmacen().getIdAlmacen(), this.entrada.getIdOrdenCompra());
-            Mensajes.mensajeSucces("La compra se cancelo correctamente !!!");
+            this.entrada.setEstatus(3);
             this.modoEdicion = false;
+            Mensajes.mensajeSucces("La compra se cancelo correctamente !!!");
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -590,7 +656,7 @@ public class MbEntradas implements Serializable {
 
     public void obtenerEntradas() {
         boolean ok = false;
-        this.entradas = new ArrayList<Entrada>();
+        this.entradas = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
 //            TOMovimiento m=this.dao.obtenerMovimientoComprobante(this.mbComprobantes.getSeleccion().getIdComprobante());

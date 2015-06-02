@@ -42,8 +42,9 @@
                                                  icon="ui-icon-unlocked"
                                                  title="Cerrar el proceso de cotización"
                                                  actionListener="#{mbCotizaciones.cerrarCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
-                                                 update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie"
-                                                 process="@this :fc:numCotizacion"
+                                                 update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie :fc:cerrarCotizacion"
+                                                 process="@this :fc:cerrarCotizacion"
+                                                 
                                                  />
                                 <p:separator />
                                 <p:commandButton 
