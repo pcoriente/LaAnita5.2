@@ -45,9 +45,9 @@
                     </p:toolbar>
                     <!-- P A N E L   D E  A D M I N I S T R A C I ON... -->
                     <p:messages id="messagePanel" showDetail="true" autoUpdate="true" closable="true" />
-                    <p:panel header="PANEL DE ADMINISTRACION DE COTIZACIONES" styleClass="quitaCuadro" >
+                    <p:panel id="pCotizaciones" header="PANEL DE ADMINISTRACION DE COTIZACIONES" styleClass="quitaCuadro" >
                         <h:outputText value="No hay requisiciones que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
-                        <p:dataTable id="requisicion"
+                        <p:dataTable id="dtCotizaciones"
                                      value="#{mbCotizaciones.listaCotizacionEncabezado}"
                                      var="cot" 
                                      widgetVar="requisicionesTable"
@@ -62,9 +62,9 @@
                                     process="@this"
                                     update=":form:listaProveedores :form:ordenDeCompra"
                                     />
-                            <p:column sortBy="#{cot.idRequisicion}" filterBy="#{cot.idRequisicion}" headerText="No. Req." filterMatchMode="contains" width="30"  >
+<!--                            <p:column sortBy="#{cot.idRequisicion}" filterBy="#{cot.idRequisicion}" headerText="No. Req." filterMatchMode="contains" width="30"  >
                                 <h:outputText value="#{cot.idRequisicion}"   />
-                            </p:column>
+                            </p:column>-->
                             <p:column filterBy="#{cot.depto}" headerText="Depto" filterMatchMode="contains" width="120" >
                                 <f:facet name="header">
                                     <h:outputText value="Depto"/>
@@ -104,8 +104,8 @@
                         </p:dataTable>
                     </p:panel>
                     <!-- AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII -->
-                    
-<!--                    OK HASTA AQUI-->
+
+                    <!--                    OK HASTA AQUI-->
                     <!-- P A N E L   D E  A D M I N I S T R A C I ON... -->
                     <p:dialog widgetVar="panel" 
                               resizable="false"  
@@ -129,7 +129,7 @@
                                         update=":form:productos :form:producto"
                                         oncomplete="PF('cotizaciones').show();"
                                         process="@this"/>
-                                
+
                                 <p:column headerText="Productos cotizados: " style="color: #428bca; background-color: whitesmoke " >  
                                     #{prov.producto.toString()}  
                                 </p:column>
@@ -142,8 +142,8 @@
                                          value="#{mbCotizaciones.ordenCompra}"
                                          var="oc"
                                          emptyMessage="No hay PRODUCTOS en la orden de compra...">
-                                <p:column headerText="Id" style="width: 30px;">
-                                    #{oc.producto.idProducto}
+                                <p:column headerText="SKU" style="width: 30px;">
+                                    #{oc.producto.cod_pro}
                                 </p:column>
                                 <p:column headerText="Producto" style="width: 250px;">
                                     #{oc.producto.toString()}
@@ -158,7 +158,7 @@
                                         process="@this"
                                         actionListener="#{mbCotizaciones.eliminarProducto(oc.proveedor.idProveedor)}" 
                                         update=":form:ordenDeCompra :form:listaProveedores"
-                                         />
+                                        />
                                 </p:column>
 
                             </p:dataTable>
@@ -169,6 +169,7 @@
                             title="Guardar Orden de Compra"
                             actionListener="#{mbCotizaciones.guardarOrdenCompra()}"
                             oncomplete="PF('panel').hide();"
+                            update=":form:dtCotizaciones :form:pCotizaciones"
                             />
                     </p:dialog>
 
