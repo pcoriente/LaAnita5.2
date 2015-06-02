@@ -344,7 +344,6 @@ public class DAOClientes {
     }
 
     public void generarReporte() throws SQLException, FileNotFoundException, IOException {
-
         Calendar c = new GregorianCalendar();
         String dia, mes, annio;
         dia = Integer.toString(c.get(Calendar.DATE));

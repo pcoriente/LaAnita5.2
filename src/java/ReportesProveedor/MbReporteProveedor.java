@@ -6,6 +6,8 @@
 package ReportesProveedor;
 
 import Message.Mensajes;
+import ReportesProveedor.DAO.DAOReportesProveedor;
+import ReportesProveedor.Dominio.ReporteProveedorDetalle;
 import ReportesProveedor.Dominio.ReporteProveedorEncabezado;
 import empresas.MbEmpresas;
 import empresas.MbMiniEmpresa;
@@ -14,7 +16,26 @@ import empresas.dominio.MiniEmpresa;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
+import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import listaPrecioIdeal.DAO.DAOListaPrecio;
+import listaPrecioIdeal.MbListaPrecioIdeal;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 
 /**
  *
@@ -28,6 +49,7 @@ public class MbReporteProveedor implements Serializable {
     private MbMiniEmpresa miniEmpresa;
     private ReporteProveedorEncabezado encabezadoBusqueda;
     private MiniEmpresa empresa = new MiniEmpresa();
+    private ArrayList<ReporteProveedorDetalle> lst = new ArrayList<>();
 
     public MbReporteProveedor() {
         encabezadoBusqueda = new ReporteProveedorEncabezado();
@@ -52,15 +74,40 @@ public class MbReporteProveedor implements Serializable {
         return ok;
     }
 
+    public void generarReporte() {
+        DAOReportesProveedor dao = new DAOReportesProveedor();
+        try {
+            dao.generarReporte(encabezadoBusqueda);
+            Mensajes.mensajeSucces("Reporte Generado");
+        } catch (JRException ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
+        }
+    }
+
+    public String salir() {
+        return "index.xhtml";
+    }
+
     public void buscar() {
         boolean ok = validar();
         if (ok) {
-
+            DAOReportesProveedor dao = new DAOReportesProveedor();
+            try {
+                encabezadoBusqueda.setIdEmpresa(empresa.getIdEmpresa());
+                lst = dao.dameInformacion(encabezadoBusqueda);
+                if (lst.size() == 0) {
+                    Mensajes.mensajeAlert("No hay información que desplegar");
+                } else {
+                    Mensajes.mensajeSucces("Información encontrada");
+                }
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+                Logger.getLogger(MbReporteProveedor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
-    
-   
-    
 
     public MbMiniEmpresa getMiniEmpresa() {
         return miniEmpresa;
@@ -86,7 +133,12 @@ public class MbReporteProveedor implements Serializable {
         this.empresa = empresa;
     }
 
-   
-    
+    public ArrayList<ReporteProveedorDetalle> getLst() {
+        return lst;
+    }
+
+    public void setLst(ArrayList<ReporteProveedorDetalle> lst) {
+        this.lst = lst;
+    }
 
 }
