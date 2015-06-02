@@ -592,7 +592,8 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:commandButton id="grabar" value="Enviar"  actionListener="#{mbOrdenCompra.enviarCorreo(mbOrdenCompra.correo.para)}" 
+                        <p:commandButton id="grabar" value="Enviar"  
+                                         actionListener="#{mbOrdenCompra.enviarCorreo(mbOrdenCompra.correo.para)}" 
                                          update="para asunto mensaje"
                                          />
                         <p:commandButton value="Cancelar"
