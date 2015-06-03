@@ -109,7 +109,7 @@ public class MbEntradas implements Serializable {
                 detalleReporte.add(this.convertir(p));
             }
         }
-        String sourceFileName = "E:\\LaAnita\\Reportes\\CompraAlmacen.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\CompraAlmacen.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
         Map parameters = new HashMap();
         parameters.put("empresa", this.entrada.getAlmacen().getEmpresa());
@@ -175,7 +175,7 @@ public class MbEntradas implements Serializable {
                 detalleReporte.add(this.convertir(p));
             }
         }
-        String sourceFileName = "E:\\LaAnita\\Reportes\\CompraOficina.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\CompraOficina.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
         Map parameters = new HashMap();
         parameters.put("empresa", this.entrada.getAlmacen().getEmpresa());
