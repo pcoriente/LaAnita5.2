@@ -35,17 +35,17 @@ public class MbRequisiciones implements Serializable {
     private MbDepto mbDepto = new MbDepto();
     @ManagedProperty(value = "#{mbUsuarios}")
     private MbUsuarios mbUsuarios;
-    private ArrayList<SelectItem> listaSubUsuarios = new ArrayList<SelectItem>();
+    private ArrayList<SelectItem> listaSubUsuarios = new ArrayList<>();
     private ArrayList<RequisicionEncabezado> listaRequisicionesEncabezado;
     private RequisicionEncabezado requisicionEncabezado = new RequisicionEncabezado();
     private ArrayList<RequisicionEncabezado> requisicionesFiltradas;
     private RequisicionDetalle requisicionDetalle;
-    private ArrayList<RequisicionDetalle> requisicionDetalles = new ArrayList<RequisicionDetalle>();
+    private ArrayList<RequisicionDetalle> requisicionDetalles = new ArrayList<>();
     private RequisicionDetalle empaqueElegido = new RequisicionDetalle();
-    private ArrayList<SelectItem> listaMini = new ArrayList<SelectItem>();
+    private ArrayList<SelectItem> listaMini = new ArrayList<>();
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    private ArrayList<Producto> listaEmpaque = new ArrayList<Producto>();
+    private ArrayList<Producto> listaEmpaque = new ArrayList<>();
     private Producto empaque;
     private String navega;
     private RequisicionDetalle seleccion = null;
@@ -260,7 +260,7 @@ public class MbRequisiciones implements Serializable {
 
     //METODOS REQUISICIONES
     public void cargaSubUsuarios() throws SQLException {
-        this.listaSubUsuarios = new ArrayList<SelectItem>();
+        this.listaSubUsuarios = new ArrayList<>();
         Usuario usu = new Usuario(0, "Seleccione un usuario: ");
         this.listaSubUsuarios.add(new SelectItem(usu, usu.toString()));
         for (Usuario us : this.mbUsuarios.obtenerSubUsuarios(this.mbDepto.getDeptos().getIdDepto())) {
@@ -313,7 +313,7 @@ public class MbRequisiciones implements Serializable {
     }
 
     public void cargaRequisiciones() throws NamingException, SQLException {
-           listaRequisicionesEncabezado = new ArrayList<RequisicionEncabezado>();
+        listaRequisicionesEncabezado = new ArrayList<>();
         DAORequisiciones daoReq = new DAORequisiciones();
         ArrayList<RequisicionEncabezado> toLista = daoReq.dameRequisicion();
         for (RequisicionEncabezado e : toLista) {
@@ -323,7 +323,7 @@ public class MbRequisiciones implements Serializable {
     }
 
     private void cargaRequisicionesDetalle(int id) throws NamingException, SQLException {
-        requisicionDetalles = new ArrayList<RequisicionDetalle>();
+        requisicionDetalles = new ArrayList<>();
         DAORequisiciones daoReq = new DAORequisiciones();
         for (TORequisicionDetalle rd : daoReq.dameRequisicionDetalle(id)) {
             requisicionDetalles.add(this.convertir(rd));
@@ -343,7 +343,7 @@ public class MbRequisiciones implements Serializable {
 
     public void cargaRequisicionesDetalleAprobar() throws NamingException, SQLException {
         int id = seleccionRequisicionEncabezado.getIdRequisicion();
-            requisicionDetalles = new ArrayList<RequisicionDetalle>();
+        requisicionDetalles = new ArrayList<>();
         DAORequisiciones daoReq = new DAORequisiciones();
         for (TORequisicionDetalle rd : daoReq.dameRequisicionDetalleAprobar(id)) {
             requisicionDetalles.add(convertir(rd));
@@ -378,7 +378,7 @@ public class MbRequisiciones implements Serializable {
     public void limpiaRequisicion() throws NamingException {
         navega = "";
         this.requisicionDetalle = new RequisicionDetalle();
-             requisicionDetalles = new ArrayList<RequisicionDetalle>();
+        requisicionDetalles = new ArrayList<>();
         this.listaRequisicionesEncabezado = null;
         this.requisicionesFiltradas = null;
         this.mbMiniEmpresa = new MbMiniEmpresa();
@@ -405,24 +405,28 @@ public class MbRequisiciones implements Serializable {
         FacesMessage msg = null;
         try {
             int longitud = requisicionDetalles.size();
-            for (int y = 0; y < longitud; y++) {
-                double ca = requisicionDetalles.get(y).getCantidadAutorizada();
-                if (ca < 0) {
-                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
-                    break;
-                } else if (estado == 2) {
-                    daoReq.actualizaRequisicion(idReq, estado);
-                    this.requisicionEncabezado.setStatus(estado);
-                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
-                    this.cargaRequisiciones();
-                    this.cargaRequisicionesDetalle(idReq);
-                } else if (estado == 0) {
-                    daoReq.actualizaRequisicion(idReq, estado);
-                    this.requisicionEncabezado.setStatus(estado);
-                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
-                    this.cargaRequisiciones();
-                    this.cargaRequisicionesDetalle(idReq);
+            if (longitud < 0) {
+                for (int y = 0; y < longitud; y++) {
+                    double ca = requisicionDetalles.get(y).getCantidadAutorizada();
+                    if (ca < 0) {
+                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
+                        break;
+                    } else if (estado == 2) {
+                        daoReq.actualizaRequisicion(idReq, estado);
+                        this.requisicionEncabezado.setStatus(estado);
+                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
+                        this.cargaRequisiciones();
+                        this.cargaRequisicionesDetalle(idReq);
+                    } else if (estado == 0) {
+                        daoReq.actualizaRequisicion(idReq, estado);
+                        this.requisicionEncabezado.setStatus(estado);
+                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
+                        this.cargaRequisiciones();
+                        this.cargaRequisicionesDetalle(idReq);
+                    }
                 }
+            } else {
+                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
             }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
@@ -525,5 +529,6 @@ public class MbRequisiciones implements Serializable {
         rd.setProducto(this.mbBuscar.getProducto());
         this.requisicionDetalles.add(rd);
         FacesContext.getCurrentInstance().addMessage(null, msg);
+                
     }
 }
