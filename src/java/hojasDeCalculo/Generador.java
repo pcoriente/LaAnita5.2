@@ -85,7 +85,7 @@ public class Generador {
     // genera el documento
     public OutputStream generaDocumento() throws IOException {
         ajustaColumnas();
-        final OutputStream outputStream = new FileOutputStream(nombreDeLaHoja+".xls");
+        final OutputStream outputStream = new FileOutputStream("C:\\Carlos Pat\\Reportes\\"+nombreDeLaHoja+".xls");
         libro.write(outputStream);
         outputStream.close();
         return outputStream;
