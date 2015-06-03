@@ -25,7 +25,7 @@
                             <p:commandButton 
                                 icon="ui-icon-plus"
                                 title="Crear orden de compra directa"
-                                oncomplete="odecD.show();"   
+                                oncomplete="PF('odecD').show();"   
                                 />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -57,25 +57,25 @@
                                      >
                             <p:ajax event="rowSelect" 
                                     listener="#{mbOrdenCompra.dameOrdenCompra}"   
-                                    oncomplete="odec.show()" 
+                                    oncomplete="PF('odec').show()" 
                                     update=":form:dialogoOC :form:OCDetalle"
                                     process="@this"
                                     > 
                             </p:ajax>
-                            <p:column sortBy="#{oc.idOrdenCompra}" filterBy="#{oc.idOrdenCompra}" headerText="OC" filterMatchMode="contains" width="30"  >
+                            <p:column sortBy="#{oc.idOrdenCompra}"  headerText="OC"  width="30"  >
                                 <h:outputText value="#{oc.idOrdenCompra}"   />
                             </p:column>
-                            <p:column sortBy="#{oc.idCotizacion}" filterBy="#{oc.idCotizacion}" headerText="COT" filterMatchMode="contains" width="30"  >
+                            <p:column sortBy="#{oc.idCotizacion}"  headerText="COT"  width="30"  >
                                 <h:outputText value="#{oc.idCotizacion}"   />
                             </p:column>
-                            <p:column sortBy="#{oc.idRequisicion}" filterBy="#{oc.idRequisicion}" headerText="REQ" filterMatchMode="contains" width="30"  >
+                            <p:column sortBy="#{oc.idRequisicion}"  headerText="REQ" width="30"  >
                                 <h:outputText value="#{oc.idRequisicion}"   />
                             </p:column>
-                            <p:column headerText="Empresa" >
-                                <h:outputText value="#{oc.empresa.empresa}"   />
+                            <p:column headerText="Empresa" width="180">
+                                <h:outputText value="#{oc.empresa.empresa}"    />
                             </p:column>
-                            <p:column headerText="Proveedor">
-                                <h:outputText value="#{oc.proveedor.contribuyente}"    />
+                            <p:column headerText="Proveedor"  width="190" >
+                                <h:outputText value="#{oc.proveedor.contribuyente}"  />
                             </p:column>
                             <p:column headerText="F. Finaliz">
                                 <h:outputText value="#{oc.fechaFinalizacion}"    />
@@ -101,7 +101,7 @@
                                     icon="ui-icon-disk"
                                     title="Guardar orden de compra"
                                     actionListener="#{mbOrdenCompra.guardarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,mbOrdenCompra.ordenElegida.estado)}"
-                                    oncomplete="odec.hide()"
+                                    oncomplete="PF('odec').hide()"
                                     disabled="#{mbOrdenCompra.ordenElegida.estado eq 2 }"
                                     update=":form:ordenCompra"
                                     />
@@ -118,7 +118,7 @@
                                     title="Enviar orden de compra"
                                     disabled="#{mbOrdenCompra.ordenElegida.estado eq 1 }"
                                     actionListener="#{mbOrdenCompra.cargaContactos()}"
-                                    oncomplete="correo.show();"
+                                    oncomplete="PF('correo').show();"
                                     update=":form:para :form:asunto :form:mensaje :form:tablaCorreos" />
 
                                 <p:commandButton
@@ -420,7 +420,7 @@
                                     title="Buscar Productos"
                                     process="@this"
                                     actionListener="#{mbOrdenCompra.limpiarCamposBusqueda()}"
-                                    oncomplete="buscarProductoDlg.show()"
+                                    oncomplete="PF('buscarProductoDlg').show()"
                                     update=":form:buscarProductos :form:opcionParte :form:opcionDescripcion"
                                     />
                                 <p:commandButton
@@ -439,7 +439,7 @@
                                 <p:commandButton
                                     icon="ui-icon-disk"
                                     title="Guardar orden de compra directa"
-                                    oncomplete="odecD.hide()"
+                                    oncomplete="PF('odecD').hide()"
                                     />
                                 <p:commandButton
                                     icon="ui-icon-cancel"
@@ -592,7 +592,8 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:commandButton id="grabar" value="Enviar"  actionListener="#{mbOrdenCompra.enviarCorreo(mbOrdenCompra.correo.para)}" 
+                        <p:commandButton id="grabar" value="Enviar"  
+                                         actionListener="#{mbOrdenCompra.enviarCorreo(mbOrdenCompra.correo.para)}" 
                                          update="para asunto mensaje"
                                          />
                         <p:commandButton value="Cancelar"
@@ -681,7 +682,7 @@
 
                             <f:facet name="footer">
                                 <p:commandButton id="seleccionMultiple" value="Seleccionar" 
-                                                 update=":form:detalleOCD" oncomplete="buscarProductoDlg.hide()" />
+                                                 update=":form:detalleOCD" oncomplete="PF('buscarProductoDlg').hide()" />
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>

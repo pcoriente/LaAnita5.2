@@ -17,6 +17,13 @@
                 <h:form  id="form" onkeypress="return event.keyCode !== 13;">
                     <p:growl id="growl" showDetail="true" autoUpdate="true"/>  
                     <p:panel>
+                        <div align="right">
+                            <p:commandButton icon="ui-icon-home" 
+                                             title="Salir"
+                                             ajax="false"
+                                             action="#{mbReporteProveedor.salir()}"
+                                             immediate="true"/>
+                        </div>
                         <h:panelGrid columns="4" 
                                      style="width: 100%">
                             <h:outputLabel value="Empresa :" style="color: black"/>
@@ -46,13 +53,12 @@
                             <p:calendar  value="#{mbReporteProveedor.encabezadoBusqueda.fechaFinal}"
                                          id="fechaFinal"/>
                         </h:panelGrid>
-
                         <p:toolbar>
                             <f:facet name="left">
                                 <p:commandButton style="float: left" 
                                                  icon="ui-icon-search" 
                                                  title="Buscar Información"
-                                                 update="growl" 
+                                                 update="growl tablaDatos btnBuscar" 
                                                  process="@this
                                                  :form:txtCodigoInicial 
                                                  :form:txtCodigoFinal 
@@ -61,26 +67,41 @@
                                                  actionListener="#{mbReporteProveedor.buscar()}"/>
                             </f:facet>
                             <f:facet name="right">
-                                <p:commandButton style="float: left; color: black" 
+                                <p:commandButton style="float: left; color: black"
+                                                 id="btnBuscar"
+                                                 disabled="#{mbReporteProveedor.lst.size() == 0}"
                                                  icon="fa fa-file-pdf-o" 
-                                                 title="Generar Reporte"/>
+                                                 title="Generar Reporte"
+                                                 ajax="false"
+                                                 update="growl"
+                                                 action="#{mbReporteProveedor.generarReporte()}"
+                                                 />
                             </f:facet>
                         </p:toolbar>
 
-                        <p:dataTable> 
+                        <p:dataTable value="#{mbReporteProveedor.lst}" 
+                                     var="lst" 
+                                     id="tablaDatos"
+                                     emptyMessage="No hay registros para mostrar"> 
 
-                            <p:column headerText="Código.">
-                            </p:column>
                             <p:column headerText="Nombre.">
+                                #{lst.nombre}
                             </p:column>
                             <p:column headerText="Importe.">
+                                #{lst.importe}
                             </p:column>
                             <p:column headerText="I.V.A.">
+                                #{lst.iva}
                             </p:column>
                             <p:column headerText="Descuento.">
+                                #{lst.descuento}
                             </p:column>
                             <p:column headerText="Total.">
+                                #{lst.total}
                             </p:column>
+                            <f:facet name="footer">
+                                <strong>#{mbReporteProveedor.lst.size()} Registros encontrados.</strong>
+                            </f:facet>
                         </p:dataTable>
                     </p:panel>
                 </h:form>

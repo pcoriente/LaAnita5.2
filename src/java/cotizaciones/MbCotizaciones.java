@@ -257,6 +257,7 @@ public class MbCotizaciones implements Serializable {
 //        } else if (opcion == 1) {
 //            navega = "menuRequisiciones.xhtml";
 //        } else if (opcion == 2) {
+//            this.limpiaCotizacion();
 //            navega = "menuCotizaciones.xhtml";
 //        } else if (opcion == 3) {
 //            navega = "menuOrdenesDeCompra.xhtml";
@@ -621,6 +622,9 @@ public class MbCotizaciones implements Serializable {
         this.impuesto = 0.00;
         this.total = 0.00;
         this.mbMiniProveedor = new MbMiniProveedor();
+        
+        
+        this.listaCotizacionEncabezado=null;
          
     }
 
@@ -769,9 +773,12 @@ public class MbCotizaciones implements Serializable {
                 daoReq.cerrarCotizacion(idReq);
                 msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La cotización ha sido CERRADA..");
                 //    this.setNumCotizacion(numCotizacion);
+               
                 this.limpiaCotizacion();
                 mbMiniProveedor.getMiniProveedor().setIdProveedor(0);
                 mbMonedas.getMoneda().setIdMoneda(0);
+                
+                                
             }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
