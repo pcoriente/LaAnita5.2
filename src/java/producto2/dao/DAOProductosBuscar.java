@@ -15,7 +15,6 @@ import javax.sql.DataSource;
 import producto2.dominio.Empaque;
 import producto2.dominio.SubProducto;
 import producto2.to.TOProducto;
-import producto2.to.TOProductoCombo;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -66,26 +65,24 @@ public class DAOProductosBuscar {
 //    }
     
     public ArrayList<TOProducto> obtenerSimilares(int idProducto) throws SQLException {
-        ArrayList<TOProducto> toSimilares=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> toSimilares=new ArrayList<>();
         String strSQL=sqlEmpaque()+
                 "INNER JOIN empaquesSimilares S ON S.idSimilar=e.idEmpaque\n" +
                 "WHERE S.idEmpaque="+idProducto+" AND S.idSimilar!="+idProducto;
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 toSimilares.add(this.construir(rs));
             }
         } finally {
-            st.close();
             cn.close();
         }
         return toSimilares;
     }
     
     public ArrayList<TOProducto> obtenerFormulasClasificacion(int idTipo, int idGrupo, int idSubGrupo, int idInsumo) throws SQLException {
-        ArrayList<TOProducto> productos=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> productos=new ArrayList<>();
         String strSQL=sqlEmpaque()+
             "INNER JOIN productos p on p.idProducto=e.idProducto\n" +
             "LEFT JOIN productosPartes pp on pp.idParte=p.idParte\n" +
@@ -108,8 +105,7 @@ public class DAOProductosBuscar {
         }
         strSQL=strSQL+"\nORDER BY p.idProducto, pp.parte, p.descripcion";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 productos.add(this.construir(rs));
@@ -121,7 +117,7 @@ public class DAOProductosBuscar {
     }
     
     public ArrayList<TOProducto> obtenerProductosClasificacion(int idGrupo, int idSubGrupo) throws SQLException {
-        ArrayList<TOProducto> productos=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> productos=new ArrayList<>();
         String strSQL=sqlEmpaque()+
             "INNER JOIN productos p on p.idProducto=e.idProducto\n" +
             "LEFT JOIN productosPartes pp on pp.idParte=p.idParte\n" +
@@ -131,8 +127,7 @@ public class DAOProductosBuscar {
         }
         strSQL=strSQL+"\nORDER BY pp.parte, p.descripcion";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 productos.add(this.construir(rs));
@@ -144,15 +139,14 @@ public class DAOProductosBuscar {
     }
     
     public ArrayList<TOProducto> obtenerProductosDescripcion(String descripcion) throws SQLException {
-        ArrayList<TOProducto> productos=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> productos=new ArrayList<>();
         String strSQL=sqlEmpaque()+
             "INNER JOIN productos p on p.idProducto=e.idProducto\n" +
             "LEFT JOIN productosPartes pp on pp.idParte=p.idParte\n" +
             "WHERE p.descripcion like '%"+descripcion+"%'\n"+
             "ORDER BY pp.parte, p.descripcion";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 productos.add(this.construir(rs));
@@ -164,14 +158,13 @@ public class DAOProductosBuscar {
     }
     
     public ArrayList<TOProducto> obtenerProductosParte(int idParte) throws SQLException {
-        ArrayList<TOProducto> productos=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> productos=new ArrayList<>();
         String strSQL=sqlEmpaque()+
             "INNER JOIN productos p on p.idProducto=e.idProducto\n" +
             "WHERE p.idParte="+idParte+"\n"+
             "ORDER BY p.descripcion";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 productos.add(this.construir(rs));
@@ -183,13 +176,12 @@ public class DAOProductosBuscar {
     }
     
     public ArrayList<TOProducto> obtenerProductos(int idArticulo) throws SQLException {
-        ArrayList<TOProducto> productos=new ArrayList<TOProducto>();
+        ArrayList<TOProducto> productos=new ArrayList<>();
         String strSQL=sqlEmpaque()+
                 "WHERE e.idProducto="+idArticulo+"\n" +
                 "ORDER BY cod_pro";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 productos.add(this.construir(rs));
@@ -205,8 +197,7 @@ public class DAOProductosBuscar {
         String strSQL=sqlEmpaque()+
                 "WHERE e.cod_pro='"+sku+"'";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 to=this.construir(rs);
@@ -222,8 +213,7 @@ public class DAOProductosBuscar {
         String strSQL=sqlEmpaque()+
                 "WHERE e.idEmpaque="+idProducto;
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 to=this.construir(rs);

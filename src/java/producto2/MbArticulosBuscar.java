@@ -236,10 +236,10 @@ public class MbArticulosBuscar implements Serializable {
         this.filtroTipo=this.arrayTipos[0].getLabel();
         this.filtroGrupo=this.arrayGrupos[0].getLabel();
         this.filtroSubGrupo=this.arraySubGrupos[0].getLabel();
-        this.articulos=new ArrayList<ArticuloBuscar>();
-        ArrayList<Tipo> lstTipos = new ArrayList<Tipo>();
-        ArrayList<Grupo> lstGrupos = new ArrayList<Grupo>();
-        ArrayList<SubGrupo> lstSubGrupos = new ArrayList<SubGrupo>();
+        this.articulos=new ArrayList<>();
+        ArrayList<Tipo> lstTipos = new ArrayList<>();
+        ArrayList<Grupo> lstGrupos = new ArrayList<>();
+        ArrayList<SubGrupo> lstSubGrupos = new ArrayList<>();
         for(Articulo a: this.lstArticulos) {
             if (lstTipos.indexOf(a.getTipo()) == -1) {
                 lstTipos.add(a.getTipo());

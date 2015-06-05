@@ -16,7 +16,6 @@ import producto2.dominio.Articulo;
 import producto2.to.TOArticulo;
 import unidadesMedida.DAOUnidadesMedida;
 import unidadesMedida.UnidadMedida;
-import utilerias.Utilerias;
 
 /**
  *
@@ -70,7 +69,7 @@ public class MbArticulos implements Serializable {
     private void cargaUnidadesMedida() {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "");
-        this.listaUnidadesMedida = new ArrayList<SelectItem>();
+        this.listaUnidadesMedida = new ArrayList<>();
         try {
             DAOUnidadesMedida daoUnidades = new DAOUnidadesMedida();
             UnidadMedida u0=new UnidadMedida(0,"SELECCIONE","");

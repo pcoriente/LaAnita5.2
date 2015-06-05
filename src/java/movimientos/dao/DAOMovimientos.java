@@ -92,8 +92,8 @@ public class DAOMovimientos {
                                 + "SET cantidad=cantidad+" + p.getCantFacturada() + ", saldo=saldo+" + p.getCantFacturada() + " "
                                 + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
                     } else {
-                        strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, fechaCaducidad, lote, cantidad, saldo, existenciaFisica, separados) "
-                                + "VALUES (" + m.getIdAlmacen() + ", " + idProducto + ", DATEADD(DAY, 365, convert(date, GETDATE())), '" + lote + "', " + p.getCantFacturada() + ", " + p.getCantFacturada() + ", 0, 0)";
+                        strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, lote, fechaCaducidad, cantidad, saldo, separados, existenciaFisica) "
+                                + "VALUES (" + m.getIdAlmacen() + ", " + idProducto + ", '" + lote + "', DATEADD(DAY, 365, convert(date, GETDATE())), " + p.getCantFacturada() + ", " + p.getCantFacturada() + ", 0, 0)";
                     }
                     st.executeUpdate(strSQL);
 
@@ -780,6 +780,23 @@ public class DAOMovimientos {
     }
     
 //  ===============================================================================================
+    
+    public void cerrarOrdenDeCompra(boolean oficina, int idOrdenDeCompra) throws SQLException {
+        String strSQL;
+        if(oficina) {
+            strSQL= "UPDATE ordenCompra SET estado=3 WHERE idOrdenCompra="+idOrdenDeCompra;
+        } else {
+            strSQL= "UPDATE ordenCompra SET estadoAlmacen=3 WHERE idOrdenCompra="+idOrdenDeCompra;
+        }
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
+        try {
+            st.executeUpdate(strSQL);
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
     
     public ArrayList<TOMovimientoProducto> obtenerDetalleOrdenDeCompra(int idOrdenDeCompra, boolean oficina) throws SQLException {
         String strSQL;

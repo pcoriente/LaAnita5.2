@@ -67,8 +67,7 @@ public class DAOArticulosBuscar {
                 + "INNER JOIN impuestosGrupos i ON i.idGrupo=a.idImpuesto "
                 + "WHERE u.upc='"+upc+"'";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 articulo=construir(rs);
@@ -80,11 +79,10 @@ public class DAOArticulosBuscar {
     }
     
     public ArrayList<Articulo> obtenerArticulos(String descripcion) throws SQLException {
-        ArrayList<Articulo> articulos=new ArrayList<Articulo>();
+        ArrayList<Articulo> articulos=new ArrayList<>();
         String strSQL=sqlArticulo() +" WHERE a.descripcion like '%"+descripcion+"%'";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 articulos.add(construir(rs));
@@ -96,18 +94,14 @@ public class DAOArticulosBuscar {
     }
     
     public ArrayList<Articulo> obtenerArticulos(Parte parte) throws SQLException {
-        ArrayList<Articulo> articulos=new ArrayList<Articulo>();
+        ArrayList<Articulo> articulos=new ArrayList<>();
         String strSQL=sqlArticulo() +" WHERE a.idParte IN (SELECT idParte FROM "+this.tabla+"Partes WHERE parte like '%"+parte.getParte()+"%')";
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 articulos.add(construir(rs));
             }
-        } catch (SQLException ex) {
-            System.out.println(strSQL);
-            throw ex;
         } finally {
             cn.close();
         }
@@ -115,11 +109,10 @@ public class DAOArticulosBuscar {
     }
     
     public ArrayList<Articulo> obtenerArticulos(int idParte) throws SQLException {
-        ArrayList<Articulo> articulos=new ArrayList<Articulo>();
+        ArrayList<Articulo> articulos=new ArrayList<>();
         String strSQL=sqlArticulo() +" WHERE a.idParte="+idParte;
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             while(rs.next()) {
                 articulos.add(construir(rs));
@@ -134,8 +127,7 @@ public class DAOArticulosBuscar {
         Articulo articulo=null;
         String strSQL=sqlArticulo() + " WHERE a.idProducto="+idArticulo;
         Connection cn=ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 articulo=construir(rs);

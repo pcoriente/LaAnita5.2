@@ -111,7 +111,7 @@ public class MbFormulas implements Serializable {
     
     public void generarDoc() {
         // Escribe directamente el archivo PDF
-        String sourceFileName = "E:\\LaAnita\\Reportes\\formula.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\formula.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.formula.getInsumos());
         Map parameters = new HashMap();
         parameters.put("empresa", this.mbEmpresas.getEmpresa().getNombreComercial());
@@ -145,7 +145,7 @@ public class MbFormulas implements Serializable {
     }
     
     public void generarDocs() {
-        String sourceFileName = "E:\\LaAnita\\Reportes\\formulas2.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\formulas2.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.formulas);
         Map parameters = new HashMap();
         parameters.put("empresa", this.mbEmpresas.getEmpresa().getNombreComercial());

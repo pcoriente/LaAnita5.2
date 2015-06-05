@@ -6,8 +6,6 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
@@ -70,9 +68,9 @@ public class MbProductosBuscar implements Serializable {
         this.tipoSeleccion = "single";
 //        this.update="";
         this.producto = null;
-        this.productos = new ArrayList<Producto>();
+        this.productos = new ArrayList<>();
 //        this.seleccionados = new Producto[]{};
-        this.seleccionados = new ArrayList<Producto>();
+        this.seleccionados = new ArrayList<>();
     }
 
     public void limpiarBuscador() {
@@ -81,7 +79,7 @@ public class MbProductosBuscar implements Serializable {
 
     public boolean buscarPorClasificacion(int idTipo, int idGrupo, int idSubGrupo, int idInsumo) {
         boolean ok=false;
-        this.productos=new ArrayList<Producto>();
+        this.productos=new ArrayList<>();
         Articulo a = null;
         int idArticulo = 0;
         try {
@@ -125,13 +123,17 @@ public class MbProductosBuscar implements Serializable {
                 ArrayList<TOProducto> tos;
 
                 this.producto = null;
-                this.productos = new ArrayList<Producto>();
-                if (this.getTipoBuscar().equals("2")) {
-                    tos = this.dao.obtenerProductosParte(this.mbParte.getParte().getIdParte());
-                } else if (this.getTipoBuscar().equals("3")) {
-                    tos = dao.obtenerProductosDescripcion(this.strBuscar);
-                } else {
-                    tos = dao.obtenerProductosClasificacion(this.mbGrupo.getGrupo().getIdGrupo(), this.mbGrupo.getMbSubGrupo().getSubGrupo().getIdSubGrupo());
+                this.productos = new ArrayList<>();
+                switch (this.getTipoBuscar()) {
+                    case "2":
+                        tos = this.dao.obtenerProductosParte(this.mbParte.getParte().getIdParte());
+                        break;
+                    case "3":
+                        tos = dao.obtenerProductosDescripcion(this.strBuscar);
+                        break;
+                    default:
+                        tos = dao.obtenerProductosClasificacion(this.mbGrupo.getGrupo().getIdGrupo(), this.mbGrupo.getMbSubGrupo().getSubGrupo().getIdSubGrupo());
+                        break;
                 }
                 for (TOProducto to : tos) {
                     if (to.getIdArticulo() != idArticulo) {
@@ -190,7 +192,7 @@ public class MbProductosBuscar implements Serializable {
     
     public ArrayList<Producto> obtenerSimilares(int idProducto) throws NamingException, SQLException {
         boolean ok=false;
-        ArrayList<Producto> similares=new ArrayList<Producto>();
+        ArrayList<Producto> similares=new ArrayList<>();
 //        RequestContext context = RequestContext.getCurrentInstance();
 //        try {
             this.dao=new DAOProductosBuscar();
@@ -210,7 +212,7 @@ public class MbProductosBuscar implements Serializable {
 
     public void obtenerProductos(int idArticulo) {
         boolean ok = false;
-        this.productos = new ArrayList<Producto>();
+        this.productos = new ArrayList<>();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerProductos");
         RequestContext context = RequestContext.getCurrentInstance();
         try {
