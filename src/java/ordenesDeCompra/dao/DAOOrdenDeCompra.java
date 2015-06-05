@@ -299,7 +299,7 @@ public class DAOOrdenDeCompra {
         PreparedStatement ps2;
         try {
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=2  WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=2, estadoAlmacen=2 WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -316,7 +316,7 @@ public class DAOOrdenDeCompra {
         try {
 
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=0  WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -327,12 +327,12 @@ public class DAOOrdenDeCompra {
     }
 
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
-        ArrayList<Contacto> lista = new ArrayList<Contacto>();
+        ArrayList<Contacto> lista;
+        lista = new ArrayList<>();
         ResultSet rs;
-        Connection cn = ds.getConnection();
-        try {
+        try (Connection cn = ds.getConnection()) {
 
-            String stringSQL = "select * from ordenCompra oc\n"
+            String stringSQL = "select con.correo from ordenCompra oc\n"
                     + "inner join cotizaciones c on c.idCotizacion=oc.idCotizacion\n"
                     + "inner join contactos con on con.idPadre=c.idProveedor\n"
                     + "where oc.idOrdenCompra=" + idOC;
@@ -342,8 +342,6 @@ public class DAOOrdenDeCompra {
             while (rs.next()) {
                 lista.add(construirContactos(rs));
             }
-        } finally {
-            cn.close();
         }
         return lista;
 
