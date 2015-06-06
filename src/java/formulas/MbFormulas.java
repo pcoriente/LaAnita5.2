@@ -118,7 +118,7 @@ public class MbFormulas implements Serializable {
         parameters.put("cod_pro", this.formula.getCod_pro());
         parameters.put("empaque", this.formula.getEmpaque());
 //        parameters.put("observaciones", this.formula.getObservaciones());
-        ArrayList<Linea> listaObservaciones=new ArrayList<Linea>();
+        ArrayList<Linea> listaObservaciones=new ArrayList<>();
         for(String str: this.formula.getObservaciones().split("\r\n")) {
             listaObservaciones.add(new Linea(str));
         }
@@ -193,14 +193,14 @@ public class MbFormulas implements Serializable {
     
     private void generaFormulaExcel() {
         ArrayList<String> fila;
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add(this.mbEmpresas.getEmpresa().getNombreComercial());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add(this.formula.getCod_pro());
         fila.add(this.formula.getEmpaque());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add("SKU");            // A
         fila.add("INSUMO");         // B
         fila.add("CANTIDAD");       // C
@@ -247,7 +247,7 @@ public class MbFormulas implements Serializable {
     
     private boolean generarFormulas() {
         boolean ok=false;
-        this.formulas=new ArrayList<Formula>();
+        this.formulas=new ArrayList<>();
         try {
             this.dao=new DAOFormulas();
             for(Producto producto: this.mbBuscar.getProductos()) {

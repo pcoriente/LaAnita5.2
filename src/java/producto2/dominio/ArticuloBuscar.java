@@ -11,6 +11,13 @@ public class ArticuloBuscar {
     private String subGrupo;
     private String articulo;
     
+    public ArticuloBuscar() {
+        this.tipo="";
+        this.grupo="";
+        this.subGrupo="";
+        this.articulo="";
+    }
+    
     public ArticuloBuscar(int idArticulo, String tipo, String grupo, String subGrupo, String articulo) {
         this.idArticulo = idArticulo;
         this.tipo = tipo;
