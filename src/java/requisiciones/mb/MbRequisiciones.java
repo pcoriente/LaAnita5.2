@@ -1,5 +1,6 @@
 package requisiciones.mb;
 
+import Message.Mensajes;
 import empresas.MbMiniEmpresa;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -62,6 +63,7 @@ public class MbRequisiciones implements Serializable {
         this.mbDepto = new MbDepto();
         this.mbUsuarios = new MbUsuarios();
         this.mbBuscar = new MbProductosBuscar();
+        listaRequisicionesEncabezado = null;
         //SEGURIDAD
         this.mbAcciones = new MbAcciones(7);
     }
@@ -313,7 +315,7 @@ public class MbRequisiciones implements Serializable {
     }
 
     public void cargaRequisiciones() throws NamingException, SQLException {
-           listaRequisicionesEncabezado = new ArrayList<RequisicionEncabezado>();
+        listaRequisicionesEncabezado = new ArrayList<RequisicionEncabezado>();
         DAORequisiciones daoReq = new DAORequisiciones();
         ArrayList<RequisicionEncabezado> toLista = daoReq.dameRequisicion();
         for (RequisicionEncabezado e : toLista) {
@@ -343,7 +345,7 @@ public class MbRequisiciones implements Serializable {
 
     public void cargaRequisicionesDetalleAprobar() throws NamingException, SQLException {
         int id = seleccionRequisicionEncabezado.getIdRequisicion();
-            requisicionDetalles = new ArrayList<RequisicionDetalle>();
+        requisicionDetalles = new ArrayList<RequisicionDetalle>();
         DAORequisiciones daoReq = new DAORequisiciones();
         for (TORequisicionDetalle rd : daoReq.dameRequisicionDetalleAprobar(id)) {
             requisicionDetalles.add(convertir(rd));
@@ -378,7 +380,7 @@ public class MbRequisiciones implements Serializable {
     public void limpiaRequisicion() throws NamingException {
         navega = "";
         this.requisicionDetalle = new RequisicionDetalle();
-             requisicionDetalles = new ArrayList<RequisicionDetalle>();
+        requisicionDetalles = new ArrayList<RequisicionDetalle>();
         this.listaRequisicionesEncabezado = null;
         this.requisicionesFiltradas = null;
         this.mbMiniEmpresa = new MbMiniEmpresa();
@@ -433,13 +435,25 @@ public class MbRequisiciones implements Serializable {
 
     }
 
-    public void eliminaProductoAprobar() throws NamingException, SQLException {
-        DAORequisiciones daoReq = new DAORequisiciones();
-        requisicionDetalles.remove(seleccionFila);
-        int idReq = seleccionFila.getIdRequisicion();
-        int idProd = seleccionFila.getProducto().getIdProducto();
-        daoReq.eliminaProductoAprobar(idReq, idProd);
-        seleccionFila = null;
+    public void eliminaProductoAprobar() {
+
+        if (requisicionDetalles.size() > 1) {
+            try {
+                DAORequisiciones daoReq = new DAORequisiciones();
+                requisicionDetalles.remove(seleccionFila);
+                int idReq = seleccionFila.getIdRequisicion();
+                int idProd = seleccionFila.getProducto().getIdProducto();
+                daoReq.eliminaProductoAprobar(idReq, idProd);
+                seleccionFila = null;
+                Mensajes.MensajeSuccesP("Producto eliminado");
+            } catch (NamingException ex) {
+                Message.Mensajes.MensajeErrorP(ex.getMessage());
+            } catch (SQLException ex) {
+                Message.Mensajes.mensajeError(ex.getMessage());
+            }
+        } else {
+            Mensajes.MensajeAlertP("Debes tener por lo menos un producto");
+        }
 
     }
 
@@ -480,7 +494,6 @@ public class MbRequisiciones implements Serializable {
     public void modificarRequisicionStatus() throws SQLException, NamingException {
         int idReq = seleccionRequisicionEncabezado.getIdRequisicion();
         int status = seleccionRequisicionEncabezado.getStatus();
-
 
         DAORequisiciones daoReq = new DAORequisiciones();
         FacesMessage msg;

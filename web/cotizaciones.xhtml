@@ -26,9 +26,14 @@
                                     icon="ui-icon-disk"
                                     title="Guardar cotización"
                                     actionListener="#{mbCotizaciones.guardaCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
-                                    update="btnGuardarCotizacion :fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie"
+                                    update="btnGuardarCotizacion 
+                                    :fc:cabeceroProveedor 
+                                    :fc:cabeceroCotizacion 
+                                    :fc:detalleCotizacion 
+                                    :fc:pie
+                                    :fc:messages"
                                     process="@this moneda :fc:detalleCotizacion :fc:numCotizacion "
-                                    
+
                                     />
                                 <p:commandButton id="limpiarCotizacion"
                                                  icon="ui-icon-refresh"
@@ -41,10 +46,14 @@
                                 <p:commandButton id="cerrarCotizacion"
                                                  icon="ui-icon-unlocked"
                                                  title="Cerrar el proceso de cotización"
-                                                 actionListener="#{mbCotizaciones.cerrarCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
-                                                 update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie :fc:cerrarCotizacion"
-                                                 process="@this :fc:cerrarCotizacion"
-                                                 
+                                                 ajax="false"
+                                                 action="#{mbCotizaciones.cerrarCotizacion(mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion != 0 ? mbRequisiciones.seleccionRequisicionEncabezado.idRequisicion: mbCotizacion.miIdReq)}"
+                                                 update=":fc:cabeceroProveedor 
+                                                 :fc:cabeceroCotizacion 
+                                                 :fc:detalleCotizacion 
+                                                 :fc:pie 
+                                                 :fc:messages
+                                                 :fc:cerrarCotizacion"
                                                  />
                                 <p:separator />
                                 <p:commandButton 
