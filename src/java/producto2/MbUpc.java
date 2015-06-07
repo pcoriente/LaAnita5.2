@@ -143,7 +143,7 @@ public class MbUpc implements Serializable {
         boolean ok=false;
         RequestContext context = RequestContext.getCurrentInstance();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaListaUpcs");
-        this.listaUpcs=new ArrayList<SelectItem>();
+        this.listaUpcs=new ArrayList<>();
         Upc u0=this.nuevoLista(this.upc.getIdProducto());
         this.listaUpcs.add(new SelectItem(u0, u0.toString()));
         try {

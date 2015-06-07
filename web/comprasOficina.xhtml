@@ -156,7 +156,7 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Ord.d'Compra :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="Num. OC :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:inputText id="txtOrdenCompra" value="#{mbEntradas.entrada.idOrdenCompra}" readonly="true"
@@ -217,7 +217,7 @@
                                                          update="main" />
                                         <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Imprimir una Compra" 
                                                          disabled="#{mbEntradas.entrada.estatus==0}" 
-                                                         ajax="false" action="#{mbEntradas.imprimirCompraOficinaPdf()}" />
+                                                         ajax="false" immediate="true" action="#{mbEntradas.imprimirCompraOficinaPdf()}" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                          process="@this" actionListener="#{mbEntradas.salir()}" 
                                                          update="main" />
@@ -453,6 +453,11 @@
                                                          process="@this" actionListener="#{mbEntradas.actualizaTotales()}" 
                                                          update=":main:detalleEntrada :main:mttoEntradasTotales" 
                                                          oncomplete="PF('editDlg').hide();" />
+                                        <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Elimnar Producto" 
+                                                         disabled="#{mbEntradas.entrada.estatus!=0 and mbEntradas.entrada.idOrdenCompra!=0}" 
+                                                         process="@this" actionListener="#{mbEntradas.eliminarProducto()}" 
+                                                         update=":main:detalleEntrada :main:mttoEntradasTotales" 
+                                                         oncomplete="PF('editDlg').hide();" />
                                         <p:commandButton title="Cancelar" icon="ui-icon-arrowreturnthick-1-w" 
                                                          process="@this" actionListener="#{mbEntradas.cancelarProductoOficina()}" 
                                                          update=":main:detalleEntrada" oncomplete="PF('editDlg').hide();" />
@@ -546,13 +551,12 @@
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>
-                    <p:dialog id="listaOrdenesDlg" widgetVar="listaOrdenesDlg" header="LISTA DE ORDENES DE COMPRA" resizable="false" modal="true" >
+                    <p:dialog id="listaOrdenesDlg" widgetVar="listaOrdenesDlg" header="LISTA DE ORDENES DE COMPRA" resizable="false" modal="true" closable="true" >
                         <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbEntradas.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 800px;"
-                                     var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" 
+                                     var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" selection="#{mbEntradas.mbOrdenCompra.ordenElegida}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradas.cargaDetalleOrdenCompra}" 
-                                    update=":main:msgs :main:mttoEntradas :main:detalleEntrada :main:mttoEntradasTotales" 
-                                    oncomplete="PF('listaOrdenesDlg').hide();" />
+                            <p:ajax process="@this" event="rowSelect" update="btnSeleccionaOC btnCerrarOC" />
+                            
                             <p:column headerText="OC" style="width: 60px;" >
                                 <h:outputText value="#{orden.idOrdenCompra}" style="width: 60px;" />
                             </p:column>
@@ -568,6 +572,19 @@
                             <p:column headerText="F. Entrega" style="width: 85px;" >
                                 <h:outputText value="#{orden.fechaEntrega}" />
                             </p:column>
+                            <f:facet name="footer" >
+                                <p:column colspan="5" style="text-align: center" >
+                                    <p:commandButton id="btnCerrarOC" icon="ui-icon-cancel" title="Cerrar la Orden de Compra"
+                                                     disabled="#{mbEntradas.mbOrdenCompra.ordenElegida==null}"
+                                                     process="@this" actionListener="#{mbEntradas.cerrarOrdenDeCompra()}" 
+                                                     update="listaOrdenes" />
+                                    <p:commandButton id="btnSeleccionaOC" icon="ui-icon-check" title="Seleccionar la Orden de Compra"
+                                                     disabled="#{mbEntradas.mbOrdenCompra.ordenElegida==null}"
+                                                     process="@this" actionListener="#{mbEntradas.cargaDetalleOrdenCompra()}" 
+                                                     update=":main:msgs :main:mttoEntradas :main:detalleEntrada :main:mttoEntradasTotales" 
+                                                     oncomplete="PF('listaOrdenesDlg').hide();" />
+                                </p:column>
+                            </f:facet>
                         </p:dataTable>
                     </p:dialog>
                     <p:dialog id="mttoComprobanteDlg" widgetVar="mttoComprobanteDlg" header="Mantenimiento de Comprobantes" resizable="false" modal="true" closable="true" >

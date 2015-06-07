@@ -268,15 +268,15 @@ public class DAOCotizaciones {
                 ps3.setInt(16, 0); //idImpuestosGrupo
                 ps3.setInt(17, 0); //idMarca
                 ps3.setDouble(18, 0.00); // cantOrdenadaSinCargo
-                //    try {
                 ps3.executeUpdate();
 
-                String sql = "UPDATE cotizaciones set estado = 2 WHERE  idCotizacion = " + idCot;
-                st.executeUpdate(sql);
-                //    } catch (Exception e) {
-                //     System.err.println(e + "Entro en la excepcion");
-                //  }
             } //FOR DETALLE
+            //    try {
+            String sql = "UPDATE cotizaciones set estado = 2 WHERE  idRequisicion = " + ce.getIdRequisicion();
+            st.executeUpdate(sql);
+            //    } catch (Exception e) {
+            //     System.err.println(e + "Entro en la excepcion");
+            //  }
             st.executeUpdate("COMMIT TRANSACTION");
         } catch (SQLException e) {
             st.executeUpdate("ROLLBACK TRANSACTION");

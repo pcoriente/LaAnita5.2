@@ -111,14 +111,14 @@ public class MbFormulas implements Serializable {
     
     public void generarDoc() {
         // Escribe directamente el archivo PDF
-        String sourceFileName = "E:\\LaAnita\\Reportes\\formula.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\formula.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.formula.getInsumos());
         Map parameters = new HashMap();
         parameters.put("empresa", this.mbEmpresas.getEmpresa().getNombreComercial());
         parameters.put("cod_pro", this.formula.getCod_pro());
         parameters.put("empaque", this.formula.getEmpaque());
 //        parameters.put("observaciones", this.formula.getObservaciones());
-        ArrayList<Linea> listaObservaciones=new ArrayList<Linea>();
+        ArrayList<Linea> listaObservaciones=new ArrayList<>();
         for(String str: this.formula.getObservaciones().split("\r\n")) {
             listaObservaciones.add(new Linea(str));
         }
@@ -145,7 +145,7 @@ public class MbFormulas implements Serializable {
     }
     
     public void generarDocs() {
-        String sourceFileName = "E:\\LaAnita\\Reportes\\formulas2.jasper";
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\formulas2.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.formulas);
         Map parameters = new HashMap();
         parameters.put("empresa", this.mbEmpresas.getEmpresa().getNombreComercial());
@@ -193,14 +193,14 @@ public class MbFormulas implements Serializable {
     
     private void generaFormulaExcel() {
         ArrayList<String> fila;
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add(this.mbEmpresas.getEmpresa().getNombreComercial());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add(this.formula.getCod_pro());
         fila.add(this.formula.getEmpaque());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<String>();
+        fila=new ArrayList<>();
         fila.add("SKU");            // A
         fila.add("INSUMO");         // B
         fila.add("CANTIDAD");       // C
@@ -247,7 +247,7 @@ public class MbFormulas implements Serializable {
     
     private boolean generarFormulas() {
         boolean ok=false;
-        this.formulas=new ArrayList<Formula>();
+        this.formulas=new ArrayList<>();
         try {
             this.dao=new DAOFormulas();
             for(Producto producto: this.mbBuscar.getProductos()) {

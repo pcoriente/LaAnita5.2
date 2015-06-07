@@ -1,5 +1,6 @@
 package producto2;
 
+import Message.Mensajes;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -29,71 +30,75 @@ import producto2.dominio.Tipo;
 @Named(value = "mbArticulosBuscar")
 @SessionScoped
 public class MbArticulosBuscar implements Serializable {
+
     @ManagedProperty(value = "#{mbParte}")
     private MbParte mbParte;
-    
     private ArrayList<Articulo> lstArticulos;
     private String tipoBuscar;
     private String strBuscar;
+    private String filtro;
     private String filtroTipo;
     private String filtroGrupo;
     private String filtroSubGrupo;
     private ArticuloBuscar articulo;
     private ArrayList<ArticuloBuscar> articulos;
     private ArrayList<ArticuloBuscar> filtrados;
+    ArrayList<Tipo> lstTipos;
+    ArrayList<Grupo> lstGrupos;
+    ArrayList<SubGrupo> lstSubGrupos;
     private SelectItem[] arrayTipos;
     private SelectItem[] arrayGrupos;
     private SelectItem[] arraySubGrupos;
     private DAOArticulosBuscar dao;
-    
+
     public MbArticulosBuscar() {
-        this.mbParte=new MbParte();
+        this.mbParte = new MbParte();
         this.inicializaLocales();
     }
-    
+
     public void inicializar() {
         this.inicializa();
     }
-    
+
     private void inicializa() {
         this.inicializaLocales();
         this.mbParte.nueva();
 //        this.mbParte.setListaPartes(null);
     }
-    
+
     private void inicializaLocales() {
-        this.tipoBuscar="2";
-        this.strBuscar="";
-        this.articulo=null;
-        this.articulos=null;
-        this.filtrados=null;
-        this.arrayTipos = new SelectItem[1];
-        this.arrayTipos[0] = new SelectItem("", "Seleccione un tipo");
-        this.arrayGrupos = new SelectItem[1];
-        this.arrayGrupos[0] = new SelectItem("", "Seleccione un grupo");
-        this.arraySubGrupos = new SelectItem[1];
-        this.arraySubGrupos[0] = new SelectItem("", "Seleccione un subgrupo");
+        this.tipoBuscar = "2";
+        this.strBuscar = "";
+        this.articulo = null;
+        this.articulos = null;
+        this.filtrados = null;
+//        this.arrayTipos = new SelectItem[1];
+//        this.arrayTipos[0] = new SelectItem("", "Seleccione un tipo");
+//        this.arrayGrupos = new SelectItem[1];
+//        this.arrayGrupos[0] = new SelectItem("", "Seleccione un grupo");
+//        this.arraySubGrupos = new SelectItem[1];
+//        this.arraySubGrupos[0] = new SelectItem("", "Seleccione un subgrupo");
     }
-    
+
     public Articulo obtenerArticulo(int idArticulo) {
-        Articulo a=null;
+        Articulo a = null;
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerArticulo");
         try {
-            this.dao=new DAOArticulosBuscar();
-            a=dao.obtenerArticulo(idArticulo);
-            ok=true;
+            this.dao = new DAOArticulosBuscar();
+            a = dao.obtenerArticulo(idArticulo);
+            ok = true;
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         } catch (SQLException ex) {
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         }
-        if(!ok) {
+        if (!ok) {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
         return a;
     }
-    
+
 //    public void cambioDeFiltroGrupo(String nuevo) {
 //        int i;
 //        this.articulo=null;
@@ -172,174 +177,203 @@ public class MbArticulosBuscar implements Serializable {
 //        FacesContext.getCurrentInstance().addMessage(null, fMsg);
 //    }
     
-    public void cambioDeFiltroGrupo(String nuevo) {
-        this.articulo=null;
-        this.filtroSubGrupo=this.arraySubGrupos[0].getLabel();
-        for(SelectItem sg: this.arraySubGrupos) {
-            if(!sg.isNoSelectionOption()) {
-                sg.setDisabled(true);
-                for(Articulo a: this.lstArticulos) {
-                    if(a.getGrupo().getGrupo().equals(nuevo) && a.getSubGrupo().getSubGrupo().equals(sg.getLabel())) {
-                        sg.setDisabled(false);
-                        break;
-                    }
+    public void cambioDeFiltroGrupo() {
+        int max=0;
+        for (SubGrupo sg : this.lstSubGrupos) {
+            for(ArticuloBuscar a : this.filtrados) {
+                if(a.getSubGrupo().equals(sg.getSubGrupo())) {
+                    max++;
+                    break;
                 }
             }
         }
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "cambioDeFiltroTipo");
-        fMsg.setDetail("Cambio de filtro detectado: "+nuevo);
-        FacesContext.getCurrentInstance().addMessage(null, fMsg);
+        this.arraySubGrupos=new SelectItem[max];
+        
+        max=0;
+        for (SubGrupo sg : this.lstSubGrupos) {
+            for(ArticuloBuscar a : this.filtrados) {
+                if(a.getSubGrupo().equals(sg.getSubGrupo())) {
+                    this.arraySubGrupos[max++] = new SelectItem(sg.getSubGrupo(), sg.getSubGrupo());
+                    break;
+                }
+            }
+        }
+        this.filtroSubGrupo = null;
+    }
+
+    public void cambioDeFiltroTipo() {
+        int max=0;
+        for (Grupo g : this.lstGrupos) {
+            for(ArticuloBuscar a : this.filtrados) {
+                if(a.getGrupo().equals(g.getGrupo())) {
+                    max++;
+                    break;
+                }
+            }
+        }
+        this.arrayGrupos=new SelectItem[max];
+        
+        max=0;
+        for (Grupo g : this.lstGrupos) {
+            for(ArticuloBuscar a : this.filtrados) {
+                if(a.getGrupo().equals(g.getGrupo())) {
+                    this.arrayGrupos[max++] = new SelectItem(g.getGrupo(), g.getGrupo());
+                    break;
+                }
+            }
+        }
+        this.filtroGrupo = null;
     }
     
-    public void cambioDeFiltroTipo(String nuevo) {
-        this.articulo=null;
-        this.filtroGrupo=this.arrayGrupos[0].getLabel();
-        for(SelectItem g: this.arrayGrupos) {
-            if(!g.isNoSelectionOption()) {
-                g.setDisabled(true);
-                for(Articulo a: this.lstArticulos) {
-                    if(a.getTipo().getTipo().equals(nuevo) && a.getGrupo().getGrupo().equals(g.getLabel())) {
-                        g.setDisabled(false);
-                        break;
-                    }
-                }
-            }
-        }
-        this.filtroSubGrupo=this.arraySubGrupos[0].getLabel();
-        for(SelectItem sg: this.arraySubGrupos) {
-            if(!sg.isNoSelectionOption()) {
-                sg.setDisabled(true);
-                for(Articulo a: this.lstArticulos) {
-                    if(a.getTipo().getTipo().equals(nuevo) && a.getSubGrupo().getSubGrupo().equals(sg.getLabel())) {
-                        sg.setDisabled(false);
-                        break;
-                    }
-                }
-            }
-        }
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "cambioDeFiltroTipo");
-        fMsg.setDetail("Cambio de filtro detectado: "+nuevo);
-        FacesContext.getCurrentInstance().addMessage(null, fMsg);
+    public void cambioDeFiltro() {
+////        String[] aFiltro = this.filtro.split(";");
+////        if(aFiltro[1].equals("idListaTipos")) {
+//        if(this.filtro.equals("idListaTipos")) {
+//            this.cambioDeFiltroTipo();
+//        } else if(this.filtro.equals("idListaGrupos")) {
+//            this.cambioDeFiltroGrupo();
+//        }
+        this.articulo = null;
+//        this.cambioDeFiltroTipo();
+//        this.cambioDeFiltroGrupo();
     }
-    
+
     public void cambioDeFiltro(ValueChangeEvent event) {
-        String nuevo=event.getNewValue().toString();
-        if(event.getComponent().getId().equals("idListaTipos")) {
-            this.cambioDeFiltroTipo(nuevo);
-        } else {
-            this.cambioDeFiltroGrupo(nuevo);
-        }
+//        this.filtro="Todos";
+//        if(event.getNewValue()!=null) {
+//            this.filtro=event.getNewValue().toString();
+//        }
+//        this.filtro+=(";"+event.getComponent().getId());
+        this.filtro=event.getComponent().getId();
     }
-    
+
     public void procesaLista() {
-        this.articulo=null;
-        this.filtroTipo=this.arrayTipos[0].getLabel();
-        this.filtroGrupo=this.arrayGrupos[0].getLabel();
-        this.filtroSubGrupo=this.arraySubGrupos[0].getLabel();
-        this.articulos=new ArrayList<ArticuloBuscar>();
-        ArrayList<Tipo> lstTipos = new ArrayList<Tipo>();
-        ArrayList<Grupo> lstGrupos = new ArrayList<Grupo>();
-        ArrayList<SubGrupo> lstSubGrupos = new ArrayList<SubGrupo>();
-        for(Articulo a: this.lstArticulos) {
-            if (lstTipos.indexOf(a.getTipo()) == -1) {
-                lstTipos.add(a.getTipo());
+        this.articulo = null;
+        this.articulos = new ArrayList<>();
+//        int maxTipo, maxGrupo, maxSubGrupo;
+//        maxTipo=0; maxGrupo=0; maxSubGrupo=0;
+        this.lstTipos = new ArrayList<>();
+        this.lstGrupos = new ArrayList<>();
+        this.lstSubGrupos = new ArrayList<>();
+        for (Articulo a : this.lstArticulos) {
+            if (this.lstTipos.indexOf(a.getTipo()) == -1) {
+                this.lstTipos.add(a.getTipo());
             }
-            if (lstGrupos.indexOf(a.getGrupo()) == -1) {
-                lstGrupos.add(a.getGrupo());
+            if (this.lstGrupos.indexOf(a.getGrupo()) == -1) {
+                this.lstGrupos.add(a.getGrupo());
             }
-            if (lstSubGrupos.indexOf(a.getSubGrupo()) == -1) {
-                lstSubGrupos.add(a.getSubGrupo());
+            if (this.lstSubGrupos.indexOf(a.getSubGrupo()) == -1) {
+                this.lstSubGrupos.add(a.getSubGrupo());
             }
-            this.articulos.add(new ArticuloBuscar(a.getIdArticulo(),a.getTipo().getTipo(), a.getGrupo().getGrupo(), a.getSubGrupo().getSubGrupo(), a.toString()));
+            this.articulos.add(new ArticuloBuscar(a.getIdArticulo(), a.getTipo().getIdTipo()==0?"-- Sin Tipo --":a.getTipo().getTipo(), a.getGrupo().getIdGrupo()==0?"-- Sin Grupo --":a.getGrupo().getGrupo(), a.getSubGrupo().getIdSubGrupo()==0?"-- Sin Subgrupo --":a.getSubGrupo().getSubGrupo(), a.toString()));
         }
-        this.filtrados=this.articulos;
-        Collections.sort(lstTipos, new Comparator<Tipo>() {
+        this.filtrados = this.articulos;
+        
+        Collections.sort(this.lstTipos, new Comparator<Tipo>() {
             @Override
-            public int compare(Tipo  tipo1, Tipo  tipo2) {
-                return  tipo1.getTipo().compareTo(tipo2.getTipo());
+            public int compare(Tipo tipo1, Tipo tipo2) {
+                return tipo1.getTipo().compareTo(tipo2.getTipo());
             }
         });
         int i = 0;
-        this.arrayTipos = new SelectItem[lstTipos.size() + 1];
-        this.arrayTipos[i++] = new SelectItem(null, "Seleccione un tipo");
-        this.arrayTipos[0].setNoSelectionOption(true);
-        for (Tipo t : lstTipos) {
+//        this.arrayTipos = new SelectItem[lstTipos.size() + 1];
+        this.arrayTipos = new SelectItem[this.lstTipos.size()];
+//        this.arrayTipos[i++] = new SelectItem(null, "-- Sin Tipo --");
+//        this.arrayTipos[0].setNoSelectionOption(true);
+//        this.filtroTipo = this.arrayTipos[0].getLabel();
+        for (Tipo t : this.lstTipos) {
+            if(t.getIdTipo()==0) {
+                t.setTipo("-- Sin Tipo --");
+            }
             this.arrayTipos[i++] = new SelectItem(t.getTipo(), t.getTipo());
         }
-        Collections.sort(lstGrupos, new Comparator<Grupo>() {
+//        this.filtroTipo=this.arrayTipos[0].getLabel();
+        this.filtroTipo="Seleccione un Tipo";
+        
+        Collections.sort(this.lstGrupos, new Comparator<Grupo>() {
             @Override
-            public int compare(Grupo  grupo1, Grupo  grupo2) {
-                return  grupo1.getGrupo().compareTo(grupo2.getGrupo());
+            public int compare(Grupo grupo1, Grupo grupo2) {
+                return grupo1.getGrupo().compareTo(grupo2.getGrupo());
             }
         });
         i = 0;
-        this.arrayGrupos = new SelectItem[lstGrupos.size() + 1];
-        this.arrayGrupos[i++] = new SelectItem(null, "Seleccione un grupo");
-        this.arrayGrupos[0].setNoSelectionOption(true);
-        for (Grupo g : lstGrupos) {
+//        this.arrayGrupos = new SelectItem[lstGrupos.size() + 1];
+        this.arrayGrupos = new SelectItem[this.lstGrupos.size()];
+//        this.arrayGrupos[i++] = new SelectItem(null, "-- Sin Grupo --");
+//        this.arrayGrupos[0].setNoSelectionOption(true);
+//        this.filtroGrupo = this.arrayGrupos[0].getLabel();
+        for (Grupo g : this.lstGrupos) {
+            if(g.getIdGrupo()==0) {
+                g.setGrupo("-- Sin Grupo --");
+            }
             this.arrayGrupos[i++] = new SelectItem(g.getGrupo(), g.getGrupo());
         }
-        Collections.sort(lstSubGrupos, new Comparator<SubGrupo>() {
+//        this.filtroGrupo=this.arrayGrupos[0].getLabel();
+        this.filtroGrupo="Seleccione un Grupo";
+        
+        Collections.sort(this.lstSubGrupos, new Comparator<SubGrupo>() {
             @Override
-            public int compare(SubGrupo  subGrupo1, SubGrupo  subGrupo2) {
-                return  subGrupo1.getSubGrupo().compareTo(subGrupo2.getSubGrupo());
+            public int compare(SubGrupo subGrupo1, SubGrupo subGrupo2) {
+                return subGrupo1.getSubGrupo().compareTo(subGrupo2.getSubGrupo());
             }
         });
         i = 0;
-        this.arraySubGrupos = new SelectItem[lstSubGrupos.size() + 1];
-        this.arraySubGrupos[i++] = new SelectItem(null, "Seleccione un subGrupo");
-        this.arraySubGrupos[0].setNoSelectionOption(true);
-        for (SubGrupo sg : lstSubGrupos) {
+//        this.arraySubGrupos = new SelectItem[lstSubGrupos.size() + 1];
+        this.arraySubGrupos = new SelectItem[this.lstSubGrupos.size()];
+//        this.arraySubGrupos[i++] = new SelectItem(null, "-- Sin Subgrupo --");
+//        this.arraySubGrupos[0].setNoSelectionOption(true);
+//        this.filtroSubGrupo = this.arraySubGrupos[0].getLabel();
+        for (SubGrupo sg : this.lstSubGrupos) {
+            if(sg.getIdSubGrupo()==0) {
+                sg.setSubGrupo("-- Sin Subgrupo --");
+            }
             this.arraySubGrupos[i++] = new SelectItem(sg.getSubGrupo(), sg.getSubGrupo());
         }
+//        this.filtroSubGrupo = this.arraySubGrupos[0].getLabel();
+        this.filtroSubGrupo="Seleccione un Subgrupo";
     }
-    
+
     public void buscarLista() {
         boolean ok = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "buscarLista");
         try {
-            this.dao=new DAOArticulosBuscar();
-            if(this.tipoBuscar.equals("1")) {
-                this.strBuscar="1";
+            this.dao = new DAOArticulosBuscar();
+            if (this.tipoBuscar.equals("1")) {
+                this.strBuscar = "1";
             } else {
-                if(this.tipoBuscar.equals("2")) {
-                    if(this.mbParte.getParte()==null) {
+                if (this.tipoBuscar.equals("2")) {
+                    if (this.mbParte.getParte() == null) {
                         this.mbParte.setParte(new Parte());
                     }
-                    lstArticulos=this.dao.obtenerArticulos(this.mbParte.getParte());
+                    lstArticulos = this.dao.obtenerArticulos(this.mbParte.getParte());
                 } else {
-                    lstArticulos=this.dao.obtenerArticulos(this.strBuscar);
+                    lstArticulos = this.dao.obtenerArticulos(this.strBuscar);
                 }
                 this.procesaLista();
-                if(this.articulos.isEmpty()) {
-                    fMsg.setSeverity(FacesMessage.SEVERITY_INFO);
-                    fMsg.setDetail("No se encontraron productos en la busqueda");
-                    FacesContext.getCurrentInstance().addMessage(null, fMsg);
+                if (this.articulos.isEmpty()) {
+                    Mensajes.mensajeAlert("No se encontraron productos en la busqueda");
                 }
             }
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
+        RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okBuscar", ok);
     }
-    
+
     public void verCambio() {
         if (this.tipoBuscar.equals("2")) {
             this.mbParte.nueva();
         } else {
             this.strBuscar = "";
         }
-        this.articulo=null;
-        this.articulos=null;
-        this.filtrados=null;
-        this.arrayTipos=new SelectItem[0];
-        this.arrayGrupos=new SelectItem[0];
-        this.arraySubGrupos=new SelectItem[0];
+        this.articulo = null;
+        this.articulos = null;
+        this.filtrados = null;
+        this.arrayTipos = new SelectItem[0];
+        this.arrayGrupos = new SelectItem[0];
+        this.arraySubGrupos = new SelectItem[0];
     }
 
     public MbParte getMbParte() {

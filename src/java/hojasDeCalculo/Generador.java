@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  * @author jesc
  */
 public class Generador {
+    private String path;
     // documento con las hojas de calculo
     private final Workbook libro;
  
@@ -40,6 +41,7 @@ public class Generador {
 //    DecimalFormat df;
     
     public Generador() {
+        this.path="C:\\Carlos Pat\\Reportes\\";
         this.nombreDeLaHoja="SinNombre";
         this.libro = new HSSFWorkbook();
         this.hoja = this.libro.createSheet(this.nombreDeLaHoja);
@@ -85,7 +87,7 @@ public class Generador {
     // genera el documento
     public OutputStream generaDocumento() throws IOException {
         ajustaColumnas();
-        final OutputStream outputStream = new FileOutputStream(nombreDeLaHoja+".xls");
+        final OutputStream outputStream = new FileOutputStream(this.path+this.nombreDeLaHoja+".xls");
         libro.write(outputStream);
         outputStream.close();
         return outputStream;

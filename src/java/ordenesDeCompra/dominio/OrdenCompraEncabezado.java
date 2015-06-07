@@ -50,6 +50,28 @@ public class OrdenCompraEncabezado implements Serializable {
         this.moneda=new Moneda();
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 79 * hash + this.idOrdenCompra;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final OrdenCompraEncabezado other = (OrdenCompraEncabezado) obj;
+        if (this.idOrdenCompra != other.idOrdenCompra) {
+            return false;
+        }
+        return true;
+    }
+
     public int getIdOrdenCompra() {
         return idOrdenCompra;
     }
