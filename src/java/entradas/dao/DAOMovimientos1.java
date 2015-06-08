@@ -12,8 +12,6 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.naming.Context;
@@ -2583,7 +2581,7 @@ public class DAOMovimientos1 {
         }
     }
 
-    public boolean grabarTraspasoSolicitud(int idAlmacenSolicita, TOMovimiento solicitud, ArrayList<MovimientoProducto> productos) throws SQLException {
+    public boolean grabarTraspasoSolicitud(TOMovimiento solicitud, ArrayList<MovimientoProducto> productos) throws SQLException {
         boolean ok = true;
         int folio;
         int idMovto, idMovtoAlmacen;
@@ -2610,7 +2608,7 @@ public class DAOMovimientos1 {
 
             idMovto = 0;
             strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus, propietario, idReferencia, referencia) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, 0, " + idAlmacenSolicita + ", 0)";
+                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, 0, " + solicitud.getIdReferencia() + ", 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -2642,7 +2640,7 @@ public class DAOMovimientos1 {
 
             idMovtoAlmacen = 0;
             strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, propietario, idReferencia, referencia, estatus) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ", 0, " + idAlmacenSolicita + ", 0, 0)";
+                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ", 0, " + solicitud.getIdReferencia() + ", 0, 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {
