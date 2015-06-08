@@ -1,5 +1,6 @@
 package requisiciones.mb;
 
+import Message.Mensajes;
 import empresas.MbMiniEmpresa;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -62,6 +63,7 @@ public class MbRequisiciones implements Serializable {
         this.mbDepto = new MbDepto();
         this.mbUsuarios = new MbUsuarios();
         this.mbBuscar = new MbProductosBuscar();
+        listaRequisicionesEncabezado = null;
         //SEGURIDAD
         this.mbAcciones = new MbAcciones(7);
     }
@@ -437,13 +439,25 @@ public class MbRequisiciones implements Serializable {
 
     }
 
-    public void eliminaProductoAprobar() throws NamingException, SQLException {
-        DAORequisiciones daoReq = new DAORequisiciones();
-        requisicionDetalles.remove(seleccionFila);
-        int idReq = seleccionFila.getIdRequisicion();
-        int idProd = seleccionFila.getProducto().getIdProducto();
-        daoReq.eliminaProductoAprobar(idReq, idProd);
-        seleccionFila = null;
+    public void eliminaProductoAprobar() {
+
+        if (requisicionDetalles.size() > 1) {
+            try {
+                DAORequisiciones daoReq = new DAORequisiciones();
+                requisicionDetalles.remove(seleccionFila);
+                int idReq = seleccionFila.getIdRequisicion();
+                int idProd = seleccionFila.getProducto().getIdProducto();
+                daoReq.eliminaProductoAprobar(idReq, idProd);
+                seleccionFila = null;
+                Mensajes.MensajeSuccesP("Producto eliminado");
+            } catch (NamingException ex) {
+                Message.Mensajes.MensajeErrorP(ex.getMessage());
+            } catch (SQLException ex) {
+                Message.Mensajes.mensajeError(ex.getMessage());
+            }
+        } else {
+            Mensajes.MensajeAlertP("Debes tener por lo menos un producto");
+        }
 
     }
 
@@ -484,7 +498,6 @@ public class MbRequisiciones implements Serializable {
     public void modificarRequisicionStatus() throws SQLException, NamingException {
         int idReq = seleccionRequisicionEncabezado.getIdRequisicion();
         int status = seleccionRequisicionEncabezado.getStatus();
-
 
         DAORequisiciones daoReq = new DAORequisiciones();
         FacesMessage msg;
