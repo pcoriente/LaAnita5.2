@@ -20,24 +20,24 @@
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
                             </span>
-                            <p:commandButton id="Nuevo"
+<!--                            <p:commandButton id="Nuevo"
                                              icon="ui-icon-note"
                                              title="Ir al Menu de Requisiciones"
                                              action="menuRequisiciones.xhtml"
                                              />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
-                            </span>
-                            <p:commandButton id="Menu"
+                            </span>-->
+<!--                            <p:commandButton id="Menu"
                                              icon="ui-icon-document"
                                              title="Ir a menu Ordenes de Compra"
                                              action="menuOrdenesDeCompra.xhtml"
                                              />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
-                            </span>
+                            </span>-->
                             <p:commandButton id="salir"
-                                             icon="ui-icon-arrowreturnthick-1-w"
+                                             icon="ui-icon-home"
                                              title="Salir "
                                              action="index.xhtml"
                                              />
@@ -46,7 +46,7 @@
                     <!-- P A N E L   D E  A D M I N I S T R A C I ON... -->
                     <p:messages id="messagePanel" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panel id="pCotizaciones" header="PANEL DE ADMINISTRACION DE COTIZACIONES" styleClass="quitaCuadro" >
-                        <h:outputText value="No hay requisiciones que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
+                        <h:outputText value="No hay COTIZACIONES que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
                         <p:dataTable id="dtCotizaciones"
                                      value="#{mbCotizaciones.listaCotizacionEncabezado}"
                                      var="cot" 

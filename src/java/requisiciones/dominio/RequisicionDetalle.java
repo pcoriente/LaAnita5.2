@@ -8,6 +8,13 @@ public class RequisicionDetalle {
     private Producto producto;
     private double cantidad;
     private double cantidadAutorizada;
+    
+    public RequisicionDetalle() {
+    }
+
+    public RequisicionDetalle(Producto producto) {
+        this.producto=new Producto();
+    }
 
     public int getIdRequisicion() {
         return idRequisicion;
