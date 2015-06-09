@@ -1,5 +1,6 @@
 package almacenes;
 
+import Message.Mensajes;
 import almacenes.dao.DAOAlmacenesJS;
 //import almacenes.dominio.AlmacenJS;
 import almacenes.to.TOAlmacenJS;
@@ -67,50 +68,34 @@ public class MbAlmacenesJS implements Serializable {
     }
     
     public void cargaAlmacenesEmpresa(int idEmpresa, int noSelect) {
-        boolean ok=false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaAlmacenesEmpresa");
         try {
             if(idEmpresa!=0) {
                 this.dao=new DAOAlmacenesJS();
                 this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idEmpresa), noSelect);
-                ok=true;
             } else {
-                fMsg.setDetail("Debe seleccionar un cedis y un almacen");
+                Mensajes.mensajeAlert("Debe seleccionar un cedis y un almacen");
             }
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
     
     public void cargaAlmacenes() {
-        boolean ok=false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaAlmacenes");
         try {
             this.dao=new DAOAlmacenesJS();
             this.cargaListaAlmacenes(this.dao.obtenerAlmacenes(), 0);
-            ok=true;
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
     
     private void cargaListaAlmacenes(ArrayList<TOAlmacenJS> lstAlmacenes, int noSelect) {
         boolean disabled;
-        this.listaAlmacenes=new ArrayList<SelectItem>();
+        this.listaAlmacenes=new ArrayList<>();
         this.toAlmacen=new TOAlmacenJS();
         this.toAlmacen.setIdAlmacen(0);
         this.toAlmacen.setAlmacen("Seleccione un almacen");

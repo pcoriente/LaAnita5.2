@@ -35,4 +35,16 @@ public class Mensajes {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
         context.addCallbackParam("ok", false);
     }
+
+    public static void MensajeAlertP(String mensaje) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Error!", mensaje));
+    }
+
+    public static void MensajeSuccesP(String mensaje) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Exito!", mensaje));
+    }
+
+    public static void MensajeErrorP(String mensaje) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error!", mensaje));
+    }
 }

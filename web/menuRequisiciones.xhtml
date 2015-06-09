@@ -82,7 +82,7 @@
                         </f:facet>
                     </p:toolbar>
                     <p:panel header="PANEL DE ADMINISTRACION DE REQUISICIONES"  >
-                        
+
                         <h:outputText value="No hay REQUISICIONES que mostrar !!" 
                                       rendered="#{not empty mbRequisiciones.acciones or empty mbRequisiciones.listaRequisicionesEncabezado}" />
                         <p:dataTable id="requisicion"
@@ -140,6 +140,9 @@
                     <!-- PROCESO DE   A P R O B A C I O N... -->
                     <p:dialog header="PROCESO DE APROBACION" widgetVar="aprobarDialog" resizable="false"  
                               showEffect="fade" hideEffect="explode" modal="true" id="dialogo" width="1000" >
+                        <p:messages id="msg"
+                                    showDetail="true" 
+                                    closable="true" />
                         <p:ajax event="close" 
                                 listener="#{mbRequisiciones.deseleccionar()}" 
                                 update=":form:detalleAprobar
@@ -173,7 +176,9 @@
                                     title="Eliminar Producto"
                                     process="@this"
                                     actionListener="#{mbRequisiciones.eliminaProductoAprobar()}" 
-                                    update=":form:detalleAprobar :form:btnEliminarProducto" 
+                                    update=":form:detalleAprobar 
+                                    :form:btnEliminarProducto
+                                    :form:msg" 
                                     style="margin:0 auto;"
                                     disabled="#{mbRequisiciones.seleccionFila == null || mbRequisiciones.seleccionRequisicionEncabezado.status eq 2 || mbRequisiciones.seleccionRequisicionEncabezado.status eq 0}"
                                     />

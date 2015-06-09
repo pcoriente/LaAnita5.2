@@ -32,6 +32,7 @@ public class TOMovimiento {
     private Date fechaComprobante;
     //////////////////////////
     private int idMovtoAlmacen;
+    private int folioAlmacen;
 //    private Date fechaAlmacen;
 //    private int idUsuarioAlmacen;
 //    private int statusAlmacen;
@@ -226,5 +227,13 @@ public class TOMovimiento {
 
     public void setIdMovtoAlmacen(int idMovtoAlmacen) {
         this.idMovtoAlmacen = idMovtoAlmacen;
+    }
+
+    public int getFolioAlmacen() {
+        return folioAlmacen;
+    }
+
+    public void setFolioAlmacen(int folioAlmacen) {
+        this.folioAlmacen = folioAlmacen;
     }
 }

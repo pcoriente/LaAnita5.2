@@ -38,33 +38,29 @@ public class DAOArticulos {
     }
 
     public void eliminar(int idArticulo) throws SQLException {
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        ResultSet rs = null;
-        try {
-            st.execute("BEGIN TRANSACTION");
-            rs=st.executeQuery("SELECT COUNT(*) AS total FROM empaques WHERE idProducto="+idArticulo);
-            if(rs.next()) {
-                if(rs.getInt("total")!=0) {
-                    throw new SQLException("El articulo esta contenido en varios empaques, no se puede eliminar");
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery("SELECT COUNT(*) AS total FROM empaques WHERE idProducto=" + idArticulo);
+                if (rs.next()) {
+                    if (rs.getInt("total") != 0) {
+                        throw new SQLException("El articulo esta contenido en varios empaques, no se puede eliminar");
+                    }
                 }
+                st.executeUpdate("DELETE FROM productos WHERE idProducto=" + idArticulo);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                cn.setAutoCommit(true);
+                throw ex;
             }
-            st.executeUpdate("DELETE FROM productos WHERE idProducto=" + idArticulo);
-            st.execute("COMMIT TRANSACTION");
-        } catch (SQLException ex) {
-            st.execute("ROLLBACK TRANSACTION");
-            throw ex;
-        } finally {
-            rs.close();
-            st.close();
-            cn.close();
+            cn.setAutoCommit(true);
         }
     }
 
     public void modificar(TOArticulo articulo) throws SQLException {
         Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             st.executeUpdate("UPDATE " + this.tabla + " "
                     + "SET idParte=" + articulo.getIdParte() + ", descripcion='" + articulo.getDescripcion() + "', "
                     + "idTipo=" + articulo.getIdTipo() + ", idGrupo=" + articulo.getIdGrupo() + ", "
@@ -85,21 +81,22 @@ public class DAOArticulos {
                 + articulo.getIdTipo() + ", " + articulo.getIdGrupo() + ", " + articulo.getIdSubGrupo() + ", " + articulo.getIdMarca() + ", "
                 + articulo.getIdPresentacion() + ", " + articulo.getContenido() + ", " + articulo.getIdUnidadMedida() + ","
                 + articulo.getIdImpuestoGrupo() + ")";
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
-            st.executeUpdate("begin transaction");
-            st.executeUpdate(strSQL);
-            ResultSet rs = st.executeQuery("SELECT max(idProducto) AS idProducto FROM productos");
-            if (rs.next()) {
-                idProducto = rs.getInt("idProducto");
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate("begin transaction");
+                st.executeUpdate(strSQL);
+                ResultSet rs = st.executeQuery("SELECT max(idProducto) AS idProducto FROM productos");
+                if (rs.next()) {
+                    idProducto = rs.getInt("idProducto");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                cn.setAutoCommit(true);
+                throw (ex);
             }
-            st.executeUpdate("commit transaction");
-        } catch (SQLException ex) {
-            st.executeUpdate("rollback transaction");
-            throw (ex);
-        } finally {
-            cn.close();
+            cn.setAutoCommit(true);
         }
         return idProducto;
     }

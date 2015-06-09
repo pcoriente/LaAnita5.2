@@ -632,10 +632,11 @@
                                     <p:autoComplete id="opcionParte1" value="#{frmProductos.mbArticulos.mbBuscar.mbParte.parte}" size="50" maxlength="24" 
                                                     completeMethod="#{frmProductos.mbArticulos.mbBuscar.mbParte.completePartes}" 
                                                     var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
-                                                    forceSelection="true" scrollHeight="150" />
+                                                    forceSelection="true" scrollHeight="150" >
+                                        <p:ajax event="itemSelect" listener="#{frmProductos.mbArticulos.buscar()}" update="listaArticulos" />
+                                    </p:autoComplete>
                                     <p:commandButton id="btnBuscarLista1" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionParte1" actionListener="#{frmProductos.mbArticulos.buscar()}" 
-                                                     update="listaArticulos" />
+                                                     process="@this opcionParte1" update="listaArticulos" />
                                 </p:column>
                                 <p:column rendered="#{frmProductos.mbArticulos.mbBuscar.tipoBuscar=='3'}" >
                                     <p:inputText id="opcionDescripcion1" value="#{frmProductos.mbArticulos.mbBuscar.strBuscar}" size="24" maxlength="24" />
@@ -643,62 +644,49 @@
                                                      process="@this opcionDescripcion1" actionListener="#{frmProductos.mbArticulos.buscar()}"
                                                      update="listaArticulos" />
                                 </p:column>
-                                <p:column rendered="#{frmProductos.mbArticulos.mbBuscar.tipoBuscar=='1'}" >
-                                    <p:inputText id="opcionUPC1" value="#{frmProductos.mbArticulos.mbBuscar.strBuscar}" maxlength="13" size="15" title="Codigo de Barras" />
-                                    <p:commandButton id="btnBuscarUPC1" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionUPC1" actionListener="#{frmProductos.mbArticulos.buscar()}" 
-                                                     update=":main:mttoArticulos" oncomplete="handleArticulosBuscar(xhr, status, args)" />
-                                </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaArticulos" value="#{frmProductos.mbArticulos.mbBuscar.articulos}" widgetVar="listaArticulos"
+                        <p:dataTable id="listaArticulos" widgetVar="listaArticulos" value="#{frmProductos.mbArticulos.mbBuscar.articulos}"
                                      filteredValue="#{frmProductos.mbArticulos.mbBuscar.filtrados}"
-                                     var="art" scrollable="true" scrollHeight="200" style="width: 900px;"
-                                     rowKey="#{art.idArticulo}" selectionMode="single" selection="#{frmProductos.mbArticulos.mbBuscar.articulo}" >
+                                     var="art" rowKey="#{art.idArticulo}" selectionMode="single" selection="#{frmProductos.mbArticulos.mbBuscar.articulo}"
+                                     scrollable="true" scrollHeight="200" style="width: 900px;"
+                                     emptyMessage="No se encontraron productos" >
                             <p:ajax event = "rowSelect" update="btnSelArticulo" />
-
-                            <f:facet name="header">
-                                Seleccione un articulo  
-                            </f:facet>
 
                             <p:column filterBy="#{art.tipo}" headerText="Tipo Inventario" filterMatchMode="exact">
                                 <f:facet name="filter">
                                     <p:selectOneMenu id="idListaTipos" onchange="PF('listaArticulos').filter();" 
-                                                     value="#{frmProductos.mbArticulos.mbBuscar.filtroTipo}"
-                                                     valueChangeListener="#{frmProductos.mbArticulos.mbBuscar.cambioDeFiltro}" >
+                                                     value="#{frmProductos.mbArticulos.mbBuscar.filtroTipo}" >
+                                        <f:selectItem itemLabel="Seleccione un Tipo" itemValue="#{null}" noSelectionOption="true" />
                                         <f:selectItems value="#{frmProductos.mbArticulos.mbBuscar.arrayTipos}" />
-                                        <p:ajax event="change" update="idListaGrupos idListaSubGrupos" />
                                     </p:selectOneMenu>
                                 </f:facet>
                                 <h:outputText value="#{art.tipo}" />
                             </p:column>
-
                             <p:column filterBy="#{art.grupo}" headerText="Grupos" filterMatchMode="exact">
                                 <f:facet name="filter">
                                     <p:selectOneMenu id="idListaGrupos" onchange="PF('listaArticulos').filter();" 
-                                                     value="#{frmProductos.mbArticulos.mbBuscar.filtroGrupo}"
-                                                     valueChangeListener="#{frmProductos.mbArticulos.mbBuscar.cambioDeFiltro}" >
+                                                     value="#{frmProductos.mbArticulos.mbBuscar.filtroGrupo}" >
+                                        <f:selectItem itemLabel="Seleccione un Grupo" itemValue="#{null}" noSelectionOption="true" />
                                         <f:selectItems value="#{frmProductos.mbArticulos.mbBuscar.arrayGrupos}" />
-                                        <p:ajax event="change" update="idListaSubGrupos" />
                                     </p:selectOneMenu>
                                 </f:facet>
                                 <h:outputText value="#{art.grupo}" />
                             </p:column>
-
-                            <p:column filterBy="#{art.subGrupo}" headerText="SubGrupos" filterMatchMode="exact">
+                            <p:column filterBy="#{art.subGrupo}" headerText="Subgrupos" filterMatchMode="exact">
                                 <f:facet name="filter">
                                     <p:selectOneMenu id="idListaSubGrupos" onchange="PF('listaArticulos').filter();" 
                                                      value="#{frmProductos.mbArticulos.mbBuscar.filtroSubGrupo}" >
+                                        <f:selectItem itemLabel="Seleccione un Grupo" itemValue="#{null}" noSelectionOption="true" />
                                         <f:selectItems value="#{frmProductos.mbArticulos.mbBuscar.arraySubGrupos}" />
                                     </p:selectOneMenu>
                                 </f:facet>
                                 <h:outputText value="#{art.subGrupo}" />
                             </p:column>
-
                             <p:column headerText="Articulo" >
                                 <h:outputText value="#{art.articulo}" />
                             </p:column>
-
+                            
                             <f:facet name="footer">
                                 <p:commandButton id="btnSelArticulo" value="Seleccionar" 
                                                  disabled="#{frmProductos.mbArticulos.mbBuscar.articulo==null}"
