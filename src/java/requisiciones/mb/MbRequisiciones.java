@@ -405,7 +405,7 @@ public class MbRequisiciones implements Serializable {
         FacesMessage msg = null;
         try {
             int longitud = requisicionDetalles.size();
-            if (longitud < 0) {
+        //    if (longitud < 0) {
                 for (int y = 0; y < longitud; y++) {
                     double ca = requisicionDetalles.get(y).getCantidadAutorizada();
                     if (ca < 0) {
@@ -425,9 +425,9 @@ public class MbRequisiciones implements Serializable {
                         this.cargaRequisicionesDetalle(idReq);
                     }
                 }
-            } else {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
-            }
+          //  } else {
+           //     msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
+          //  }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
             msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");

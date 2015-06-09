@@ -25,7 +25,8 @@
                             <p:commandButton 
                                 icon="ui-icon-plus"
                                 title="Crear orden de compra directa"
-                                oncomplete="PF('odecD').show();"   
+                                oncomplete="PF('odecD').show();"
+                                update=":form:dialogoOCD"
                                 />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -325,10 +326,17 @@
                     </p:dialog>
 
 
-                    <!-- ///////////////////////////////////////////    D I  R E C T A S   ////////////////////////////////////////////////////              -->
+                    <!-- ////////////////////////////////////////////////////    DIRECTAS   /////////////////////////////////////////////////////////////////////             -->
 
 
-                    <p:dialog widgetVar="odecD" width="950" header="MANTENIMIENTO ORDENES DE COMPRA DIRECTAS" id="dialogoOCD" modal="true">
+                    <p:dialog widgetVar="odecD"
+                              width="950"
+                              header="GENERACION DE ORDENES DE COMPRA DIRECTAS"
+                              id="dialogoOCD"
+                              modal="true"
+                              styleClass="darias"
+                              closable="false" 
+                              style="text-align:center;">
                         <p:messages id="mensajeProducto" showDetail="true" autoUpdate="true" closable="true" showSummary="false" />  
                         <p:ajax event="close" 
                                 listener="#{mbOrdenCompra.handleClose()}"
@@ -336,39 +344,31 @@
                                 update=":form:encabezadoOCD"/> 
                         <p:panelGrid id="encabezadoOCD" style="width: 900px; height: auto; margin:0 auto; "  >
                             <p:row>
-                                <p:column    >
-                                    <h:outputLabel value="Empresa: " styleClass="textoEtiquetas"/>
-                                </p:column>
+
                                 <p:column    >
                                     <h:outputLabel   styleClass="textoContenido" />
-                                    <p:selectOneMenu id="empresaD" value="#{mbOrdenCompra.mbEmpresas.empresa}" style="width: 250px;" >
+                                    <p:selectOneMenu id="empresaD" value="#{mbOrdenCompra.mbEmpresas.empresa}" style="width: 200px;" >
                                         <f:converter converterId="converters.Empresa" />
                                         <f:selectItems value="#{mbOrdenCompra.mbEmpresas.listaObtenerEmpresas}" />
                                         <p:ajax event="change"
-                                                update=":form:dirEmpD"/>
+                                                />
                                     </p:selectOneMenu><br></br>
-                                    <p:inplace id="verDireccionEmpresa" label="Ver direccion empresa"  editor="true" >  
-                                        <h:outputLabel id="dirEmpD" value="#{mbOrdenCompra.mbEmpresas.empresa.direccion.toString()}"    />  
-                                    </p:inplace> 
-                                </p:column>
 
-                                <p:column   >
-                                    <h:outputLabel  value="Emision: " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column  >
+                                <p:column colspan="3"  >
                                     <p:calendar id="fEmision"  
                                                 showOn="button"
-                                                value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEmisionDirectas}" maxlength="8" size="10" >
+                                                value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEmisionDirectas}" maxlength="8" size="15"
+                                                placeholder="Fecha de Emisión">
                                     </p:calendar>
                                 </p:column>
-                                <p:column >
-                                    <h:outputLabel  value="Entrega: " styleClass="textoEtiquetas"/> 
-                                </p:column>
-                                <p:column    >
+                                <p:column colspan="3"   >
 
                                     <p:calendar id="fEntrega"  
                                                 showOn="button"
-                                                value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEntregaDirectas}" maxlength="8" size="10" >
+                                                value="#{mbOrdenCompra.ordenCompraEncabezado.fechaEntregaDirectas}" maxlength="8" size="15"
+                                                placeholder="Fecha de Entrega">
+
                                         <p:ajax event="dateSelect"
                                                 process="@this fEmision"
                                                 listener="#{mbOrdenCompra.validarRangoFechas()}"/>
@@ -377,59 +377,65 @@
                                 </p:column>
                             </p:row>
                             <p:row>
-                                <p:column    rowspan="2"  >
-                                    <h:outputLabel value="Proveedor: " styleClass="textoEtiquetas"  /> 
-                                </p:column>
+
                                 <p:column    rowspan="2"  >
                                     <h:outputLabel   styleClass="textoContenido"  />
-                                    <p:selectOneMenu id="proveedorD"  value="#{mbOrdenCompra.mbProveedores.miniProveedor}" filter="true" filterMatchMode="contains" style="width: 250px;"  >
+                                    <p:selectOneMenu  id="proveedorD"  value="#{mbOrdenCompra.mbProveedores.miniProveedor}" filter="true" filterMatchMode="contains" style="width: 200px;"  required="Selecciona un proveedor..." >
                                         <f:converter converterId="converters.miniProveedor" />
                                         <f:selectItems value="#{mbOrdenCompra.mbProveedores.listaMiniProveedores}"  />
                                         <p:ajax event="change"
-                                                listener="#{mbOrdenCompra.cargaDatosProveedor()}"
-                                                update=":form:dirProvD :form:dcD :form:dppD"
+                                                update=":form:dcD :form:dppD  :form:dci :form:dppi"
                                                 />
-                                    </p:selectOneMenu><br></br>
-                                    <p:inplace id="verDireccionProveedor" label="Ver Direccion"  editor="true" >  
-                                        <h:outputLabel id="dirProvD" value="#{mbOrdenCompra.provee.direccionEntrega.referencia}"    />  
-                                    </p:inplace> 
+                                    </p:selectOneMenu>
+                                   
+                                    
+                                    
                                 </p:column>
                                 <p:column     >
-                                    <h:outputLabel value="Comercial (%): " styleClass="textoEtiquetas" /> 
+                                    <h:outputLabel value="Desc. Comercial (%): " styleClass="textoEtiquetas" /> 
+                                </p:column>
+                                <p:column>
+                                    <h:outputText id="dci" value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial}" />
                                 </p:column>
                                 <p:column   >
                                     <p:inplace id="dcD" editor="true">
-                                        <pe:inputNumber id="dc" value="#{mbCotizaciones.mbMiniProveedor.miniProveedor.desctoComercial}"   
+                                        <pe:inputNumber id="dc"
+                                                        value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial}"   
                                                         decimalPlaces="2" minValue="0" maxValue="100"
-
+                                                        onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
                                                         >
-                                            <p:ajax 
-                                                update=":form:detalleOCD :form:pieD"
+                                            <p:ajax
+                                                event="change"
+                                                update=":form:detalleOCD :form:pieD :form:sumaDescuentosTotalesD :form:descuentoGeneralAplicadoD"
                                                 process="@this"/>
                                         </pe:inputNumber> 
                                     </p:inplace>
                                 </p:column>
                                 <p:column    >
-                                    <h:outputLabel  value="Pronto Pago (%): " styleClass="textoEtiquetas"  /> 
+                                    <h:outputLabel  value=" Desc. Pronto Pago (%): " styleClass="textoEtiquetas"  /> 
                                 </p:column>
-                                <p:column    >
-                                    <p:inplace id="dppD" editor="true">
-                                        <pe:inputNumber id="dpp" value="#{mbCotizaciones.mbMiniProveedor.miniProveedor.desctoProntoPago}"   
+                                <p:column>
+                                    <h:outputText id="dppi" value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago}" />
+                                </p:column>
+                                <p:column>
+                                    <p:inplace id="dppD" editor="true" >
+                                        <pe:inputNumber id="dpp" value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago}"    
                                                         decimalPlaces="2" minValue="0" maxValue="100" 
+                                                        onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+
                                                         >
                                             <p:ajax 
-                                                update=":form:detalleOCD :form:pieD"
+                                                event="change"
+                                                update=":form:detalleOCD :form:pieD :form:sumaDescuentosTotalesD :form:descuentoGeneralAplicadoD"
                                                 process="@this"/>
                                         </pe:inputNumber> 
                                     </p:inplace>
                                 </p:column>
                             </p:row>
                             <p:row>
-                                <p:column    >
-                                    <h:outputLabel  value="Moneda: " styleClass="textoEtiquetas"  /> 
-                                </p:column>
-                                <p:column    colspan="4" >
-                                    <p:selectOneMenu id="monedaD" value="#{mbOrdenCompra.mbMonedas.moneda}"   >
+
+                                <p:column colspan="6" >
+                                    <p:selectOneMenu id="monedaD" value="#{mbOrdenCompra.mbMonedas.moneda}"  >
                                         <f:converter converterId="converters.Moneda" />
                                         <f:selectItems value="#{mbOrdenCompra.mbMonedas.listaMonedas}" />
                                         <p:ajax event="change" />
@@ -439,7 +445,17 @@
                         </p:panelGrid>
 
                         <p:toolbar  id="tbD" style="width: 900px; height: auto; margin:0 auto; " >  
-                            <p:toolbarGroup id="toolbarD" align="right">  
+                            <f:facet name="left">
+                                <p:commandButton
+                                    icon="ui-icon-trash"
+                                    title="Eliminar empaque de la orden de compra directa"
+                                    actionListener="#{mbOrdenCompra.mbCalculoRCOD.eliminaProducto}"
+                                    update=":form:detalleOCD :form:buscarProductos"
+                                    process="@this :form:detalleOCD"
+                                    />
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
                                 <p:commandButton
                                     icon="ui-icon-search"
                                     title="Buscar Productos"
@@ -448,30 +464,36 @@
                                     oncomplete="PF('buscarProductoDlg').show()"
                                     update=":form:buscarProductos :form:opcionParte :form:opcionDescripcion"
                                     />
-                                <p:commandButton
-                                    icon="ui-icon-trash"
-                                    title="Eliminar empaque de la orden de compra directa"
-                                    actionListener="#{mbOrdenCompra.eliminarEmpaqueSeleccionado()}"
-                                    update=":form:detalleOCD :form:buscarProductos"
-                                    />
-                                <p:commandButton
-                                    icon="ui-icon-clear"
-                                    title="Limpiar formulario de orden de compra directa"
-
-                                    update=":form:detalleOCD :form:encabezadoOCD "
-                                    />
-                                <p:separator />
+                            </f:facet>
+                            <f:facet name="right" >
                                 <p:commandButton
                                     icon="ui-icon-disk"
                                     title="Guardar orden de compra directa"
                                     oncomplete="PF('odecD').hide()"
                                     />
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
+                                <p:commandButton
+                                    icon="ui-icon-refresh"
+                                    title="Limpiar formulario de orden de compra directa"
+                                    actionListener="#{mbOrdenCompra.mbCalculoRCOD.limpiaOrdenCompraDirecta()}"
+                                    update=":form:detalleOCD :form:encabezadoOCD "
+                                    />
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
+
                                 <p:commandButton
                                     icon="ui-icon-cancel"
                                     title="Cancelar orden de compra directa"
                                     />
-                                <p:separator />
-
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
                                 <p:commandButton
                                     icon="ui-icon-mail-closed"
                                     title="Enviar orden de compra directa"
@@ -480,96 +502,149 @@
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra directa"
+
                                     />
 
-                                <p:separator />
+                                <span class="ui-separator">
+                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
+                                </span>
 
-                                <p:commandButton id="salirOCD"
-                                                 icon="ui-icon-arrowreturnthick-1-w"
-                                                 title="Ir al menu principal"
+                                <p:commandButton icon="ui-icon-home"
+                                                 title="Ir al menu de Ordenes de Compra"
+                                                 actionListener="#{mbOrdenCompra.mbCalculoRCOD.limpiaOrdenCompraDirecta()}"
+                                                 update=":form:detalleOCD :form:encabezadoOCD "
+                                                 >
+                                    <p:confirm header="Deseas salir de la orden de compra?" message="Si no has guardado, los cambios se perderán..." icon="ui-icon-alert" />
+                                </p:commandButton>
 
-                                                 />
-                            </p:toolbarGroup>  
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecD').hide();" />
+                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                                </p:confirmDialog>
+
+                            </f:facet>
                         </p:toolbar>
                         <p:dataTable id="detalleOCD" style="width: 900px"
 
-                                     value="#{mbOrdenCompra.listaEmpaque}"
-                                     var="detD" rowKey="#{detD.idProducto}"
-                                     selectionMode="single" 
-                                     selection="#{mbOrdenCompra.empaque}"
+                                     value="#{mbOrdenCompra.ordenCompraDetallesDirectas}"
+                                     var="detD"
+                                     rowKey="#{detD}"
+                                     selection="#{mbOrdenCompra.mbCalculoRCOD.ordenCompraDetalleSeleccionado}"
                                      scrollable="true"
-                                     scrollHeight="300">
+                                     scrollHeight="300"
+                                     emptyMessage="Utiliza el buscador (lupa) para cargar productos y realizar la Orden de Compra...">
                             <p:ajax event = "rowSelect"/>
+                            <p:column selectionMode="single" style="width:16px;text-align:center"/>
                             <p:column headerText="No." width="30">
+                                #{detD.producto.cod_pro}
                             </p:column>
                             <p:column headerText="Producto" width="200"  >
-                                #{detD.articulo}
+                                #{detD.producto.toString()}
                             </p:column>
                             <p:column headerText="Cant." width="60" styleClass="alineacionD" >
-                                <pe:inputNumber    id="cantD"  
-                                                   style="width: 60px"
-                                                   decimalPlaces="3"  minValue="0"
-                                                   >
+                                <pe:inputNumber 
+                                    value="#{detD.cantOrdenada}"
+                                    id="cantD"  
+                                    style="width: 60px"
+                                    decimalPlaces="3"  minValue="0"
+                                    onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+                                    required="Es necesario escribir la CANTIDAD necesaria del producto"
+                                    >
                                     <p:ajax event="change" 
-
                                             process="@this"
-                                            update="detalleOCD"
+                                            update=":form:detalleOCD :form:pieD"
                                             />
                                 </pe:inputNumber>
                             </p:column>
                             <p:column headerText="Costo" styleClass="alineacionD" width="60"> 
-                                <pe:inputNumber    id="cotizada"
-                                                 decimalPlaces="3"
-                                                 minValue="0"
-                                                 decimalSeparator="."
-                                                 thousandSeparator=","
-                                                 >
+                                <pe:inputNumber
+                                    value="#{detD.costoOrdenado}"
+                                    id="cotizada"
+                                    decimalPlaces="3"
+                                    minValue="0"
+                                    decimalSeparator="."
+                                    thousandSeparator=","
+                                    onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+                                    >
                                     <p:ajax 
                                         process="@this"
-                                        update=":fc:detalleCotizacion :fc:pie"/>
+                                        update=":form:detalleOCD :form:pieD" />
                                 </pe:inputNumber>
                             </p:column> 
-                            <p:column headerText="1 Descto(%)" styleClass="alineacionD" width="60">  
+                            <p:column headerText="1 Descto(%)" styleClass="alineacionD" width="60">
+                                <pe:inputNumber
+                                    value="#{detD.descuentoProducto}"   id="descuento"
+                                    minValue="0"
+                                    maxValue="100"
+                                    decimalSeparator="."
+                                    decimalPlaces="2"
+                                    thousandSeparator=","
+                                    onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+                                    >
+                                    <p:ajax 
+                                        process="@this"
+                                        update=":form:detalleOCD :form:pieD"
+                                        />
+                                </pe:inputNumber>
 
                             </p:column>
-                            <p:column headerText="2 Descto(%)" styleClass="alineacionD" width="60">  
+                            <p:column headerText="2 Descto(%)" styleClass="alineacionD" width="60"> 
+                                <pe:inputNumber value="#{detD.descuentoProducto2}"   id="descuento2"
+                                                minValue="0"
+                                                maxValue="100"
+                                                decimalSeparator="."
+                                                decimalPlaces="2"
+                                                thousandSeparator=","
+                                                onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+                                                >
+                                    <p:ajax 
+                                        event="change"
+                                        process="@this"
+                                        update=":form:detalleOCD :form:pieD :form:sumaDescuentosTotalesD"
+                                        />
+                                </pe:inputNumber>
 
                             </p:column>
 
-                            <p:column headerText="Subtotal" styleClass="alineacionD" width="60">  
-                                <h:outputText  id="subtotalD" >
+                            <p:column headerText="Neto" width="40" >
+                                <h:outputText value="#{detD.neto}" id="neto" > 
                                     <f:convertNumber type="currency" locale="en-US"   />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Importe" width="50" >
+                                <h:outputText value="#{detD.subtotal}"  id="subtotal" > 
+                                    <f:convertNumber type="currency" locale="en-US" />
                                 </h:outputText>
                             </p:column>
                         </p:dataTable>
                         <p:panelGrid id="pieD" >
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Importe :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
-                                    <h:outputText value="#{mbOrdenCompra.subtotF}" id="generalD" style="color: black;" >
+                                <p:column styleClass="etiquetaD"  style=" width: 800px;" colspan="5" >Importe :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.subtotalGeneral}" id="generalD" style="color: black;" >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 250px;" >Total de descuentos :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 100px;" >
-                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosGeneralesF}" id="sumaDescuentosTotalesD" style="color: black;" >
+                                <p:column styleClass="etiquetaD" style="width: 250px;" >Total de descuentos :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.sumaDescuentosTotalesF}" id="sumaDescuentosTotalesD" style="color: black;" >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
 
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 250px;" >Por Productos :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width:100px;" >
-                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosProductosF}" id="sumaDescuentosProductosD" style="color: black;" >
+                                <p:column styleClass="etiquetaD" style="width: 250px;"  >Por Productos :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.sumaDescuentosProductos}" id="sumaDescuentosProductosD" style="color: black;" >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
 
 
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" >Comercial+Pronto Pago :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
-                                    <h:outputText value="#{mbOrdenCompra.sumaDescuentosTotalesF}" id="descuentoGeneralAplicadoD" style="color: black;" >
+                                <p:column styleClass="etiquetaD" style="width: 250px;"  >Comercial+Pronto Pago :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.descuentoGeneralAplicado}" id="descuentoGeneralAplicadoD" style="color: black;" >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
@@ -577,26 +652,26 @@
 
                             </p:row>
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Subtotal :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
-                                    <h:outputText value="#{mbOrdenCompra.subtotalBrutoF}"  id="subtotalBrutoD" style="color: black;" >
+                                <p:column styleClass="etiquetaD" style="width: 800px;"  colspan="5" >Subtotal :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.subtotalBrutoF}"  id="subtotalBrutoD" style="color: black;" >
 
                                     </h:outputText>
                                 </p:column>
                             </p:row>
 
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5">Impuestos :</p:column>
-                                <p:column  styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
-                                    <h:outputText value="#{mbOrdenCompra.impF}"  id="impuestoD"  style="color: black;"  >
+                                <p:column styleClass="etiquetaD" style="width: 800px;"  colspan="5">Impuestos :</p:column>
+                                <p:column  styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.impF}"  id="impuestoD"  style="color: black;"  >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 800px" colspan="5" >Total :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
-                                    <h:outputText value="#{mbOrdenCompra.totalF}"  id="totalD" style="color: black;" >
+                                <p:column styleClass="etiquetaD" style="width: 800px;"  colspan="5" >Total :</p:column>
+                                <p:column styleClass="alineacionD"  >
+                                    <h:outputText value="#{mbOrdenCompra.mbCalculoRCOD.totalF}"  id="totalD" style="color: black;" >
                                         <f:convertNumber type="currency" locale="en-US"   />
                                     </h:outputText>
                                 </p:column>
@@ -751,11 +826,11 @@
                     </p:dialog>
 
                     <script type="text/javascript">
-                        function handleBuscar(xhr, status, args) {
-                            if (!(args.validationFailed || !args.okBuscar)) {
-                                buscarProductoDlg.hide();
-                            }
-                        }
+                                        function handleBuscar(xhr, status, args) {
+                                            if (!(args.validationFailed || !args.okBuscar)) {
+                                                buscarProductoDlg.hide();
+                                            }
+                                        }
                     </script>
 
 

@@ -78,7 +78,7 @@ public class DAOCotizaciones {
     }
 
     public ArrayList<CotizacionDetalle> dameProductoCotizacionesProveedores(int idReq) throws SQLException, NamingException {
-        ArrayList<CotizacionDetalle> lista = new ArrayList<CotizacionDetalle>();
+        ArrayList<CotizacionDetalle> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
@@ -111,7 +111,7 @@ public class DAOCotizaciones {
     }
 
     public ArrayList<CotizacionDetalle> consultaCotizacionesProveedores(int idRequi, int idProducto) throws SQLException, NamingException {
-        ArrayList<CotizacionDetalle> lista = new ArrayList<CotizacionDetalle>();
+        ArrayList<CotizacionDetalle> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
