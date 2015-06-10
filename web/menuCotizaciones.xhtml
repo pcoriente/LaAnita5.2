@@ -46,18 +46,14 @@
                     <!-- P A N E L   D E  A D M I N I S T R A C I ON... -->
                     <p:messages id="messagePanel" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panel id="pCotizaciones" header="PANEL DE ADMINISTRACION DE COTIZACIONES" styleClass="quitaCuadro" >
-                        <h:outputText value="No hay COTIZACIONES que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
-                        <p:dataTable id="dtCotizaciones"
+                        <h:outputText value="No hay requisiciones que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
+                        <p:dataTable id="dtCotizaciones" selectionMode="single"
                                      value="#{mbCotizaciones.listaCotizacionEncabezado}"
-                                     var="cot" 
-                                     widgetVar="requisicionesTable"
+                                     var="cot" rowKey="#{cot.idCotizacion}"
                                      emptyMessage="No existen elementos para desplegar..."
-                                     rowKey="#{cot}"
-                                     selection="#{mbCotizaciones.cotizacionesEncabezadoToOrden}"
-                                     selectionMode="single"
                                      >
                             <p:ajax event="rowSelect" 
-                                    listener="#{mbCotizaciones.cargaCotizacionesProveedor()}"
+                                    listener="#{mbCotizaciones.cargaCotizacionesProveedor}"
                                     oncomplete="PF('panel').show();"
                                     process="@this"
                                     update=":form:listaProveedores :form:ordenDeCompra"

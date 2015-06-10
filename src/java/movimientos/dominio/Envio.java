@@ -1,10 +1,7 @@
 package movimientos.dominio;
 
-import almacenes.dominio.AlmacenJS;
-import entradas.dominio.Comprobante;
-import entradas.to.TOComprobante;
+import almacenes.to.TOAlmacenJS;
 import java.util.Date;
-import monedas.Moneda;
 
 /**
  *
@@ -13,26 +10,28 @@ import monedas.Moneda;
 public class Envio {
     private int idMovto;
     private int idMovtoAlmacen;
-    private AlmacenJS almacen;
+    private TOAlmacenJS almacen;
     private int folio;
-    private TOComprobante comprobante;
-    private int idImpuestoZona;
-    private Moneda moneda;
-    private double tipoCambio;
-    private double desctoComercial;
-    private double desctoProntoPago;
+//    private TOComprobante comprobante;
+//    private int idImpuestoZona;
+//    private Moneda moneda;
+//    private double tipoCambio;
+//    private double desctoComercial;
+//    private double desctoProntoPago;
     private Date fecha;
     private int idUsuario;
+    private TOAlmacenJS almacenDestino;
+    private int folioAlmacen;
     private double subTotal;
     private double descuento;
     private double impuesto;
     private double total;
     
     public Envio() {
-        this.almacen=new AlmacenJS();
-        this.comprobante=new TOComprobante();
-        this.moneda=new Moneda();
-        this.tipoCambio=1;
+        this.almacen=new TOAlmacenJS();
+//        this.comprobante=new TOComprobante();
+//        this.moneda=new Moneda();
+//        this.tipoCambio=1;
         this.fecha=new Date();
     }
 
@@ -52,11 +51,11 @@ public class Envio {
         this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
-    public AlmacenJS getAlmacen() {
+    public TOAlmacenJS getAlmacen() {
         return almacen;
     }
 
-    public void setAlmacen(AlmacenJS almacen) {
+    public void setAlmacen(TOAlmacenJS almacen) {
         this.almacen = almacen;
     }
 
@@ -68,53 +67,53 @@ public class Envio {
         this.folio = folio;
     }
 
-    public TOComprobante getComprobante() {
-        return comprobante;
-    }
+//    public TOComprobante getComprobante() {
+//        return comprobante;
+//    }
+//
+//    public void setComprobante(TOComprobante comprobante) {
+//        this.comprobante = comprobante;
+//    }
 
-    public void setComprobante(TOComprobante comprobante) {
-        this.comprobante = comprobante;
-    }
-
-    public int getIdImpuestoZona() {
-        return idImpuestoZona;
-    }
-
-    public void setIdImpuestoZona(int idImpuestoZona) {
-        this.idImpuestoZona = idImpuestoZona;
-    }
-
-    public Moneda getMoneda() {
-        return moneda;
-    }
-
-    public void setMoneda(Moneda moneda) {
-        this.moneda = moneda;
-    }
-
-    public double getTipoCambio() {
-        return tipoCambio;
-    }
-
-    public void setTipoCambio(double tipoCambio) {
-        this.tipoCambio = tipoCambio;
-    }
-
-    public double getDesctoComercial() {
-        return desctoComercial;
-    }
-
-    public void setDesctoComercial(double desctoComercial) {
-        this.desctoComercial = desctoComercial;
-    }
-
-    public double getDesctoProntoPago() {
-        return desctoProntoPago;
-    }
-
-    public void setDesctoProntoPago(double desctoProntoPago) {
-        this.desctoProntoPago = desctoProntoPago;
-    }
+//    public int getIdImpuestoZona() {
+//        return idImpuestoZona;
+//    }
+//
+//    public void setIdImpuestoZona(int idImpuestoZona) {
+//        this.idImpuestoZona = idImpuestoZona;
+//    }
+//
+//    public Moneda getMoneda() {
+//        return moneda;
+//    }
+//
+//    public void setMoneda(Moneda moneda) {
+//        this.moneda = moneda;
+//    }
+//
+//    public double getTipoCambio() {
+//        return tipoCambio;
+//    }
+//
+//    public void setTipoCambio(double tipoCambio) {
+//        this.tipoCambio = tipoCambio;
+//    }
+//
+//    public double getDesctoComercial() {
+//        return desctoComercial;
+//    }
+//
+//    public void setDesctoComercial(double desctoComercial) {
+//        this.desctoComercial = desctoComercial;
+//    }
+//
+//    public double getDesctoProntoPago() {
+//        return desctoProntoPago;
+//    }
+//
+//    public void setDesctoProntoPago(double desctoProntoPago) {
+//        this.desctoProntoPago = desctoProntoPago;
+//    }
 
     public Date getFecha() {
         return fecha;
@@ -130,6 +129,22 @@ public class Envio {
 
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
+    }
+
+    public TOAlmacenJS getAlmacenDestino() {
+        return almacenDestino;
+    }
+
+    public void setAlmacenDestino(TOAlmacenJS almacenDestino) {
+        this.almacenDestino = almacenDestino;
+    }
+
+    public int getFolioAlmacen() {
+        return folioAlmacen;
+    }
+
+    public void setFolioAlmacen(int folioAlmacen) {
+        this.folioAlmacen = folioAlmacen;
     }
 
     public double getSubTotal() {

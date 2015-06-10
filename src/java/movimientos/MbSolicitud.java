@@ -46,19 +46,15 @@ public class MbSolicitud implements Serializable {
     private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    @ManagedProperty(value = "#{mbComprobantes}")
-    private MbComprobantes mbComprobantes;
+//    @ManagedProperty(value = "#{mbComprobantes}")
+//    private MbComprobantes mbComprobantes;
 
     public MbSolicitud() throws NamingException {
-        this.modoEdicion = false;
-
         this.mbAcciones = new MbAcciones();
         this.mbAlmacenes = new MbAlmacenesJS();
-
         this.mbCedis = new MbMiniCedis();
-
         this.mbBuscar = new MbProductosBuscar();
-        this.mbComprobantes = new MbComprobantes();
+//        this.mbComprobantes = new MbComprobantes();
         this.inicializa();
     }
 
@@ -242,13 +238,13 @@ public class MbSolicitud implements Serializable {
         this.mbBuscar = mbBuscar;
     }
 
-    public MbComprobantes getMbComprobantes() {
-        return mbComprobantes;
-    }
-
-    public void setMbComprobantes(MbComprobantes mbComprobantes) {
-        this.mbComprobantes = mbComprobantes;
-    }
+//    public MbComprobantes getMbComprobantes() {
+//        return mbComprobantes;
+//    }
+//
+//    public void setMbComprobantes(MbComprobantes mbComprobantes) {
+//        this.mbComprobantes = mbComprobantes;
+//    }
 
     public MbAlmacenesJS getMbAlmacenes() {
         return mbAlmacenes;

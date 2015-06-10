@@ -27,6 +27,7 @@ import javax.faces.model.SelectItem;
 import javax.inject.Named;
 import javax.naming.NamingException;
 import monedas.MbMonedas;
+import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 //import producto2.dominio.Producto;
 import proveedores.MbMiniProveedor;
@@ -86,7 +87,9 @@ public class MbCotizaciones implements Serializable {
         }
     }
 
-    public void cargaCotizacionesProveedor() throws NamingException, SQLException {
+    public void cargaCotizacionesProveedor(SelectEvent event) throws NamingException, SQLException {
+        this.cotizacionesEncabezadoToOrden=(CotizacionEncabezado)event.getObject();
+        
         int idReq = cotizacionesEncabezadoToOrden.getIdRequisicion();
         ordenCompra = new ArrayList<>();
         listaCotizacionDetalleProductos = new ArrayList<>();

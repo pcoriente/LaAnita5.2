@@ -1,13 +1,16 @@
 package movimientos.dao;
 
 import entradas.dominio.MovimientoProducto;
+import entradas.to.TOEntradaProducto;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.naming.Context;
@@ -15,6 +18,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.dominio.Lote;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
 import usuarios.dominio.UsuarioSesion;
@@ -40,6 +44,272 @@ public class DAOMovimientos {
 
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
+    }
+    
+    public void grabarTraspasoRecepcion(TOMovimiento m, ArrayList<TOEntradaProducto> detalle) throws SQLException {
+        String strSQL;
+        ResultSet rs;
+        Statement st;
+//        int idMovtoAlmacen=0;
+        double existenciaAnterior, promedioPonderado, existenciaOficina, saldo;
+        Connection cn = this.ds.getConnection();
+        st = cn.createStatement();
+        try {
+            st.executeUpdate("BEGIN TRANSACTION");
+
+//            strSQL="SELECT m.idMovto " +
+//                    "FROM movimientosAlmacen m " +
+//                    "WHERE m.idAlmacen="+m.getIdAlmacen()+" AND m.idTipo=9 and folio=(SELECT numero FROM comprobantes WHERE idComprobante="+m.getIdReferencia()+")";
+//            rs=st.executeQuery(strSQL);
+//            if(rs.next()) {
+//                idMovtoAlmacen=rs.getInt("idMovto");
+//            } else {
+//                throw new SQLException("No se encontro el movimiento de almacen con la referencia("+m.getIdReferencia()+")");
+//            }
+//            idMovtoAlmacen=m.getIdMovtoAlmacen();
+
+            strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1 WHERE idMovtoAlmacen=" + m.getIdMovtoAlmacen();
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1 WHERE idMovto=" + m.getIdMovto();
+            st.executeUpdate(strSQL);
+
+            for (TOEntradaProducto to : detalle) {
+                strSQL = "SELECT existenciaOficina FROM almacenesEmpaques "
+                        + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + to.getIdProducto();
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    existenciaAnterior = rs.getDouble("existenciaOficina");
+                    strSQL = "UPDATE almacenesEmpaques SET existenciaOficina=existenciaOficina+" + to.getCantFacturada() + " "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + to.getIdProducto();
+                } else {
+                    existenciaAnterior = 0;
+                    strSQL = "INSERT INTO almacenesEmpaques (idAlmacen, idEmpaque, existenciaOficina, separados, existenciaAlmacen, existenciaMinima, existenciaMaxima) "
+                            + "VALUES (" + m.getIdAlmacen() + ", " + to.getIdProducto() + ", " + to.getCantFacturada() + ", 0, 0, 0, 0)";
+                }
+                st.executeUpdate(strSQL);
+
+//                strSQL="INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior) "
+//                        + "VALUES ("+m.getIdMovto()+", "+to.getIdProducto()+", 0, "+to.getCantFacturada()+", 0, 0, "+to.getCosto()+", 0, 0, 0, "+to.getUnitario()+", 0, GETDATE(), "+existenciaAnterior+")";
+                strSQL = "UPDATE movimientosDetalle "
+                        + "SET cantFacturada=" + to.getCantFacturada() + ", existenciaAnterior=" + existenciaAnterior + ", fecha=GETDATE() "
+                        + "WHERE idMovto=" + m.getIdMovto() + " AND idEmpaque=" + to.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "SELECT promedioPonderado, existenciaOficina FROM empresasEmpaques "
+                        + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    promedioPonderado = rs.getDouble("promedioPonderado");
+                    existenciaOficina = rs.getDouble("existenciaOficina");
+                    promedioPonderado = (promedioPonderado * existenciaOficina + to.getUnitario() * to.getCantFacturada()) / (existenciaOficina + to.getCantFacturada());
+                    strSQL = "UPDATE empresasEmpaques "
+                            + "SET promedioPonderado=" + promedioPonderado + ", existenciaOficina=existenciaOficina+" + to.getCantFacturada() + " "
+                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
+                } else {
+                    strSQL = "INSERT INTO empresasEmpaques (idEmpresa, idEmpaque, promedioPonderado, existenciaOficina, idMovtoUltimaEntrada) "
+                            + "VALUES (" + m.getIdEmpresa() + ", " + to.getIdProducto() + ", " + to.getUnitario() + ", " + to.getCantFacturada() + ", 0)";
+                }
+                st.executeUpdate(strSQL);
+
+                for (Lote l : to.getLotes()) {
+                    strSQL = "SELECT saldo FROM almacenesLotes "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + to.getIdProducto() + " AND lote='" + l.getLote() + "'";
+                    rs = st.executeQuery(strSQL);
+                    if (rs.next()) {
+                        saldo = rs.getDouble("saldo");
+                        strSQL = "UPDATE almacenesLotes "
+                                + "SET saldo=saldo+" + l.getSeparados() + ", cantidad=cantidad+" + l.getSeparados() + " "
+                                + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + to.getIdProducto() + " AND lote='" + l.getLote() + "'";
+                    } else {
+                        saldo = 0;
+                        strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, lote, fechaCaducidad, cantidad, saldo, separados, existenciaFisica) "
+                                + "VALUES (" + m.getIdAlmacen() + ", " + to.getIdProducto() + ", '" + l.getLote() + "', '" + new java.sql.Date(l.getFechaCaducidad().getTime()) + "', " + l.getSeparados() + ", " + l.getSeparados() + ", 0, 0)";
+                    }
+                    st.executeUpdate(strSQL);
+
+//                    strSQL="INSERT INTO movimientosAlmacenDetalle (idAlmacen, idMovto, idEmpaque, lote, cantidad, suma, fecha, existenciaAnterior) "
+//                            + "VALUES("+m.getIdAlmacen()+", "+idMovtoAlmacen+", "+to.getIdProducto()+", '"+l.getLote()+"', "+l.getSeparados()+", 1, GETDATE(), "+saldo+")";
+                    strSQL = "UPDATE movimientosAlmacenDetalle "
+                            + "SET cantidad=" + l.getSeparados() + ", existenciaAnterior=" + saldo + ", fecha=GETDATE() "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idMovto=" + m.getIdMovtoAlmacen() + " AND idEmpaque=" + to.getIdProducto() + " AND lote='" + l.getLote() + "'";
+                    st.executeUpdate(strSQL);
+                }
+            }
+            st.executeUpdate("COMMIT TRANSACTION");
+        } catch (SQLException ex) {
+            st.executeUpdate("ROLLBACK TRANSACTION");
+            throw ex;
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
+
+    public void grabarTraspasoEnvio(TOMovimiento m, ArrayList<TOMovimientoProducto> detalle) throws SQLException {
+        String strSQL;
+        double sumaLotes, costo;
+
+        this.cnx = this.ds.getConnection();
+        Statement st = this.cnx.createStatement();
+        try {
+            st.execute("BEGIN TRANSACTION");
+            ResultSet rs;
+            Statement st1 = this.cnx.createStatement();
+
+            strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1 WHERE idMovtoAlmacen=" + m.getIdMovtoAlmacen();
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1 WHERE idMovto=" + m.getIdMovto();
+            st.executeUpdate(strSQL);
+
+            for (TOMovimientoProducto d : detalle) {
+                sumaLotes = 0;
+                strSQL = "SELECT K.lote, K.cantidad, ISNULL(L.saldo, 0) AS saldo "
+                        + "FROM movimientosDetalleAlmacen K "
+                        + "LEFT JOIN almacenesLotes L ON L.idAlmacen=K.idAlmacen AND L.idEmpaque=K.idEmpaque AND L.lote=K.lote "
+                        + "WHERE K.idAlmacen=" + m.getIdAlmacen() + " AND K.idMovtoAlmacen=" + m.getIdMovtoAlmacen() + " AND K.idEmpaque=" + d.getIdProducto();
+                rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    if (rs.getDouble("saldo") < rs.getDouble("cantidad")) {
+                        throw new SQLException("No hay saldo o No se encontro el lote(" + rs.getString("lote") + ") del producto(" + d.getIdProducto() + ") en el almacen");
+                    }
+                    strSQL = "UPDATE movimientosDetalleAlmacen "
+                            + "SET existenciaAnterior=" + rs.getDouble("saldo") + ", fecha=GETDATE() "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idMovtoAlmacen=" + m.getIdMovtoAlmacen() + " AND idEmpaque=" + d.getIdProducto() + " AND lote='" + rs.getString("lote") + "'";
+                    st1.executeUpdate(strSQL);
+
+                    strSQL = "UPDATE almacenesLotes "
+                            + "SET saldo=saldo-" + rs.getDouble("cantidad") + ", separados=separados-" + rs.getDouble("cantidad") + " "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + d.getIdProducto() + " AND lote='" + rs.getString("lote") + "'";
+                    st1.executeUpdate(strSQL);
+
+                    sumaLotes += rs.getDouble("cantidad");
+                }
+                if (sumaLotes != d.getCantFacturada()) {
+                    throw new SQLException("Diferencia entre lotes y cantidad Facturada del producto(" + d.getIdProducto() + ")");
+                } else if (sumaLotes > 0) {
+                    strSQL = "SELECT AE.existenciaOficina AS saldo, ISNULL(EE.existenciaOficina, 0) AS existencia, ISNULL(EE.costoUnitarioPromedio, 0) AS costo "
+                            + "FROM almacenesEmpaques AE "
+                            + "INNER JOIN almacenes A ON A.idAlmacen=AE.idAlmacen "
+                            + "LEFT JOIN empresasEmpaques EE ON EE.idEmpresa=A.idEmpresa AND EE.idEmpaque=AE.idEmpaque "
+                            + "WHERE AE.idAlmacen=" + m.getIdAlmacen() + " AND AE.idEmpaque=" + d.getIdProducto();
+                    rs = st.executeQuery(strSQL);
+                    if (rs.next()) {
+                        if (rs.getDouble("existencia") < d.getCantFacturada()) {
+                            throw new SQLException("No hay capas de costos suficientes o No se encontro el producto(" + d.getIdProducto() + ") en la empresa");
+                        } else if (rs.getDouble("costo") < 0) {
+                            throw new SQLException("Costo no valido (menor que cero)");
+                        }
+                    } else {
+                        throw new SQLException("No se encontro producto(" + d.getIdProducto() + ") en el almacen");
+                    }
+                    d.setCosto(rs.getDouble("costo"));
+                    d.setUnitario(rs.getDouble("costo"));
+                    costo = rs.getDouble("costo");
+                    sumaLotes = rs.getDouble("existencia");
+
+                    strSQL = "UPDATE movimientosDetalle "
+                            + "SET costo=" + d.getCosto() + ", unitario=" + d.getUnitario() + ", cantFacturada=" + d.getCantFacturada() + ", existenciaAnterior=" + rs.getDouble("saldo") + ", fecha=GETDATE() "
+                            + "WHERE idMovto=" + m.getIdMovto() + " AND idEmpaque=" + d.getIdProducto();
+                    st.executeUpdate(strSQL);
+
+                    strSQL = "UPDATE almacenesEmpaques "
+                            + "SET existenciaOficina=existenciaOficina-" + d.getCantFacturada() + ", separados=separados-" + d.getCantFacturada() + " "
+                            + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + d.getIdProducto();
+                    st.executeUpdate(strSQL);
+
+                    if (d.getCantFacturada() == sumaLotes) {
+                        costo = 0;    // Cuando ya no hay existencia el costo promedio de la empresa se hace cero
+                    }
+                    strSQL = "UPDATE empresasEmpaques SET existenciaOficina=existenciaOficina-" + d.getCantFacturada() + ", costoUnitarioPromedio=" + costo + " "
+                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + d.getIdProducto();
+                    st.executeUpdate(strSQL);
+                }
+            }
+            // ----------------------- SECCION: CREAR ENLACE ENVIO-RECEPCION ------------------
+
+            int folioRecepcion = this.obtenerMovimientoFolio(true, m.getIdAlmacen(), 9);
+            strSQL = "UPDATE movimientos SET referencia=" + folioRecepcion + " WHERE idMovto=" + m.getIdMovto();
+            st.executeUpdate(strSQL);
+
+            int folioRecepcionAlmacen = this.obtenerMovimientoFolio(false, m.getIdAlmacen(), 9);
+            strSQL = "UPDATE movimientosAlmacen SET referencia=" + folioRecepcionAlmacen + " WHERE idMovtoAlmacen=" + m.getIdMovtoAlmacen();
+            st.executeUpdate(strSQL);
+
+            // ------------------------- SECCION: CREAR RECEPCION ---------------------
+
+            int idCedisDestino = 0;
+            strSQL = "SELECT idCedis FROM almacenes WHERE idAlmacen=" + m.getIdReferencia();
+            rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                idCedisDestino = rs.getInt("idCedis");
+            } else {
+                throw new SQLException("No se encontro almacen=" + m.getIdReferencia());
+            }
+            int idMovto = 0;
+            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus, idReferencia, referencia, propietario) "
+                    + "VALUES(9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + m.getIdReferencia() + ", " + folioRecepcion + ", 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, " + m.getIdAlmacen() + ", " + m.getFolio() + ", 0)";
+            st.executeUpdate(strSQL);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
+            if (rs.next()) {
+                idMovto = rs.getInt("idMovto");
+            }
+            int idMovtoAlmacen = 0;
+            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, estatus, idReferencia, referencia, propietario) "
+                    + "VALUES (9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + m.getIdReferencia() + ", " + folioRecepcionAlmacen + ", 0, GETDATE(), " + this.idUsuario + ", 0, " + m.getIdAlmacen() + ", " + m.getFolioAlmacen() + ", 0)";
+            st.executeUpdate(strSQL);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
+            if (rs.next()) {
+                idMovtoAlmacen = rs.getInt("idMovtoAlmacen");
+            }
+            strSQL = "INSERT INTO movimientosRelacionados (idMovto, idMovtoAlmacen) VALUES (" + idMovto + ", " + idMovtoAlmacen + ")";
+            st.executeUpdate(strSQL);
+
+            for (TOMovimientoProducto d : detalle) {
+                if (d.getCantFacturada() > 0) {
+                    strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior) "
+                            + "VALUES (" + idMovto + ", " + d.getIdProducto() + ", " + d.getCantFacturada() + ", " + d.getCantFacturada() + ", 0, 0, " + d.getCosto() + ", " + d.getCosto() + ", 0, 0, 0, " + d.getUnitario() + ", " + d.getIdImpuestoGrupo() + ", GETDATE(), 0)";
+                    st.executeUpdate(strSQL);
+
+                    strSQL= "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, idAlmacen, cantidad, suma, fecha, existenciaAnterior)\n" +
+                            "SELECT "+idMovtoAlmacen+", MD.idEmpaque, MD.lote, "+m.getIdReferencia()+", MD.cantidad, 1, GETDATE(), 0 AS existenciaAnterior\n" +
+                            "FROM movimientosDetalleAlmacen MD\n" +
+                            "WHERE MD.idMovtoAlmacen="+m.getIdMovtoAlmacen()+" AND MD.idEmpaque="+d.getIdProducto()+" AND MD.cantidad > 0";
+                    st.executeUpdate(strSQL);
+                }
+            }
+            st.execute("COMMIT TRANSACTION");
+        } catch (SQLException ex) {
+            st.execute("ROLLBACK TRANSACTION");
+            throw ex;
+        } finally {
+            st.close();
+            this.cnx.close();
+        }
+    }
+
+    public ArrayList<TOMovimiento> obtenerMovimientosRelacionados(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
+        if (fechaInicial == null) {
+            fechaInicial = new Date();
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        ArrayList<TOMovimiento> solicitudes = new ArrayList<>();
+        String strSQL = "SELECT M.*, MA.idMovtoAlmacen, MA.folio AS folioAlmacen, MA.fecha AS fechaAlmacen, MA.idUsuario AS idUsuarioAlmacen, MA.estatus AS statusAlmacen "
+                + "FROM movimientos M "
+                + "INNER JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
+                + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus BETWEEN 0 AND " + estatus + " AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'";
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                solicitudes.add(this.construirMovimientoRelacionado(rs));
+            }
+        } finally {
+            cn.close();
+        }
+        return solicitudes;
     }
 
     public void grabarTraspasoSolicitud(TOMovimiento m, ArrayList<MovimientoProducto> productos) throws SQLException {
@@ -673,14 +943,11 @@ public class DAOMovimientos {
     private ArrayList<TOMovimientoProducto> obtenMovimientoDetalle(int idMovto) throws SQLException {
         String strSQL = "SELECT *, 0 AS cantOrdenadaSinCargo, 0 AS cantRecibidaSinCargo FROM movimientosDetalle WHERE idMovto=" + idMovto;
         ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-        Statement st = this.cnx.createStatement();
-        try {
+        try (Statement st = this.cnx.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
                 productos.add(this.construirDetalle(rs));
             }
-        } finally {
-            st.close();
         }
         return productos;
     }
@@ -702,7 +969,7 @@ public class DAOMovimientos {
                 + ", ISNULL(C.tipoComprobante, 0) AS tipoComprobante"
                 + ", ISNULL(C.serie, '') AS  serie, ISNULL(C.numero, '') AS numero"
                 + ", ISNULL(C.fecha, GETDATE()) AS fechaComprobante, ISNULL(C.propietario, 0) AS propietarioComprobante"
-                + ", ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
+                + ", ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
                 + ", ISNULL(MA.idUsuario, 0) AS idUsuarioAlmacen, ISNULL(MA.estatus, 0) AS statusAlmacen "
                 + "FROM movimientos M "
                 + "LEFT JOIN comprobantes C ON C.idComprobante=M.idComprobante "
@@ -745,7 +1012,7 @@ public class DAOMovimientos {
         to.setEstatus(rs.getInt("estatus"));
         ///////////////////  DEL ALMACEN  ////////////////////////////////////////////
         to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
-//        to.setFolioAlmacen(rs.getInt("folioAlmacen"));
+        to.setFolioAlmacen(rs.getInt("folioAlmacen"));
 //        to.setFechaAlmacen(new java.util.Date(rs.getDate("fechaAlmacen").getTime()));
 //        to.setIdUsuarioAlmacen(rs.getInt("idUsuarioAlmacen"));
 //        to.setPropietarioAlmacen(rs.getInt("propietarioAlmacen"));
@@ -760,7 +1027,7 @@ public class DAOMovimientos {
 
     public ArrayList<TOMovimiento> obtenerMovimientosAlmacen(int idComprobante) throws SQLException {
         ArrayList<TOMovimiento> tos = new ArrayList<>();
-        String strSQL = "SELECT M.*, M.idMovtoAlmacen AS idMovto\n"
+        String strSQL = "SELECT M.*, M.idMovtoAlmacen AS idMovto, M.folioAlmacen AS folio\n"
                 + "   , 0 AS idImpuestoZona, 0 as desctoComercial, 0 as desctoProntoPago, 0 as idMoneda, 1 as tipoCambio\n"
                 + "FROM movimientosAlmacen M\n"
                 + "WHERE M.idTipo=1 AND M.idComprobante=" + idComprobante;
@@ -809,8 +1076,7 @@ public class DAOMovimientos {
         if (oficina) {
             tabla = "movimientosFolios";
         }
-        Statement st = this.cnx.createStatement();
-        try {
+        try (Statement st = this.cnx.createStatement()) {
             ResultSet rs = st.executeQuery("SELECT folio FROM " + tabla + " WHERE idAlmacen=" + idAlmacen + " AND idTipo=" + idTipo);
             if (rs.next()) {
                 folio = rs.getInt("folio");
@@ -819,8 +1085,6 @@ public class DAOMovimientos {
                 folio = 1;
                 st.executeUpdate("INSERT INTO " + tabla + " (idAlmacen, idTipo, folio) VALUES (" + idAlmacen + ", " + idTipo + ", 2)");
             }
-        } finally {
-            st.close();
         }
         return folio;
     }
