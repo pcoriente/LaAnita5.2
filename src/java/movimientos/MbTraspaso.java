@@ -1,11 +1,13 @@
 package movimientos;
 
-import entradas.MbComprobantes;
-import entradas.dao.DAOMovimientos1;
+import Message.Mensajes;
+import almacenes.MbAlmacenesJS;
+import almacenes.to.TOAlmacenJS;
+import cedis.MbMiniCedis;
+//import entradas.dao.DAOMovimientos1;
 import entradas.dominio.MovimientoProducto;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
-import impuestos.dao.DAOImpuestosProducto;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -14,12 +16,15 @@ import java.util.ArrayList;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
+import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import movimientos.dao.DAOLotes;
+import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Envio;
 import movimientos.dominio.Lote;
 import movimientos.dominio.SalidaProducto;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
@@ -35,34 +40,45 @@ public class MbTraspaso implements Serializable {
 
     private boolean modoEdicion;
     private Lote lote;
-    private double resSeparados;
+//    private double resSeparados;
     private double sumaLotes;
     private Envio envio;
 //    private int idMovtoAlmacen;
+    private TOAlmacenJS toAlmacen;
+    private ArrayList<SelectItem> listaAlmacenes;
     private ArrayList<Envio> envios;
     private ArrayList<SalidaProducto> envioDetalle;
     private SalidaProducto envioProducto;
     private SalidaProducto resEnvioProducto;
-    private DAOMovimientos1 dao;
-    private DAOImpuestosProducto daoImps;
+    private DAOMovimientos dao;
+//    private DAOImpuestosProducto daoImps;
     private DAOLotes daoLotes;
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
-    @ManagedProperty(value = "#{mbComprobantes}")
-    private MbComprobantes mbComprobantes;
+    @ManagedProperty(value = "#{mbAlmacenesJS}")
+    private MbAlmacenesJS mbAlmacenes;
+    @ManagedProperty(value = "#{mbMiniCedis}")
+    private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
 
     public MbTraspaso() throws NamingException {
         this.mbAcciones = new MbAcciones();
-        this.mbComprobantes = new MbComprobantes();
+        this.mbAlmacenes = new MbAlmacenesJS();
+        this.mbCedis = new MbMiniCedis();
         this.mbBuscar = new MbProductosBuscar();
+
         this.inicializa();
     }
 
     private void inicializa() {
-        inicializar();
+        this.mbAlmacenes.setListaAlmacenes(null);
+        this.listaAlmacenes = this.mbAlmacenes.getListaAlmacenes();
+        this.toAlmacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
+        this.mbCedis.cargaMiniCedisTodos();
+        this.mbBuscar.inicializar();
+        this.inicializaLocales();
     }
 
     public void inicializar() {
@@ -79,26 +95,20 @@ public class MbTraspaso implements Serializable {
     }
 
     public void grabarEnvio() {
-        boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabarEnvio");
-        int idAlmacenDestino=this.envio.getAlmacen().getIdAlmacen();
         try {
-            this.dao=new DAOMovimientos1();
-            this.dao.grabarTraspasoEnvio(idAlmacenDestino, this.convertirTOMovimiento(), this.convertirDetalle());
-            this.modoEdicion=false;
-            ok=true;
+            this.dao = new DAOMovimientos();
+            this.dao.grabarTraspasoEnvio(this.convertirTOMovimiento(), this.convertirDetalle());
+            Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
+            this.modoEdicion = false;
         } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getMessage());
         }
     }
 
     public ArrayList<TOMovimientoProducto> convertirDetalle() {
-        ArrayList<TOMovimientoProducto> listaDetalle = new ArrayList<TOMovimientoProducto>();
+        ArrayList<TOMovimientoProducto> listaDetalle = new ArrayList<>();
         for (SalidaProducto p : this.envioDetalle) {
             listaDetalle.add(this.convertirTOMovimientoDetalle(p));
         }
@@ -123,23 +133,19 @@ public class MbTraspaso implements Serializable {
     }
 
     public TOMovimiento convertirTOMovimiento() {
-        TOMovimiento toMovimiento = new TOMovimiento();
-        toMovimiento.setIdMovto(this.envio.getIdMovto());
-        toMovimiento.setIdMovtoAlmacen(this.envio.getIdMovtoAlmacen());
-        toMovimiento.setIdTipo(2);
-        toMovimiento.setFolio(this.envio.getFolio());
-//        toMovimiento.setIdCedis(this.envio.getAlmacen().getCedis().getIdCedis());
-        toMovimiento.setIdEmpresa(this.envio.getAlmacen().getEmpresa().getIdEmpresa());
-        toMovimiento.setIdAlmacen(this.envio.getAlmacen().getIdAlmacen());
-        toMovimiento.setIdComprobante(this.envio.getComprobante().getIdComprobante());
-        toMovimiento.setIdImpuestoZona(this.envio.getIdImpuestoZona());
-        toMovimiento.setDesctoComercial(this.envio.getDesctoComercial());
-        toMovimiento.setDesctoProntoPago(this.envio.getDesctoProntoPago());
-        toMovimiento.setFecha(this.envio.getFecha());
-        toMovimiento.setIdUsuario(this.envio.getIdUsuario());
-        toMovimiento.setIdMoneda(this.envio.getMoneda().getIdMoneda());
-        toMovimiento.setTipoDeCambio(this.envio.getTipoCambio());
-        return toMovimiento;
+        TOMovimiento to = new TOMovimiento();
+        to.setIdMovto(this.envio.getIdMovto());
+        to.setIdTipo(2);
+        to.setIdCedis(this.envio.getAlmacen().getIdCedis());
+        to.setIdEmpresa(this.envio.getAlmacen().getIdEmpresa());
+        to.setIdAlmacen(this.envio.getAlmacen().getIdAlmacen());
+        to.setFolio(this.envio.getFolio());
+        to.setFecha(this.envio.getFecha());
+        to.setIdUsuario(this.envio.getIdUsuario());
+        to.setIdReferencia(this.envio.getAlmacenDestino().getIdAlmacen());
+        to.setIdMovtoAlmacen(this.envio.getIdMovtoAlmacen());
+        to.setFolioAlmacen(this.envio.getFolioAlmacen());
+        return to;
     }
 
     public void actualizarCantidad() {
@@ -147,57 +153,45 @@ public class MbTraspaso implements Serializable {
         this.resEnvioProducto.setCantFacturada(this.sumaLotes);
     }
 
-    public void gestionarLotes() {
+    public void gestionarLotes(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+
         boolean cierra = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        this.gestionLotes();
-        if (this.envioProducto.getCantFacturada() == this.sumaLotes) {
-            cierra = true;
+        if (newValue != null && !newValue.equals(oldValue)) {
+            double solicitados = (double) newValue;
+            double separados = (double) oldValue;
+            this.lote = this.envioProducto.getLotes().get(event.getRowIndex());
+            this.gestionLotes(solicitados, separados);
+            if (this.envioProducto.getCantFacturada() == this.sumaLotes) {
+                cierra = true;
+            }
         }
+        RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okLotes", cierra);
     }
 
-    public void gestionLotes() {
-        boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "gestionLotes");
+    private void gestionLotes(double solicitados, double separados) {
         try {
             this.daoLotes = new DAOLotes();
-            double separar = this.lote.getSeparados() - this.resSeparados;
-            if (separar > 0) {
-                if (this.sumaLotes + separar > this.envioProducto.getCantOrdenada()) {
-                    fMsg.setDetail("Cantidad enviar mayor que cantidad solicitada");
-                    this.lote.setSeparados(this.resSeparados);
-                } else {
-                    double separados = this.daoLotes.separa(this.envio.getIdMovto(), this.envio.getIdMovtoAlmacen(), this.lote, separar);
-                    if (separados < separar) {
-                        fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
-                        fMsg.setDetail("No se pudieron obtener los lotes solicitados");
-                    } else {
-                        ok = true;
-                    }
-                    this.lote.setSeparados(this.resSeparados + separados);
-                    this.sumaLotes += separados;
-                    this.resSeparados = this.lote.getSeparados();
-                }
+            double separar = solicitados - separados;
+            if (this.sumaLotes + separar > this.envioProducto.getCantOrdenada()) {
+                Mensajes.mensajeAlert("Cantidad enviar mayor que cantidad solicitada");
+                this.lote.setSeparados(separados);
             } else {
-                this.daoLotes.libera(this.envio.getIdMovto(), this.envio.getIdMovtoAlmacen(), this.lote, -separar);
-                this.lote.setSeparados(this.resSeparados + separar);    // separar es negativo por esos se suma
+                if (separar > 0) {
+                    this.daoLotes.separa(this.envio.getIdMovto(), this.envio.getIdMovtoAlmacen(), this.lote, separar, true);
+                } else {
+                    this.daoLotes.libera(this.envio.getIdMovto(), this.envio.getIdMovtoAlmacen(), this.lote, -separar);
+                }
+                this.lote.setSeparados(separados + separar);
                 this.sumaLotes += separar;
-                this.resSeparados = this.lote.getSeparados();
-                ok = true;
             }
         } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
-    }
-
-    public void respaldaSeparados() {
-        this.resSeparados = this.lote.getSeparados();
     }
 
     public boolean comparaLotes(Lote lote) {
@@ -208,19 +202,20 @@ public class MbTraspaso implements Serializable {
         return disable;
     }
 
+    public void seleccionado() {
+        this.respaldaFila();
+    }
+
     public void editarLotes() {
         boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "editarLotes");
-        RequestContext context = RequestContext.getCurrentInstance();
         if (this.envioProducto.getCantFacturada() < 0) {
-            fMsg.setDetail("La cantidad enviada no puede ser menor que cero");
+            Mensajes.mensajeAlert("La cantidad enviada no puede ser menor que cero");
         } else if (this.envioProducto.getCantFacturada() > this.envioProducto.getCantOrdenada()) {
-            fMsg.setDetail("La cantidad enviada no puede ser mayor a la cantidad solicitada");
+            Mensajes.mensajeAlert("La cantidad enviada no puede ser mayor a la cantidad solicitada");
         } else if (this.envioProducto.getCantFacturada() != this.envioProducto.getSeparados()) {
             try {
                 this.sumaLotes = 0;
                 this.daoLotes = new DAOLotes();
-//                this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.idMovtoAlmacen, this.envioProducto.getProducto().getIdProducto()));
                 this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
                 for (Lote l : this.envioProducto.getLotes()) {
                     this.sumaLotes += l.getSeparados();
@@ -228,51 +223,48 @@ public class MbTraspaso implements Serializable {
                 this.lote = new Lote();
                 ok = true;
             } catch (SQLException ex) {
-                fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
-                fMsg.setDetail(ex.getMessage());
+                Mensajes.mensajeError(ex.getMessage());
             }
         }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
+        RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okLotes", ok);
     }
 
     public void obtenerSolicitudes() {
         boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerSolicitudes");
-        this.envios = new ArrayList<Envio>();
+        this.envios = new ArrayList<>();
         try {
-            this.dao = new DAOMovimientos1();
-//            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen(), 35, 0, null)) {
-//                this.envios.add(this.convertir(m));
-//            }
+            this.dao = new DAOMovimientos();
+            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.toAlmacen.getIdAlmacen(), 35, 0, null)) {
+                this.envios.add(this.convertir(m));
+            }
             ok = true;
-//        } catch (SQLException ex) {
-//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLista", ok);
     }
 
     private Envio convertir(TOMovimiento to) {
         Envio e = new Envio();
         e.setIdMovto(to.getIdMovto());
         e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-//        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerAlmacen(to.getIdAlmacen()));
-        e.setComprobante(this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
+        e.setAlmacen(this.toAlmacen);
         e.setFolio(to.getFolio());
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
+        e.setAlmacenDestino(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
+        e.setFolioAlmacen(to.getFolioAlmacen());
         return e;
     }
 
     public boolean comparaProductos(MovimientoProducto prod) {
-        if (prod.getProducto().getIdProducto() == this.envioProducto.getProducto().getIdProducto()) {
+        if (this.envioProducto.getProducto().equals(prod.getProducto())) {
             return false;
         } else {
             return true;
@@ -281,45 +273,38 @@ public class MbTraspaso implements Serializable {
 
     public void cargaDetalleSolicitud(SelectEvent event) {
         this.envio = (Envio) event.getObject();
-
-        boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaDetalleSolicitud");
         try {
-            this.dao = new DAOMovimientos1();
-//            this.idMovtoAlmacen=this.dao.obtenerIdMovtoAlmacen(this.envio.getAlmacen().getIdAlmacen(), 35, this.envio.getComprobante().getNumero());
+            this.dao = new DAOMovimientos();
             this.daoLotes = new DAOLotes();
-            this.daoImps = new DAOImpuestosProducto();
-            this.envioDetalle = new ArrayList<SalidaProducto>();
+            this.envioDetalle = new ArrayList<>();
             for (TOMovimientoProducto p : this.dao.obtenerMovimientoDetalle(this.envio.getIdMovto())) {
                 this.envioDetalle.add(this.convertirDetalle(p));
             }
             this.envioProducto = new SalidaProducto();
+            this.resEnvioProducto = new SalidaProducto();
             this.modoEdicion = true;
-            ok = true;
         } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getMessage());
         }
     }
 
     private SalidaProducto convertirDetalle(TOMovimientoProducto to) throws SQLException {
         SalidaProducto p = new SalidaProducto();
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        p.setCantFacturada(to.getCantFacturada());
         p.setCantOrdenada(to.getCantOrdenada());
-        p.setCantRecibida(to.getCantRecibida());
-        p.setCantSinCargo(to.getCantSinCargo());
         p.setCostoOrdenado(to.getCostoOrdenado());
-        p.setDesctoConfidencial(to.getDesctoConfidencial());
+        p.setCantRecibida(to.getCantRecibida());
+        p.setCantFacturada(to.getCantFacturada());
+        p.setCantSinCargo(to.getCantSinCargo());
+        p.setCostoPromedio(to.getCostoPromedio());
+        p.setCosto(to.getCosto());
         p.setDesctoProducto1(to.getDesctoProducto1());
         p.setDesctoProducto2(to.getDesctoProducto2());
+        p.setDesctoConfidencial(to.getDesctoConfidencial());
         p.setUnitario(to.getUnitario());
-//        p.setNeto(to.getUnitario()+this.dao.obtenerImpuestosProducto(this.envio.getIdMovto(), to.getIdProducto(), p.getImpuestos()));
-        p.setImporte(to.getUnitario()*(to.getCantFacturada()+to.getCantSinCargo()));
+        p.setImporte(to.getUnitario() * (to.getCantFacturada() + to.getCantSinCargo()));
         p.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
         this.sumaLotes = 0;
         for (Lote l : p.getLotes()) {
@@ -337,6 +322,7 @@ public class MbTraspaso implements Serializable {
     }
 
     public void respaldaFila() {
+        this.resEnvioProducto = new SalidaProducto();
         this.resEnvioProducto.setCantOrdenada(this.envioProducto.getCantOrdenada());
         this.resEnvioProducto.setCantFacturada(this.envioProducto.getCantFacturada());
         this.resEnvioProducto.setCantRecibida(this.envioProducto.getCantRecibida());
@@ -417,12 +403,27 @@ public class MbTraspaso implements Serializable {
         this.mbAcciones = mbAcciones;
     }
 
-    public MbComprobantes getMbComprobantes() {
-        return mbComprobantes;
+    //    public MbComprobantes getMbComprobantes() {
+    //        return mbComprobantes;
+    //    }
+    //
+    //    public void setMbComprobantes(MbComprobantes mbComprobantes) {
+    //        this.mbComprobantes = mbComprobantes;
+    //    }
+    public MbAlmacenesJS getMbAlmacenes() {
+        return mbAlmacenes;
     }
 
-    public void setMbComprobantes(MbComprobantes mbComprobantes) {
-        this.mbComprobantes = mbComprobantes;
+    public void setMbAlmacenes(MbAlmacenesJS mbAlmacenes) {
+        this.mbAlmacenes = mbAlmacenes;
+    }
+
+    public MbMiniCedis getMbCedis() {
+        return mbCedis;
+    }
+
+    public void setMbCedis(MbMiniCedis mbCedis) {
+        this.mbCedis = mbCedis;
     }
 
     public MbProductosBuscar getMbBuscar() {
@@ -463,5 +464,21 @@ public class MbTraspaso implements Serializable {
 
     public void setSumaLotes(double sumaLotes) {
         this.sumaLotes = sumaLotes;
+    }
+
+    public TOAlmacenJS getToAlmacen() {
+        return toAlmacen;
+    }
+
+    public void setToAlmacen(TOAlmacenJS toAlmacen) {
+        this.toAlmacen = toAlmacen;
+    }
+
+    public ArrayList<SelectItem> getListaAlmacenes() {
+        return listaAlmacenes;
+    }
+
+    public void setListaAlmacenes(ArrayList<SelectItem> listaAlmacenes) {
+        this.listaAlmacenes = listaAlmacenes;
     }
 }

@@ -25,30 +25,42 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbRecepcion.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <f:selectItems value="#{mbRecepcion.listaAlmacenes}" />
+                                        <p:ajax event="change" listener="#{mbRecepcion.obtenerRecepciones()}" 
+                                                update=":main:msgs listaRecepciones" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton id="btnBuscarRecepciones" icon="ui-icon-search" title="Buscar Recepciones" 
-                                                     process="@this" actionListener="#{mbRecepcion.obtenerRecepciones()}" 
-                                                     update=":main:msgs listaRecepciones" oncomplete="PF('listaRecepcionesDlg').show();" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column colspan="3" style="text-align: right;" >
-                                    <p:commandLink styleClass="nueva" action="#{mbRecepcion.terminar()}" value="Salir" ajax="false" />
+                                    <p:commandButton icon="ui-icon-home" title="Salir" 
+                                                     action="#{mbRecepcion.terminar()}" ajax="false" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
+                        <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px"
+                                     var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargaDetalleRecepcion}" update="main" />
+                            
+                            <p:column headerText="CEDIS" >
+                                <h:outputText value="#{recepcion.almacen.cedis}" />
+                            </p:column>
+                            <p:column headerText="Almacen" >
+                                <h:outputText value="#{recepcion.almacen.toString()}" />
+                            </p:column>
+                            <p:column headerText="Fecha" style="width: 120px;" >
+                                <h:outputText value="#{recepcion.fecha}" >
+                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="RECEPCION DE TRASPASO" rendered="#{mbRecepcion.modoEdicion}" >
                         <p:panelGrid id="mantenimientoEnvio" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                    <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column colspan="2" >
                                     <p:inputText value="#{mbRecepcion.recepcion.almacen}" readonly="true" size="52" />
@@ -56,18 +68,18 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="Del CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText value="#{mbRecepcion.recepcion.comprobante.almacen.cedis.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbRecepcion.recepcion.almacenOrigen.cedis}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbRecepcion.recepcion.comprobante.almacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbRecepcion.recepcion.almacenOrigen.toString}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
@@ -83,7 +95,7 @@
                         <p:dataTable id="detalleRecepcion" widgetVar="detalleRecepcion" value="#{mbRecepcion.recepcionDetalle}" style="border:solid 1px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbRecepcion.recepcionProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaFila()}" update="detalleRecepcion" />
+                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaFila()}" update="@this" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
@@ -106,7 +118,7 @@
                                      var="lte" rowKey="#{lte.lote}" selection="#{mbRecepcion.lote}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaSeparados()}" update="listaLotes" />
-                            
+
                             <p:column headerText="LOTE" style="width: 80px;" >
                                 <h:outputText value="#{lte.lote}" />
                             </p:column>
@@ -138,27 +150,6 @@
                                     </p:row>
                                 </p:panelGrid>
                             </f:facet>
-                        </p:dataTable>
-                    </p:dialog>
-                    <p:dialog id="listaRecepcionesDlg" widgetVar="listaRecepcionesDlg" 
-                              header="LISTA DE RECEPCIONES DE TRASPASO" resizable="false" modal="true" width="800" >
-                        <p:dataTable id="listaRecepciones" widgetVar="listaRecepciones" 
-                                     value="#{mbRecepcion.recepciones}" style="border:solid 1px"
-                                     var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargaDetalleRecepcion}" 
-                                    update=":main" oncomplete="PF('listaRecepcionesDlg').hide();" />
-                            <p:column headerText="CEDIS" >
-                                <h:outputText value="#{recepcion.comprobante.almacen.cedis.cedis}" />
-                            </p:column>
-                            <p:column headerText="Almacen" >
-                                <h:outputText value="#{recepcion.comprobante.almacen}" />
-                            </p:column>
-                            <p:column headerText="Fecha" style="width: 120px;" >
-                                <h:outputText value="#{recepcion.comprobante.fecha}" >
-                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
-                                </h:outputText>
-                            </p:column>
                         </p:dataTable>
                     </p:dialog>
                 </h:form>

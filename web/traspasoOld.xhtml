@@ -25,36 +25,24 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacenOrigen" value="#{mbTraspaso.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacenOrigen" value="#{mbTraspaso.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbTraspaso.listaAlmacenes}" />
-                                        <p:ajax event="change" listener="#{mbTraspaso.obtenerSolicitudes()}" 
-                                                update=":main:msgs listaSolicitudes" />
+                                        <f:selectItems value="#{mbTraspaso.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton icon="ui-icon-home" title="Salir" 
-                                                     action="#{mbTraspaso.terminar()}" ajax="false" />
+                                    <p:commandButton id="btnBuscarSolicitudes" icon="ui-icon-search" title="Buscar Solicitudes" 
+                                                     process="@this" actionListener="#{mbTraspaso.obtenerSolicitudes()}" 
+                                                     update="listaSolicitudes" oncomplete="PF('listaSolicitudesDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column colspan="3" style="text-align: right;" >
+                                    <p:commandLink styleClass="nueva" action="#{mbTraspaso.terminar()}" value="Salir" ajax="false" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaSolicitudes" value="#{mbTraspaso.envios}" style="border:solid 1px"
-                                     var="envio" rowKey="#{envio.idMovto}" selectionMode="single" 
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.cargaDetalleSolicitud}" update="main" />
-
-                            <p:column headerText="CEDIS" >
-                                <h:outputText value="#{envio.almacen.cedis}" />
-                            </p:column>
-                            <p:column headerText="Almacen" >
-                                <h:outputText value="#{envio.almacen.toString()}" />
-                            </p:column>
-                            <p:column headerText="Fecha" style="width: 120px;" >
-                                <h:outputText value="#{envio.fecha}" >
-                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
-                                </h:outputText>
-                            </p:column>
-                        </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="ENVIO DE TRASPASO" rendered="#{mbTraspaso.modoEdicion}" >
                         <p:panelGrid id="mantenimientoEnvio" >
@@ -71,7 +59,7 @@
                                     <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText value="#{mbTraspaso.envio.almacenDestino.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbTraspaso.envio.comprobante.almacen.cedis.cedis}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -79,22 +67,20 @@
                                     <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbTraspaso.envio.almacenDestino.toString()}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbTraspaso.envio.comprobante.almacen}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
-                                                     process="@this" actionListener="#{mbTraspaso.grabarEnvio()}" update="main" />
+                                                     process="@this" actionListener="#{mbTraspaso.grabarEnvio()}" update="@this main :main:msgs" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbTraspaso.salir()}" update="main" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleEnvio" value="#{mbTraspaso.envioDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" 
-                                     selectionMode="single"  selection="#{mbTraspaso.envioProducto}"
+                        <p:dataTable id="detalleEnvio" widgetVar="detalleEnvio" value="#{mbTraspaso.envioDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbTraspaso.envioProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbTraspaso.editarLotes()}" update=":main:enviando :main:listaLotes"
-                                    oncomplete="PF('editarLotesDlg').show();" />
+                            <p:ajax event="rowSelect" listener="#{mbTraspaso.respaldaFila()}" update="detalleEnvio" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
@@ -106,38 +92,24 @@
                                 <h:outputText value="#{prod.cantOrdenada}" style="width: 60px;" />
                             </p:column>
                             <p:column headerText="Enviar" style="width: 70px;" >
-                                <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
+                                <pe:inputNumber value="#{prod.cantFacturada}" decimalPlaces="3" style="width: 60px;"
+                                                disabled="#{mbTraspaso.comparaProductos(prod)}" >
+                                    <p:ajax event="change" process="@this" 
+                                            listener="#{mbTraspaso.editarLotes()}" update=":main:msgs :main:listaLotes"
+                                            oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
+                                </pe:inputNumber>
                             </p:column>
                         </p:dataTable>
                     </p:panel>
                     <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
                         <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
                         <p:ajax event="close" listener="#{mbTraspaso.actualizarCantidad()}" update=":main:detalleEnvio" />
-                        <p:panelGrid id="enviando" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="Solicitados :" style="font-weight: bold; color: red; width: 90px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbTraspaso.envioProducto.cantOrdenada}" size="14" readonly="true" />
-                                </p:column>
-                                <p:column >
-                                    <h:outputLabel value="Enviar :" style="font-weight: bold; color: red; width: 60px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbTraspaso.envioProducto.cantFacturada}" size="14" >
-                                        <p:ajax event="change" process="@this" listener="#{mbTraspaso.editarLotes()}" update="msgs1 listaLotes" />
-                                    </p:inputText>
-                                </p:column>
-                            </p:row>
-                        </p:panelGrid>
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" 
                                      value="#{mbTraspaso.envioProducto.lotes}" style="border: solid 1px" 
-                                     var="lote" rowKey="#{lote.lote}"  editable="true" editMode="cell"
+                                     var="lote" rowKey="#{lote.lote}" selection="#{mbTraspaso.lote}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="cellEdit" listener="#{mbTraspaso.gestionarLotes}" update="@this :main:msgs lotesTotales" 
-                                    oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
-
+                            <p:ajax event="rowSelect" update="listaLotes" listener="#{mbTraspaso.respaldaSeparados()}" />
+                            
                             <p:column headerText="LOTE" style="width: 80px;" >
                                 <h:outputText value="#{lote.lote}" />
                             </p:column>
@@ -150,16 +122,24 @@
                                 <h:outputText value="#{lote.saldo}" />
                             </p:column>
                             <p:column headerText="SEPARADOS" style="width: 80px;" >
-                                <p:cellEditor>
-                                    <f:facet name="output"><h:outputText value="#{lote.separados}" /></f:facet>
-                                    <f:facet name="input"><p:inputText value="#{lote.separados}" /></f:facet>
-                                </p:cellEditor>
+                                <pe:inputNumber value="#{lote.separados}" disabled="#{mbTraspaso.comparaLotes(lote)}"
+                                                decimalPlaces="3" style="width: 80px;" >
+                                    <p:ajax event="change" process="@this" 
+                                            listener="#{mbTraspaso.gestionarLotes()}" update=":main:msgs1 listaLotes lotesTotales"
+                                            oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
+                                </pe:inputNumber>
                             </p:column>
                             <f:facet name="footer">
                                 <p:panelGrid id="lotesTotales" >
                                     <p:row >
-                                        <p:column colspan="3" style="text-align: right; text-align: right;" >
-                                            <h:outputText value="Suma Separados :" />
+                                        <p:column style="text-align: right" >
+                                            <h:outputText value="Requeridos" />
+                                        </p:column>
+                                        <p:column style="text-align: left" >
+                                            <h:outputText value="#{mbTraspaso.envioProducto.cantFacturada}" />
+                                        </p:column>
+                                        <p:column style="text-align: right" >
+                                            <h:outputText value="Separados" />
                                         </p:column>
                                         <p:column style="text-align: left" >
                                             <h:outputText value="#{mbTraspaso.sumaLotes}" />
@@ -167,6 +147,27 @@
                                     </p:row>
                                 </p:panelGrid>
                             </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                    <p:dialog id="listaSolicitudesDlg" widgetVar="listaSolicitudesDlg" 
+                              header="LISTA DE SOLICITUDES DE TRASPASO" resizable="false" modal="true" width="800" >
+                        <p:dataTable id="listaSolicitudes" widgetVar="listaSolicitudes" 
+                                     value="#{mbTraspaso.envios}" style="border:solid 1px"
+                                     var="envio" rowKey="#{envio.idMovto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.cargaDetalleSolicitud}" 
+                                    update=":main" oncomplete="listaSolicitudesDlg.hide();" />
+                            <p:column headerText="CEDIS" >
+                                <h:outputText value="#{envio.comprobante.almacen.cedis.cedis}" />
+                            </p:column>
+                            <p:column headerText="Almacen" >
+                                <h:outputText value="#{envio.comprobante.almacen}" />
+                            </p:column>
+                            <p:column headerText="Fecha" style="width: 120px;" >
+                                <h:outputText value="#{envio.comprobante.fecha}" >
+                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                                </h:outputText>
+                            </p:column>
                         </p:dataTable>
                     </p:dialog>
                 </h:form>

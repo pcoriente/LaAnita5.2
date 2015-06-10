@@ -83,7 +83,7 @@ public class MbSalidasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaDetalleOrdenCompra");
         this.salida=((Salida) event.getObject());
-        this.salidaDetalle=new ArrayList<SalidaAlmacenProducto>();
+        this.salidaDetalle=new ArrayList<>();
 //        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.salida.getAlmacen());
         this.tipo=this.salida.getTipo();
         try {
@@ -120,7 +120,7 @@ public class MbSalidasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "pendientes");
         RequestContext context = RequestContext.getCurrentInstance();
-        this.salidasPendientes=new ArrayList<Salida>();
+        this.salidasPendientes=new ArrayList<>();
         try {
             this.dao=new DAOMovimientos1();
             for(TOMovimiento to: this.dao.movimientosPendientes(false, 0)) {
@@ -215,7 +215,7 @@ public class MbSalidasAlmacen implements Serializable {
             this.daoLotes = new DAOLotes();
             double separar = this.lote.getCantidad() - this.lote.getSeparados();
             if (separar > 0) {
-                separados = this.daoLotes.separaAlmacen(this.lote, idMovto, separar);
+                separados = this.daoLotes.separaAlmacen(idMovto, this.lote, separar, true);
                 if (separados < separar) {
                     fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
                     fMsg.setDetail("No se pudieron obtener los lotes solicitados");
@@ -223,7 +223,7 @@ public class MbSalidasAlmacen implements Serializable {
                     ok = true;
                 }
             } else {
-                this.daoLotes.liberaAlmacen(this.lote, idMovto, -separar);
+                this.daoLotes.liberaAlmacen(idMovto, this.lote, -separar);
                 separados=separar;
                 ok = true;
             }
@@ -335,7 +335,7 @@ public class MbSalidasAlmacen implements Serializable {
             try {
                 this.dao=new DAOMovimientos1();
                 this.salida.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
-                this.salidaDetalle=new ArrayList<SalidaAlmacenProducto>();
+                this.salidaDetalle=new ArrayList<>();
                 this.salidaProducto=new SalidaAlmacenProducto();
                 this.modoEdicion=true;
                 ok=true;
@@ -379,7 +379,7 @@ public class MbSalidasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerTipos");
         try {
-            this.listaMovimientosTipos=new ArrayList<SelectItem>();
+            this.listaMovimientosTipos=new ArrayList<>();
             this.tipo=new MovimientoTipo(0, "Seleccione");
             this.listaMovimientosTipos.add(new SelectItem(this.tipo, this.tipo.toString()));
             
@@ -477,7 +477,7 @@ public class MbSalidasAlmacen implements Serializable {
         this.mbBuscar.inicializar();
         this.modoEdicion=false;
         this.listaMovimientosTipos=null;
-        this.salidaDetalle=new ArrayList<SalidaAlmacenProducto>();
+        this.salidaDetalle=new ArrayList<>();
         this.lote=new Lote();
 //        this.resSalidaProducto=new SalidaAlmacenProducto();
     }
