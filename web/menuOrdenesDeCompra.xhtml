@@ -26,7 +26,8 @@
                                 icon="ui-icon-plus"
                                 title="Crear orden de compra directa"
                                 oncomplete="PF('odecD').show();"
-                                update=":form:dialogoOCD"
+                                actionListener="#{mbOrdenCompra.mbCalculoRCOD.limpiaOrdenCompraDirecta()}"
+                                update=":form:dialogoOCD :form:detalleOCD :form:encabezadoOCD"
                                 />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -459,7 +460,10 @@
                                     process="@this"
                                     actionListener="#{mbOrdenCompra.limpiarCamposBusqueda()}"
                                     oncomplete="PF('buscarProductoDlg').show()"
-                                    update=":form:buscarProductos :form:opcionParte :form:opcionDescripcion"
+                                    update=":form:buscarProductos 
+                                    :form:opcionParte 
+                                    :form:opcionDescripcion
+                                    :form:multipleSelectProductos"
                                     />
                             </f:facet>
                             <f:facet name="right" >
@@ -577,6 +581,7 @@
                                     decimalPlaces="2"
                                     thousandSeparator=","
                                     onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
+
                                     >
                                     <p:ajax 
                                         process="@this"

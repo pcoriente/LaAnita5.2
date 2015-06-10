@@ -168,7 +168,7 @@
                                     <p:inputText id="opcionSKU" value="#{mbRequisiciones.mbBuscar.strBuscar}" maxlength="8" size="10" />
                                     <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionSKU" actionListener="#{mbRequisiciones.buscar()}" 
-                                                     update=":main:detalleRequisicion" oncomplete="handleBuscar(xhr, status, args)" />
+                                                     update=":main:detalleRequisicion :main:messages" oncomplete="handleBuscar(xhr, status, args)" />
                                 </p:column>
                                 <p:column rendered="#{mbRequisiciones.mbBuscar.tipoBuscar=='2'}" >
                                     <p:autoComplete id="opcionParte" value="#{mbRequisiciones.mbBuscar.mbParte.parte}" maxlength="24" size="24"

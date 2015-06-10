@@ -42,12 +42,12 @@ public class MbRequisiciones implements Serializable {
     private ArrayList<RequisicionEncabezado> requisicionesFiltradas;
     private RequisicionDetalle requisicionDetalle;
     private ArrayList<RequisicionDetalle> requisicionDetalles = new ArrayList<>();
-   private RequisicionDetalle empaqueElegido = new RequisicionDetalle();
+    private RequisicionDetalle empaqueElegido = new RequisicionDetalle();
     private ArrayList<SelectItem> listaMini = new ArrayList<>();
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-  private ArrayList<Producto> listaEmpaque = new ArrayList<>();
-  private Producto empaque;
+    private ArrayList<Producto> listaEmpaque = new ArrayList<>();
+    private Producto empaque;
     private String navega;
     private RequisicionDetalle seleccion = null;
     private RequisicionDetalle seleccionFila = null;
@@ -407,29 +407,29 @@ public class MbRequisiciones implements Serializable {
         FacesMessage msg = null;
         try {
             int longitud = requisicionDetalles.size();
-         //   if (longitud < 0) {
-                for (int y = 0; y < longitud; y++) {
-                    double ca = requisicionDetalles.get(y).getCantidadAutorizada();
-                    if (ca < 0) {
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
-                        break;
-                    } else if (estado == 2) {
-                        daoReq.actualizaRequisicion(idReq, estado);
-                        this.requisicionEncabezado.setStatus(estado);
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
-                        this.cargaRequisiciones();
-                        this.cargaRequisicionesDetalle(idReq);
-                    } else if (estado == 0) {
-                        daoReq.actualizaRequisicion(idReq, estado);
-                        this.requisicionEncabezado.setStatus(estado);
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
-                        this.cargaRequisiciones();
-                        this.cargaRequisicionesDetalle(idReq);
-                    }
+            //   if (longitud < 0) {
+            for (int y = 0; y < longitud; y++) {
+                double ca = requisicionDetalles.get(y).getCantidadAutorizada();
+                if (ca < 0) {
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
+                    break;
+                } else if (estado == 2) {
+                    daoReq.actualizaRequisicion(idReq, estado);
+                    this.requisicionEncabezado.setStatus(estado);
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
+                    this.cargaRequisiciones();
+                    this.cargaRequisicionesDetalle(idReq);
+                } else if (estado == 0) {
+                    daoReq.actualizaRequisicion(idReq, estado);
+                    this.requisicionEncabezado.setStatus(estado);
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
+                    this.cargaRequisiciones();
+                    this.cargaRequisicionesDetalle(idReq);
                 }
-         //   } else {
-         //       msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
-        //    }
+            }
+            //   } else {
+            //       msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
+            //    }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
             msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
@@ -516,14 +516,24 @@ public class MbRequisiciones implements Serializable {
     }
 
     public void buscar() {
-        this.mbBuscar.buscarLista();
-        if (this.mbBuscar.getProducto() != null) {
-            this.actualizaProductosSeleccionados();
+        try {
+            this.mbBuscar.buscarLista();
+            if (this.mbBuscar.getProducto() != null) {
+               RequisicionDetalle req = new RequisicionDetalle();
+               req.setProducto(mbBuscar.getProducto());
+               requisicionDetalles.add(req);
+//                this.actualizaProductosSeleccionados();
+            } else {
+                Mensajes.MensajeAlertP("Hubo un null pointer exception");
+            }
+        } catch (NullPointerException e) {
+            Mensajes.MensajeAlertP("Hubo un null pointer exception");
         }
+
     }
 
     public void actualizaProductosSeleccionados() {
-        
+
         for (Producto e : this.mbBuscar.getSeleccionados()) {
             RequisicionDetalle rd = new RequisicionDetalle();
             rd.setProducto(e);
@@ -534,7 +544,6 @@ public class MbRequisiciones implements Serializable {
         requisicionDetalles.removeAll(requisicionDetalles);
         requisicionDetalles.addAll(hs);
     }
-
 //    public void actualizaProductoSeleccionado() {
 //        FacesMessage msg = null;
 //        boolean ok = true;
@@ -545,7 +554,6 @@ public class MbRequisiciones implements Serializable {
 //        FacesContext.getCurrentInstance().addMessage(null, msg);
 //                
 //    }
-    
 //    public void actualizaProductoSeleccionado() {
 //        boolean nuevo=true;
 //        
