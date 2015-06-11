@@ -553,7 +553,7 @@ public class MbCotizaciones implements Serializable {
             double dpp = mbMiniProveedor.getMiniProveedor().getDesctoProntoPago();
             DAORequisiciones daoReq = new DAORequisiciones();
             FacesMessage msg = null;
-            cotizacionDetallesG = new ArrayList<CotizacionDetalle>();
+            cotizacionDetallesG = new ArrayList<>();
             try {
                 int idProv = this.mbMiniProveedor.getMiniProveedor().getIdProveedor();
                 int idMon = this.mbMonedas.getMoneda().getIdMoneda();

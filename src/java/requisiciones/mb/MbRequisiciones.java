@@ -373,6 +373,7 @@ public class MbRequisiciones implements Serializable {
 
     public String nuevo() throws NamingException {
         this.limpiaRequisicion();
+        this.limpiarCamposBusqueda();
         navega = "requisiciones.xhtml";
         return navega;
     }
@@ -407,29 +408,29 @@ public class MbRequisiciones implements Serializable {
         FacesMessage msg = null;
         try {
             int longitud = requisicionDetalles.size();
-         //   if (longitud < 0) {
-                for (int y = 0; y < longitud; y++) {
-                    double ca = requisicionDetalles.get(y).getCantidadAutorizada();
-                    if (ca < 0) {
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
-                        break;
-                    } else if (estado == 2) {
-                        daoReq.actualizaRequisicion(idReq, estado);
-                        this.requisicionEncabezado.setStatus(estado);
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
-                        this.cargaRequisiciones();
-                        this.cargaRequisicionesDetalle(idReq);
-                    } else if (estado == 0) {
-                        daoReq.actualizaRequisicion(idReq, estado);
-                        this.requisicionEncabezado.setStatus(estado);
-                        msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
-                        this.cargaRequisiciones();
-                        this.cargaRequisicionesDetalle(idReq);
-                    }
+            //   if (longitud < 0) {
+            for (int y = 0; y < longitud; y++) {
+                double ca = requisicionDetalles.get(y).getCantidadAutorizada();
+                if (ca < 0) {
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No sé realizó la operación de aprobación");
+                    break;
+                } else if (estado == 2) {
+                    daoReq.actualizaRequisicion(idReq, estado);
+                    this.requisicionEncabezado.setStatus(estado);
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
+                    this.cargaRequisiciones();
+                    this.cargaRequisicionesDetalle(idReq);
+                } else if (estado == 0) {
+                    daoReq.actualizaRequisicion(idReq, estado);
+                    this.requisicionEncabezado.setStatus(estado);
+                    msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición ha sido RECHAZADA..");
+                    this.cargaRequisiciones();
+                    this.cargaRequisicionesDetalle(idReq);
                 }
-         //   } else {
-         //       msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
-        //    }
+            }
+            //   } else {
+            //       msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La requisición NO debe ser VACIA, en su caso CANCELE..");
+            //    }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
             msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
@@ -516,13 +517,27 @@ public class MbRequisiciones implements Serializable {
     }
 
     public void buscar() {
-        this.mbBuscar.buscarLista();
-        if (this.mbBuscar.getProducto() != null) {
-            this.actualizaProductoSeleccionado();
+
+        try {
+            this.mbBuscar.buscarLista();
+            if (this.mbBuscar.getProducto() != null) {
+
+                RequisicionDetalle req = new RequisicionDetalle();
+                req.setProducto(mbBuscar.getProducto());
+                requisicionDetalles.add(req);
+                this.actualizaProductosSeleccionados();
+            }
+//            } else {
+//                Mensajes.MensajeAlertP("No existe el producto...");
+//            }
+        } catch (NullPointerException e) {
+            Mensajes.MensajeAlertP("Error de excepcion");
         }
+
     }
 
     public void actualizaProductosSeleccionados() {
+
         for (Producto e : this.mbBuscar.getSeleccionados()) {
             RequisicionDetalle rd = new RequisicionDetalle();
             rd.setProducto(e);
@@ -534,14 +549,38 @@ public class MbRequisiciones implements Serializable {
         requisicionDetalles.addAll(hs);
     }
 
-    public void actualizaProductoSeleccionado() {
-        FacesMessage msg = null;
-        boolean ok = true;
-        boolean nuevo = true;
-        RequisicionDetalle rd = new RequisicionDetalle();
-        rd.setProducto(this.mbBuscar.getProducto());
-        this.requisicionDetalles.add(rd);
-        FacesContext.getCurrentInstance().addMessage(null, msg);
-                
+    public void limpiarCamposBusqueda()  {
+        
+        mbBuscar.getMbParte().setParte(null);
+        mbBuscar.setStrBuscar("");
+        mbBuscar.setProductos(new ArrayList<Producto>());
+        
+        
     }
+//    public void actualizaProductoSeleccionado() {
+//        FacesMessage msg = null;
+//        boolean ok = true;
+//        boolean nuevo = true;
+//        RequisicionDetalle rd = new RequisicionDetalle();
+//        rd.setProducto(this.mbBuscar.getProducto());
+//        this.requisicionDetalles.add(rd);
+//        FacesContext.getCurrentInstance().addMessage(null, msg);
+//                
+//    }
+//    public void actualizaProductoSeleccionado() {
+//        boolean nuevo=true;
+//        
+//        EntradaAlmacenProducto productoSeleccionado=new EntradaAlmacenProducto(this.mbBuscar.getProducto());
+//        for(EntradaAlmacenProducto p: this.entradaDetalle) {
+//            if(p.equals(productoSeleccionado)) {
+//                this.entradaProducto=p;
+//                nuevo=false;
+//                break;
+//            }
+//        }
+//        if(nuevo) {
+//            this.entradaDetalle.add(productoSeleccionado);
+//            this.entradaProducto=productoSeleccionado;
+//        }
+//    }
 }
