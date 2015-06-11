@@ -29,8 +29,12 @@ public class MbParte implements Serializable {
     }
     
     public void nueva() {
-        this.parte.setIdParte(0);
-        this.parte.setParte("");
+        if(this.parte!=null) {
+            this.parte.setIdParte(0);
+            this.parte.setParte("");
+        } else {
+            this.parte=new Parte();
+        }
     }
     
     public ArrayList<Parte> completePartes(String query) {

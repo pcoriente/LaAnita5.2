@@ -45,7 +45,12 @@ public class DAOMovimientos {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
+    
+    // ----------------------------- MOVIMIENTOS DE INVENTARIO ----------------------
+    
 
+    // ----------------------------- TRASPASOS --------------------------------------
+    
     public void grabarTraspasoRecepcion(TOMovimiento m, ArrayList<TOEntradaProducto> detalle) throws SQLException {
         String strSQL;
         double existenciaAnterior, promedioPonderado, existenciaOficina, saldo;

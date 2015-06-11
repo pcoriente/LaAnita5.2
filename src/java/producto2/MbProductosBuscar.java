@@ -130,7 +130,7 @@ public class MbProductosBuscar implements Serializable {
                         if(this.mbParte.getParte()!=null) {
                             tos = this.dao.obtenerProductosParte(this.mbParte.getParte().getIdParte());
                         } else {
-                            this.mbParte.setParte(new Parte());
+                            this.mbParte.nueva();
                             tos = new ArrayList<>();
                         }
                         break;

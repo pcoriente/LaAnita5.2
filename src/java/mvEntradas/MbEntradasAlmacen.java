@@ -1,6 +1,6 @@
 package mvEntradas;
 
-import entradas.MbComprobantes;
+import almacenes.MbAlmacenesJS;
 import entradas.dao.DAOMovimientos1;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
@@ -14,6 +14,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import movimientos.dao.DAOLotes;
+import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Lote;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacenProducto1;
@@ -33,8 +34,8 @@ public class MbEntradasAlmacen implements Serializable {
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
-    @ManagedProperty(value = "#{mbComprobantes}")
-    private MbComprobantes mbComprobantes;
+    @ManagedProperty(value = "#{mbAlmacenesJS}")
+    private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
     
@@ -47,12 +48,13 @@ public class MbEntradasAlmacen implements Serializable {
     private Lote lote;
     private ArrayList<Entrada> entradasPendientes;
 //    private double sumaLotes;
-    private DAOMovimientos1 dao;
+    private DAOMovimientos dao;
     private DAOLotes daoLotes;
     
     public MbEntradasAlmacen() throws NamingException {
         this.mbAcciones = new MbAcciones();
-        this.mbComprobantes = new MbComprobantes();
+//        this.mbComprobantes = new MbComprobantes();
+        this.mbAlmacenes = new MbAlmacenesJS();
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
@@ -61,13 +63,13 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelar");
         try {
-            this.dao=new DAOMovimientos1();
-            this.dao.cancelarEntradaAlmacen(this.entrada.getIdMovto());
-            this.modoEdicion=false;
-            ok=true;
-        } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            this.dao=new DAOMovimientos();
+//            this.dao.cancelarEntradaAlmacen(this.entrada.getIdMovto());
+//            this.modoEdicion=false;
+//            ok=true;
+//        } catch (SQLException ex) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
@@ -81,12 +83,12 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabar");
         try {
-            this.dao=new DAOMovimientos1();
-            this.dao.grabarEntradaAlmacen(this.convertirTO());
-            this.modoEdicion=false;
-            ok=true;
-        } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            this.dao=new DAOMovimientos();
+//            this.dao.grabarEntradaAlmacen(this.convertirTO());
+//            this.modoEdicion=false;
+//            ok=true;
+//        } catch (SQLException ex) {
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         }
@@ -112,21 +114,21 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaDetalleEntrada");
         this.entrada=((Entrada) event.getObject());
-        this.entradaDetalle=new ArrayList<EntradaAlmacenProducto>();
+        this.entradaDetalle=new ArrayList<>();
 //        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.entrada.getAlmacen());
         this.tipo=this.entrada.getTipo();
         try {
             this.daoLotes=new DAOLotes();
-            this.dao = new DAOMovimientos1();
-            for(TOMovimientoAlmacenProducto1 to:this.dao.obtenerDetalleMovimientoAlmacen(this.entrada.getIdMovto())) {
-                this.entradaDetalle.add(this.convertirProductoAlmacen(to));
-            }
-            this.entradaProducto=new EntradaAlmacenProducto();
-            this.modoEdicion=true;
-            ok = true;
-        } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            this.dao = new DAOMovimientos();
+//            for(TOMovimientoAlmacenProducto1 to:this.dao.obtenerDetalleMovimientoAlmacen(this.entrada.getIdMovto())) {
+//                this.entradaDetalle.add(this.convertirProductoAlmacen(to));
+//            }
+//            this.entradaProducto=new EntradaAlmacenProducto();
+//            this.modoEdicion=true;
+//            ok = true;
+//        } catch (SQLException ex) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
@@ -149,15 +151,15 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "pendientes");
         RequestContext context = RequestContext.getCurrentInstance();
-        this.entradasPendientes=new ArrayList<Entrada>();
+        this.entradasPendientes=new ArrayList<>();
         try {
-            this.dao=new DAOMovimientos1();
-            for(TOMovimiento to: this.dao.movimientosPendientes(false, 1)) {
-                this.entradasPendientes.add(this.convertir(to));
-            }
-            ok=true;
-        } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            this.dao=new DAOMovimientos();
+//            for(TOMovimiento to: this.dao.movimientosPendientes(false, 1)) {
+//                this.entradasPendientes.add(this.convertir(to));
+//            }
+//            ok=true;
+//        } catch (SQLException ex) {
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         }
@@ -171,7 +173,7 @@ public class MbEntradasAlmacen implements Serializable {
         Entrada e=new Entrada();
         e.setIdMovto(to.getIdMovto());
 //        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
-        e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
+//        e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
         return e;
@@ -341,15 +343,15 @@ public class MbEntradasAlmacen implements Serializable {
 //            this.entrada.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
             this.entrada.setTipo(this.tipo);
             try {
-                this.dao=new DAOMovimientos1();
-                this.entrada.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
-                this.entradaDetalle=new ArrayList<EntradaAlmacenProducto>();
+                this.dao=new DAOMovimientos();
+//                this.entrada.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
+                this.entradaDetalle=new ArrayList<>();
                 this.entradaProducto=new EntradaAlmacenProducto();
                 this.modoEdicion=true;
                 this.lote=new Lote();
                 ok=true;
-            } catch (SQLException ex) {
-                fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+//            } catch (SQLException ex) {
+//                fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 fMsg.setDetail(ex.getMessage());
             }
@@ -382,17 +384,17 @@ public class MbEntradasAlmacen implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerTipos");
         try {
-            this.listaMovimientosTipos=new ArrayList<SelectItem>();
+            this.listaMovimientosTipos=new ArrayList<>();
             this.tipo=new MovimientoTipo(0, "Seleccione");
             this.listaMovimientosTipos.add(new SelectItem(this.tipo, this.tipo.toString()));
             
-            this.dao=new DAOMovimientos1();
-            for(MovimientoTipo t: this.dao.obtenerMovimientosTipos(true)) {
-                this.listaMovimientosTipos.add(new SelectItem(t, t.toString()));
-            }
-            ok=true;
-        } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            this.dao=new DAOMovimientos();
+//            for(MovimientoTipo t: this.dao.obtenerMovimientosTipos(true)) {
+//                this.listaMovimientosTipos.add(new SelectItem(t, t.toString()));
+//            }
+//            ok=true;
+//        } catch (SQLException ex) {
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         }
@@ -411,7 +413,7 @@ public class MbEntradasAlmacen implements Serializable {
         this.mbBuscar.inicializar();
         this.modoEdicion=false;
         this.listaMovimientosTipos=null;
-        this.entradaDetalle=new ArrayList<EntradaAlmacenProducto>();
+        this.entradaDetalle=new ArrayList<>();
     }
 
     public ArrayList<Accion> obtenerAcciones(int idModulo) {
@@ -432,12 +434,20 @@ public class MbEntradasAlmacen implements Serializable {
         this.mbAcciones = mbAcciones;
     }
 
-    public MbComprobantes getMbComprobantes() {
-        return mbComprobantes;
+    //    public MbComprobantes getMbComprobantes() {
+    //        return mbComprobantes;
+    //    }
+    //
+    //    public void setMbComprobantes(MbComprobantes mbComprobantes) {
+    //        this.mbComprobantes = mbComprobantes;
+    //    }
+
+    public MbAlmacenesJS getMbAlmacenes() {
+        return mbAlmacenes;
     }
 
-    public void setMbComprobantes(MbComprobantes mbComprobantes) {
-        this.mbComprobantes = mbComprobantes;
+    public void setMbAlmacenes(MbAlmacenesJS mbAlmacenes) {
+        this.mbAlmacenes = mbAlmacenes;
     }
 
     public MbProductosBuscar getMbBuscar() {
