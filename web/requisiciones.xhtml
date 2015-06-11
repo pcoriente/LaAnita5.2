@@ -77,8 +77,13 @@
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
                                 </span>
                                 <p:commandButton  icon="ui-icon-search" title="Buscar Productos" 
-                                                  process="@this" actionListener="#{mbRequisiciones.mbBuscar.inicializar()}" 
-                                                  update="buscarProductos" oncomplete="PF('buscarProductoDlg').show();"
+                                                  process="@this" actionListener="#{mbRequisiciones.limpiarCamposBusqueda()}" 
+                                                  oncomplete="PF('buscarProductoDlg').show();"
+                                                  update=":main:buscarProductos 
+                                                  :main:opcionParte 
+                                                  :main:opcionDescripcion
+                                                  :main:multipleSelectProductos
+                                                  :main:btnBuscarSKU"
                                                   />
 
                             </f:facet>
@@ -145,8 +150,8 @@
                     </p:panel>
 
                     <!--  BUSCADOR NUEVA VERSION JULIO...31MARZO2014 ... -->
-                    
-        <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
                         <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
                             <p:row >
@@ -228,7 +233,7 @@
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>
-                   
+
                     <script type="text/javascript">
                     function handleBuscar(xhr, status, args) {
                         if (!(args.validationFailed || !args.okBuscar)) {

@@ -373,6 +373,7 @@ public class MbRequisiciones implements Serializable {
 
     public String nuevo() throws NamingException {
         this.limpiaRequisicion();
+        this.limpiarCamposBusqueda();
         navega = "requisiciones.xhtml";
         return navega;
     }
@@ -532,7 +533,7 @@ public class MbRequisiciones implements Serializable {
         } catch (NullPointerException e) {
             Mensajes.MensajeAlertP("Error de excepcion");
         }
-        
+
     }
 
     public void actualizaProductosSeleccionados() {
@@ -546,6 +547,15 @@ public class MbRequisiciones implements Serializable {
         hs.addAll(requisicionDetalles);
         requisicionDetalles.removeAll(requisicionDetalles);
         requisicionDetalles.addAll(hs);
+    }
+
+    public void limpiarCamposBusqueda()  {
+        
+        mbBuscar.getMbParte().setParte(null);
+        mbBuscar.setStrBuscar("");
+        mbBuscar.setProductos(new ArrayList<Producto>());
+        
+        
     }
 //    public void actualizaProductoSeleccionado() {
 //        FacesMessage msg = null;
