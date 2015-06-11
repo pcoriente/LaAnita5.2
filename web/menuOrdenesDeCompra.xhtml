@@ -42,7 +42,7 @@
                                                         </span>-->
                             <p:commandButton id="salir"
                                              icon="ui-icon-home"
-                                             title="Salir de Listado de Requisiciones"
+                                             title="Salir de Listado de Ordenes de Compra"
                                              action="index.xhtml"
                                              />
                         </f:facet>
@@ -115,7 +115,6 @@
                                     update=":form:ordenCompra :form:dialogoOC "
                                     />
                                 <p:separator />
-
                                 <p:commandButton
                                     icon="ui-icon-mail-closed"
                                     title="Enviar orden de compra"
@@ -123,7 +122,6 @@
                                     actionListener="#{mbOrdenCompra.cargaContactos()}"
                                     oncomplete="PF('correo').show();"
                                     update=":form:dialogoCorreo" />
-
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra"
@@ -132,17 +130,21 @@
                                     ajax="false"
                                     disabled="#{mbOrdenCompra.ordenElegida.estado eq 1 }"
                                     update=":form:ordenCompra"
-
                                     />
-
                                 <p:separator />
+                                <p:commandButton
+                                    id="salirOC"
+                                    icon="ui-icon-arrowreturnthick-1-w"
+                                    title="Ir al menu de Ordenes de Compra"
+                                    update=":form:OCDetalle "
+                                    >
+                                    <p:confirm header="Deseas salir de la orden de compra?" message="Realizaste el procesos necesarios?" icon="ui-icon-alert" />
+                                </p:commandButton>
 
-                                <p:commandButton id="salirOC"
-                                                 icon="ui-icon-arrowreturnthick-1-w"
-                                                 title="Ir al menu principal"
-                                                 action="index.xhtml"
-                                                 ajax="false"
-                                                 />
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odec').hide();" />
+                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                                </p:confirmDialog>
                             </p:toolbarGroup>  
                         </p:toolbar>
                         <p:separator style="width:900px;height:0.5px" />
@@ -234,7 +236,7 @@
                             <p:column headerText="Cant. Ord." width="60" styleClass="alineacionD" >
                                 #{det.cantOrdenada}
                             </p:column>
-                            <p:column headerText="Nueva Cant." width="60" styleClass="alineacionD" >
+                            <p:column headerText="Nueva Cant." width="60" styleClass="alineacionD"  visible="false">
                                 <pe:inputNumber  value="#{det.cantidadSolicitada}"  id="ordenada"  
                                                  decimalPlaces="3"  minValue="0"
                                                  disabled="#{mbOrdenCompra.ordenElegida.estado eq 2 }"
@@ -385,7 +387,7 @@
                                         <f:converter converterId="converters.miniProveedor" />
                                         <f:selectItems value="#{mbOrdenCompra.mbProveedores.listaMiniProveedores}"  />
                                         <p:ajax event="change"
-                                                update=":form:dcD :form:dppD  :form:dci :form:dppi"
+                                                update=":form:dcD :form:dppD  :form:dci :form:dppi :form:busqueda"
                                                 />
                                     </p:selectOneMenu>
                                 </p:column>
@@ -448,13 +450,16 @@
                                     icon="ui-icon-trash"
                                     title="Eliminar empaque de la orden de compra directa"
                                     actionListener="#{mbOrdenCompra.mbCalculoRCOD.eliminaProducto}"
-                                    update=":form:detalleOCD :form:buscarProductos"
+                                    update=":form:detalleOCD :form:buscarProductos :form:pieD :form:sumaDescuentosTotalesD"
+                                    onblur="#{mbOrdenCompra.mbCalculoRCOD.calculaPrecioDescuento(detD.producto.idProducto,mbOrdenCompra.ordenCompraDetallesDirectas,mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial,mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago)}"
                                     process="@this :form:detalleOCD"
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
                                 </span>
                                 <p:commandButton
+                                    id="busqueda"
+                                    disabled="#{mbOrdenCompra.mbProveedores.miniProveedor.idProveedor ==0}"
                                     icon="ui-icon-search"
                                     title="Buscar Productos"
                                     process="@this"
@@ -463,7 +468,8 @@
                                     update=":form:buscarProductos 
                                     :form:opcionParte 
                                     :form:opcionDescripcion
-                                    :form:multipleSelectProductos"
+                                    :form:multipleSelectProductos
+                                    :form:btnBuscarSKU"
                                     />
                             </f:facet>
                             <f:facet name="right" >
@@ -510,7 +516,7 @@
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
                                 </span>
 
-                                <p:commandButton icon="ui-icon-home"
+                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
                                                  title="Ir al menu de Ordenes de Compra"
                                                  actionListener="#{mbOrdenCompra.mbCalculoRCOD.limpiaOrdenCompraDirecta()}"
                                                  update=":form:detalleOCD :form:encabezadoOCD "
@@ -533,7 +539,8 @@
                                      selection="#{mbOrdenCompra.mbCalculoRCOD.ordenCompraDetalleSeleccionado}"
                                      scrollable="true"
                                      scrollHeight="300"
-                                     emptyMessage="Utiliza el buscador (lupa) para cargar productos y realizar la Orden de Compra...">
+                                     emptyMessage="Utiliza el buscador (lupa) para cargar productos y realizar la Orden de Compra..."
+                                     >
                             <p:ajax event = "rowSelect"/>
                             <p:column selectionMode="single" style="width:16px;text-align:center"/>
                             <p:column headerText="No." width="30">

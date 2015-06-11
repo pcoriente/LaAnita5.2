@@ -516,20 +516,23 @@ public class MbRequisiciones implements Serializable {
     }
 
     public void buscar() {
+
         try {
             this.mbBuscar.buscarLista();
             if (this.mbBuscar.getProducto() != null) {
-               RequisicionDetalle req = new RequisicionDetalle();
-               req.setProducto(mbBuscar.getProducto());
-               requisicionDetalles.add(req);
-//                this.actualizaProductosSeleccionados();
-            } else {
-                Mensajes.MensajeAlertP("Hubo un null pointer exception");
-            }
-        } catch (NullPointerException e) {
-            Mensajes.MensajeAlertP("Hubo un null pointer exception");
-        }
 
+                RequisicionDetalle req = new RequisicionDetalle();
+                req.setProducto(mbBuscar.getProducto());
+                requisicionDetalles.add(req);
+                this.actualizaProductosSeleccionados();
+            }
+//            } else {
+//                Mensajes.MensajeAlertP("No existe el producto...");
+//            }
+        } catch (NullPointerException e) {
+            Mensajes.MensajeAlertP("Error de excepcion");
+        }
+        
     }
 
     public void actualizaProductosSeleccionados() {
