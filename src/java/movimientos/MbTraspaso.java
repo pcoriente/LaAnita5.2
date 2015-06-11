@@ -99,6 +99,7 @@ public class MbTraspaso implements Serializable {
             this.dao = new DAOMovimientos();
             this.dao.grabarTraspasoEnvio(this.convertirTOMovimiento(), this.convertirDetalle());
             Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
+            this.obtenerSolicitudes();
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());

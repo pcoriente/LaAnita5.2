@@ -306,7 +306,7 @@ public class DAOLotes {
         return cantidad;
     }
 
-    public ArrayList<Lote> obtenerLotesMovtoEmpaque(int idMovto, int idProducto) throws SQLException {
+    public ArrayList<Lote> obtenerLotesMovtoEmpaque(int idMovtoAlmacen, int idProducto) throws SQLException {
         ArrayList<Lote> lotes = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
@@ -316,7 +316,7 @@ public class DAOLotes {
 //                    + "WHERE K.idAlmacen=" + idAlmacen + " AND K.idMovto=" + idMovto + " AND K.idEmpaque=" + idProducto;
             this.strSQL = "SELECT K.idEmpaque, K.lote, K.cantidad, 0 AS saldo, K.cantidad AS separados "
                     + "FROM movimientosDetalleAlmacen K "
-                    + "WHERE K.idMovto=" + idMovto + " AND K.idEmpaque=" + idProducto;
+                    + "WHERE K.idMovtoAlmacen=" + idMovtoAlmacen + " AND K.idEmpaque=" + idProducto;
             ResultSet rs = st.executeQuery(this.strSQL);
             while (rs.next()) {
                 lotes.add(this.construirLotesMovtoEmpaque(rs));

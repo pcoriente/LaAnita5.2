@@ -14,6 +14,7 @@ import org.primefaces.context.RequestContext;
 import producto2.dao.DAOProductosBuscar;
 import producto2.dao.DAOSubProductos;
 import producto2.dominio.Articulo;
+import producto2.dominio.Parte;
 import producto2.dominio.Producto;
 import producto2.dominio.Upc;
 import producto2.to.TOProducto;
@@ -126,7 +127,12 @@ public class MbProductosBuscar implements Serializable {
                 this.productos = new ArrayList<>();
                 switch (this.getTipoBuscar()) {
                     case "2":
-                        tos = this.dao.obtenerProductosParte(this.mbParte.getParte().getIdParte());
+                        if(this.mbParte.getParte()!=null) {
+                            tos = this.dao.obtenerProductosParte(this.mbParte.getParte().getIdParte());
+                        } else {
+                            this.mbParte.setParte(new Parte());
+                            tos = new ArrayList<>();
+                        }
                         break;
                     case "3":
                         tos = dao.obtenerProductosDescripcion(this.strBuscar);

@@ -74,6 +74,7 @@ public class MbRecepcion implements Serializable {
             this.dao=new DAOMovimientos();
             this.dao.grabarTraspasoRecepcion(this.convertirTOMovimiento(), this.convertirDetalle());
             Mensajes.mensajeSucces("La recepcion se grabo correctamente !!!");
+            this.obtenerRecepciones();
             this.modoEdicion=false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -200,9 +201,6 @@ public class MbRecepcion implements Serializable {
     
     public void cargaDetalleRecepcion(SelectEvent event) {
         this.recepcion = (Recepcion) event.getObject();
-
-        boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaDetalleRecepcion");
         try {
             this.dao = new DAOMovimientos();
             this.daoLotes = new DAOLotes();
@@ -212,14 +210,10 @@ public class MbRecepcion implements Serializable {
             }
             this.recepcionProducto = new EntradaProducto();
             this.modoEdicion = true;
-            ok = true;
         } catch (SQLException ex) {
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setDetail(ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getMessage());
         }
     }
     
