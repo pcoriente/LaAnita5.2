@@ -172,9 +172,9 @@ public class DAOContribuyentes {
     public void actualizarContribuyente(Contribuyente c) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
-        String strSQL = "UPDATE contribuyentes " +
-                        "SET contribuyente='"+c.getContribuyente()+"', idDireccion="+c.getDireccion().getIdDireccion()+" "+
-                        "WHERE idContribuyente = " + c.getIdContribuyente();
+        String strSQL = "UPDATE contribuyentes "
+                + "SET contribuyente='" + c.getContribuyente() + "', idDireccion=" + c.getDireccion().getIdDireccion() + " "
+                + "WHERE idContribuyente = " + c.getIdContribuyente();
         try {
             st.executeUpdate(strSQL);
         } finally {
@@ -214,7 +214,7 @@ public class DAOContribuyentes {
         }
         return lstContribuyente;
     }
-    
+
     public Contribuyente obtenerContribuyenteRfc(String rfc) throws SQLException {
         Contribuyente contribuyente = new Contribuyente();
         Connection cn = this.ds.getConnection();
@@ -226,7 +226,7 @@ public class DAOContribuyentes {
         try {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
-                contribuyente=construir(rs);
+                contribuyente = construir(rs);
             }
         } finally {
             st.close();
@@ -234,21 +234,21 @@ public class DAOContribuyentes {
         }
         return contribuyente;
     }
-    
+
     public void modificar(Contribuyente c) throws SQLException {
         String strSQL;
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
             st.executeUpdate("begin transaction");
-            
-            strSQL = "UPDATE contribuyentes SET contribuyente='"+c.getContribuyente()+"' WHERE idContribuyente = " + c.getIdContribuyente();
+
+            strSQL = "UPDATE contribuyentes SET contribuyente='" + c.getContribuyente() + "' WHERE idContribuyente = " + c.getIdContribuyente();
             st.executeUpdate(strSQL);
-            strSQL="UPDATE contribuyentesRfc SET curp='"+c.getCurp()+"' WHERE idRfc="+c.getIdRfc();
+            strSQL = "UPDATE contribuyentesRfc SET curp='" + c.getCurp() + "' WHERE idRfc=" + c.getIdRfc();
             st.executeUpdate(strSQL);
-            
+
             st.executeUpdate("commit transaction");
-        } catch(SQLException ex) {
+        } catch (SQLException ex) {
             st.executeUpdate("rollback transaction");
             throw ex;
         } finally {
@@ -256,16 +256,16 @@ public class DAOContribuyentes {
             st.close();
         }
     }
-    
+
     public int agregar(Contribuyente contribuyente) throws SQLException {
         String strSQL;
-        int idContribuyente=0;
+        int idContribuyente = 0;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
             st.executeUpdate("begin transaction");
-            
-            int idRfc=0;
+
+            int idRfc = 0;
             strSQL = "INSERT INTO contribuyentesRfc (rfc, curp) "
                     + "VALUES ('" + contribuyente.getRfc().toUpperCase() + "', '" + contribuyente.getCurp() + "')";
             st.executeUpdate(strSQL);
@@ -273,11 +273,11 @@ public class DAOContribuyentes {
             if (rs.next()) {
                 idRfc = rs.getInt("idRfc");
             }
-            DAOAgregarDireccion daoAgregarDireccion=new DAOAgregarDireccion();
-            int idDireccion=daoAgregarDireccion.agregar(st, contribuyente.getDireccion());
-            
+            DAOAgregarDireccion daoAgregarDireccion = new DAOAgregarDireccion();
+            int idDireccion = daoAgregarDireccion.agregar(st, contribuyente.getDireccion());
+
             strSQL = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) "
-                    + "VALUES ('" + contribuyente.getContribuyente() + "', '" + idRfc + "', "+idDireccion+")";
+                    + "VALUES ('" + contribuyente.getContribuyente() + "', '" + idRfc + "', " + idDireccion + ")";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
             if (rs.next()) {
@@ -339,7 +339,7 @@ public class DAOContribuyentes {
         try {
             ResultSet rs = st.executeQuery(sql);
             if (rs.next()) {
-                contribuyente=new Contribuyente();
+                contribuyente = new Contribuyente();
                 contribuyente.setContribuyente(rs.getString("contribuyente"));
                 contribuyente.setRfc(rs.getString("rfc"));
                 contribuyente.getDireccion().setIdDireccion(rs.getInt("idDireccion"));
@@ -354,6 +354,41 @@ public class DAOContribuyentes {
                 contribuyente.getDireccion().getPais().setIdPais(rs.getInt("idPais"));
                 contribuyente.getDireccion().setCodigoPostal(rs.getString("codigoPostal"));
             }
+        } finally {
+            st.close();
+            cn.close();
+        }
+        return contribuyente;
+    }
+
+    public Contribuyente buscarContribuyente(int idContribuyente) throws SQLException {
+        Contribuyente contribuyente = null;
+        Connection cn = ds.getConnection();
+        Statement st = cn.createStatement();
+//        String sql = "select * from contribuyentes cr\n"
+//                + "inner join contribuyentesRfc crR\n"
+//                + "on cr.idContribuyente = crR.idRfc\n"
+//                + "inner join direcciones dir \n"
+//                + "on cr.idDireccion = dir.idDireccion\n"
+//                + "where crR.rfc ='" + rfc + "';";
+        try {
+//            ResultSet rs = st.executeQuery(sql);
+//            if (rs.next()) {
+//                contribuyente = new Contribuyente();
+//                contribuyente.setContribuyente(rs.getString("contribuyente"));
+//                contribuyente.setRfc(rs.getString("rfc"));
+//                contribuyente.getDireccion().setIdDireccion(rs.getInt("idDireccion"));
+//                contribuyente.getDireccion().setCalle(rs.getString("calle"));
+//                contribuyente.getDireccion().setNumeroExterior(rs.getString("numeroExterior"));
+//                contribuyente.getDireccion().setNumeroInterior(rs.getString("numeroInterior"));
+//                contribuyente.getDireccion().setColonia(rs.getString("colonia"));
+//                contribuyente.getDireccion().setLocalidad(rs.getString("localidad"));
+//                contribuyente.getDireccion().setReferencia(rs.getString("referencia"));
+//                contribuyente.getDireccion().setMunicipio(rs.getString("municipio"));
+//                contribuyente.getDireccion().setEstado(rs.getString("estado"));
+//                contribuyente.getDireccion().getPais().setIdPais(rs.getInt("idPais"));
+//                contribuyente.getDireccion().setCodigoPostal(rs.getString("codigoPostal"));
+//            }
         } finally {
             st.close();
             cn.close();
@@ -389,7 +424,7 @@ public class DAOContribuyentes {
 //                + "inner join contribuyentesRfc crRfc "
 //                + "on con.idRfc = crRfc.idRfc "
 //                + "where crRfc.rfc='" + rfc.trim() + "';";
-        String sql ="SELECT * FROM contribuyentesRfc WHERE rfc='"+rfc+"'";
+        String sql = "SELECT * FROM contribuyentesRfc WHERE rfc='" + rfc + "'";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
