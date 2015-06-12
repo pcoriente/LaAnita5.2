@@ -81,19 +81,16 @@ public class DAOAlmacenesJS {
                     + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
                     + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
                     + "WHERE idAlmacen="+idAlmacen;
-        Connection cn=this.ds.getConnection();
-        try {
+        try (Connection cn = this.ds.getConnection()) {
             Statement st=cn.createStatement();
             ResultSet rs=st.executeQuery(stringSQL);
             if(rs.next()) almacen=construir(rs);
-        } finally {
-            cn.close();
         }
         return almacen;
     }
     
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idEmpresa) throws SQLException {
-        ArrayList<TOAlmacenJS> lista = new ArrayList<TOAlmacenJS>();
+        ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
                     + "FROM almacenes a "
                     + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
@@ -101,8 +98,8 @@ public class DAOAlmacenesJS {
                     + "WHERE a.idCedis="+this.idCedis+" AND a.idEmpresa="+idEmpresa+" "
                     + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
         try {
-            Statement sentencia = cn.createStatement();
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));
@@ -114,7 +111,7 @@ public class DAOAlmacenesJS {
     }
     
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idCedis, int idEmpresa) throws SQLException {
-        ArrayList<TOAlmacenJS> lista = new ArrayList<TOAlmacenJS>();
+        ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
                     + "FROM almacenes a "
                     + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
@@ -122,8 +119,8 @@ public class DAOAlmacenesJS {
                     + "WHERE a.idCedis="+idCedis+" AND a.idEmpresa="+idEmpresa+" "
                     + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
         try {
-            Statement sentencia = cn.createStatement();
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));
@@ -135,7 +132,7 @@ public class DAOAlmacenesJS {
     }
     
     public ArrayList<TOAlmacenJS> obtenerAlmacenes() throws SQLException {
-        ArrayList<TOAlmacenJS> lista = new ArrayList<TOAlmacenJS>();
+        ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
                     + "FROM almacenes a "
                     + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
@@ -143,8 +140,8 @@ public class DAOAlmacenesJS {
                     + "WHERE a.idCedis="+this.idCedis+" "
                     + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
         try {
-            Statement sentencia = cn.createStatement();
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));

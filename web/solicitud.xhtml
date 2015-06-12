@@ -28,7 +28,7 @@
                                     <p:selectOneMenu value="#{mbSolicitud.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs lnkEditarComprobante" />
+                                        <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
@@ -37,9 +37,9 @@
                                     <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.cedis}" style="width: 450px;" >
+                                    <p:selectOneMenu id="cedisOrigen" value="#{mbSolicitud.mbCedis.cedis}" style="width: 450px;" >
                                         <f:converter converterId="converters.MiniCedis" />
-                                        <f:selectItems value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.listaMiniCedis}" />
+                                        <f:selectItems value="#{mbSolicitud.mbCedis.listaMiniCedis}" />
                                         <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesEmpresa()}" 
                                                 update=":main:msgs almacenOrigen" />
                                     </p:selectOneMenu>
@@ -50,21 +50,25 @@
                                     <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacenOrigen" value="#{mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacenOrigen" value="#{mbSolicitud.mbAlmacenes.toAlmacen}" style="width: 450px;" 
+                                                     disabled="#{mbSolicitud.mbCedis.cedis.idCedis==0}" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbSolicitud.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs lnkEditarComprobante" />
+                                        <f:selectItems value="#{mbSolicitud.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs btnEditarComprobante" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column colspan="2" style="text-align: right;" >
-                                    <p:commandLink id="lnkEditarComprobante" styleClass="nueva" value="Editar" 
-                                                   disabled="#{mbSolicitud.toAlmacen.idAlmacen==0 or mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen.idAlmacen==0}"
-                                                   update="main" actionListener="#{mbSolicitud.solicitud()}" process="@this" />|
-                                    <p:commandLink styleClass="nueva" action="#{mbSolicitud.terminar()}" value="Salir" ajax="false" />
-                                </p:column>
-                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton id="btnEditarComprobante" icon="ui-icon-pencil" title="Editar Solicitud" 
+                                                         disabled="#{mbSolicitud.toAlmacen.idAlmacen==0 or mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                         process="@this" actionListener="#{mbSolicitud.solicitud()}" update="main" />
+                                        <p:commandButton icon="ui-icon-home" title="Salir" 
+                                                         action="#{mbSolicitud.terminar()}" immediate="true" ajax="false" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
                         </p:panelGrid>
                     </p:panel>
                     <p:panel id="mantenimiento" header="SOLICITUD DE TRASPASO" 
@@ -83,7 +87,7 @@
                                     <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.mbComprobantes.mbAlmacenes.mbCedis.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.mbCedis.cedis}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -91,26 +95,30 @@
                                     <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.mbComprobantes.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column colspan="2" style="text-align: right;" >
-                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar Solicitud" 
-                                                     process="@this" actionListener="#{mbSolicitud.grabarSolicitud()}" update="@this main :main:msgs" />
-                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
-                                                     process="@this" actionListener="#{mbSolicitud.salir()}" update="main" />
-                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
-                                                     process="@this" actionListener="#{mbSolicitud.mbBuscar.inicializar()}" 
-                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
-                                </p:column>
-                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column >
+                                        <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                         process="@this" actionListener="#{mbSolicitud.mbBuscar.inicializar()}" 
+                                                         update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                    </p:column>
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar Solicitud" 
+                                                         process="@this" actionListener="#{mbSolicitud.grabarSolicitud()}" update="@this main :main:msgs" />
+                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                         process="@this" actionListener="#{mbSolicitud.salir()}" update="main" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
                         </p:panelGrid>
                         <p:dataTable id="detalleSolicitud" widgetVar="detalleSolicitud" value="#{mbSolicitud.solicitudDetalle}" style="border:solid 1px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbSolicitud.solicitudProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax event="rowSelect" listener="#{mbSolicitud.respaldaFila()}" update="detalleSolicitud" />
-                            
+
                             <p:column headerText="SKU" width="64"  >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
                             </p:column>

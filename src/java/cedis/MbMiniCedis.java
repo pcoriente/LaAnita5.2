@@ -1,5 +1,6 @@
 package cedis;
 
+import Message.Mensajes;
 import cedis.dao.DAOMiniCedis;
 import cedis.dominio.MiniCedis;
 import javax.inject.Named;
@@ -77,9 +78,7 @@ public class MbMiniCedis implements Serializable {
     }
     
     public void cargaMiniCedisTodos() {
-        boolean ok=false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
-        this.listaMiniCedis=new ArrayList<SelectItem>();
+        this.listaMiniCedis=new ArrayList<>();
         try {
             MiniCedis p0 = new MiniCedis();
             p0.setIdCedis(0);
@@ -91,23 +90,17 @@ public class MbMiniCedis implements Serializable {
             for (MiniCedis m : this.dao.obtenerListaMiniCedisTodos()) {
                 this.listaMiniCedis.add(new SelectItem(m, m.toString()));
             }
-            ok=true;
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
     
     public void cargaMiniCedisZona() {
         boolean ok=false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
-        this.listaMiniCedis=new ArrayList<SelectItem>();
+        this.listaMiniCedis=new ArrayList<>();
         try {
             MiniCedis p0 = new MiniCedis();
             p0.setIdCedis(0);

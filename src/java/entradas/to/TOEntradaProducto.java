@@ -13,7 +13,7 @@ public class TOEntradaProducto extends TOMovimientoProducto {
     
     public TOEntradaProducto() {
         super();
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
 
     public ArrayList<Lote> getLotes() {

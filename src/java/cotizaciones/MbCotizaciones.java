@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
@@ -28,6 +27,7 @@ import javax.faces.model.SelectItem;
 import javax.inject.Named;
 import javax.naming.NamingException;
 import monedas.MbMonedas;
+import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 //import producto2.dominio.Producto;
 import proveedores.MbMiniProveedor;
@@ -49,7 +49,7 @@ public class MbCotizaciones implements Serializable {
     private CotizacionDetalle cotizacionDeta = new CotizacionDetalle();
     private CotizacionDetalle productoElegido = new CotizacionDetalle();
     private ArrayList<CotizacionDetalle> listaCotizacionDetalleProductos;
-    private ArrayList<CotizacionDetalle> ordenCompra = new ArrayList<CotizacionDetalle>();
+    private ArrayList<CotizacionDetalle> ordenCompra = new ArrayList<>();
 //    ----------------------------------------------
     private ArrayList<CotizacionEncabezado> miniCotizacionProveedor;
     @ManagedProperty(value = "#{mbProveedores}")
@@ -87,11 +87,13 @@ public class MbCotizaciones implements Serializable {
         }
     }
 
-    public void cargaCotizacionesProveedor() throws NamingException, SQLException {
+    public void cargaCotizacionesProveedor(SelectEvent event) throws NamingException, SQLException {
+        this.cotizacionesEncabezadoToOrden=(CotizacionEncabezado)event.getObject();
+        
         int idReq = cotizacionesEncabezadoToOrden.getIdRequisicion();
-        ordenCompra = new ArrayList<CotizacionDetalle>();
-        listaCotizacionDetalleProductos = new ArrayList<CotizacionDetalle>();
-        listaCotizacionDetalle = new ArrayList<CotizacionDetalle>();
+        ordenCompra = new ArrayList<>();
+        listaCotizacionDetalleProductos = new ArrayList<>();
+        listaCotizacionDetalle = new ArrayList<>();
         DAOCotizaciones daoCot = new DAOCotizaciones();
         ArrayList<CotizacionDetalle> lista = daoCot.dameProductoCotizacionesProveedores(idReq);
         for (CotizacionDetalle d : lista) {
@@ -110,13 +112,13 @@ public class MbCotizaciones implements Serializable {
 //        }
 //    }
     public void cotizacionxProveedor() {
-        miniCotizacionProveedor = new ArrayList<CotizacionEncabezado>();
+        miniCotizacionProveedor = new ArrayList<>();
     }
 //    Pablo
 
     public void dameProductos() {
 
-        listaCotizacionDetalleProductos = new ArrayList<CotizacionDetalle>();
+        listaCotizacionDetalleProductos = new ArrayList<>();
         try {
 
             int idRequi = this.cotizacionesEncabezadoToOrden.getIdRequisicion();
@@ -222,9 +224,9 @@ public class MbCotizaciones implements Serializable {
     }
 
     public void cargaCotizacionesRequisicion(int idReq) throws NamingException, SQLException {
-        ordenCompra = new ArrayList<CotizacionDetalle>();
-        listaCotizacionDetalleProductos = new ArrayList<CotizacionDetalle>();
-        listaCotizacionDetalle = new ArrayList<CotizacionDetalle>();
+        ordenCompra = new ArrayList<>();
+        listaCotizacionDetalleProductos = new ArrayList<>();
+        listaCotizacionDetalle = new ArrayList<>();
         DAOCotizaciones daoCot = new DAOCotizaciones();
         ArrayList<CotizacionDetalle> lista = daoCot.dameProductoCotizacionesProveedores(idReq);
         for (CotizacionDetalle d : lista) {
@@ -263,14 +265,14 @@ public class MbCotizaciones implements Serializable {
 //        return navega;
 //    }
     //GETS Y SETS------------------------------------------------------------------------------------------------------------------------------------------------------
-    public ArrayList<CotizacionEncabezado> getListaCotizacionEncabezado() throws SQLException {
-        if (listaCotizacionEncabezado == null) {
-            try {
+    public ArrayList<CotizacionEncabezado> getListaCotizacionEncabezado() throws SQLException, NamingException {
+//        if (listaCotizacionEncabezado == null) {
+//            try {
                 this.cargaCotizaciones();
-            } catch (NamingException ex) {
-                Logger.getLogger(MbCotizaciones.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+//            } catch (NamingException ex) {
+//                Logger.getLogger(MbCotizaciones.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
         return listaCotizacionEncabezado;
     }
 
@@ -372,7 +374,7 @@ public class MbCotizaciones implements Serializable {
     //COTIZACION
     @ManagedProperty(value = "#{mbMiniEmpresa}")
     private MbMiniEmpresa mbMiniEmpresa;
-    private ArrayList<SelectItem> listaMini = new ArrayList<SelectItem>();
+    private ArrayList<SelectItem> listaMini = new ArrayList<>();
     private ArrayList<CotizacionDetalle> cotizacionDetalles;
     private ArrayList<CotizacionDetalle> cotizacionDetallesG = new ArrayList<>();
     private CotizacionDetalle cotizacionDetalle = new CotizacionDetalle();
@@ -551,7 +553,7 @@ public class MbCotizaciones implements Serializable {
             double dpp = mbMiniProveedor.getMiniProveedor().getDesctoProntoPago();
             DAORequisiciones daoReq = new DAORequisiciones();
             FacesMessage msg = null;
-            cotizacionDetallesG = new ArrayList<CotizacionDetalle>();
+            cotizacionDetallesG = new ArrayList<>();
             try {
                 int idProv = this.mbMiniProveedor.getMiniProveedor().getIdProveedor();
                 int idMon = this.mbMonedas.getMoneda().getIdMoneda();
@@ -636,7 +638,7 @@ public class MbCotizaciones implements Serializable {
             this.impuesto = 0;
             this.total = 0;
             mbMiniProveedor = new MbMiniProveedor();
-            cotizacionDetalles = new ArrayList<CotizacionDetalle>();
+            cotizacionDetalles = new ArrayList<>();
             for (TOCotizacionDetalle rd : daoReq.dameRequisicionDetalleCotizar(id)) {
                 cotizacionDetalles.add(this.convertir(rd));
             }

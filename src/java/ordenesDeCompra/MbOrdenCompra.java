@@ -46,6 +46,7 @@ import ordenesDeCompra.dominio.Correo;
 import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import ordenesDeCompra.dominio.TotalesOrdenCompra;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import producto2.dominio.Producto;
@@ -105,6 +106,8 @@ public class MbOrdenCompra implements Serializable {
     private Empresa empre;
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
+    @ManagedProperty(value = "#{mbCalculoRCOD}")
+    private MbCalculoRCOD mbCalculoRCOD;
 
     public MbOrdenCompra() throws NamingException {
         this.ordenCompraEncabezado = new OrdenCompraEncabezado();
@@ -122,7 +125,7 @@ public class MbOrdenCompra implements Serializable {
         this.provee = new Proveedor();
         //-------DIRECTAS
         this.mbMonedas = new MbMonedas();
-
+        this.mbCalculoRCOD = new MbCalculoRCOD();
     }
 
     //M E T O D O S  ////////////////////////////////////////////////////////////////////////////////////////////
@@ -167,12 +170,12 @@ public class MbOrdenCompra implements Serializable {
     public void actualizaProductosSeleccionados() {
         for (Producto e : this.mbBuscar.getSeleccionados()) {
             OrdenCompraDetalle ocd = new OrdenCompraDetalle();
-            ocd.getProducto();
+            ocd.setProducto(e);
             ordenCompraDetallesDirectas.add(ocd);
         }
         HashSet hs = new HashSet();
         hs.addAll(ordenCompraDetallesDirectas);
-       ordenCompraDetallesDirectas.removeAll(ordenCompraDetallesDirectas);
+        ordenCompraDetallesDirectas.removeAll(ordenCompraDetallesDirectas);
         ordenCompraDetallesDirectas.addAll(hs);
     }
 
@@ -181,10 +184,10 @@ public class MbOrdenCompra implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "dameEmpaqueSeleccionado");
         boolean verifi = verificacion(mbBuscar.getProducto());
-        
+
         if (verifi == false) {
-          listaEmpaque.add(mbBuscar.getProducto());
-           
+            ordenCompraDetallesDirectas.add(ordenCompraDetalle);
+
             mbBuscar.getProductos().remove(mbBuscar.getProducto());
             ok = true;
         } else {
@@ -196,10 +199,14 @@ public class MbOrdenCompra implements Serializable {
 
     }
 
-    public void eliminarEmpaqueSeleccionado() {
-        listaEmpaque.remove(empaque);
-    }
-
+//    public void eliminarEmpaqueSeleccionado(OrdenCompraDetalle ocd) {
+//        
+//   
+//        ordenCompraDetallesDirectas.remove(ocd);
+//        
+//        System.out.print("hola");
+//       // listaEmpaque.remove(empaque);
+//    }
     public boolean verificacion(Producto e) {
         boolean verificar = false;
 
@@ -217,7 +224,7 @@ public class MbOrdenCompra implements Serializable {
     public void limpiarCamposBusqueda() {
         mbBuscar.getMbParte().setParte(null);
         mbBuscar.setStrBuscar("");
-        mbBuscar.setProductos(null);
+        mbBuscar.setProductos(new ArrayList<Producto>());
     }
 
 //    public boolean aseguraOrdenCompra(int idOrdenCompra) {
@@ -952,10 +959,20 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public ArrayList<OrdenCompraDetalle> getOrdenCompraDetallesDirectas() {
+
+
         return ordenCompraDetallesDirectas;
     }
 
     public void setOrdenCompraDetallesDirectas(ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas) {
         this.ordenCompraDetallesDirectas = ordenCompraDetallesDirectas;
+    }
+
+    public MbCalculoRCOD getMbCalculoRCOD() {
+        return mbCalculoRCOD;
+    }
+
+    public void setMbCalculoRCOD(MbCalculoRCOD mbCalculoRCOD) {
+        this.mbCalculoRCOD = mbCalculoRCOD;
     }
 }

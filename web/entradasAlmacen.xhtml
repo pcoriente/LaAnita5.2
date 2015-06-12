@@ -25,9 +25,9 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradasAlmacen.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasAlmacen.mbAlmacenes.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbEntradasAlmacen.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <f:selectItems value="#{mbEntradasAlmacen.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
@@ -62,7 +62,7 @@
                                     <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbEntradasAlmacen.mbComprobantes.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbEntradasAlmacen.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 

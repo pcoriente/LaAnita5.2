@@ -131,7 +131,7 @@ a.nueva{ display:  inline;}
 }
 
 .textoEtiquetas{
-    color: red;
+    color: blue;
     text-align: right;
 }
 
@@ -160,7 +160,14 @@ a.nueva{ display:  inline;}
 .alineacionD
 {
   text-align:right;
+  font-weight: bold;
+  width: 100px;
   
+}
+.etiquetaD{
+    font-weight: bold;
+    color: blue;
+    text-align: right; 
 }
 
 .alineacionFooter{
@@ -173,4 +180,12 @@ a.nueva{ display:  inline;}
     background-image: url(resources/images/excel.png);
     background-color: blue;
     image-resolution: 300dpi from-image;
+}
+
+.darias.ui-dialog .ui-dialog-titlebar {
+  padding: .4em .4em .4em 1em;
+  position: relative;
+  border: 0px;
+  background-color: #F8831C;
+  
 }

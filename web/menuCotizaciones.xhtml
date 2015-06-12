@@ -20,24 +20,24 @@
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
                             </span>
-                            <p:commandButton id="Nuevo"
+<!--                            <p:commandButton id="Nuevo"
                                              icon="ui-icon-note"
                                              title="Ir al Menu de Requisiciones"
                                              action="menuRequisiciones.xhtml"
                                              />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
-                            </span>
-                            <p:commandButton id="Menu"
+                            </span>-->
+<!--                            <p:commandButton id="Menu"
                                              icon="ui-icon-document"
                                              title="Ir a menu Ordenes de Compra"
                                              action="menuOrdenesDeCompra.xhtml"
                                              />
                             <span class="ui-separator">
                                 <span class="ui-icon ui-icon-grip-dotted-vertical" />
-                            </span>
+                            </span>-->
                             <p:commandButton id="salir"
-                                             icon="ui-icon-arrowreturnthick-1-w"
+                                             icon="ui-icon-home"
                                              title="Salir "
                                              action="index.xhtml"
                                              />
@@ -47,24 +47,18 @@
                     <p:messages id="messagePanel" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panel id="pCotizaciones" header="PANEL DE ADMINISTRACION DE COTIZACIONES" styleClass="quitaCuadro" >
                         <h:outputText value="No hay requisiciones que mostrar !!" rendered="#{empty mbCotizaciones.listaCotizacionEncabezado}" />
-                        <p:dataTable id="dtCotizaciones"
+                        <p:dataTable id="dtCotizaciones" selectionMode="single"
                                      value="#{mbCotizaciones.listaCotizacionEncabezado}"
-                                     var="cot" 
-                                     widgetVar="requisicionesTable"
+                                     var="cot" rowKey="#{cot.idCotizacion}"
                                      emptyMessage="No existen elementos para desplegar..."
-                                     rowKey="#{cot}"
-                                     selection="#{mbCotizaciones.cotizacionesEncabezadoToOrden}"
-                                     selectionMode="single"
                                      >
                             <p:ajax event="rowSelect" 
-                                    listener="#{mbCotizaciones.cargaCotizacionesProveedor()}"
+                                    listener="#{mbCotizaciones.cargaCotizacionesProveedor}"
                                     oncomplete="PF('panel').show();"
                                     process="@this"
                                     update=":form:listaProveedores :form:ordenDeCompra"
                                     />
-<!--                            <p:column sortBy="#{cot.idRequisicion}" filterBy="#{cot.idRequisicion}" headerText="No. Req." filterMatchMode="contains" width="30"  >
-                                <h:outputText value="#{cot.idRequisicion}"   />
-                            </p:column>-->
+                           
                             <p:column filterBy="#{cot.depto}" headerText="Depto" filterMatchMode="contains" width="120" >
                                 <f:facet name="header">
                                     <h:outputText value="Depto"/>
