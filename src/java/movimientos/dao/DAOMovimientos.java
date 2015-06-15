@@ -1506,7 +1506,7 @@ public class DAOMovimientos {
     public ArrayList<TOMovimientoAlmacenProducto> obtenerOrdenDeCompraDetalleAlmacen(int idOrdenDeCompra) throws SQLException {
         ArrayList<TOMovimientoAlmacenProducto> productos = new ArrayList<>();
         String strSQL = "SELECT 0 AS idMovtoAlmacen, OCD.idEmpaque, OCD.cantOrdenada+OCD.cantOrdenadaSinCargo AS cantOrdenada, OCD.costoOrdenado\n"
-                + "       , ISNULL(MD.cantidad,0) AS cantRecibida, 0 AS cantidad, '' AS lote\n"
+                + "       , ISNULL(MD.cantRecibida,0) AS cantRecibida, 0 AS cantidad, '' AS lote\n"
                 + "FROM (SELECT MD.idEmpaque, SUM(MD.cantidad) AS cantRecibida\n"
                 + "		FROM movimientosDetalleAlmacen MD\n"
                 + "		INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=MD.idMovtoAlmacen\n"
