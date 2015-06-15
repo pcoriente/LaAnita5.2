@@ -33,9 +33,8 @@
                                              process="@this"
                                              title="Actualizar Agente"
                                              disabled="#{mbAgentes.actualizar==0}"
-
                                              />
-                            <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
+                            <p:commandButton icon="ui-icon-home"
                                              ajax="false"
                                              title="Salir"
                                              immediate="true"
@@ -59,7 +58,11 @@
                                     listener="#{mbAgentes.cargarDatosActualizar()}"
                                     process="@this"
                                     update=":form:panelNuevoAgente 
-                                    :form:actualizar"/>
+                                    :form:actualizar
+                                    :form:growl"/>
+                            <p:column headerText="Codigo" style="width: 20px">
+                                #{agentes.idAgente}
+                            </p:column>
                             <p:column headerText="Nivel" 
                                       filterBy="#{agentes.nombreNivel}">
                                 #{agentes.nombreNivel}
@@ -107,10 +110,6 @@
                                                  filter="true"
                                                  value="#{mbAgentes.valorEnum}">
                                     <f:selectItems value="#{mbAgentes.lstNiveles}"/>
-                                    <p:ajax event="change" 
-                                            listener="#{mbAgentes.cargarSuperVisor()}"
-                                            process="@this cmbCedis"
-                                            update="cmbSupervisor growl"/>
                                 </p:selectOneMenu>
                                 <h:outputLabel/>
                                 <h:outputText id="lblCedis" value="Cedis* :" />
@@ -119,18 +118,6 @@
                                                   filter="true">
                                     <f:selectItems value="#{mbAgentes.listaMiniCedis}" />
                                     <f:converter converterId="converters.MiniCedis"/>
-                                    <p:ajax event="change" 
-                                            listener="#{mbAgentes.cargarSuperVisor()}"
-                                            update="cmbSupervisor growl"
-                                            process="@this cmbNivel"/>
-                                </p:selectOneMenu>
-                                <h:outputLabel/>
-                                <h:outputText id="lblSupervisor" value="Supervisor :" />
-                                <p:selectOneMenu  id="cmbSupervisor" 
-                                                  style="width: 175px" 
-                                                  value="#{mbAgentes.valorSupervisor}"
-                                                  filter="true">
-                                    <f:selectItems value="#{mbAgentes.lstSupervisor}" />
                                 </p:selectOneMenu>
                                 <h:outputLabel/>
                                 <h:outputText id="lblDireccion" value="Direccion:" />
