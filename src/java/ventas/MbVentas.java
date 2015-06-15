@@ -17,8 +17,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
@@ -183,7 +181,7 @@ public class MbVentas implements Serializable {
         TOMovimientoAlmacenProducto to=new TOMovimientoAlmacenProducto();
         to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
         to.setIdProducto(prod.getProducto().getIdProducto());
-        to.setLote(prod.getLote());
+//        to.setLote(prod.getLotes());
         to.setCantidad(prod.getCantidad());
         return to;
     }
@@ -192,7 +190,7 @@ public class MbVentas implements Serializable {
         VentaAlmacenProducto prod=new VentaAlmacenProducto();
         prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        prod.setLote(to.getLote());
+//        prod.setLote(to.getLote());
         prod.setCantidad(to.getCantidad());
         return prod;
     }
@@ -390,7 +388,7 @@ public class MbVentas implements Serializable {
         vta.setIdOrdenCompra(to.getReferencia());
         vta.setStatus(to.getEstatus());
         //////////////////////////////////////////////////
-        vta.setFechaComprobante(to.getFechaComprobante());
+//        vta.setFechaComprobante(to.getFechaComprobante());
         //////////////////////////////////////////////////
         vta.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
 //        vta.setFechaAlmacen(to.getFechaAlmacen());
@@ -417,7 +415,7 @@ public class MbVentas implements Serializable {
         to.setEstatus(this.venta.getStatus());
         ////////////////////////////////////////////////////////////
 
-        to.setFechaComprobante(this.venta.getFechaComprobante());
+//        to.setFechaComprobante(this.venta.getFechaComprobante());
         ////////////////////////////////////////////////////////////
         to.setIdMovtoAlmacen(this.venta.getIdMovtoAlmacen());
 //        to.setFechaAlmacen(this.venta.getFechaAlmacen());

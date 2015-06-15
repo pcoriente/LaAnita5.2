@@ -1,5 +1,6 @@
 package movimientos.dao;
 
+import entradas.dominio.MovimientoAlmacenProducto;
 import entradas.dominio.MovimientoProducto;
 import entradas.to.TOEntradaProducto;
 import impuestos.dominio.ImpuestosProducto;
@@ -19,7 +20,10 @@ import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import movimientos.dominio.Lote;
+import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoAlmacen;
+import movimientos.to.TOMovimientoAlmacenProducto;
 import movimientos.to.TOMovimientoProducto;
 import usuarios.dominio.UsuarioSesion;
 
@@ -45,16 +49,473 @@ public class DAOMovimientos {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
-    
+
     // ----------------------------- MOVIMIENTOS DE INVENTARIO ----------------------
+    public void cancelarSalidaAlmacen(int idMovto) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE l "
+                        + "SET l.separados=l.separados-k.cantidad "
+                        + "FROM movimientosAlmacenDetalle k "
+                        + "INNER JOIN almacenesLotes l ON l.idAlmacen=k.idAlmacen AND l.idEmpaque=k.idEmpaque AND l.lote=k.lote "
+                        + "WHERE k.idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosAlmacenDetalle where idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosAlmacen WHERE idMovtoAlmacen=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void grabarSalidaAlmacen(TOMovimiento to) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+                ResultSet rs1;
+                to.setFolio(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
+
+                strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
+                        + "WHERE idMovtoAlmacen=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "SELECT * FROM movimientosAlmacenDetalle "
+                        + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idMovto=" + to.getIdMovto() + " "
+                        + "ORDER BY idEmpaque";
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    strSQL = "SELECT saldo, separados FROM almacenesLotes "
+                            + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    rs1 = st1.executeQuery(strSQL);
+                    if (rs1.next()) {
+                        if (rs1.getDouble("saldo") < rs.getDouble("cantidad")) {
+                            throw new SQLException("El saldo del lote es menor a la cantidad separada en kardex del movimiento");
+                        } else if (rs1.getDouble("separados") < rs.getDouble("cantidad")) {
+                            throw new SQLException("La cantidad separada del lote es menor a la cantidad separada en kardex del movimiento");
+                        }
+                    } else {
+                        throw new SQLException("No se encontro lote(" + rs.getString("lote") + ") del empaque(" + rs.getInt("idEmpaque") + ") en tabla almacenesLotes");
+                    }
+                    strSQL = "UPDATE movimientosAlmacenDetalle "
+                            + "SET fecha=GETDATE(), existenciaAnterior=" + rs1.getDouble("saldo") + " "
+                            + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idMovto=" + to.getIdMovto() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    st1.executeUpdate(strSQL);
+
+                    strSQL = "UPDATE almacenesLotes "
+                            + "SET saldo=saldo-" + rs.getDouble("cantidad") + ", separados=separados-" + rs.getDouble("cantidad") + " "
+                            + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    st1.executeUpdate(strSQL);
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void cancelarSalidaOficina(int idMovto) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE e "
+                        + "SET e.separados=e.separados-d.cantFacturada "
+                        + "FROM (SELECT m.idAlmacen, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + idMovto + ") d "
+                        + "INNER JOIN almacenesEmpaques e ON e.idAlmacen=d.idAlmacen AND e.idEmpaque=d.idEmpaque";
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosDetalle where idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientos WHERE idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void grabarSalidaOficina(TOMovimiento to) throws SQLException {
+        String strSQL;
+
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
+
+                strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
+                        + "WHERE idMovto=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + to.getIdMovto() + " AND cantFacturada=0";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE d "
+                        + "SET d.unitario=e.promedioPonderado, d.fecha=GETDATE(), d.existenciaAnterior=a.existenciaOficina "
+                        + "FROM movimientosDetalle d "
+                        + "INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=m.idAlmacen AND a.idEmpaque=d.idEmpaque "
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.idEmpresa=m.idEmpresa AND d.idMovto=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE e "
+                        + "SET e.separados=e.separados-d.cantFacturada, e.existenciaOficina=e.existenciaOficina-d.cantFacturada "
+                        + "FROM (SELECT m.idAlmacen, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
+                        + "INNER JOIN almacenesEmpaques e ON e.idAlmacen=d.idAlmacen AND e.idEmpaque=d.idEmpaque";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE e "
+                        + "SET e.existenciaOficina=e.existenciaOficina-d.cantFacturada "
+                        + "FROM (SELECT m.idEmpresa, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE e "
+                        + "SET e.promedioPonderado=0 "
+                        + "FROM (SELECT m.idEmpresa, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.existenciaOficina=0";
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void agregarProductoSalidaOficina(int idMovto, TOMovimientoProducto to) throws SQLException {
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
+        String strSQL;
+        try {
+            strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior) "
+                    + "VALUES (" + idMovto + ", " + to.getIdProducto() + ", 0, " + to.getCantFacturada() + ", 0, 0, 0, 0, 0, 0, 0, 0, GETDATE(), 0)";
+            st.executeUpdate(strSQL);
+        } finally {
+            st.close();
+            cn.close();
+        }
+    }
+
+    public void cancelarEntradaOficina(int idMovto) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "DELETE FROM movimientosDetalle where idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientos WHERE idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void grabarEntradaOficina(TOMovimiento to) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
+
+                strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
+                        + "WHERE idMovto=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + to.getIdMovto() + " AND cantFacturada=0";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE d "
+                        + "SET d.unitario=e.promedioPonderado, d.fecha=GETDATE(), d.existenciaAnterior=a.existenciaOficina "
+                        + "FROM movimientosDetalle d "
+                        + "INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=m.idAlmacen AND a.idEmpaque=d.idEmpaque "
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.idEmpresa=m.idEmpresa AND d.idMovto=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE a "
+                        + "SET a.existenciaOficina=a.existenciaOficina+d.cantFacturada "
+                        + "FROM (SELECT m.idAlmacen, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
+                        + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=d.idAlmacen AND a.idEmpaque=d.idEmpaque";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE e "
+                        + "SET e.existenciaOficina=e.existenciaOficina+d.cantFacturada "
+                        + "FROM (SELECT m.idEmpresa, d.* "
+                        + "		FROM movimientosDetalle d "
+                        + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
+                        + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public double actualizaEntrada(int idMovto, int idAlmacen, int idProducto, double cantidad) throws SQLException {
+        String strSQL = "UPDATE movimientosDetalle "
+                + "SET cantFacturada=" + cantidad + " "
+                + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idProducto;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+            }
+        }
+        return cantidad;
+    }
+
+    public void agregarProductoEntradaOficina(int idMovto, TOMovimientoProducto to) throws SQLException {
+        String strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior) "
+                + "VALUES (" + idMovto + ", " + to.getIdProducto() + ", 0, " + to.getCantFacturada() + ", 0, 0, 0, 0, 0, 0, 0, 0, GETDATE(), 0)";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+            }
+        }
+    }
+
+    public int agregarMovimientoOficina(TOMovimiento to) throws SQLException {
+        int idMovto = 0;
+        String strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus) "
+                + "VALUES(" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+
+                st.executeUpdate(strSQL);
+                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
+                if (rs.next()) {
+                    idMovto = rs.getInt("idMovto");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return idMovto;
+    }
+
+    public void cancelarEntradaAlmacen(int idMovto) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "DELETE FROM movimientosAlmacenDetalle where idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosAlmacen WHERE idMovtoAlmacen=" + idMovto;
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public void grabarEntradaAlmacen(TOMovimiento to) throws SQLException {
+        double saldo;
+        String strSQL;
+
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+                ResultSet rs, rs1;
+
+                to.setFolio(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
+
+                strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
+                        + "WHERE idMovtoAlmacen=" + to.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "SELECT * FROM movimientosAlmacenDetalle "
+                        + "WHERE idMovtoAlmacen=" + to.getIdMovto() + " "
+                        + "ORDER BY idEmpaque";
+                rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    strSQL = "SELECT saldo FROM almacenesLotes "
+                            + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    rs1 = st1.executeQuery(strSQL);
+                    if (rs1.next()) {
+                        saldo = rs1.getDouble("saldo");
+                        strSQL = "UPDATE almacenesLotes "
+                                + "SET cantidad=cantidad+" + rs.getDouble("cantidad") + ", saldo=saldo+" + rs.getDouble("cantidad") + " "
+                                + "WHERE idAlmacen=" + to.getIdAlmacen() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    } else {
+                        saldo = 0;
+                        strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, lote, fechaCaducidad, cantidad, saldo, separados, existenciaFisica) "
+                                + "VALUES (" + to.getIdAlmacen() + ", " + rs.getInt("idEmpaque") + ", '" + rs.getString("lote") + "', '" + rs.getDate("fecha") + "', " + rs.getDouble("cantidad") + ", " + rs.getDouble("cantidad") + ", 0, 0)";
+                    }
+                    st1.executeUpdate(strSQL);
+
+                    strSQL = "UPDATE movimientosAlmacenDetalle "
+                            + "SET fecha=GETDATE(), existenciaAnterior=" + saldo + " "
+                            + "WHERE idMovtoAlmacen=" + to.getIdMovto() + " AND idEmpaque=" + rs.getInt("idEmpaque") + " AND lote='" + rs.getString("lote") + "'";
+                    st1.executeUpdate(strSQL);
+                }
+                st.executeUpdate("COMMIT TRANSACTION");
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public ArrayList<TOMovimientoAlmacen> movimientosPendientesAlmacen(int entrada) throws SQLException {
+        ArrayList<TOMovimientoAlmacen> lista = new ArrayList<>();
+        String strSQL = "SELECT m.* "
+                + "FROM movimientosAlmacen m "
+                + "INNER JOIN movimientosTipos t ON t.idTipo=m.idTipo "
+                + "WHERE m.idCedis=" + this.idCedis + " AND m.estatus=0 AND t.eliminable=1 AND t.suma=" + entrada + " "
+                + "ORDER BY m.idAlmacen";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                        lista.add(this.construirMovimientoAlmacen(rs));
+                }
+            }
+        }
+        return lista;
+    }
     
+    public ArrayList<TOMovimiento> movimientosPendientes(int entrada) throws SQLException {
+        ArrayList<TOMovimiento> lista = new ArrayList<>();
+        String strSQL = "SELECT m.* "
+                + "FROM movimientos m "
+                + "INNER JOIN movimientosTipos t ON t.idTipo=m.idTipo "
+                + "WHERE m.idCedis=" + this.idCedis + " AND m.estatus=0 AND t.eliminable=1 AND t.suma=" + entrada + " "
+                + "ORDER BY m.idAlmacen";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                        lista.add(this.construirMovimientoRelacionado(rs));
+                }
+            }
+        }
+        return lista;
+    }
+
+    public int agregarMovimientoAlmacen(TOMovimiento to) throws SQLException {
+        int idMovtoAlmacen = 0;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                String strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, estatus, idReferencia, referencia) "
+                        + "VALUES (" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 0, 0, 0)";
+                st.executeUpdate(strSQL);
+
+                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
+                if (rs.next()) {
+                    idMovtoAlmacen = rs.getInt("idMovtoAlmacen");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return idMovtoAlmacen;
+    }
+
+    public MovimientoTipo obtenerMovimientoTipo(int idTipo) throws SQLException {
+        MovimientoTipo t = null;
+        String strSQL = "SELECT tipo FROM movimientosTipos WHERE idTipo=" + idTipo;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    t = new MovimientoTipo(idTipo, rs.getString("tipo"));
+                }
+            }
+        }
+        return t;
+    }
+
+    public ArrayList<MovimientoTipo> obtenerMovimientosTipos(boolean suma) throws SQLException {
+        ArrayList<MovimientoTipo> lst = new ArrayList<>();
+        String strSQL = "SELECT idTipo, tipo FROM movimientosTipos WHERE suma=" + (suma ? 1 : 0) + " AND eliminable=1";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    lst.add(new MovimientoTipo(rs.getInt("idTipo"), rs.getString("tipo")));
+                }
+            }
+        }
+        return lst;
+    }
 
     // ----------------------------- TRASPASOS --------------------------------------
-    
     public void grabarTraspasoRecepcion(TOMovimiento m, ArrayList<TOEntradaProducto> detalle) throws SQLException {
         String strSQL;
         double existenciaAnterior, promedioPonderado, existenciaOficina, saldo;
-        
+
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -256,7 +717,7 @@ public class DAOMovimientos {
                 st.executeUpdate(strSQL);
 
                 strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior)\n"
-                        + "SELECT " + idMovto + ", idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, cantSinCargo, cantRecibida, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, GETDATE(), 0\n"
+                        + "SELECT " + idMovto + ", idEmpaque, cantFacturada, cantFacturada, cantSinCargo, cantRecibida, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, GETDATE(), 0\n"
                         + "FROM movimientosDetalle WHERE idMovto=" + m.getIdMovto() + " AND cantFacturada > 0";
                 st.executeUpdate(strSQL);
 
@@ -282,10 +743,12 @@ public class DAOMovimientos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOMovimiento> solicitudes = new ArrayList<>();
-        String strSQL = "SELECT M.*, MA.idMovtoAlmacen, MA.folio AS folioAlmacen, MA.fecha AS fechaAlmacen, MA.idUsuario AS idUsuarioAlmacen, MA.estatus AS statusAlmacen "
+        String strSQL = "SELECT M.*"
+                + "     , ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
+                + "     , ISNULL(MA.idUsuario, 0) AS idUsuarioAlmacen, ISNULL(MA.estatus, 0) AS statusAlmacen "
                 + "FROM movimientos M "
-                + "INNER JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
-                + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
+                + "LEFT JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
+                + "LEFT JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus BETWEEN 0 AND " + estatus + " AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'";
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
@@ -341,7 +804,8 @@ public class DAOMovimientos {
         }
     }
 
-    public void grabarCompraAlmacen(TOMovimiento m, ArrayList<MovimientoProducto> productos) throws SQLException {
+    // ------------------------------- COMPRAS --------------------------------------
+    public void grabarCompraAlmacen(TOMovimientoAlmacen m, ArrayList<MovimientoAlmacenProducto> productos) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -365,8 +829,8 @@ public class DAOMovimientos {
                 }
                 int idProducto;
                 double existenciaAnterior;
-                for (MovimientoProducto p : productos) {
-                    if (p.getCantFacturada() > 0) {
+                for (MovimientoAlmacenProducto p : productos) {
+                    if (p.getCantidad() > 0) {
                         idProducto = p.getProducto().getIdProducto();
 
                         existenciaAnterior = 0;
@@ -376,16 +840,16 @@ public class DAOMovimientos {
                         if (rs.next()) {
                             existenciaAnterior = rs.getDouble("saldo");
                             strSQL = "UPDATE almacenesLotes "
-                                    + "SET cantidad=cantidad+" + p.getCantFacturada() + ", saldo=saldo+" + p.getCantFacturada() + " "
+                                    + "SET cantidad=cantidad+" + p.getCantidad() + ", saldo=saldo+" + p.getCantidad() + " "
                                     + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
                         } else {
                             strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, lote, fechaCaducidad, cantidad, saldo, separados, existenciaFisica) "
-                                    + "VALUES (" + m.getIdAlmacen() + ", " + idProducto + ", '" + lote + "', DATEADD(DAY, 365, convert(date, GETDATE())), " + p.getCantFacturada() + ", " + p.getCantFacturada() + ", 0, 0)";
+                                    + "VALUES (" + m.getIdAlmacen() + ", " + idProducto + ", '" + lote + "', DATEADD(DAY, 365, convert(date, GETDATE())), " + p.getCantidad() + ", " + p.getCantidad() + ", 0, 0)";
                         }
                         st.executeUpdate(strSQL);
 
                         strSQL = "INSERT INTO movimientosDetalleAlmacen (idAlmacen, idMovtoAlmacen, idEmpaque, lote, cantidad, suma, fecha, existenciaAnterior) "
-                                + "VALUES (" + m.getIdAlmacen() + ", " + m.getIdMovto() + ", " + idProducto + ", '" + lote + "', " + p.getCantFacturada() + ", 1, GETDATE(), " + existenciaAnterior + ")";
+                                + "VALUES (" + m.getIdAlmacen() + ", " + m.getIdMovto() + ", " + idProducto + ", '" + lote + "', " + p.getCantidad() + ", 1, GETDATE(), " + existenciaAnterior + ")";
                         st.executeUpdate(strSQL);
                     }
                 }
@@ -686,9 +1150,8 @@ public class DAOMovimientos {
         int idMovtoTipo = 34;
         int idMovtoCancelacion;
         try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                st.execute("BEGIN TRANSACTION");
-
                 strSQL = "SELECT M.idAlmacen, MD.idEmpaque, MD.lote, L.saldo-L.separados AS saldo, MD.cantidad\n"
                         + "FROM movimientosDetalleAlmacen MD\n"
                         + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=MD.idMovtoAlmacen\n"
@@ -829,93 +1292,116 @@ public class DAOMovimientos {
         }
     }
 
-//  ==========================  MOVIMIENTOS  ================================================================
-    private ArrayList<TOMovimientoProducto> obtenMovimientoDetalleAlmacen(Connection cn, int idMovtoAlmacen) throws SQLException {
-        String strSQL = "SELECT idMovtoAlmacen AS idMovto, idEmpaque\n"
-                + "   , 0 AS cantOrdenada, 0 AS cantOrdenadaSinCargo, 0 AS cantRecibida, 0 AS cantRecibidaSinCargo\n"
-                + "   , cantidad AS cantFacturada, 0 AS cantSinCargo, 0 AS costoPromedio, 0 AS costo\n"
-                + "   , 0 AS desctoConfidencial, 0 AS desctoProducto1, 0 AS desctoProducto2, 0 AS unitario\n"
-                + "FROM movimientosDetalleAlmacen\n"
-                + "WHERE idMovtoAlmacen=" + idMovtoAlmacen;
-        ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                productos.add(this.construirDetalle(rs));
+//  ==========================  MOVIMIENTOS ALMACEN  ====================================
+    public TOMovimientoAlmacenProducto construirDetalleAlmacen(ResultSet rs) throws SQLException {
+        TOMovimientoAlmacenProducto to = new TOMovimientoAlmacenProducto();
+        to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
+        to.setIdProducto(rs.getInt("idEmpaque"));
+        to.setCantOrdenada(rs.getDouble("cantOrdenada"));
+        to.setCantRecibida(rs.getDouble("cantRecibida"));
+        to.setCantidad(rs.getDouble("cantidad"));
+        return to;
+    }
+
+    public ArrayList<TOMovimientoAlmacenProducto> obtenerDetalleAlmacen(int idMovtoAlmacen) throws SQLException {
+        ArrayList<TOMovimientoAlmacenProducto> productos = new ArrayList<>();
+        String strSQL = "SELECT *, 0 AS cantOrdenada, 0 AS cantRecibida FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    productos.add(this.construirDetalleAlmacen(rs));
+                }
             }
         }
         return productos;
     }
 
-    public ArrayList<TOMovimientoProducto> obtenerMovimientoDetalleAlmacen(int idMovto) throws SQLException {
-        ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
+    public ArrayList<TOMovimientoAlmacenProducto> obtenerDetalleAlmacenPorEmpaque(int idMovtoAlmacen) throws SQLException {
+        ArrayList<TOMovimientoAlmacenProducto> lista = new ArrayList<>();
+        String strSQL = "SELECT idEmpaque, SUM(cantidad) AS cantidad "
+                + "FROM movimientosAlmacenDetalle k "
+                + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " "
+                + "GROUP BY idEmpaque";
         try (Connection cn = this.ds.getConnection()) {
-            productos = obtenMovimientoDetalleAlmacen(cn, idMovto);
+            try (Statement st = cn.createStatement()) {
+                TOMovimientoAlmacenProducto to;
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    to = new TOMovimientoAlmacenProducto();
+                    to.setIdMovtoAlmacen(idMovtoAlmacen);
+                    to.setIdProducto(rs.getInt("idEmpaque"));
+                    to.setCantidad(rs.getDouble("cantidad"));
+                    lista.add(to);
+                }
+            }
         }
-        return productos;
+        return lista;
+    }
+    
+    private TOMovimientoAlmacen construirMovimientoAlmacen(ResultSet rs) throws SQLException {
+        TOMovimientoAlmacen to = new TOMovimientoAlmacen();
+        to.setIdMovto(rs.getInt("idMovtoAlmacen"));
+        to.setIdTipo(rs.getInt("idTipo"));
+        to.setFolio(rs.getInt("folio"));
+        to.setIdCedis(rs.getInt("idCedis"));
+        to.setIdEmpresa(rs.getInt("idEmpresa"));
+        to.setIdAlmacen(rs.getInt("idAlmacen"));
+        to.setIdComprobante(rs.getInt("idComprobante"));
+        to.setFecha(new java.util.Date(rs.getDate("fecha").getTime()));
+        to.setIdUsuario(rs.getInt("idUsuario"));
+        to.setEstatus(rs.getInt("estatus"));
+        to.setIdReferencia(rs.getInt("idReferencia"));
+        to.setReferencia(rs.getInt("referencia"));
+        return to;
     }
 
+    public ArrayList<TOMovimientoAlmacen> obtenerMovimientosAlmacen(int idComprobante) throws SQLException {
+        ArrayList<TOMovimientoAlmacen> tos = new ArrayList<>();
+        String strSQL = "SELECT * FROM movimientosAlmacen WHERE idTipo=1 AND idComprobante=" + idComprobante;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    tos.add(construirMovimientoAlmacen(rs));
+                }
+            }
+        }
+        return tos;
+    }
+
+    // ========================== MOVIMIENTOS OFICINA ====================================
     public TOMovimientoProducto construirDetalle(ResultSet rs) throws SQLException {
         TOMovimientoProducto to = new TOMovimientoProducto();
         to.setIdMovto(rs.getInt("idMovto"));
         to.setIdProducto(rs.getInt("idEmpaque"));
         to.setCantOrdenada(rs.getDouble("cantOrdenada"));
-        to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
+//        to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
         to.setCantRecibida(rs.getDouble("cantRecibida"));
-        to.setCantRecibidaSinCargo(rs.getDouble("cantRecibidaSinCargo"));
+//        to.setCantRecibidaSinCargo(rs.getDouble("cantRecibidaSinCargo"));
         to.setCantFacturada(rs.getDouble("cantFacturada"));
         to.setCantSinCargo(rs.getDouble("cantSinCargo"));
+        to.setCostoPromedio(rs.getDouble("costoPromedio"));
         to.setCosto(rs.getDouble("costo"));
         to.setDesctoProducto1(rs.getDouble("desctoProducto1"));
         to.setDesctoProducto2(rs.getDouble("desctoProducto2"));
         to.setDesctoConfidencial(rs.getDouble("desctoConfidencial"));
         to.setUnitario(rs.getDouble("unitario"));
-        to.setCostoPromedio(rs.getDouble("costoPromedio"));
         return to;
     }
 
-    private ArrayList<TOMovimientoProducto> obtenMovimientoDetalle(Connection cn, int idMovto) throws SQLException {
-        String strSQL = "SELECT *, 0 AS cantOrdenadaSinCargo, 0 AS cantRecibidaSinCargo FROM movimientosDetalle WHERE idMovto=" + idMovto;
+    public ArrayList<TOMovimientoProducto> obtenerDetalle(int idMovto) throws SQLException {
         ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                productos.add(this.construirDetalle(rs));
-            }
-        }
-        return productos;
-    }
-
-    public ArrayList<TOMovimientoProducto> obtenerMovimientoDetalle(int idMovto) throws SQLException {
-        ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-        try (Connection cn = this.ds.getConnection()) {
-            productos = obtenMovimientoDetalle(cn, idMovto);
-        }
-        return productos;
-    }
-
-    public TOMovimiento obtenerMovimientoRelacionado(int idComprobante) throws SQLException {
-        TOMovimiento to = null;
-        String strSQL = "SELECT M.*"
-                + ", ISNULL(C.tipoComprobante, 0) AS tipoComprobante"
-                + ", ISNULL(C.serie, '') AS  serie, ISNULL(C.numero, '') AS numero"
-                + ", ISNULL(C.fecha, GETDATE()) AS fechaComprobante, ISNULL(C.propietario, 0) AS propietarioComprobante"
-                + ", ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
-                + ", ISNULL(MA.idUsuario, 0) AS idUsuarioAlmacen, ISNULL(MA.estatus, 0) AS statusAlmacen "
-                + "FROM movimientos M "
-                + "LEFT JOIN comprobantes C ON C.idComprobante=M.idComprobante "
-                + "LEFT JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
-                + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
-                + "WHERE M.idTipo=1 AND M.idComprobante=" + idComprobante;
+        String strSQL = "SELECT * FROM movimientosDetalle WHERE idMovto=" + idMovto;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    to = construirMovimientoRelacionado(rs);
+                while (rs.next()) {
+                    productos.add(this.construirDetalle(rs));
                 }
             }
         }
-        return to;
+        return productos;
     }
 
     private TOMovimiento construirMovimientoRelacionado(ResultSet rs) throws SQLException {
@@ -938,48 +1424,39 @@ public class DAOMovimientos {
         to.setReferencia(rs.getInt("referencia"));
         to.setPropietario(rs.getInt("propietario"));
         to.setEstatus(rs.getInt("estatus"));
-        ///////////////////  DEL ALMACEN  ////////////////////////////////////////////
         to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
         to.setFolioAlmacen(rs.getInt("folioAlmacen"));
-//        to.setFechaAlmacen(new java.util.Date(rs.getDate("fechaAlmacen").getTime()));
-//        to.setIdUsuarioAlmacen(rs.getInt("idUsuarioAlmacen"));
-//        to.setPropietarioAlmacen(rs.getInt("propietarioAlmacen"));
-//        to.setStatusAlmacen(rs.getInt("statusAlmacen"));
-        ///////////////////  DEL COMPROBANTE  ////////////////////////////////////////////
-//        to.setTipoComprobante(rs.getInt("tipoComprobante"));
-//        to.setSerie(rs.getString("serie"));
-//        to.setNumero(rs.getString("numero"));
-//        to.setFechaComprobante(new java.util.Date(rs.getDate("fechaComprobante").getTime()));
         return to;
     }
 
-    public ArrayList<TOMovimiento> obtenerMovimientosAlmacen(int idComprobante) throws SQLException {
-        ArrayList<TOMovimiento> tos = new ArrayList<>();
-        String strSQL = "SELECT M.*, M.idMovtoAlmacen AS idMovto, M.folioAlmacen AS folio\n"
-                + "   , 0 AS idImpuestoZona, 0 as desctoComercial, 0 as desctoProntoPago, 0 as idMoneda, 1 as tipoCambio\n"
-                + "FROM movimientosAlmacen M\n"
-                + "WHERE M.idTipo=1 AND M.idComprobante=" + idComprobante;
+    public TOMovimiento obtenerMovimientoRelacionado(int idMovto) throws SQLException {
+        TOMovimiento to = null;
+        String strSQL = "SELECT M.*"
+                + ", ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
+                + ", ISNULL(MA.idUsuario, 0) AS idUsuarioAlmacen, ISNULL(MA.estatus, 0) AS statusAlmacen "
+                + "FROM movimientos M "
+                + "LEFT JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
+                + "LEFT JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
+                + "WHERE M.idMovto=" + idMovto;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    tos.add(construirMovimientoRelacionado(rs));
+                if (rs.next()) {
+                    to = construirMovimientoRelacionado(rs);
                 }
             }
         }
-        return tos;
+        return to;
     }
 
     public ArrayList<TOMovimiento> obtenerMovimientosRelacionados(int idComprobante) throws SQLException {
         ArrayList<TOMovimiento> tos = new ArrayList<>();
-        String strSQL = "SELECT M.*, ISNULL(MR.idMovtoAlmacen, 0) AS idMovtoAlmacen, ISNULL(MR.folioAlmacen, 0) AS folioAlmacen\n"
-                + "	, ISNULL(MR.fechaAlmacen, '') AS fechaAlmacen, ISNULL(MR.idUsuarioAlmacen, 0) AS idUsuarioAlmacen\n"
-                + "	, ISNULL(MR.propietarioAlmacen, 0) AS propietarioAlmacen, ISNULL(MR.estatusAlmacen, 0) AS estatusAlmacen\n"
-                + "FROM (SELECT MR.idMovto, MA.idMovtoAlmacen, MA.folio AS folioAlmacen, MA.fecha AS fechaAlmacen\n"
-                + "           , MA.idUsuario AS idUsuarioAlmacen, MA.propietario AS propietarioAlmacen, MA.estatus AS estatusAlmacen\n"
-                + "       FROM movimientosRelacionados MR\n"
-                + "       INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen) MR\n"
-                + "RIGHT JOIN movimientos M ON M.idMovto=MR.idMovto\n"
+        String strSQL = "SELECT M.*"
+                + ", ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
+                + ", ISNULL(MA.idUsuario, 0) AS idUsuarioAlmacen, ISNULL(MA.estatus, 0) AS statusAlmacen "
+                + "FROM movimientos M "
+                + "LEFT JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto "
+                + "LEFT JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=MR.idMovtoAlmacen "
                 + "WHERE M.idTipo=1 AND M.idComprobante=" + idComprobante;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
@@ -1011,25 +1488,7 @@ public class DAOMovimientos {
         return folio;
     }
 
-//    private int obtenerMovimientoFolio(boolean oficina, int idAlmacen, int idTipo) throws SQLException {
-//        int folio;
-//        String tabla = "movimientosFoliosAlmacen";
-//        if (oficina) {
-//            tabla = "movimientosFolios";
-//        }
-//        try (Statement st = this.cnx.createStatement()) {
-//            ResultSet rs = st.executeQuery("SELECT folio FROM " + tabla + " WHERE idAlmacen=" + idAlmacen + " AND idTipo=" + idTipo);
-//            if (rs.next()) {
-//                folio = rs.getInt("folio");
-//                st.executeUpdate("UPDATE " + tabla + " SET folio=folio+1 WHERE idAlmacen=" + idAlmacen + " AND idTipo=" + idTipo);
-//            } else {
-//                folio = 1;
-//                st.executeUpdate("INSERT INTO " + tabla + " (idAlmacen, idTipo, folio) VALUES (" + idAlmacen + ", " + idTipo + ", 2)");
-//            }
-//        }
-//        return folio;
-//    }
-//  ===============================================================================================
+//  ================================  ORDEN DE COMPRA  ===================================
     public void cerrarOrdenDeCompra(boolean oficina, int idOrdenDeCompra) throws SQLException {
         String strSQL;
         if (oficina) {
@@ -1044,15 +1503,37 @@ public class DAOMovimientos {
         }
     }
 
-    public ArrayList<TOMovimientoProducto> obtenerDetalleOrdenDeCompra(int idOrdenDeCompra, boolean oficina) throws SQLException {
+    public ArrayList<TOMovimientoAlmacenProducto> obtenerOrdenDeCompraDetalleAlmacen(int idOrdenDeCompra) throws SQLException {
+        ArrayList<TOMovimientoAlmacenProducto> productos = new ArrayList<>();
+        String strSQL = "SELECT 0 AS idMovtoAlmacen, OCD.idEmpaque, OCD.cantOrdenada+OCD.cantOrdenadaSinCargo AS cantOrdenada, OCD.costoOrdenado\n"
+                + "       , ISNULL(MD.cantidad,0) AS cantRecibida, 0 AS cantidad, '' AS lote\n"
+                + "FROM (SELECT MD.idEmpaque, SUM(MD.cantidad) AS cantRecibida\n"
+                + "		FROM movimientosDetalleAlmacen MD\n"
+                + "		INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=MD.idMovtoAlmacen\n"
+                + "		WHERE M.referencia=" + idOrdenDeCompra + "\n"
+                + "		GROUP BY MD.idEmpaque) MD\n"
+                + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idEmpaque=MD.idEmpaque\n"
+                + "WHERE OCD.idOrdenCompra=" + idOrdenDeCompra;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    if (rs.getDouble("cantRecibida") < rs.getDouble("cantOrdenada") + rs.getDouble("cantOrdenadaSinCargo")) {
+                        productos.add(this.construirDetalleAlmacen(rs));
+                    }
+                }
+            }
+        }
+        return productos;
+    }
+
+    public ArrayList<TOMovimientoProducto> obtenerOrdenDeCompraDetalle(int idOrdenDeCompra) throws SQLException {
         String strSQL;
         ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-        if (oficina) {
-            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque\n"
-                    + "       , OCD.cantOrdenada, OCD.cantOrdenadaSinCargo\n"
-                    + "	, ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
-                    + "       , OCD.costoOrdenado AS costo, 0 AS cantFacturada, 0 AS cantSinCargo\n"
-                    + "	, OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
+            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque, OCD.cantOrdenada, OCD.cantOrdenadaSinCargo, OCD.costoOrdenado\n"
+                    + "       , ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
+                    + "       , 0 AS cantFacturada, 0 AS cantSinCargo\n"
+                    + "       , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
                     + "       , OCD.desctoConfidencial, 0 AS unitario, 0 AS costoPromedio\n"
                     + "FROM (SELECT MD.idEmpaque, SUM(MD.cantFacturada) AS cantRecibida, SUM(MD.cantSinCargo) AS cantRecibidaSinCargo\n"
                     + "		FROM movimientosDetalle MD\n"
@@ -1061,21 +1542,6 @@ public class DAOMovimientos {
                     + "		GROUP BY MD.idEmpaque) MD\n"
                     + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idEmpaque=MD.idEmpaque\n"
                     + "WHERE OCD.idOrdenCompra=" + idOrdenDeCompra;
-        } else {
-            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque\n"
-                    + "       , OCD.cantOrdenada, OCD.cantOrdenadaSinCargo\n"
-                    + "	, ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
-                    + "       , OCD.costoOrdenado AS costo, 0 AS cantFacturada, 0 AS cantSinCargo\n"
-                    + "	, OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
-                    + "       , OCD.desctoConfidencial, 0 AS unitario, 0 AS costoPromedio\n"
-                    + "FROM (SELECT MD.idEmpaque, SUM(MD.cantidad) AS cantRecibida, 0 AS cantRecibidaSinCargo\n"
-                    + "		FROM movimientosDetalleAlmacen MD\n"
-                    + "		INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=MD.idMovtoAlmacen\n"
-                    + "		WHERE M.referencia=" + idOrdenDeCompra + "\n"
-                    + "		GROUP BY MD.idEmpaque) MD\n"
-                    + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idEmpaque=MD.idEmpaque\n"
-                    + "WHERE OCD.idOrdenCompra=" + idOrdenDeCompra;
-        }
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -1085,22 +1551,8 @@ public class DAOMovimientos {
                     }
                 }
             }
-            return productos;
         }
-    }
-
-    public int obtenerIdOrdenCompra(int idComprobante, int idEntrada) throws SQLException {
-        int idOrdenCompra = 0;
-        try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery("SELECT idOrdenCompra FROM comprobantesOrdenesCompra "
-                        + "WHERE idComprobante=" + idComprobante + " AND idEntrada=" + idEntrada);
-                if (rs.next()) {
-                    idOrdenCompra = rs.getInt("idOrdenCompra");
-                }
-            }
-        }
-        return idOrdenCompra;
+        return productos;
     }
 
     public double obtenerPrecioUltimaCompra(int idEmpresa, int idEmpaque) throws SQLException {
@@ -1134,29 +1586,22 @@ public class DAOMovimientos {
     }
 
 //  ===============================  IMPUESTOS  =========================================================
-    private double obtenerImpuestosProductoPrivado(Connection cn, int idMovto, int idEmpaque, ArrayList<ImpuestosProducto> impuestos) throws SQLException {
-        double importeImpuestos = 0.00;
+    public double obtenerImpuestosProducto(int idMovto, int idEmpaque, ArrayList<ImpuestosProducto> impuestos) throws SQLException {
+        double importeImpuestos = 0;
         ImpuestosProducto impuesto;
-//        impuestos=new ArrayList<ImpuestosProducto>();
         String strSQL = "select idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable\n"
                 + "from movimientosDetalleImpuestos\n"
                 + "where idMovto=" + idMovto + " and idEmpaque=" + idEmpaque + "\n"
                 + "order by acumulable";
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                impuesto = construirImpuestosProducto(rs);
-                importeImpuestos += impuesto.getImporte();
-                impuestos.add(impuesto);
-            }
-        }
-        return importeImpuestos;
-    }
-
-    public double obtenerImpuestosProducto(int idMovto, int idEmpaque, ArrayList<ImpuestosProducto> impuestos) throws SQLException {
-        double importeImpuestos;
         try (Connection cn = this.ds.getConnection()) {
-            importeImpuestos = this.obtenerImpuestosProductoPrivado(cn, idMovto, idEmpaque, impuestos);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    impuesto = construirImpuestosProducto(rs);
+                    importeImpuestos += impuesto.getImporte();
+                    impuestos.add(impuesto);
+                }
+            }
         }
         return importeImpuestos;
     }

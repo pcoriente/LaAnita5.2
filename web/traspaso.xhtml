@@ -34,7 +34,7 @@
                                 </p:column>
                                 <p:column >
                                     <p:commandButton icon="ui-icon-home" title="Salir" 
-                                                     action="#{mbTraspaso.terminar()}" ajax="false" />
+                                                     action="#{mbTraspaso.terminar()}" immediate="true" ajax="false" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -44,10 +44,10 @@
                             <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.cargaDetalleSolicitud}" update="main" />
 
                             <p:column headerText="CEDIS" >
-                                <h:outputText value="#{envio.almacen.cedis}" />
+                                <h:outputText value="#{envio.almacenDestino.cedis}" />
                             </p:column>
                             <p:column headerText="Almacen" >
-                                <h:outputText value="#{envio.almacen.toString()}" />
+                                <h:outputText value="#{envio.almacenDestino.toString()}" />
                             </p:column>
                             <p:column headerText="Fecha" style="width: 120px;" >
                                 <h:outputText value="#{envio.fecha}" >
@@ -126,17 +126,16 @@
                                 </p:column>
                                 <p:column >
                                     <p:inputText value="#{mbTraspaso.envioProducto.cantFacturada}" size="14" >
-                                        <p:ajax event="change" process="@this" listener="#{mbTraspaso.editarLotes()}" update="msgs1 listaLotes" />
+                                        <p:ajax event="change" process="@this" />
                                     </p:inputText>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaLotes" widgetVar="listaLotes" 
+                        <p:dataTable id="listaLotes" widgetVar="listaLotesEdit" 
                                      value="#{mbTraspaso.envioProducto.lotes}" style="border: solid 1px" 
                                      var="lote" rowKey="#{lote.lote}"  editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="cellEdit" listener="#{mbTraspaso.gestionarLotes}" update="@this :main:msgs lotesTotales" 
-                                    oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
+                            <p:ajax event="cellEdit" listener="#{mbTraspaso.gestionarLotes}" update=":main:msgs1" />
 
                             <p:column headerText="LOTE" style="width: 80px;" >
                                 <h:outputText value="#{lote.lote}" />
@@ -152,7 +151,13 @@
                             <p:column headerText="SEPARADOS" style="width: 80px;" >
                                 <p:cellEditor>
                                     <f:facet name="output"><h:outputText value="#{lote.separados}" /></f:facet>
-                                    <f:facet name="input"><p:inputText value="#{lote.separados}" /></f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{lote.separados}" >
+                                            <p:ajax event="change" listener="#{mbTraspaso.gestionarLotes1()}" 
+                                                    update=":main:msgs1 :main:listaLotes lotesTotales" 
+                                                    oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
+                                        </p:inputText>
+                                    </f:facet>
                                 </p:cellEditor>
                             </p:column>
                             <f:facet name="footer">

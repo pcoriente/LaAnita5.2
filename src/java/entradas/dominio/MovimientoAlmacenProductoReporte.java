@@ -1,4 +1,4 @@
-package movimientos.to;
+package entradas.dominio;
 
 import java.util.ArrayList;
 import movimientos.dominio.Lote;
@@ -7,28 +7,31 @@ import movimientos.dominio.Lote;
  *
  * @author jesc
  */
-public class TOMovimientoAlmacenProducto1 {
-    private int idMovtoAlmacen;
-    private int idProducto;
+public class MovimientoAlmacenProductoReporte {
+    private String sku;
+    private String empaque;
     private double cantidad;
     private ArrayList<Lote> lotes;
     
-    public TOMovimientoAlmacenProducto1() {}
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
+    public MovimientoAlmacenProductoReporte() {
+        this.sku="";
+        this.empaque="";
     }
 
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
+    public String getSku() {
+        return sku;
     }
 
-    public int getIdProducto() {
-        return idProducto;
+    public void setSku(String sku) {
+        this.sku = sku;
     }
 
-    public void setIdProducto(int idProducto) {
-        this.idProducto = idProducto;
+    public String getEmpaque() {
+        return empaque;
+    }
+
+    public void setEmpaque(String empaque) {
+        this.empaque = empaque;
     }
 
     public double getCantidad() {

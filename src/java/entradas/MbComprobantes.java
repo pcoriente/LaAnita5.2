@@ -81,7 +81,10 @@ public class MbComprobantes implements Serializable {
     }
     
     private void restaura() {
-        this.comprobante.setIdComprobante(this.edicion.getIdComprobante());
+        if(this.comprobante==null) {
+            this.comprobante=new TOComprobante(this.edicion.getIdReferencia());
+            this.comprobante.setIdComprobante(this.edicion.getIdComprobante());
+        }
         this.comprobante.setIdReferencia(this.edicion.getIdReferencia());
         this.comprobante.setTipo(this.edicion.getTipo());
         this.comprobante.setSerie(this.edicion.getSerie());
@@ -91,12 +94,10 @@ public class MbComprobantes implements Serializable {
     }
 
     public boolean grabar() {
-        boolean ok = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "grabar");
+        boolean ok=false;
         try {
             if (this.edicion.getNumero().equals("")) {
-                fMsg.setDetail("Se requiere el numero del comprobante");
+                Mensajes.mensajeAlert("Se requiere el numero del comprobante");
             } else {
                 this.dao = new DAOComprobantes();
                 this.edicion.setTipo(Integer.parseInt(this.tipo));
@@ -106,18 +107,14 @@ public class MbComprobantes implements Serializable {
                     this.dao.modificar(this.edicion);
                 }
                 this.restaura();
-                ok = true;
+                ok=true;
             }
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
+        RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okComprobante", ok);
         return ok;
     }
@@ -156,10 +153,7 @@ public class MbComprobantes implements Serializable {
     
     public void mttoComprobante() {
         boolean ok = true;
-        if(this.comprobante==null) {
-            this.comprobante=new TOComprobante(this.idProveedor);
-        }
-        if (this.comprobante.getIdComprobante()==0) {
+        if (this.comprobante==null) {
             this.tipo="2";
             this.edicion = new TOComprobante(this.idProveedor);
         } else if (this.aseguraComprobante(this.comprobante.getIdComprobante())) {

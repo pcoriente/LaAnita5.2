@@ -205,7 +205,7 @@ public class MbRecepcion implements Serializable {
             this.dao = new DAOMovimientos();
             this.daoLotes = new DAOLotes();
             this.recepcionDetalle = new ArrayList<>();
-            for (TOMovimientoProducto p : this.dao.obtenerMovimientoDetalle(this.recepcion.getIdMovto())) {
+            for (TOMovimientoProducto p : this.dao.obtenerDetalle(this.recepcion.getIdMovto())) {
                 this.recepcionDetalle.add(this.convertirDetalle(p));
             }
             this.recepcionProducto = new EntradaProducto();

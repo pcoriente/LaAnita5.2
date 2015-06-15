@@ -8,9 +8,9 @@ import producto2.dominio.Producto;
  */
 public class EntradaOficinaProducto {
     private Producto producto;
-    private double cantidad;
+    private double cantFacturada;
     private double separados;
-    private double costo;
+    private double unitario;
     
     public EntradaOficinaProducto() {
         this.producto=new Producto();
@@ -55,12 +55,12 @@ public class EntradaOficinaProducto {
         this.producto = producto;
     }
 
-    public double getCantidad() {
-        return cantidad;
+    public double getCantFacturada() {
+        return cantFacturada;
     }
 
-    public void setCantidad(double cantidad) {
-        this.cantidad = cantidad;
+    public void setCantFacturada(double cantFacturada) {
+        this.cantFacturada = cantFacturada;
     }
 
     public double getSeparados() {
@@ -71,11 +71,11 @@ public class EntradaOficinaProducto {
         this.separados = separados;
     }
 
-    public double getCosto() {
-        return costo;
+    public double getUnitario() {
+        return unitario;
     }
 
-    public void setCosto(double costo) {
-        this.costo = costo;
+    public void setUnitario(double unitario) {
+        this.unitario = unitario;
     }
 }

@@ -1,7 +1,5 @@
 package movimientos.to;
 
-import java.util.Date;
-
 /**
  *
  * @author jesc
@@ -9,12 +7,11 @@ import java.util.Date;
 public class TOMovimientoAlmacenProducto {
     private int idMovtoAlmacen;
     private int idProducto;
-    private String lote;
+    private double cantOrdenada;
+    private double cantRecibida;
     private double cantidad;
 
-    public TOMovimientoAlmacenProducto() {
-        this.lote="";
-    }
+    public TOMovimientoAlmacenProducto() { }
 
     public int getIdMovtoAlmacen() {
         return idMovtoAlmacen;
@@ -32,12 +29,20 @@ public class TOMovimientoAlmacenProducto {
         this.idProducto = idProducto;
     }
 
-    public String getLote() {
-        return lote;
+    public double getCantOrdenada() {
+        return cantOrdenada;
     }
 
-    public void setLote(String lote) {
-        this.lote = lote;
+    public void setCantOrdenada(double cantOrdenada) {
+        this.cantOrdenada = cantOrdenada;
+    }
+
+    public double getCantRecibida() {
+        return cantRecibida;
+    }
+
+    public void setCantRecibida(double cantRecibida) {
+        this.cantRecibida = cantRecibida;
     }
 
     public double getCantidad() {
