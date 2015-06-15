@@ -1530,7 +1530,7 @@ public class DAOMovimientos {
     public ArrayList<TOMovimientoProducto> obtenerOrdenDeCompraDetalle(int idOrdenDeCompra) throws SQLException {
         String strSQL;
         ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque, OCD.cantOrdenada, OCD.cantOrdenadaSinCargo, OCD.costoOrdenado\n"
+            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque, OCD.cantOrdenada, OCD.cantOrdenadaSinCargo, OCD.costoOrdenado AS costo\n"
                     + "       , ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
                     + "       , 0 AS cantFacturada, 0 AS cantSinCargo\n"
                     + "       , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"

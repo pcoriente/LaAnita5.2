@@ -152,7 +152,7 @@
                                 <p:cellEditor>
                                     <f:facet name="output"><h:outputText value="#{lote.separados}" /></f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{lote.separados}" >
+                                        <p:inputText value="#{lote.separados}" onblur="" >
                                             <p:ajax event="change" listener="#{mbTraspaso.gestionarLotes1()}" 
                                                     update=":main:msgs1 :main:listaLotes lotesTotales" 
                                                     oncomplete="handleCerrarEditarLotes(xhr, status, args);" />

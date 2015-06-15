@@ -177,40 +177,30 @@ public class MbTraspaso implements Serializable {
     }
     
     public void gestionarLotes1() {
-//        double separados=this.lote.getSeparados();
+        boolean cierra = false;
         if(this.sumaLotes + (this.lote.getSeparados()-this.lote.getCantidad())>this.envioProducto.getCantOrdenada()) {
+            Mensajes.mensajeAlert("No se pueden separar mas lotes que los solicitados !!!");
             this.lote.setSeparados(this.lote.getCantidad());
             this.lote.setCantidad(0);
-            Mensajes.mensajeAlert("No se pueden separar mas lotes que los solicitados (2) !!!");
         } else {
             this.gestionLotes(this.lote.getSeparados(), this.lote.getCantidad());
+            if(this.envioProducto.getCantFacturada()==this.sumaLotes) {
+                cierra=true;
+            }
         }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLotes", cierra);
     }
 
     public void gestionarLotes(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
 
-        boolean cierra = false;
         if (newValue != null && !newValue.equals(oldValue)) {
             double separados = (double) oldValue;
-//            double solicitados = (double) newValue;
-            
             this.lote = this.envioProducto.getLotes().get(event.getRowIndex());
             this.lote.setCantidad(separados);
-            
-//            if (this.sumaLotes + (solicitados - separados) <= this.envioProducto.getCantOrdenada()) {
-//                this.gestionLotes(solicitados, separados);
-//                if (this.envioProducto.getCantFacturada() == this.sumaLotes) {
-//                    cierra = true;
-//                }
-//            } else {
-//                newValue=oldValue;
-//                Mensajes.mensajeAlert("No se pueden separar mas lotes que los solicitados !!!");
-//            }
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLotes", cierra);
     }
 
     public boolean comparaLotes(Lote lote) {
