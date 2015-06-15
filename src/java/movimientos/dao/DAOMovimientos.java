@@ -1518,7 +1518,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    if (rs.getDouble("cantRecibida") < rs.getDouble("cantOrdenada") + rs.getDouble("cantOrdenadaSinCargo")) {
+                    if (rs.getDouble("cantRecibida") < rs.getDouble("cantOrdenada")) {
                         productos.add(this.construirDetalleAlmacen(rs));
                     }
                 }
