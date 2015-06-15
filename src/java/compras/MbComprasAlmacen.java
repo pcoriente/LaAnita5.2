@@ -290,8 +290,10 @@ public class MbComprasAlmacen implements Serializable {
 
     public void cargaDetalleOrdenCompra() {
         try {
-            this.dao = new DAOMovimientos();
+            this.detalle=new ArrayList<>();
             this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+            
+            this.dao = new DAOMovimientos();
             for (TOMovimientoAlmacenProducto d : this.dao.obtenerOrdenDeCompraDetalleAlmacen(this.compra.getIdOrdenCompra())) {
                 this.producto = new MovimientoAlmacenProducto();
                 this.producto.setIdMovtoAlmacen(0);
@@ -299,6 +301,7 @@ public class MbComprasAlmacen implements Serializable {
                 this.producto.setCantOrdenada(d.getCantOrdenada());
                 this.producto.setCantRecibida(d.getCantRecibida());
                 this.producto.setCantidad(0);
+                this.detalle.add(this.producto);
             }
             this.producto = null;
         } catch (SQLException ex) {
