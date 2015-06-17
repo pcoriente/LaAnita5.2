@@ -16,12 +16,12 @@ public class SalidaAlmacenProducto {
     
     public SalidaAlmacenProducto() {
         this.producto=new Producto();
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
     
     public SalidaAlmacenProducto(Producto producto) {
         this.producto=producto;
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
 
     @Override

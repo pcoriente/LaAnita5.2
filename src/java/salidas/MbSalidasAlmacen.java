@@ -15,8 +15,8 @@ import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Lote;
 import movimientos.dominio.MovimientoTipo;
+import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacenProducto;
-import movimientos.to.TOMovimientoAlmacenProducto1;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -38,6 +38,7 @@ public class MbSalidasAlmacen implements Serializable {
     private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
+    
     private boolean modoEdicion;
     private double sumaLotes;
     private Lote lote;
@@ -46,6 +47,7 @@ public class MbSalidasAlmacen implements Serializable {
     private ArrayList<SalidaAlmacenProducto> salidaDetalle;
     private ArrayList<Salida> salidasPendientes;
     private SalidaAlmacenProducto salidaProducto;
+    private SalidaAlmacenProducto resSalidaProducto;
     private Salida salida;
     private DAOMovimientos dao;
     private DAOLotes daoLotes;
@@ -56,11 +58,26 @@ public class MbSalidasAlmacen implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
+    
+    public void respaldaSeparados() {
+        
+    }
+    
+    public void respaldaFila() {
+        if(this.resSalidaProducto==null) {
+            this.resSalidaProducto=new SalidaAlmacenProducto();
+        }
+        this.resSalidaProducto.setProducto(this.salidaProducto.getProducto());
+        this.resSalidaProducto.setCantidad(this.salidaProducto.getCantidad());
+        this.resSalidaProducto.setSeparados(this.salidaProducto.getSeparados());
+        this.resSalidaProducto.setLotes(this.salidaProducto.getLotes());
+    }
 
     public void cancelar() {
         try {
             this.dao = new DAOMovimientos();
             this.dao.cancelarSalidaAlmacen(this.salida.getIdMovto());
+            Mensajes.mensajeSucces("La cancelacion se realizo con exito !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -104,7 +121,7 @@ public class MbSalidasAlmacen implements Serializable {
         this.salidasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento to : this.dao.movimientosPendientes(0)) {
+            for (TOMovimientoAlmacen to : this.dao.obtenerMovimientosAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0)) {
                 this.salidasPendientes.add(this.convertir(to));
             }
             ok = true;
@@ -116,7 +133,7 @@ public class MbSalidasAlmacen implements Serializable {
         context.addCallbackParam("ok", ok);
     }
 
-    private Salida convertir(TOMovimiento to) throws SQLException {
+    private Salida convertir(TOMovimientoAlmacen to) throws SQLException {
         Salida s = new Salida();
         s.setIdMovto(to.getIdMovto());
         s.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
@@ -130,6 +147,7 @@ public class MbSalidasAlmacen implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.grabarSalidaAlmacen(this.convertirTO());
+            Mensajes.mensajeSucces("La salida se grabo correctamente !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());

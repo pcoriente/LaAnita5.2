@@ -60,6 +60,7 @@ public class MbSalidasOficina implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.cancelarSalidaOficina(this.salida.getIdMovto());
+            Mensajes.mensajeSucces("La cancelacion se realizo con exite !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -101,7 +102,7 @@ public class MbSalidasOficina implements Serializable {
         this.salidasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento to : this.dao.movimientosPendientes(0)) {
+            for (TOMovimiento to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.tipo.getIdTipo(), 0)) {
                 this.salidasPendientes.add(this.convertir(to));
             }
             ok = true;
@@ -117,7 +118,7 @@ public class MbSalidasOficina implements Serializable {
     private Salida convertir(TOMovimiento to) throws SQLException {
         Salida s = new Salida();
         s.setIdMovto(to.getIdMovto());
-//        s.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
+        s.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
         s.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         s.setFecha(to.getFecha());
         s.setIdUsuario(to.getIdUsuario());
@@ -128,6 +129,7 @@ public class MbSalidasOficina implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.grabarSalidaOficina(this.convertirTO());
+            Mensajes.mensajeSucces("La salida se realizo con exito !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());

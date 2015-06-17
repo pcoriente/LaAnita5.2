@@ -116,7 +116,7 @@ public class MbEntradasAlmacen implements Serializable {
         this.entradasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimientoAlmacen to : this.dao.movimientosPendientesAlmacen(1)) {
+            for (TOMovimientoAlmacen to : this.dao.obtenerMovimientosAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0)) {
                 this.entradasPendientes.add(this.convertir(to));
             }
             ok = true;

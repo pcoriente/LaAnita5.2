@@ -55,7 +55,7 @@
                             </p:row>
                         </p:panelGrid>
                     </p:panel>
-                    <p:panel id="mantenimiento" header="SALIDA DE ALMACEN" rendered="#{mbSalidasOficina.modoEdicion}" >
+                    <p:panel id="mantenimiento" header="SALIDA DE OFICINA" rendered="#{mbSalidasOficina.modoEdicion}" >
                         <p:panelGrid id="mantenimientoSalida" >
                             <p:row >
                                 <p:column >
@@ -67,7 +67,7 @@
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar salida" 
                                                      process="@this" actionListener="#{mbSalidasOficina.grabar()}" update="main" />
-                                    <p:commandButton id="btnCancelar" icon="ui-icon-trash" title="Cancelar salida de almacen" 
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen" 
                                                      process="@this" actionListener="#{mbSalidasOficina.cancelar()}" update="main" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
                                                      process="@this" actionListener="#{mbSalidasOficina.salir()}" update="main" />

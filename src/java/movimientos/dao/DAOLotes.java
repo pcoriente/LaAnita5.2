@@ -53,14 +53,14 @@ public class DAOLotes {
         String strSQL;
         if (l.getCantidad() == 0) {
             strSQL = "DELETE FROM movimientosDetalleAlmacen "
-                    + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " AND lote='" + l.getLote() + "'";
+                    + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " AND idEmpaque="+l.getIdProducto()+" AND lote='" + l.getLote() + "'";
         } else if (l.getSeparados() == 0) {
-            strSQL = "INSERT INTO movimientosDetalleAlmacen (idAlmacen, idMovtoAlmacen, idEmpaque, lote, cantidad, SUMA, fecha, existenciaAnterior) "
+            strSQL = "INSERT INTO movimientosDetalleAlmacen (idAlmacen, idMovtoAlmacen, idEmpaque, lote, cantidad, suma, fecha, existenciaAnterior) "
                     + "VALUES (" + l.getIdAlmacen() + ", " + idMovtoAlmacen + ", " + l.getIdProducto() + ", '" + l.getLote() + "', " + l.getCantidad() + ", 1, GETDATE(), 0)";
         } else {
             strSQL = "UPDATE movimientosDetalleAlmacen "
                     + "SET lote='" + l.getLote() + "', cantidad=" + l.getCantidad() + " "
-                    + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " AND lote='" + l.getLote() + "'";
+                    + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " AND idEmpaque="+l.getIdProducto()+" AND lote='" + l.getLote() + "'";
         }
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
@@ -78,9 +78,9 @@ public class DAOLotes {
     public ArrayList<Lote> obtenerLotesKardex(int idMovto, int idProducto) throws SQLException {
         Lote lote;
         String strSQL = "SELECT K.*, COALESCE(DATEADD(DAY, " + this.diasCaducidad + ",L.fecha), DATEADD(DAY, -1, CONVERT(DATETIME, DATEDIFF(DAY, 0, GETDATE()), 102))) AS fechaCaducidad "
-                + "FROM movimientosDetalle K "
+                + "FROM movimientosDetalleAlmacen K "
                 + "LEFT JOIN lotes L ON L.lote=K.lote "
-                + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idProducto;
+                + "WHERE idMovtoAlmacen=" + idMovto + " AND idEmpaque=" + idProducto;
         ArrayList<Lote> lotes = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {

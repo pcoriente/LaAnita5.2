@@ -87,7 +87,7 @@ public class MbEntradasOficina implements Serializable {
         this.entradasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento to : this.dao.movimientosPendientes(1)) {
+            for (TOMovimiento to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0)) {
                 this.entradasPendientes.add(this.convertir(to));
             }
             ok = true;
@@ -103,7 +103,7 @@ public class MbEntradasOficina implements Serializable {
     private Entrada convertir(TOMovimiento to) throws SQLException {
         Entrada e = new Entrada();
         e.setIdMovto(to.getIdMovto());
-//        e.setAlmacen(this.mbComprobantes.getMbAlmacenes().obtenerTOAlmacen(to.getIdAlmacen()));
+        e.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
         e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
@@ -114,6 +114,7 @@ public class MbEntradasOficina implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.cancelarEntradaOficina(this.entrada.getIdMovto());
+            Mensajes.mensajeError("La cancelacion de la entrada se realizo con exito !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -126,6 +127,7 @@ public class MbEntradasOficina implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.grabarEntradaOficina(this.convertirTO());
+            Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -201,15 +203,11 @@ public class MbEntradasOficina implements Serializable {
     }
 
     public void capturar() {
-//        if(this.mbComprobantes.getMbAlmacenes().getToAlmacen().getIdAlmacen()==0) {
-//            fMsg.setSeverity(FacesMessage.SEVERITY_WARN);
-//            fMsg.setDetail("Se requiere seleccionar un almacen");
-//        } else 
         if (this.tipo.getIdTipo() == 0) {
             Mensajes.mensajeAlert("Se requiere seleccionar un concepto");
         } else {
             this.entrada = new Entrada();
-//            this.entrada.setAlmacen(this.mbComprobantes.getMbAlmacenes().getToAlmacen());
+            this.entrada.setAlmacen(this.mbAlmacenes.getToAlmacen());
             this.entrada.setTipo(this.tipo);
             try {
                 this.dao = new DAOMovimientos();

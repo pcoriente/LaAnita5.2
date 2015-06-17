@@ -271,7 +271,7 @@ public class MbTraspaso implements Serializable {
         this.envios = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.toAlmacen.getIdAlmacen(), 35, 0, null)) {
+            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 35, 0)) {
                 this.envios.add(this.convertir(m));
             }
             ok = true;
