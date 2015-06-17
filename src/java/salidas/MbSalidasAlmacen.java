@@ -89,7 +89,6 @@ public class MbSalidasAlmacen implements Serializable {
     public void cargaDetalleSalida(SelectEvent event) {
         this.salida = ((Salida) event.getObject());
         this.salidaDetalle = new ArrayList<>();
-//        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.salida.getAlmacen());
         this.tipo = this.salida.getTipo();
         try {
             this.daoLotes = new DAOLotes();
@@ -111,7 +110,7 @@ public class MbSalidasAlmacen implements Serializable {
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantidad(to.getCantidad());
         p.setSeparados(to.getCantidad());
-        p.setLotes(this.daoLotes.obtenerLotes(this.salida.getIdMovto(), to.getIdProducto()));
+//        p.setLotes(this.daoLotes.obtenerLotes(this.salida.getIdMovto(), to.getIdProducto()));
         return p;
     }
 

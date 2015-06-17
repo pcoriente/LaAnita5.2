@@ -376,13 +376,13 @@ public class DAOLotes {
     public ArrayList<Lote> obtenerLotes(int idMovtoAlmacen, int idProducto) throws SQLException {
         ArrayList<Lote> lotes = new ArrayList<>();
         String strSQL = "SELECT L.idAlmacen, L.idEmpaque, L.lote, L.fechaCaducidad, L.saldo-L.separados AS saldo\n" +
-                        "	, ISNULL(D.cantidad, 0) AS separados\n" +
+                        "	, ISNULL(D.cantidad, 0) AS cantidad\n" +
                         "FROM (SELECT M.idAlmacen, D.idEmpaque, D.lote, D.cantidad\n" +
                         "		FROM movimientosDetalleAlmacen D\n" +
                         "		inner join movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n" +
                         "		WHERE D.idMovtoAlmacen="+idMovtoAlmacen+") D\n" +
                         "RIGHT JOIN almacenesLotes L ON L.idAlmacen=D.idAlmacen AND L.idEmpaque=D.idEmpaque AND L.lote=D.lote\n" +
-                        "WHERE L.idEmpaque=" + idProducto + " AND L.saldo-L.separados > 0";
+                        "WHERE L.idEmpaque=" + idProducto + " AND (L.saldo-L.separados > 0 OR ISNULL(D.cantidad, 0) > 0)";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -400,8 +400,8 @@ public class DAOLotes {
         lote.setIdProducto(rs.getInt("idEmpaque"));
         lote.setLote(rs.getString("lote"));
         lote.setSaldo(rs.getDouble("saldo"));
-        lote.setCantidad(0);
-        lote.setSeparados(rs.getDouble("separados"));
+        lote.setCantidad(rs.getDouble("cantidad"));
+        lote.setSeparados(rs.getDouble("cantidad"));
         lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
         return lote;
     }
