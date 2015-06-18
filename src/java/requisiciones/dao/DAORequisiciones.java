@@ -87,7 +87,7 @@ public class DAORequisiciones {
     }
 
     public ArrayList<RequisicionEncabezado> dameRequisicion() throws SQLException, NamingException {
-        ArrayList<RequisicionEncabezado> lista = new ArrayList<RequisicionEncabezado>();
+        ArrayList<RequisicionEncabezado> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
@@ -137,7 +137,7 @@ public class DAORequisiciones {
     }
 
     public ArrayList<TORequisicionDetalle> dameRequisicionDetalle(int idReq) throws SQLException {
-        ArrayList<TORequisicionDetalle> lista = new ArrayList<TORequisicionDetalle>();
+        ArrayList<TORequisicionDetalle> lista = new ArrayList<>();
 
         Connection cn = ds.getConnection();
         try {
@@ -257,7 +257,7 @@ public class DAORequisiciones {
     }
 
     public ArrayList<TORequisicionDetalle> dameRequisicionDetalleAprobar(int idRequisi) throws SQLException, NamingException {
-        ArrayList<TORequisicionDetalle> lista = new ArrayList<TORequisicionDetalle>();
+        ArrayList<TORequisicionDetalle> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         try {
@@ -379,7 +379,7 @@ public class DAORequisiciones {
     }
 
     public ArrayList<TOCotizacionDetalle> dameRequisicionDetalleCotizar(int idRequisi) throws SQLException, NamingException {
-        ArrayList<TOCotizacionDetalle> lista = new ArrayList<TOCotizacionDetalle>();
+        ArrayList<TOCotizacionDetalle> lista = new ArrayList<>();
         ResultSet rs;
         Connection cn = ds.getConnection();
         //   this.grabarCotizacionInicial(idRequisi);

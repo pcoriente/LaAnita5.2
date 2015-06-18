@@ -35,12 +35,12 @@ public class MbMiniEmpresa implements Serializable {
     }
 
     public ArrayList<SelectItem> obtenerListaMiniEmpresas() {
-        ArrayList<SelectItem> listaEmpresas = new ArrayList<SelectItem>();
+        ArrayList<SelectItem> listaEmpresas = new ArrayList<>();
         try {
             MiniEmpresa e0 = new MiniEmpresa();
             e0.setIdEmpresa(0);
             e0.setCodigoEmpresa("0");
-            e0.setNombreComercial("Empresa");
+            e0.setNombreComercial("Seleccione Empresa");
             listaEmpresas.add(new SelectItem(e0, e0.toString()));
 
             ArrayList<MiniEmpresa> empresas = this.dao.obtenerMiniEmpresas();
@@ -84,10 +84,10 @@ public class MbMiniEmpresa implements Serializable {
     public ArrayList<SelectItem> getListaMiniEmpresasCmb() {
         if (listaMiniEmpresasCmb == null) {
             try {
-                listaMiniEmpresasCmb = new ArrayList<SelectItem>();
+                listaMiniEmpresasCmb = new ArrayList<>();
                 MiniEmpresa mini = new MiniEmpresa();
                 mini.setIdEmpresa(0);
-                mini.setNombreComercial("Empresa");
+                mini.setNombreComercial("Seleccione Empresa");
                 listaMiniEmpresasCmb.add(new SelectItem(mini, mini.getNombreComercial()));
                 for (MiniEmpresa miniEmpresa : dao.obtenerMiniEmpresas()) {
                     listaMiniEmpresasCmb.add(new SelectItem(miniEmpresa,miniEmpresa.getNombreComercial()));
