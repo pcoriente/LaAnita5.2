@@ -20,6 +20,18 @@ public class TotalesOrdenCompra {
     private String totalF;
     private String Letras;
 
+    
+//    ------------------------------------------
+    
+     private double subtotalGeneral;
+    private double descuentoGeneralAplicado;
+    private double sumaDescuentosProductos;
+    private double sumaDescuentoTotales;
+    private double subtotalBruto;
+    private double impuesto;
+    private double total;
+    
+    
     public String getLetras() {
         return Letras;
     }
@@ -84,4 +96,64 @@ public class TotalesOrdenCompra {
     public void setTotalF(String totalF) {
         this.totalF = totalF;
     }
+
+    public double getSubtotalGeneral() {
+        return subtotalGeneral;
+    }
+
+    public void setSubtotalGeneral(double subtotalGeneral) {
+        this.subtotalGeneral = subtotalGeneral;
+    }
+
+    public double getDescuentoGeneralAplicado() {
+        return descuentoGeneralAplicado;
+    }
+
+    public void setDescuentoGeneralAplicado(double descuentoGeneralAplicado) {
+        this.descuentoGeneralAplicado = descuentoGeneralAplicado;
+    }
+
+    public double getSumaDescuentosProductos() {
+        return sumaDescuentosProductos;
+    }
+
+    public void setSumaDescuentosProductos(double sumaDescuentosProductos) {
+        this.sumaDescuentosProductos = sumaDescuentosProductos;
+    }
+
+    public double getSumaDescuentoTotales() {
+        return sumaDescuentoTotales;
+    }
+
+    public void setSumaDescuentoTotales(double sumaDescuentoTotales) {
+        this.sumaDescuentoTotales = sumaDescuentoTotales;
+    }
+
+    public double getSubtotalBruto() {
+        return subtotalBruto;
+    }
+
+    public void setSubtotalBruto(double subtotalBruto) {
+        this.subtotalBruto = subtotalBruto;
+    }
+
+    public double getImpuesto() {
+        return impuesto;
+    }
+
+    public void setImpuesto(double impuesto) {
+        this.impuesto = impuesto;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+    
+    
+    
+    
 }

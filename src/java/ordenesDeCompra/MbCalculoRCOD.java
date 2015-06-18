@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
+import javax.faces.application.FacesMessage;
 import javax.inject.Named;
 import javax.naming.NamingException;
+import ordenesDeCompra.dao.DAOOrdenDeCompra;
 import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import requisiciones.mb.MbRequisiciones;
 
@@ -20,33 +22,24 @@ public class MbCalculoRCOD implements Serializable {
 
     private double subtotalGeneral;
     private double sumaDescuentosProductos; //POR PRODUCTO
-    // private double sumaDescuentosGenerales; // GENERALES
     private double subtotalBruto;
     private double impuesto;
     private double total;
-    private String subtotF;
-    private String descF;
-    private String subtotalBrutoF;
-    private String impF;
-    private String totalF;
-//    private String sumaDescuentosProductosF;
-//    private String sumaDescuentosGeneralesF;
     private double iva = 0.16;
     private double sumaDescuentoTotales; // TODOS LOS DESCUENTOS
-    private String sumaDescuentosTotalesF;
     private double descuentoGeneralAplicado;
     private int NumCotizacion;
     private double dc;
     private double dpp;
+
     //INYECCIONES
-//    @ManagedProperty(value = "#{mbOrdenCompra}")
-//    private MbOrdenCompra mbOrdenCompra;    
     ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas;
     OrdenCompraDetalle ordenCompraDetalleSeleccionado;
 
     //CONSTRUCTOR
     public MbCalculoRCOD() throws NamingException {
-        //     this.mbOrdenCompra = new MbOrdenCompra();
+        this.ordenCompraDetallesDirectas = new ArrayList<>();
+        this.ordenCompraDetalleSeleccionado = new OrdenCompraDetalle();
     }
 
     //GETS AND SETS
@@ -82,15 +75,8 @@ public class MbCalculoRCOD implements Serializable {
         this.ordenCompraDetallesDirectas = ordenCompraDetallesDirectas;
     }
 
-//    public double getSumaDescuentosGenerales() {
-//        return sumaDescuentosGenerales;
-//    }
-//
-//    public void setSumaDescuentosGenerales(double sumaDescuentosGenerales) {
-//        this.sumaDescuentosGenerales = sumaDescuentosGenerales;
-//    }
     public double getSubtotalBruto() {
-        this.calcularSubtotalBruto();
+        // this.calcularSubtotalBruto();
         return subtotalBruto;
     }
 
@@ -98,80 +84,12 @@ public class MbCalculoRCOD implements Serializable {
         this.subtotalBruto = subtotalBruto;
     }
 
-    public String getSubtotF() {
-        return subtotF;
-    }
-
-    public void setSubtotF(String subtotF) {
-        this.subtotF = subtotF;
-    }
-
-    public String getDescF() {
-        return descF;
-    }
-
-    public void setDescF(String descF) {
-        this.descF = descF;
-    }
-
-    public String getSubtotalBrutoF() {
-        subtotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
-        return subtotalBrutoF;
-    }
-
-    public void setSubtotalBrutoF(String subtotalBrutoF) {
-        this.subtotalBrutoF = subtotalBrutoF;
-    }
-
-    public String getImpF() {
-        impF = utilerias.Utilerias.formatoMonedas(this.getImpuesto());
-        return impF;
-    }
-
-    public void setImpF(String impF) {
-        this.impF = impF;
-    }
-
-    public String getTotalF() {
-        totalF = utilerias.Utilerias.formatoMonedas(this.getTotal());
-        return totalF;
-    }
-
-    public void setTotalF(String totalF) {
-        this.totalF = totalF;
-    }
-
-//    public String getSumaDescuentosProductosF() {
-//        return sumaDescuentosProductosF;
-//    }
-//
-//    public void setSumaDescuentosProductosF(String sumaDescuentosProductosF) {
-//        this.sumaDescuentosProductosF = sumaDescuentosProductosF;
-//    }
-//
-//    public String getSumaDescuentosGeneralesF() {
-//        return sumaDescuentosGeneralesF;
-//    }
-//
-//    public void setSumaDescuentosGeneralesF(String sumaDescuentosGeneralesF) {
-//        this.sumaDescuentosGeneralesF = sumaDescuentosGeneralesF;
-//    }
     public double getIva() {
-
         return iva;
     }
 
     public void setIva(double iva) {
         this.iva = iva;
-    }
-
-    public String getSumaDescuentosTotalesF() {
-        sumaDescuentosTotalesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentoTotales());
-        return sumaDescuentosTotalesF;
-    }
-
-    public void setSumaDescuentosTotalesF(String sumaDescuentosTotalesF) {
-        this.sumaDescuentosTotalesF = sumaDescuentosTotalesF;
     }
 
     public int getNumCotizacion() {
@@ -184,7 +102,6 @@ public class MbCalculoRCOD implements Serializable {
 
     ///// METODOS NECESARIOS//
     public double getSubtotalGeneral() {
-        this.calculoSubtotalGeneral();
         return subtotalGeneral;
     }
 
@@ -193,7 +110,6 @@ public class MbCalculoRCOD implements Serializable {
     }
 
     public double getImpuesto() {
-        this.calculoIVA();
         return impuesto;
     }
 
@@ -203,7 +119,6 @@ public class MbCalculoRCOD implements Serializable {
 
     public double getSumaDescuentosProductos() {
 
-        this.calculoDescuentoProducto();
         return sumaDescuentosProductos;
     }
 
@@ -212,7 +127,6 @@ public class MbCalculoRCOD implements Serializable {
     }
 
     public double getTotal() {
-        this.calculoTotal();
         return total;
     }
 
@@ -221,9 +135,6 @@ public class MbCalculoRCOD implements Serializable {
     }
 
     public double getSumaDescuentoTotales() {
-
-        this.calculoDescuentoTotales();
-
         return sumaDescuentoTotales;
     }
 
@@ -232,7 +143,6 @@ public class MbCalculoRCOD implements Serializable {
     }
 
     public double getDescuentoGeneralAplicado() {
-        this.calculoDescuentoGeneral();
         return descuentoGeneralAplicado;
     }
 
@@ -240,9 +150,19 @@ public class MbCalculoRCOD implements Serializable {
         this.descuentoGeneralAplicado = descuentoGeneralAplicado;
     }
 
-    ///..........................//
-    public void calculaPrecioDescuento(int idEmp, ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas, double dc, double dpp) {
-        System.out.println("entr");
+    public void pasoParametros(int idEmp, ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas, double dc, double dpp) {
+        //PARAMETROS QUE SE ENVIARON DEL XHTML
+        if (idEmp != 0 || ordenCompraDetallesDirectas != null) {
+            this.calculaPrecioDescuento(idEmp, ordenCompraDetallesDirectas);
+
+        }
+        this.setDc(dc);
+        this.setDpp(dpp);
+
+    }
+
+    public void calculaPrecioDescuento(int idEmp, ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas) {
+//        System.out.println("entr");
         subtotalGeneral = 0;
 
         try {
@@ -251,7 +171,8 @@ public class MbCalculoRCOD implements Serializable {
                     double neto = e.getCostoOrdenado() - (e.getCostoOrdenado() * (e.getDescuentoProducto() / 100));
                     double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
                     e.setNeto(neto2);
-                    e.setSubtotal(e.getNeto() * e.getCantOrdenada());
+//                    e.setSubtotal(e.getNeto() * e.getCantOrdenada());
+                    e.setSubtotal(e.getCostoOrdenado() * e.getCantOrdenada());
                     break;
                 }
 
@@ -260,23 +181,18 @@ public class MbCalculoRCOD implements Serializable {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, e);
         }
         this.setOrdenCompraDetallesDirectas(ordenCompraDetallesDirectas);
-        this.setDc(dc);
-        this.setDpp(dpp);
     }
 
-    public void calculoDescuentoProducto() {
-        sumaDescuentosProductos = 0;
+    public double calculoSubtotalGeneral() {   //Importe :
+        subtotalGeneral = 0;
         for (OrdenCompraDetalle e : ordenCompraDetallesDirectas) {
-            sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
+            subtotalGeneral = subtotalGeneral + e.getSubtotal();
         }
+        this.setSubtotalGeneral(subtotalGeneral);
+        return subtotalGeneral;
     }
 
-    public void calculoDescuentoTotales() {
-        sumaDescuentoTotales = 0;
-        sumaDescuentoTotales = this.getSumaDescuentosProductos() + this.getDescuentoGeneralAplicado();
-    }
-    
-    public void calculoDescuentoGeneral() {  //Comercial+Pronto Pago:
+    public double calculoDescuentoGeneral() {  //Comercial+Pronto Pago:
 
         descuentoGeneralAplicado = 0;
         double sumaCostoCotizado = 0;
@@ -291,24 +207,34 @@ public class MbCalculoRCOD implements Serializable {
         descuentoPP = sumaCostoCotizado * (dpp / 100);
         descuentoGA = descuentoC + descuentoPP;
         this.setDescuentoGeneralAplicado(descuentoGA);
+        return descuentoGA;
     }
-    
-    public void calculoSubtotalGeneral() {   //Importe :
-        subtotalGeneral = 0;
+
+    public double calculoDescuentoProducto() {
+        sumaDescuentosProductos = 0;
         for (OrdenCompraDetalle e : ordenCompraDetallesDirectas) {
-            subtotalGeneral = subtotalGeneral + e.getSubtotal();
+            sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
         }
-       // this.setSubtotalGeneral(subtotalGeneral);
-
+        this.setSumaDescuentosProductos(sumaDescuentosProductos);
+        return sumaDescuentosProductos;
     }
-    
-    public void calcularSubtotalBruto() {  //Subtotal :
+
+    public double calculoDescuentoTotales() {
+        sumaDescuentoTotales = 0;
+        sumaDescuentoTotales = this.getSumaDescuentosProductos() + this.getDescuentoGeneralAplicado();
+        this.setSumaDescuentoTotales(sumaDescuentoTotales);
+        return sumaDescuentoTotales;
+    }
+
+    public double calculoSubtotalBruto() {  //Subtotal :
         subtotalBruto = 0.0;
-        subtotalBruto = this.getSubtotalGeneral() - this.getDescuentoGeneralAplicado();
+//        subtotalBruto = this.getSubtotalGeneral() - this.getDescuentoGeneralAplicado();
+        subtotalBruto = this.getSubtotalGeneral() - this.getSumaDescuentoTotales();
         this.setSubtotalBruto(subtotalBruto); //
+        return subtotalBruto;
     }
 
-    public void calculoIVA() {  //Impuestos :
+    public double calculoIVA() {  //Impuestos :
         impuesto = 0;
         double desc = this.subtotalBruto;                           //subtotalGeneral - descuentoGeneralAplicado;
         if (desc > 0) {
@@ -316,10 +242,11 @@ public class MbCalculoRCOD implements Serializable {
         } else {
             impuesto = 0;
         }
-       this.setImpuesto(impuesto);
+        this.setImpuesto(impuesto);
+        return impuesto;
     }
 
-    public void calculoTotal() { //Total: 
+    public double calculoTotal() { //Total: 
         total = 0;
         double desc = this.subtotalBruto;                                           //subtotalGeneral - descuentoGeneralAplicado;
         if (desc > 0) {
@@ -328,29 +255,33 @@ public class MbCalculoRCOD implements Serializable {
             total = 0;
         }
         this.setTotal(total);
+        return total;
     }
 
-    public void limpiaOrdenCompraDirecta() throws NamingException {
-        for (OrdenCompraDetalle d : ordenCompraDetallesDirectas) {
-            //    d.setCantidadCotizada(0);
-            d.setCostoOrdenado(0);
-            d.setDescuentoProducto(0);
-            d.setDescuentoProducto2(0);
-            d.setNeto(0);
-            d.setSubtotal(0);
-        }
-        this.subtotalGeneral = 0.00;
-        this.sumaDescuentosProductos = 0.00;
-        this.descuentoGeneralAplicado = 0.00;
-        this.sumaDescuentoTotales = 0.00;
-        this.subtotalBruto = 0.00;
-        this.impuesto = 0.00;
-        this.total = 0.00;
-        ordenCompraDetallesDirectas.clear();
-    }
+    
 
     public void eliminaProducto() {
         ordenCompraDetallesDirectas.remove(ordenCompraDetalleSeleccionado);
         System.out.print("hola... se elimino" + ordenCompraDetalleSeleccionado.getIdOrdenCompra());
     }
+
+    public void guardarOrdenCompra() throws NamingException {
+        //   int longOC = 0;
+     
+        DAOOrdenDeCompra daoOCD = new DAOOrdenDeCompra();
+        if (this.total != 0) {
+//            daoOCD.guardarOrdenCompraDirecta(this.ordenCompraEncabezadoDirecta,ordenCompraDetallesDirectas);
+           
+        }
+
+
+    }
+
+    public String salirMenuCotizaciones() throws NamingException {
+
+        String salir = "menuRequisiciones.xhtml";
+        return salir;
+    }
+
+    
 }

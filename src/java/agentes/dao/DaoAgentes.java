@@ -5,11 +5,9 @@
 package agentes.dao;
 
 import agentes.dominio.Agente;
-import agentes.dominio.Agentes1;
 //import agentes.dominio.Agentes;
 import contactos.dominio.Telefono;
 import contribuyentes.Contribuyente;
-import direccion.dominio.Asentamiento;
 import direccion.dominio.Direccion;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,7 +19,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
-import javax.faces.model.SelectItem;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;

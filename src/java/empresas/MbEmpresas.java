@@ -236,7 +236,7 @@ public class MbEmpresas implements Serializable{
             Empresa e0 = new Empresa();
             e0.setIdEmpresa(0);
             e0.setCodigoEmpresa(0);
-            e0.setNombreComercial("Empresa");
+            e0.setNombreComercial("Seleccione Empresa");
             listaComboEmpresas.add(new SelectItem(e0, e0.toString()));
 
             ArrayList<Empresa> empresas = this.dao.obtenerComboEmpresa();
