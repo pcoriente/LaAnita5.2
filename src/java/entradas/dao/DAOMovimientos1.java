@@ -806,7 +806,7 @@ public class DAOMovimientos1 {
             st.execute("BEGIN TRANSACTION");
 
             this.separaLote1(idAlmacen, toOrigen.getIdMovtoAlmacen(), toOrigen.getIdProducto(), loteDestino, cantTraspasar, true);
-            this.liberaLote1(idAlmacen, toOrigen.getIdMovtoAlmacen(), toOrigen.getIdProducto(), toOrigen.getLote(), cantTraspasar);
+//            this.liberaLote1(idAlmacen, toOrigen.getIdMovtoAlmacen(), toOrigen.getIdProducto(), toOrigen.getLote(), cantTraspasar);
 
             st.execute("COMMIT TRANSACTION");
         } catch (SQLException ex) {
@@ -3237,7 +3237,7 @@ public class DAOMovimientos1 {
         TOMovimientoAlmacenProducto to = new TOMovimientoAlmacenProducto();
         to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
         to.setIdProducto(rs.getInt("idEmpaque"));
-        to.setLote(rs.getString("lote"));
+//        to.setLote(rs.getString("lote"));
         to.setCantidad(rs.getDouble("cantidad"));
         return to;
     }

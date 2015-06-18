@@ -14,16 +14,13 @@ public class TOMovimientoProducto {
     private double cantRecibidaSinCargo;
     private double cantFacturada;
     private double cantSinCargo;
+    private double costoPromedio;
     private double costo;
-//    private double precio;
     private double desctoProducto1;
     private double desctoProducto2;
     private double desctoConfidencial;
     private double unitario;
-    private double costoPromedio;
     private int idImpuestoGrupo;
-//    private double neto;
-//    private double importe;
     
     public TOMovimientoProducto() {}
 
@@ -128,14 +125,6 @@ public class TOMovimientoProducto {
     public void setCosto(double costo) {
         this.costo = costo;
     }
-//
-//    public double getPrecio() {
-//        return precio;
-//    }
-//
-//    public void setPrecio(double precio) {
-//        this.precio = precio;
-//    }
 
     public double getDesctoProducto1() {
         return desctoProducto1;
@@ -184,20 +173,4 @@ public class TOMovimientoProducto {
     public void setIdImpuestoGrupo(int idImpuestoGrupo) {
         this.idImpuestoGrupo = idImpuestoGrupo;
     }
-
-//    public double getNeto() {
-//        return neto;
-//    }
-//
-//    public void setNeto(double neto) {
-//        this.neto = neto;
-//    }
-
-//    public double getImporte() {
-//        return importe;
-//    }
-//
-//    public void setImporte(double importe) {
-//        this.importe = importe;
-//    }
 }

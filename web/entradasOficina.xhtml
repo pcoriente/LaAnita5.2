@@ -25,9 +25,9 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradasOficina.mbComprobantes.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasOficina.mbAlmacenes.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbEntradasOficina.mbComprobantes.mbAlmacenes.listaAlmacenes}" />
+                                        <f:selectItems value="#{mbEntradasOficina.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
@@ -62,12 +62,12 @@
                                     <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbEntradasOficina.mbComprobantes.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbEntradasOficina.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 
                                                      process="@this" actionListener="#{mbEntradasOficina.grabar()}" update="main" />
-                                    <p:commandButton id="btnCancelar" icon="ui-icon-trash" title="Cancelar salida de almacen" 
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen" 
                                                      process="@this" actionListener="#{mbEntradasOficina.cancelar()}" update="main" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
                                                      process="@this" actionListener="#{mbEntradasOficina.salir()}" update="main" />
@@ -99,7 +99,7 @@
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
                             <p:column headerText="Solicitada" width="64" >
-                                <pe:inputNumber value="#{prod.cantidad}" decimalPlaces="3" minValue="0" 
+                                <pe:inputNumber value="#{prod.cantFacturada}" decimalPlaces="3" minValue="0" 
                                                 disabled="#{mbEntradasOficina.comparaProducto(prod)}" >
                                     <p:ajax event="change" process="@this" listener="#{mbEntradasOficina.gestionar()}" 
                                             update=":main:msgs detalleEntrada" />

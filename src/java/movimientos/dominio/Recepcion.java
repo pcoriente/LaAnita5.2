@@ -9,7 +9,6 @@ import java.util.Date;
  */
 public class Recepcion {
     private int idMovto;
-    private int idMovtoAlmacen;
     private TOAlmacenJS almacen;
     private int folio;
 //    private TOComprobante comprobante;
@@ -21,6 +20,7 @@ public class Recepcion {
     private Date fecha;
     private int idUsuario;
     private TOAlmacenJS almacenOrigen;
+    private int idMovtoAlmacen;
     private int folioAlmacen;
     private double subTotal;
     private double descuento;

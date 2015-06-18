@@ -1,4 +1,4 @@
-package entradas.dominio;
+package compras.dominio;
 
 import almacenes.to.TOAlmacenJS;
 import entradas.to.TOComprobante;
@@ -10,7 +10,7 @@ import proveedores.dominio.MiniProveedor;
  *
  * @author jsolis
  */
-public class Entrada {
+public class CompraOficina {
     private int idEntrada;
     private TOAlmacenJS almacen;
     private MiniProveedor proveedor;
@@ -30,7 +30,7 @@ public class Entrada {
     private double impuesto;
     private double total;
 
-    public Entrada() {
+    public CompraOficina() {
 //        this.idEntrada=0;
 //        this.folio=0;
         this.almacen=new TOAlmacenJS();
@@ -50,7 +50,7 @@ public class Entrada {
 //        this.total=0.00;
     }
     
-    public Entrada(TOAlmacenJS almacen, MiniProveedor proveedor, TOComprobante comprobante) {
+    public CompraOficina(TOAlmacenJS almacen, MiniProveedor proveedor, TOComprobante comprobante) {
         this.almacen=almacen;
         this.proveedor=proveedor;
         this.comprobante=comprobante;

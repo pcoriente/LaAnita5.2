@@ -1,6 +1,7 @@
-package salidas;
+package entradas.dominio;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import movimientos.dominio.Lote;
 import producto2.dominio.Producto;
 
@@ -8,20 +9,16 @@ import producto2.dominio.Producto;
  *
  * @author jesc
  */
-public class SalidaAlmacenProducto {
+public class MovimientoAlmacenProducto {
+    private int idMovtoAlmacen;
     private Producto producto;
+    private double cantOrdenada;
+    private double cantRecibida;
     private double cantidad;
-    private double separados;
     private ArrayList<Lote> lotes;
     
-    public SalidaAlmacenProducto() {
+    public MovimientoAlmacenProducto() {
         this.producto=new Producto();
-        this.lotes=new ArrayList<>();
-    }
-    
-    public SalidaAlmacenProducto(Producto producto) {
-        this.producto=producto;
-        this.lotes=new ArrayList<>();
     }
 
     @Override
@@ -32,7 +29,7 @@ public class SalidaAlmacenProducto {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 31 * hash + (this.producto != null ? this.producto.hashCode() : 0);
+        hash = 79 * hash + Objects.hashCode(this.producto);
         return hash;
     }
 
@@ -44,19 +41,19 @@ public class SalidaAlmacenProducto {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final SalidaAlmacenProducto other = (SalidaAlmacenProducto) obj;
-        if (this.producto != other.producto && (this.producto == null || !this.producto.equals(other.producto))) {
+        final MovimientoAlmacenProducto other = (MovimientoAlmacenProducto) obj;
+        if (!Objects.equals(this.producto, other.producto)) {
             return false;
         }
         return true;
     }
 
-    public double getSeparados() {
-        return separados;
+    public int getIdMovtoAlmacen() {
+        return idMovtoAlmacen;
     }
 
-    public void setSeparados(double separados) {
-        this.separados = separados;
+    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
+        this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
     public Producto getProducto() {
@@ -65,6 +62,22 @@ public class SalidaAlmacenProducto {
 
     public void setProducto(Producto producto) {
         this.producto = producto;
+    }
+
+    public double getCantOrdenada() {
+        return cantOrdenada;
+    }
+
+    public void setCantOrdenada(double cantOrdenada) {
+        this.cantOrdenada = cantOrdenada;
+    }
+
+    public double getCantRecibida() {
+        return cantRecibida;
+    }
+
+    public void setCantRecibida(double cantRecibida) {
+        this.cantRecibida = cantRecibida;
     }
 
     public double getCantidad() {

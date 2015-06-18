@@ -205,7 +205,7 @@ public class MbRecepcion implements Serializable {
             this.dao = new DAOMovimientos();
             this.daoLotes = new DAOLotes();
             this.recepcionDetalle = new ArrayList<>();
-            for (TOMovimientoProducto p : this.dao.obtenerMovimientoDetalle(this.recepcion.getIdMovto())) {
+            for (TOMovimientoProducto p : this.dao.obtenerDetalle(this.recepcion.getIdMovto())) {
                 this.recepcionDetalle.add(this.convertirDetalle(p));
             }
             this.recepcionProducto = new EntradaProducto();
@@ -246,7 +246,7 @@ public class MbRecepcion implements Serializable {
         this.recepciones = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.toAlmacen.getIdAlmacen(), 9, 0, null)) {
+            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0)) {
                 this.recepciones.add(this.convertir(m));
             }
         } catch (SQLException ex) {

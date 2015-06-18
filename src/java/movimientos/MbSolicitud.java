@@ -5,7 +5,6 @@ import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
 import cedis.MbMiniCedis;
 import cedis.dominio.MiniCedis;
-import entradas.MbComprobantes;
 import entradas.dominio.MovimientoProducto;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
@@ -17,6 +16,7 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import movimientos.dao.DAOMovimientos;
+import movimientos.dominio.Solicitud;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
@@ -29,14 +29,6 @@ import usuarios.dominio.Accion;
 @SessionScoped
 public class MbSolicitud implements Serializable {
 
-    private boolean modoEdicion;
-    private MiniCedis cedis;
-    private TOAlmacenJS toAlmacen;
-    private ArrayList<SelectItem> listaAlmacenes;
-    private ArrayList<MovimientoProducto> solicitudDetalle;
-    private MovimientoProducto solicitudProducto;
-    private MovimientoProducto resSolicitudProducto;
-    private DAOMovimientos dao;
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
@@ -46,8 +38,16 @@ public class MbSolicitud implements Serializable {
     private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-//    @ManagedProperty(value = "#{mbComprobantes}")
-//    private MbComprobantes mbComprobantes;
+    
+    private boolean modoEdicion;
+    private MiniCedis cedis;
+    private TOAlmacenJS toAlmacen;
+    private ArrayList<SelectItem> listaAlmacenes;
+    private Solicitud solicitud;
+    private ArrayList<MovimientoProducto> solicitudDetalle;
+    private MovimientoProducto solicitudProducto;
+    private MovimientoProducto resSolicitudProducto;
+    private DAOMovimientos dao;
 
     public MbSolicitud() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -66,19 +66,23 @@ public class MbSolicitud implements Serializable {
         this.mbBuscar.inicializar();
     }
 
+    private TOMovimiento convertir(Solicitud solicitud) {
+        TOMovimiento to = new TOMovimiento();
+        to.setIdCedis(solicitud.getAlmacenOrigen().getIdCedis());
+        to.setIdEmpresa(solicitud.getAlmacenOrigen().getIdEmpresa());
+        to.setIdAlmacen(solicitud.getAlmacenOrigen().getIdAlmacen());
+        to.setIdMoneda(1);
+        to.setTipoDeCambio(1);
+        to.setIdTipo(2); // Entrada por traspaso
+        to.setIdImpuestoZona(0);
+        to.setIdReferencia(solicitud.getAlmacen().getIdAlmacen());
+        return to;
+    }
+
     public void grabarSolicitud() {
         try {
             this.dao = new DAOMovimientos();
-            TOMovimiento solicitud = new TOMovimiento();
-            solicitud.setIdCedis(this.mbCedis.getCedis().getIdCedis());
-            solicitud.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
-            solicitud.setIdAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen());
-            solicitud.setIdMoneda(1);
-            solicitud.setTipoDeCambio(1);
-            solicitud.setIdTipo(2); // Entrada por traspaso
-            solicitud.setIdImpuestoZona(0);
-            solicitud.setIdReferencia(this.toAlmacen.getIdAlmacen());
-            this.dao.grabarTraspasoSolicitud(solicitud, this.solicitudDetalle);
+            this.dao.grabarTraspasoSolicitud(this.convertir(this.solicitud), this.solicitudDetalle);
             Mensajes.mensajeSucces("La solicitud se grabo correctamente !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
@@ -133,6 +137,9 @@ public class MbSolicitud implements Serializable {
     }
 
     public void solicitud() {
+        this.solicitud = new Solicitud();
+        this.solicitud.setAlmacen(this.getToAlmacen());
+        this.solicitud.setAlmacenOrigen(this.mbAlmacenes.getToAlmacen());
         this.solicitudDetalle = new ArrayList<>();
         this.modoEdicion = true;
     }
@@ -170,6 +177,14 @@ public class MbSolicitud implements Serializable {
 
     public void setSolicitudDetalle(ArrayList<MovimientoProducto> solicitudDetalle) {
         this.solicitudDetalle = solicitudDetalle;
+    }
+
+    public Solicitud getSolicitud() {
+        return solicitud;
+    }
+
+    public void setSolicitud(Solicitud solicitud) {
+        this.solicitud = solicitud;
     }
 
     public MiniCedis getCedis() {
@@ -245,7 +260,6 @@ public class MbSolicitud implements Serializable {
 //    public void setMbComprobantes(MbComprobantes mbComprobantes) {
 //        this.mbComprobantes = mbComprobantes;
 //    }
-
     public MbAlmacenesJS getMbAlmacenes() {
         return mbAlmacenes;
     }

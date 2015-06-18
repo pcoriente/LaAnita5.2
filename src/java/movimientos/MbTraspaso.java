@@ -13,9 +13,7 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
-import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import movimientos.dao.DAOLotes;
@@ -154,24 +152,6 @@ public class MbTraspaso implements Serializable {
         this.resEnvioProducto.setCantFacturada(this.sumaLotes);
     }
 
-    public void gestionarLotes(CellEditEvent event) {
-        Object oldValue = event.getOldValue();
-        Object newValue = event.getNewValue();
-
-        boolean cierra = false;
-        if (newValue != null && !newValue.equals(oldValue)) {
-            double solicitados = (double) newValue;
-            double separados = (double) oldValue;
-            this.lote = this.envioProducto.getLotes().get(event.getRowIndex());
-            this.gestionLotes(solicitados, separados);
-            if (this.envioProducto.getCantFacturada() == this.sumaLotes) {
-                cierra = true;
-            }
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLotes", cierra);
-    }
-
     private void gestionLotes(double solicitados, double separados) {
         try {
             this.daoLotes = new DAOLotes();
@@ -186,12 +166,40 @@ public class MbTraspaso implements Serializable {
                     this.daoLotes.libera(this.envio.getIdMovto(), this.envio.getIdMovtoAlmacen(), this.lote, -separar);
                 }
                 this.lote.setSeparados(separados + separar);
+                this.lote.setSaldo(this.lote.getSaldo() - separar);
                 this.sumaLotes += separar;
             }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
+    public void gestionarLotes1() {
+        boolean cierra = false;
+        if(this.sumaLotes + (this.lote.getSeparados()-this.lote.getCantidad())>this.envioProducto.getCantOrdenada()) {
+            Mensajes.mensajeAlert("No se pueden separar mas lotes que los solicitados !!!");
+            this.lote.setSeparados(this.lote.getCantidad());
+            this.lote.setCantidad(0);
+        } else {
+            this.gestionLotes(this.lote.getSeparados(), this.lote.getCantidad());
+            if(this.envioProducto.getCantFacturada()==this.sumaLotes) {
+                cierra=true;
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLotes", cierra);
+    }
+
+    public void gestionarLotes(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+
+        if (newValue != null && !newValue.equals(oldValue)) {
+            double separados = (double) oldValue;
+            this.lote = this.envioProducto.getLotes().get(event.getRowIndex());
+            this.lote.setCantidad(separados);
         }
     }
 
@@ -207,30 +215,55 @@ public class MbTraspaso implements Serializable {
         this.respaldaFila();
     }
 
+//    public void editarLotes() {
+//        boolean ok = false;
+//        if (this.envioProducto.getCantFacturada() < 0) {
+//            Mensajes.mensajeAlert("La cantidad enviada no puede ser menor que cero");
+//        } else if (this.envioProducto.getCantFacturada() > this.envioProducto.getCantOrdenada()) {
+//            Mensajes.mensajeAlert("La cantidad enviada no puede ser mayor a la cantidad solicitada");
+//        } else if (this.envioProducto.getCantFacturada() != this.envioProducto.getSeparados()) {
+//            try {
+//                this.sumaLotes = 0;
+//                this.daoLotes = new DAOLotes();
+//                this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
+//                for (Lote l : this.envioProducto.getLotes()) {
+//                    this.sumaLotes += l.getSeparados();
+//                }
+//                this.lote = new Lote();
+//                ok = true;
+//            } catch (SQLException ex) {
+//                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//            } catch (NamingException ex) {
+//                Mensajes.mensajeError(ex.getMessage());
+//            }
+//        }
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        context.addCallbackParam("okLotes", ok);
+//    }
     public void editarLotes() {
-        boolean ok = false;
-        if (this.envioProducto.getCantFacturada() < 0) {
-            Mensajes.mensajeAlert("La cantidad enviada no puede ser menor que cero");
-        } else if (this.envioProducto.getCantFacturada() > this.envioProducto.getCantOrdenada()) {
-            Mensajes.mensajeAlert("La cantidad enviada no puede ser mayor a la cantidad solicitada");
-        } else if (this.envioProducto.getCantFacturada() != this.envioProducto.getSeparados()) {
-            try {
-                this.sumaLotes = 0;
-                this.daoLotes = new DAOLotes();
-                this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
-                for (Lote l : this.envioProducto.getLotes()) {
-                    this.sumaLotes += l.getSeparados();
-                }
-                this.lote = new Lote();
-                ok = true;
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
+//        boolean ok = false;
+//        if (this.envioProducto.getCantFacturada() < 0) {
+//            Mensajes.mensajeAlert("La cantidad enviada no puede ser menor que cero");
+//        } else if (this.envioProducto.getCantFacturada() > this.envioProducto.getCantOrdenada()) {
+//            Mensajes.mensajeAlert("La cantidad enviada no puede ser mayor a la cantidad solicitada");
+//        } else if (this.envioProducto.getCantFacturada() != this.envioProducto.getSeparados()) {
+        try {
+            this.sumaLotes = 0;
+            this.daoLotes = new DAOLotes();
+            this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
+            for (Lote l : this.envioProducto.getLotes()) {
+                this.sumaLotes += l.getSeparados();
             }
+            this.lote = new Lote();
+//                ok = true;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLotes", ok);
+//        }
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        context.addCallbackParam("okLotes", ok);
     }
 
     public void obtenerSolicitudes() {
@@ -238,7 +271,7 @@ public class MbTraspaso implements Serializable {
         this.envios = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientosRelacionados(this.toAlmacen.getIdAlmacen(), 35, 0, null)) {
+            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 35, 0)) {
                 this.envios.add(this.convertir(m));
             }
             ok = true;
@@ -272,25 +305,6 @@ public class MbTraspaso implements Serializable {
         }
     }
 
-    public void cargaDetalleSolicitud(SelectEvent event) {
-        this.envio = (Envio) event.getObject();
-        try {
-            this.dao = new DAOMovimientos();
-            this.daoLotes = new DAOLotes();
-            this.envioDetalle = new ArrayList<>();
-            for (TOMovimientoProducto p : this.dao.obtenerMovimientoDetalle(this.envio.getIdMovto())) {
-                this.envioDetalle.add(this.convertirDetalle(p));
-            }
-            this.envioProducto = new SalidaProducto();
-            this.resEnvioProducto = new SalidaProducto();
-            this.modoEdicion = true;
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
-    }
-
     private SalidaProducto convertirDetalle(TOMovimientoProducto to) throws SQLException {
         SalidaProducto p = new SalidaProducto();
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
@@ -306,7 +320,7 @@ public class MbTraspaso implements Serializable {
         p.setDesctoConfidencial(to.getDesctoConfidencial());
         p.setUnitario(to.getUnitario());
         p.setImporte(to.getUnitario() * (to.getCantFacturada() + to.getCantSinCargo()));
-        p.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
+        p.setLotes(this.daoLotes.obtenerLotes(this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
         this.sumaLotes = 0;
         for (Lote l : p.getLotes()) {
             this.sumaLotes += l.getSeparados();
@@ -315,6 +329,25 @@ public class MbTraspaso implements Serializable {
             throw new SQLException("Error de sincronizacion Lotes en producto: " + p.getProducto().getIdProducto());
         }
         return p;
+    }
+
+    public void cargaDetalleSolicitud(SelectEvent event) {
+        this.envio = (Envio) event.getObject();
+        try {
+            this.dao = new DAOMovimientos();
+            this.daoLotes = new DAOLotes();
+            this.envioDetalle = new ArrayList<>();
+            for (TOMovimientoProducto p : this.dao.obtenerDetalle(this.envio.getIdMovto())) {
+                this.envioDetalle.add(this.convertirDetalle(p));
+            }
+            this.envioProducto = new SalidaProducto();
+            this.resEnvioProducto = new SalidaProducto();
+            this.modoEdicion = true;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public void salir() {

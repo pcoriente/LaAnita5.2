@@ -49,7 +49,10 @@
                             <p:column headerText="Almacen" >
                                 <h:outputText value="#{recepcion.almacen.toString()}" />
                             </p:column>
-                            <p:column headerText="Fecha" style="width: 120px;" >
+                            <p:column headerText="FOLIO" style="width: 60px;" >
+                                <h:outputText value="#{recepcion.folio}" />
+                            </p:column>
+                            <p:column headerText="Fecha" style="width: 130px;" >
                                 <h:outputText value="#{recepcion.fecha}" >
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
@@ -103,7 +106,7 @@
                             <p:column headerText="Producto" style="width: 450px;" >
                                 <h:outputText value="#{prod.producto}" style="width: 440px;" />
                             </p:column>
-                            <p:column headerText="Enviados" style="width: 70px;" >
+                            <p:column headerText="Solicitados" style="width: 70px;" >
                                 <h:outputText value="#{prod.cantOrdenada}" style="width: 60px;" />
                             </p:column>
                             <p:column headerText="Recibidos" style="width: 70px;" >
