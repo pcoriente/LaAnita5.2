@@ -1,6 +1,7 @@
 package movimientos.dominio;
 
 import java.util.Date;
+import java.util.Objects;
 
 /**
  *
@@ -18,6 +19,28 @@ public class Lote {
     public Lote() {
         this.lote="";
         this.fechaCaducidad=new Date();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 89 * hash + Objects.hashCode(this.lote);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Lote other = (Lote) obj;
+        if (!Objects.equals(this.lote, other.lote)) {
+            return false;
+        }
+        return true;
     }
 
     public int getIdAlmacen() {

@@ -2,22 +2,39 @@ package mvEntradas;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
+import entradas.dominio.MovimientoAlmacenProductoReporte;
+import java.io.IOException;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Lote;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacenProducto;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
@@ -38,6 +55,7 @@ public class MbEntradasAlmacen implements Serializable {
     private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
+    
     private boolean modoEdicion;
     private ArrayList<SelectItem> listaMovimientosTipos;
     private MovimientoTipo tipo;
@@ -57,11 +75,85 @@ public class MbEntradasAlmacen implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
+    
+    private MovimientoAlmacenProductoReporte convertirProductoReporte(EntradaAlmacenProducto prod) {
+        MovimientoAlmacenProductoReporte rep = new MovimientoAlmacenProductoReporte();
+        rep.setCantidad(prod.getCantidad());
+        rep.setEmpaque(prod.getProducto().toString());
+        rep.setSku(prod.getProducto().getCod_pro());
+        if(prod.getLotes().size()>0) {
+            rep.setLote(prod.getLotes().get(0).getLote());
+            rep.setLoteCantidad(prod.getLotes().get(0).getCantidad());
+            for(int i=1; i < prod.getLotes().size(); i++) {
+                rep.getLotes().add(prod.getLotes().get(i));
+            }
+        }
+        return rep;
+    }
+    
+    public void imprimir() {}
+
+    public void imprimir1() {
+        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+        
+        ArrayList<MovimientoAlmacenProductoReporte> detalleReporte = new ArrayList<>();
+        for (EntradaAlmacenProducto p : this.entradaDetalle) {
+            if (p.getCantidad() != 0) {
+                detalleReporte.add(this.convertirProductoReporte(p));
+            }
+        }
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\EntradaAlmacen.jasper";
+        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+        Map parameters = new HashMap();
+        parameters.put("empresa", this.entrada.getAlmacen().getEmpresa());
+
+        parameters.put("cedis", this.entrada.getAlmacen().getCedis());
+        parameters.put("almacen", this.entrada.getAlmacen().getAlmacen());
+
+        parameters.put("capturaFolio", this.entrada.getFolio());
+        parameters.put("capturaFecha", formatoFecha.format(this.entrada.getFecha()));
+        parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));
+
+        parameters.put("idUsuario", this.entrada.getIdUsuario());
+
+        try {
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=EntradaAlmacen " + this.entrada.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void eliminarProducto() {
+        try {
+            if(this.entradaProducto!=null || this.entradaProducto.getProducto().getIdProducto()!=0) {
+                this.dao = new DAOMovimientos();
+                this.dao.eliminarProductoEntradaAlmacen(this.entrada.getIdMovto(), this.entradaProducto.getProducto().getIdProducto());
+                this.entradaDetalle.remove(this.entradaProducto);
+                this.entradaProducto = new EntradaAlmacenProducto();
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
 
     public void cancelar() {
         try {
             this.dao = new DAOMovimientos();
             this.dao.cancelarEntradaAlmacen(this.entrada.getIdMovto());
+            Mensajes.mensajeSucces("La cancelacion de la entrada se realizo con exito !!!");
             this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -74,7 +166,8 @@ public class MbEntradasAlmacen implements Serializable {
         try {
             this.dao = new DAOMovimientos();
             this.dao.grabarEntradaAlmacen(this.convertirTO());
-            this.modoEdicion = false;
+            Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
+            this.entrada.setEstatus(1);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -82,11 +175,28 @@ public class MbEntradasAlmacen implements Serializable {
         }
     }
 
+    public void editarLotes(SelectEvent event) {
+        boolean ok = false;
+        this.lote = new Lote();
+        this.entradaProducto = (EntradaAlmacenProducto) event.getObject();
+        try {
+            this.daoLotes = new DAOLotes();
+            this.entradaProducto.setLotes(this.daoLotes.obtenerLotesKardex(this.entrada.getIdMovto(), this.entradaProducto.getProducto().getIdProducto()));
+            ok = true;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLotes", ok);
+    }
+
     private EntradaAlmacenProducto convertirProductoAlmacen(TOMovimientoAlmacenProducto to) throws SQLException {
         EntradaAlmacenProducto p = new EntradaAlmacenProducto();
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantidad(to.getCantidad());
-        p.setSeparados(to.getCantidad());
+//        p.setSeparados(to.getCantidad());
         p.setLotes(this.daoLotes.obtenerLotesKardex(this.entrada.getIdMovto(), to.getIdProducto()));
         return p;
     }
@@ -94,7 +204,6 @@ public class MbEntradasAlmacen implements Serializable {
     public void cargaDetalleEntrada(SelectEvent event) {
         this.entrada = ((Entrada) event.getObject());
         this.entradaDetalle = new ArrayList<>();
-//        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.entrada.getAlmacen());
         this.tipo = this.entrada.getTipo();
         try {
             this.daoLotes = new DAOLotes();
@@ -136,6 +245,7 @@ public class MbEntradasAlmacen implements Serializable {
         e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
+        e.setEstatus(to.getEstatus());
         return e;
     }
 
@@ -143,22 +253,16 @@ public class MbEntradasAlmacen implements Serializable {
         boolean okLotes = false;
         if (this.lote.getCantidad() < 0) {
             Mensajes.mensajeAlert("La cantidad no puede ser menor que cero");
-        } else if (this.lote.getLote().isEmpty()) {
-            Mensajes.mensajeAlert("El lote no puede ser vacio");
-        } else if (this.lote.getCantidad() != 0 || this.lote.getSeparados() != 0) {
+        } else {
             try {
                 this.daoLotes = new DAOLotes();
                 this.daoLotes.editarLoteEntradaAlmacen(this.entrada.getIdMovto(), this.lote);
-                this.entradaProducto.setSeparados(this.entradaProducto.getSeparados() - this.lote.getSeparados());
                 if (this.lote.getCantidad() == 0) {
                     this.entradaProducto.getLotes().remove(this.lote);
                     this.lote = new Lote();
                 } else {
+                    this.entradaProducto.setCantidad(this.entradaProducto.getCantidad() - this.lote.getSeparados() + this.lote.getCantidad());
                     this.lote.setSeparados(this.lote.getCantidad());
-                    this.entradaProducto.setSeparados(this.entradaProducto.getSeparados() + this.lote.getSeparados());
-                }
-                if (this.entradaProducto.getSeparados() == this.entradaProducto.getCantidad()) {
-                    okLotes = true;
                 }
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -170,25 +274,66 @@ public class MbEntradasAlmacen implements Serializable {
         context.addCallbackParam("okLotes", okLotes);
     }
 
-    public void agregarLote() {
-        boolean nuevo = true;
-        for (Lote l : this.entradaProducto.getLotes()) {
-            if (l.getLote().equals("")) {
-                this.lote = l;
-                nuevo = false;
-                break;
-            }
-        }
-        if (nuevo) {
-            this.lote = new Lote();
-            this.lote.setIdAlmacen(this.entrada.getAlmacen().getIdAlmacen());
-            this.lote.setIdProducto(this.entradaProducto.getProducto().getIdProducto());
-            this.entradaProducto.getLotes().add(this.lote);
-        } else {
-            Mensajes.mensajeError("Ya existe un lote nuevo !!");
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+        this.lote = this.entradaProducto.getLotes().get(event.getRowIndex());
+        if (newValue == null) {
+            this.lote.setCantidad((double) oldValue);
         }
     }
 
+    public void agregarLote() {
+        boolean ok = false;
+        ArrayList<String> turnos = new ArrayList<>();
+        turnos.add("1");
+        turnos.add("2");
+        turnos.add("3");
+        try {
+            this.daoLotes = new DAOLotes();
+            if (!this.daoLotes.validaLote(this.lote.getLote().substring(0, 4))) {
+                Mensajes.mensajeAlert("Lote no valido !!!");
+            } else if (turnos.indexOf(this.lote.getLote().substring(4, 5)) == -1) {
+                Mensajes.mensajeAlert("Turno incorrecto. Debe ser (1, 2, 3) !!!");
+            } else if (this.entradaProducto.getLotes().indexOf(this.lote) == -1) {
+                this.entradaProducto.getLotes().add(this.lote);
+                ok = true;
+            } else {
+                Mensajes.mensajeAlert("El lote ya se encuetra en el producto !!!");
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLotes", ok);
+    }
+
+    public void nuevoLote() {
+        this.lote = new Lote();
+        this.lote.setIdProducto(this.entradaProducto.getProducto().getIdProducto());
+        this.lote.setIdAlmacen(this.entrada.getAlmacen().getIdAlmacen());
+    }
+
+//    public void agregarLote() {
+//        boolean nuevo = true;
+//        for (Lote l : this.entradaProducto.getLotes()) {
+//            if (l.getLote().equals("")) {
+//                this.lote = l;
+//                nuevo = false;
+//                break;
+//            }
+//        }
+//        if (nuevo) {
+//            this.lote = new Lote();
+//            this.lote.setIdAlmacen(this.entrada.getAlmacen().getIdAlmacen());
+//            this.lote.setIdProducto(this.entradaProducto.getProducto().getIdProducto());
+//            this.entradaProducto.getLotes().add(this.lote);
+//        } else {
+//            Mensajes.mensajeError("Ya existe un lote nuevo !!");
+//        }
+//    }
     public boolean comparaLote(String lote) {
         boolean disabled = true;
         if (lote.isEmpty()) {
@@ -205,25 +350,23 @@ public class MbEntradasAlmacen implements Serializable {
         return disable;
     }
 
-    public void actualizarCantidad() {
-        this.entradaProducto.setCantidad(this.entradaProducto.getSeparados());
-    }
-
-    public void editarLotes() {
-        boolean ok = false;
-        if (this.entradaProducto.getCantidad() < 0) {
-            Mensajes.mensajeError("La cantidad no puede ser menor que cero");
-        } else if (this.entradaProducto.getLotes().isEmpty()) {
-            this.lote = new Lote();
-            ok = true;
-        } else {
-            this.lote = this.entradaProducto.getLotes().get(0);
-            ok = true;
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLotes", ok);
-    }
-
+//    public void actualizarCantidad() {
+//        this.entradaProducto.setCantidad(this.entradaProducto.getSeparados());
+//    }
+//    public void editarLotes() {
+//        boolean ok = false;
+//        if (this.entradaProducto.getCantidad() < 0) {
+//            Mensajes.mensajeError("La cantidad no puede ser menor que cero");
+//        } else if (this.entradaProducto.getLotes().isEmpty()) {
+//            this.lote = new Lote();
+//            ok = true;
+//        } else {
+//            this.lote = this.entradaProducto.getLotes().get(0);
+//            ok = true;
+//        }
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        context.addCallbackParam("okLotes", ok);
+//    }
     public void buscar() {
         this.mbBuscar.buscarLista();
         if (this.mbBuscar.getProducto() != null) {
@@ -262,7 +405,7 @@ public class MbEntradasAlmacen implements Serializable {
     }
 
     public void salir() {
-        this.inicializar();
+//        this.inicializar();
         this.modoEdicion = false;
     }
 
@@ -427,5 +570,13 @@ public class MbEntradasAlmacen implements Serializable {
 
     public void setEntradasPendientes(ArrayList<Entrada> entradasPendientes) {
         this.entradasPendientes = entradasPendientes;
+    }
+
+    public Entrada getEntrada() {
+        return entrada;
+    }
+
+    public void setEntrada(Entrada entrada) {
+        this.entrada = entrada;
     }
 }

@@ -11,17 +11,17 @@ import producto2.dominio.Producto;
 public class EntradaAlmacenProducto {
     private Producto producto;
     private double cantidad;
-    private double separados;
+//    private double separados;
     private ArrayList<Lote> lotes;
     
     public EntradaAlmacenProducto() {
         this.producto=new Producto();
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
     
     public EntradaAlmacenProducto(Producto producto) {
         this.producto=producto;
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
 
     @Override
@@ -67,13 +67,13 @@ public class EntradaAlmacenProducto {
         this.cantidad = cantidad;
     }
 
-    public double getSeparados() {
-        return separados;
-    }
-
-    public void setSeparados(double separados) {
-        this.separados = separados;
-    }
+//    public double getSeparados() {
+//        return separados;
+//    }
+//
+//    public void setSeparados(double separados) {
+//        this.separados = separados;
+//    }
 
     public ArrayList<Lote> getLotes() {
         return lotes;

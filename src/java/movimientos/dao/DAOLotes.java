@@ -37,6 +37,20 @@ public class DAOLotes {
             throw (ex);
         }
     }
+    
+    public boolean validaLote(String lote) throws SQLException {
+        boolean ok=false;
+        String strSQL="SELECT idLote FROM lotes WHERE lote='"+lote+"'";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs=st.executeQuery(strSQL);
+                if(rs.next()) {
+                    ok=true;
+                }
+            }
+        }
+        return ok;
+    }
 
     public void agregarLoteEntradaAlmacen(int idMovtoAlmacen, Lote l) throws SQLException {
         String strSQL = "INSERT INTO movimientosDetalleAlmacen (idAlmacen, idMovtoAlmacen, idEmpaque, lote, cantidad, SUMA, fecha, existenciaAnterior) "

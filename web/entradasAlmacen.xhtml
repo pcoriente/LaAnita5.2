@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html" 
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -66,11 +65,19 @@
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 
-                                                     process="@this" actionListener="#{mbEntradasAlmacen.grabar()}" update="main" />
-                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen" 
-                                                     process="@this" actionListener="#{mbEntradasAlmacen.cancelar()}" update="main" />
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}" 
+                                                     process="@this" actionListener="#{mbEntradasAlmacen.grabar()}" 
+                                                     update="main" />
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen"
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradasAlmacen.cancelar()}" 
+                                                     update="main" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada" 
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus==0}" 
+                                                     process="@this" action="#{mbEntradasAlmacen.imprimir()}" ajax="false" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
-                                                     process="@this" actionListener="#{mbEntradasAlmacen.salir()}" update="main" />
+                                                     process="@this" actionListener="#{mbEntradasAlmacen.salir()}" 
+                                                     update="main" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -81,17 +88,19 @@
                                     <p:inputText value="#{mbEntradasAlmacen.tipo}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
-                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos"
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.mbBuscar.inicializar()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbEntradasAlmacen.entradaDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbEntradasAlmacen.entradaProducto}" selectionMode="single" 
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" update="detalleEntrada" />
-                            
+                            <p:ajax event="rowSelect" listener="#{mbEntradasAlmacen.editarLotes}" update=":main:msgs :main:listaLotes" 
+                                    oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
+
                             <p:column headerText="SKU" width="64"  >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
                             </p:column>
@@ -99,12 +108,7 @@
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
                             <p:column headerText="Solicitada" width="64" >
-                                <pe:inputNumber value="#{prod.cantidad}" decimalPlaces="3"  minValue="0" 
-                                                disabled="#{mbEntradasAlmacen.comparaProducto(prod)}" >
-                                    <p:ajax event="change" process="@this" 
-                                            listener="#{mbEntradasAlmacen.editarLotes()}" update=":main:msgs :main:listaLotes"
-                                            oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
-                                </pe:inputNumber>
+                                <h:outputText value="#{prod.cantidad}" />
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -116,6 +120,7 @@
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasAlmacen.cargaDetalleEntrada}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
+
                             <p:column headerText="ALMACEN" style="width: 150px;" >
                                 <h:outputText value="#{entrada.almacen}" style="width: 150px;" />
                             </p:column>
@@ -129,57 +134,80 @@
                             </p:column>
                         </p:dataTable>
                     </p:dialog>
-                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
-                        <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
-                        <p:ajax event="close" listener="#{mbEntradasAlmacen.actualizarCantidad()}" update=":main:detalleEntrada"  />
+                    <p:dialog id="agregarLoteDlg" widgetVar="agregarLoteDlg" header="NUEVO LOTE" resizable="false" modal="true" width="300" >
+                        <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" update=":main:listaLotes" />
+                        <p:panelGrid id="datosLote" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputText value="LOTE :" />
+                                </p:column>
+                                <p:column style="text-align: left" >
+                                    <p:inputText id="txtLote" value="#{mbEntradasAlmacen.lote.lote}" maxlength="10" size="10" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnAgregarLote" icon="ui-icon-disk" title="Nuevo lote" 
+                                                     process="@this txtLote" actionListener="#{mbEntradasAlmacen.agregarLote()}" 
+                                                     update=":main:msgs2 :main:listaLotes" 
+                                                     oncomplete="handleCerrarAgregarLote(xhr, status, args);" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="300" >
+                        <p:messages id="msgs1" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" update=":main:detalleEntrada" />
+
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" 
                                      value="#{mbEntradasAlmacen.entradaProducto.lotes}" style="border: solid 1px" 
-                                     var="lote" rowKey="#{lote.lote}" selection="#{mbEntradasAlmacen.lote}" selectionMode="single" 
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="rowSelect" update="listaLotes" />
-                            
-                            <p:column headerText="LOTE" style="width: 200px;" >
-                                <p:inputText value="#{lote.lote}" disabled="#{mbEntradasAlmacen.comparaLote(lote.lote)}" 
-                                             maxlength="10" size="10" >
-                                    <p:ajax event="blur" process="@this" 
-                                            listener="#{mbEntradasAlmacen.gestionarLotes()}" 
-                                            update=":main:msgs1 listaLotes lotesTotales" 
-                                            oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
-                                </p:inputText>
+                                     var="lote" rowKey="#{lote.lote}" editable="true" editMode="cell"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="100" >
+                            <p:ajax event="cellEdit" listener="#{mbEntradasAlmacen.onCellEdit}" update=":main:msgs1" />
+
+                            <p:column colspan="2" headerText="LOTE" style="width: 80px;" >
+                                <h:outputText value="#{lote.lote}" />
                             </p:column>
-                            <p:column headerText="ENTRAN" style="width: 100px;" >
-                                <pe:inputNumber value="#{lote.cantidad}" disabled="#{mbEntradasAlmacen.comparaLotes(lote)}"
-                                                decimalPlaces="3" style="width: 80px;" >
-                                    <p:ajax event="blur" process="@this" 
-                                            listener="#{mbEntradasAlmacen.gestionarLotes()}" 
-                                            update=":main:msgs1 listaLotes lotesTotales"
-                                            oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
-                                </pe:inputNumber>
+                            <p:column headerText="CANTIDAD" style="width: 100px;" >
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{lote.cantidad}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{lote.cantidad}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                                     readonly="#{mbEntradasAlmacen.entrada.estatus!=0}" >
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" pattern="###,##0.000" />
+                                            <p:ajax event="change" process="@this" listener="#{mbEntradasAlmacen.gestionarLotes()}" 
+                                                    update=":main:msgs1 :main:listaTotales" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
                             </p:column>
-                            <f:facet name="footer">
-                                <p:panelGrid id="lotesTotales" >
-                                    <p:row >
-                                        <p:column style="text-align: right" >
-                                            <h:outputText value="Requeridos" />
-                                        </p:column>
-                                        <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbEntradasAlmacen.entradaProducto.cantidad}" />
-                                        </p:column>
-                                        <p:column style="text-align: right" >
-                                            <h:outputText value="Entran" />
-                                        </p:column>
-                                        <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbEntradasAlmacen.entradaProducto.separados}" />
-                                        </p:column>
-                                        <p:column >
-                                            <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote" 
-                                                     process="@this" actionListener="#{mbEntradasAlmacen.agregarLote()}" 
-                                                     update="listaLotes" />
-                                        </p:column>
-                                    </p:row>
-                                </p:panelGrid>
-                            </f:facet>
                         </p:dataTable>
+                        <p:panelGrid id="listaTotales" style="width: 275px;" >
+                            <p:row >
+                                <p:column style="width: 35px;" >
+                                    <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Eliminar un Producto" 
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}" 
+                                                     process="@this" actionListener="#{mbEntradasAlmacen.eliminarProducto()}" 
+                                                     update=":main:detalleEntrada" oncomplete="PF('editarLotesDlg').hide();" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 60px;" >
+                                    <h:outputText value="Entran :" />
+                                </p:column>
+                                <p:column style="text-align: left" >
+                                    <h:outputText id="txtTotalLotes" value="#{mbEntradasAlmacen.entradaProducto.cantidad}" />
+                                </p:column>
+                                <p:column style="width: 35px;" >
+                                    <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradasAlmacen.nuevoLote()}" 
+                                                     update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
                     </p:dialog>
                     <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
@@ -249,6 +277,11 @@
                     function handleAbrirPendientes(xhr, status, args) {
                         if (!(args.validationFailed || !args.ok)) {
                             PF('pendientesDlg').show();
+                        }
+                    }
+                    function handleCerrarAgregarLote(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okLotes)) {
+                            PF('agregarLoteDlg').hide();
                         }
                     }
                     function handleCerrarEditarLotes(xhr, status, args) {
