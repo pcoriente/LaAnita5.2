@@ -72,9 +72,9 @@
                                                      disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.cancelar()}" 
                                                      update="main" />
-                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada" 
-                                                     disabled="#{mbEntradasAlmacen.entrada.estatus==0}" 
-                                                     process="@this" action="#{mbEntradasAlmacen.imprimir()}" ajax="false" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus==0}"
+                                                     ajax="false" immediate="true" action="#{mbEntradasAlmacen.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.salir()}" 
                                                      update="main" />

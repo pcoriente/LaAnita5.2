@@ -90,10 +90,8 @@ public class MbEntradasAlmacen implements Serializable {
         }
         return rep;
     }
-    
-    public void imprimir() {}
 
-    public void imprimir1() {
+    public void imprimir() {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
         
@@ -110,6 +108,8 @@ public class MbEntradasAlmacen implements Serializable {
 
         parameters.put("cedis", this.entrada.getAlmacen().getCedis());
         parameters.put("almacen", this.entrada.getAlmacen().getAlmacen());
+        
+        parameters.put("concepto", this.entrada.getTipo().getTipo());
 
         parameters.put("capturaFolio", this.entrada.getFolio());
         parameters.put("capturaFecha", formatoFecha.format(this.entrada.getFecha()));
@@ -123,7 +123,7 @@ public class MbEntradasAlmacen implements Serializable {
 
             HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
             httpServletResponse.setContentType("application/pdf");
-            httpServletResponse.addHeader("Content-disposition", "attachment; filename=EntradaAlmacen " + this.entrada.getFolio() + ".pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=EntradaAlmacen_" + this.entrada.getFolio() + ".pdf");
             ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
             JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
             FacesContext.getCurrentInstance().responseComplete();
@@ -165,8 +165,11 @@ public class MbEntradasAlmacen implements Serializable {
     public void grabar() {
         try {
             this.dao = new DAOMovimientos();
-            this.dao.grabarEntradaAlmacen(this.convertirTO());
+            TOMovimiento to = this.convertirTO();
+            this.dao.grabarEntradaAlmacen(to);
             Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
+            this.entrada.setIdUsuario(to.getIdUsuario());
+            this.entrada.setFolio(to.getFolio());
             this.entrada.setEstatus(1);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());

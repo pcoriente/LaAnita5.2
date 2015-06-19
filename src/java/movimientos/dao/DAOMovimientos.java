@@ -405,6 +405,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
                 ResultSet rs, rs1;
 
+                to.setIdUsuario(this.idUsuario);
                 to.setFolio(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
 
                 strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
