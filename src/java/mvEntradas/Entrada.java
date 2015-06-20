@@ -15,6 +15,7 @@ public class Entrada {
     private int folio;
     private Date fecha;
     private int idUsuario;
+    private int estatus;
     
     public Entrada() {
         this.almacen=new TOAlmacenJS();
@@ -68,5 +69,13 @@ public class Entrada {
 
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
+    }
+
+    public int getEstatus() {
+        return estatus;
+    }
+
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

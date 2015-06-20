@@ -11,11 +11,14 @@ public class MovimientoAlmacenProductoReporte {
     private String sku;
     private String empaque;
     private double cantidad;
+    private String lote;
+    private double loteCantidad;
     private ArrayList<Lote> lotes;
     
     public MovimientoAlmacenProductoReporte() {
         this.sku="";
         this.empaque="";
+        this.lotes=new ArrayList<>();
     }
 
     public String getSku() {
@@ -40,6 +43,22 @@ public class MovimientoAlmacenProductoReporte {
 
     public void setCantidad(double cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public String getLote() {
+        return lote;
+    }
+
+    public void setLote(String lote) {
+        this.lote = lote;
+    }
+
+    public double getLoteCantidad() {
+        return loteCantidad;
+    }
+
+    public void setLoteCantidad(double loteCantidad) {
+        this.loteCantidad = loteCantidad;
     }
 
     public ArrayList<Lote> getLotes() {

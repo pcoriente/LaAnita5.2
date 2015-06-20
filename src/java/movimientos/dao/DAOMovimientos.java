@@ -48,6 +48,16 @@ public class DAOMovimientos {
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
 
+    public void eliminarProductoEntradaAlmacen(int idMovtoAlmacen, int idProducto) throws SQLException {
+        String strSQL = "DELETE FROM movimientosDetalleAlmacen\n" +
+                        "WHERE idMovtoAlmacen="+idMovtoAlmacen+" AND idEmpaque="+idProducto;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+            }
+        }
+    }
+
     // ----------------------------- MOVIMIENTOS DE INVENTARIO ----------------------
     public void cancelarSalidaAlmacen(int idMovto) throws SQLException {
         String strSQL;
@@ -189,7 +199,7 @@ public class DAOMovimientos {
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
                         + "INNER JOIN almacenesEmpaques e ON e.idAlmacen=d.idAlmacen AND e.idEmpaque=d.idEmpaque";
-                if(st.executeUpdate(strSQL)==0) {
+                if (st.executeUpdate(strSQL) == 0) {
                     throw new SQLException("No se encuentra empaque en almacen !!!");
                 }
 
@@ -200,7 +210,7 @@ public class DAOMovimientos {
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
                         + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
-                if(st.executeUpdate(strSQL)==0) {
+                if (st.executeUpdate(strSQL) == 0) {
                     throw new SQLException("No se encuentra empaque en empresa !!!");
                 }
 
@@ -290,7 +300,7 @@ public class DAOMovimientos {
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
                         + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=d.idAlmacen AND a.idEmpaque=d.idEmpaque";
-                if(st.executeUpdate(strSQL)==0) {
+                if (st.executeUpdate(strSQL) == 0) {
                     throw new SQLException("No se encontro empaque en almacen !!!");
 //                    strSQL = "INSERT INTO almacenesEmpaques (idAlmacen, idEmpaque, existenciaOficina, separados, existenciaAlmacen, existenciaMinima, existenciaMaxima)\n" +
 //                            "SELECT M.idAlmacen, D.idEmpaque, D.cantFacturada, 0, 0, 0, 0 \n" +
@@ -306,7 +316,7 @@ public class DAOMovimientos {
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
                         + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
-                if(st.executeUpdate(strSQL)==0) {
+                if (st.executeUpdate(strSQL) == 0) {
                     throw new SQLException("No se encontro empaque en la empresa !!!");
                 }
                 cn.commit();
@@ -395,6 +405,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
                 ResultSet rs, rs1;
 
+                to.setIdUsuario(this.idUsuario);
                 to.setFolio(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
 
                 strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
@@ -471,7 +482,6 @@ public class DAOMovimientos {
 //        }
 //        return lista;
 //    }
-
     public int agregarMovimientoAlmacen(TOMovimiento to) throws SQLException {
         int idMovtoAlmacen = 0;
         try (Connection cn = this.ds.getConnection()) {
@@ -749,7 +759,7 @@ public class DAOMovimientos {
             }
         }
     }
-    
+
     public ArrayList<TOMovimientoAlmacen> obtenerMovimientosAlmacen(int idAlmacen, int idTipo, int estatus) throws SQLException {
         ArrayList<TOMovimientoAlmacen> solicitudes = new ArrayList<>();
         String strSQL = "SELECT M.* FROM movimientosAlmacen M "
@@ -1355,9 +1365,9 @@ public class DAOMovimientos {
 
     public ArrayList<TOMovimientoAlmacenProducto> obtenerDetalleAlmacenPorEmpaque(int idMovtoAlmacen) throws SQLException {
         ArrayList<TOMovimientoAlmacenProducto> lista = new ArrayList<>();
-        String strSQL = "SELECT idEmpaque, SUM(cantidad) AS cantidad "
-                + "FROM movimientosDetalleAlmacen k "
-                + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " "
+        String strSQL = "SELECT idEmpaque, SUM(cantidad) AS cantidad\n"
+                + "FROM movimientosDetalleAlmacen k\n"
+                + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + "\n"
                 + "GROUP BY idEmpaque";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
@@ -1374,7 +1384,7 @@ public class DAOMovimientos {
         }
         return lista;
     }
-    
+
     private TOMovimientoAlmacen construirMovimientoAlmacen(ResultSet rs) throws SQLException {
         TOMovimientoAlmacen to = new TOMovimientoAlmacen();
         to.setIdMovto(rs.getInt("idMovtoAlmacen"));
@@ -1566,18 +1576,18 @@ public class DAOMovimientos {
     public ArrayList<TOMovimientoProducto> obtenerOrdenDeCompraDetalle(int idOrdenDeCompra) throws SQLException {
         String strSQL;
         ArrayList<TOMovimientoProducto> productos = new ArrayList<>();
-            strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque, OCD.cantOrdenada, OCD.cantOrdenadaSinCargo, OCD.costoOrdenado AS costo\n"
-                    + "       , ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
-                    + "       , 0 AS cantFacturada, 0 AS cantSinCargo\n"
-                    + "       , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
-                    + "       , OCD.desctoConfidencial, 0 AS unitario, 0 AS costoPromedio\n"
-                    + "FROM (SELECT MD.idEmpaque, SUM(MD.cantFacturada) AS cantRecibida, SUM(MD.cantSinCargo) AS cantRecibidaSinCargo\n"
-                    + "		FROM movimientosDetalle MD\n"
-                    + "		INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
-                    + "		WHERE M.referencia=" + idOrdenDeCompra + "\n"
-                    + "		GROUP BY MD.idEmpaque) MD\n"
-                    + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idEmpaque=MD.idEmpaque\n"
-                    + "WHERE OCD.idOrdenCompra=" + idOrdenDeCompra;
+        strSQL = "SELECT 0 AS idMovto, OCD.idEmpaque, OCD.cantOrdenada, OCD.cantOrdenadaSinCargo, OCD.costoOrdenado AS costo\n"
+                + "       , ISNULL(MD.cantRecibida,0) AS cantRecibida, ISNULL(MD.cantRecibidaSinCargo, 0) AS cantRecibidaSinCargo\n"
+                + "       , 0 AS cantFacturada, 0 AS cantSinCargo\n"
+                + "       , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
+                + "       , OCD.desctoConfidencial, 0 AS unitario, 0 AS costoPromedio\n"
+                + "FROM (SELECT MD.idEmpaque, SUM(MD.cantFacturada) AS cantRecibida, SUM(MD.cantSinCargo) AS cantRecibidaSinCargo\n"
+                + "		FROM movimientosDetalle MD\n"
+                + "		INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
+                + "		WHERE M.referencia=" + idOrdenDeCompra + "\n"
+                + "		GROUP BY MD.idEmpaque) MD\n"
+                + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idEmpaque=MD.idEmpaque\n"
+                + "WHERE OCD.idOrdenCompra=" + idOrdenDeCompra;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
