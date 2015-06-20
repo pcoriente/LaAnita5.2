@@ -72,7 +72,7 @@ public class DAOOrdenDeCompra {
     }
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenes() throws SQLException, NamingException {
-        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
+        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
         try {
@@ -106,7 +106,7 @@ public class DAOOrdenDeCompra {
     }
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenesAlmacen(int idProveedor, int status) throws SQLException, NamingException {
-        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
+        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
         String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
@@ -236,7 +236,7 @@ public class DAOOrdenDeCompra {
     }
 
     public ArrayList<OrdenCompraDetalle> consultaOrdenCompra(int idOC) throws SQLException, NamingException {
-        ArrayList<OrdenCompraDetalle> lista = new ArrayList<OrdenCompraDetalle>();
+        ArrayList<OrdenCompraDetalle> lista = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
         try {
@@ -358,130 +358,48 @@ public class DAOOrdenDeCompra {
         return this.usuarioSesion.getUsuario().getId();
     }
 
-//    public void guardarOrdenCompraDirecta(OrdenCompraEncabezado oce, ArrayList<OrdenCompraDetalle> ordenCompraDetalle) throws SQLException {
-//        Connection cn = this.ds.getConnection();
-//        Statement st = cn.createStatement();
-//        Statement cs1 = cn.createStatement();
-//        Statement cs2 = cn.createStatement();
-//        PreparedStatement ps3;
-//        int idProveedor = 0;
-//        int ident = 0;
-//
-//        try {
-//            st.executeUpdate("BEGIN TRANSACTION");
-//            //CABECERO
-//            for (OrdenCompraDetalle c : ordenCompraDetalle) {
-//                int idCot = c.getIdCotizacion();
-//                int idMon = ce.getIdMoneda();
-//                int idProv = c.getCotizacionEncabezado().getIdProveedor();
-//                //   double cantAutorizada = c.getCantidadAutorizada();
-//                double dC = c.getCotizacionEncabezado().getDescuentoCotizacion();
-//                double dPP = c.getCotizacionEncabezado().getDescuentoProntoPago();
-//                //     this.cambiaEstadoCotizacion(idCot);
-//                int identity = 0;
-//                if (idProv != idProveedor) {
-//                    idProveedor = idProv;
-//                    String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen) VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 1, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",1)";
-//                    //  cs1 = cn.prepareStatement();
-//                    cs1.executeUpdate(strSQL1);
-//                    String strSQLIdentity = "SELECT @@IDENTITY as idOrd";
-//                    //   cs2 = cn.prepareStatement(strSQLIdentity);
-//                    ResultSet rs = cs2.executeQuery(strSQLIdentity);
-//                    while (rs.next()) {
-//                        identity = rs.getInt("idOrd");
-//                    }
-//                    ident = identity;
-//                }
-//                // DETALLE
-//                String stringSQL2 = "INSERT INTO ordenCompraDetalle "
-//                        + "(idOrdenCompra, interno, idEmpaque, sku, cantOrdenada, cantRecibidaOficina,"
-//                        + "cantRecibidaAlmacen, costoOrdenado, descuentoProducto, descuentoProducto2,"
-//                        + "desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen,"
-//                        + "idImpuestosGrupo, idMarca, cantOrdenadaSinCargo)"
-//                        + "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-//                ps3 = cn.prepareStatement(stringSQL2);
-//
-//                ps3.setInt(1, ident);
-//                ps3.setInt(2, 1); //interno
-//                ps3.setInt(3, c.getProducto().getIdProducto()); //idEmpaque
-//                ps3.setString(4, "null"); //sku
-//                ps3.setDouble(5, c.getCantidadCotizada()); //cantOrdenada
-//                ps3.setDouble(6, 0.00); //cantRecibidaOficina
-//                ps3.setDouble(7, 0.00); //cantRecibidaAlmacen
-//                ps3.setDouble(8, c.getCostoCotizado()); //costoOrdenado
-//                ps3.setDouble(9, c.getDescuentoProducto()); //descuentoProducto
-//                ps3.setDouble(10, c.getDescuentoProducto2()); //descuentoProducto2
-//                ps3.setDouble(11, 0.00); //desctoConfidencial
-//                ps3.setInt(12, 0); //sinCargoBase
-//                ps3.setInt(13, 0); //sinCargoCant
-//                ps3.setDouble(14, 0.00); //ptjeOferta
-//                ps3.setDouble(15, 0.00); //margen
-//                ps3.setInt(16, 0); //idImpuestosGrupo
-//                ps3.setInt(17, 0); //idMarca
-//                ps3.setDouble(18, 0.00); // cantOrdenadaSinCargo
-//                ps3.executeUpdate();
-//
-//            } //FOR DETALLE
-//            //    try {
-//            String sql = "UPDATE cotizaciones set estado = 2 WHERE  idRequisicion = " + ce.getIdRequisicion();
-//            st.executeUpdate(sql);
-//            //    } catch (Exception e) {
-//            //     System.err.println(e + "Entro en la excepcion");
-//            //  }
-//            st.executeUpdate("COMMIT TRANSACTION");
-//        } catch (SQLException e) {
-//            st.executeUpdate("ROLLBACK TRANSACTION");
-//            System.err.println(e);
-//            throw (e);
-//        } finally {
-//            cn.close();
-//        }
-//        //  cn.close();
-//    }// FOR 
-    public void guardarOrdenCompraDirecta(MiniProveedor miniProveedor, OrdenCompraEncabezado ordenCompraEncabezadoDirecta, ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas) throws SQLException {
+    public void guardarOrdenCompraDirecta(MiniProveedor mp, OrdenCompraEncabezado oced, ArrayList<OrdenCompraDetalle> ocd) throws SQLException {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         int idEncabezado = 0;
-        String encabezadoOrden = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen) "
-                + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 1, 2, " + miniProveedor.getDesctoComercial() + ",    " + miniProveedor.getDesctoProntoPago() + ", GETDATE(), " + ordenCompraEncabezadoDirecta.getMoneda().getIdMoneda() + "," + miniProveedor.getIdProveedor() + ",2)";
-        PreparedStatement ps = null;
+        String ordenDetalle;
         try {
-            ps = cn.prepareStatement(encabezadoOrden);
-            ps.executeUpdate();
-            ResultSet rs = null;
-            rs = ps.executeQuery("SELECT @@IDENTITY AS idEncabezado");
-            while (rs.next()) {
+            st.executeUpdate("BEGIN TRANSACTION");
+            //CABECERO
+            String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial,"
+                    + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen) "
+                    + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
+                    + " " + mp.getDesctoProntoPago() + ", GETDATE(), " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2)";
+            st.executeUpdate(ordenEncabezado);
+
+            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
+            if (rs.next()) {
                 idEncabezado = rs.getInt("idEncabezado");
             }
-            st.executeUpdate("begin transaction");
-            for (OrdenCompraDetalle oc : ordenCompraDetallesDirectas) {
-                String stringSQL2 = "INSERT INTO ordenCompraDetalle "
-                        + "(idOrdenCompra, interno, idEmpaque, sku, cantOrdenada, cantRecibidaOficina,"
-                        + "cantRecibidaAlmacen, costoOrdenado, descuentoProducto, descuentoProducto2,"
-                        + "desctoConfidencial, sinCargoBase, sinCargoCant, ptjeOferta, margen,"
-                        + "idImpuestosGrupo, idMarca, cantOrdenadaSinCargo)"
-                        + "VALUES( "+idEncabezado+", '1', "+oc.getIdEmpaque()+", "+oc.getProducto().getCod_pro()+" "
-                        + " "+oc.getCantOrdenada()+", "+oc.getCantRecibidaOficina()+", "+oc.getCantRecibidaAlmacen()+" "
-                        + " "+oc.getCostoOrdenado()+", "+oc.getDescuentoProducto()+", "+oc.getDescuentoProducto2()+" "
-                        + " "+oc.getDesctoConfidencial()+" , "+oc.getSinCargoBase()+" , "+oc.getPtjeOferta()+", "+oc.getMargen()+" "
-                        + " "+oc.getProducto().getArticulo().getImpuestoGrupo()+", "+oc.getProducto().getArticulo().getMarca().getIdMarca()+" , "
-                        + "0)";
-                ps = cn.prepareStatement(stringSQL2);
-//                oc.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo();
-                //SELECT TABLA impuestosDetalles
-               //utilizar el metodo q tiene en daoMovimientos
-                ps.executeUpdate();
+            for (OrdenCompraDetalle oc : ocd) {
+                ordenDetalle = "INSERT INTO ordenCompraDetalle "
+                        + "(idOrdenCompra, interno, idEmpaque, sku,"
+                        + " cantOrdenada, cantRecibidaOficina,cantRecibidaAlmacen,"
+                        + " costoOrdenado, descuentoProducto, descuentoProducto2,"
+                        + "desctoConfidencial, sinCargoBase, sinCargoCant,"
+                        + " ptjeOferta, margen,"
+                        + "idImpuestosGrupo, idMarca,"
+                        + " cantOrdenadaSinCargo)"
+                        + "VALUES( " + idEncabezado + ", 1, " + oc.getProducto().getIdProducto() + ", " + oc.getProducto().getCod_pro() + ", "
+                        + " " + oc.getCantOrdenada() + ", " + oc.getCantRecibidaOficina() + ", " + oc.getCantRecibidaAlmacen() + ", "
+                        + " " + oc.getCostoOrdenado() + ", " + oc.getDescuentoProducto() + ", " + oc.getDescuentoProducto2() + ", "
+                        + " " + oc.getDesctoConfidencial() + " , " + oc.getSinCargoBase() + " ,  " + oc.getSinCargoCant() + ","
+                        + " " + oc.getPtjeOferta() + ", " + oc.getMargen() + ", "
+                        + " " + oc.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo() + ", " + oc.getProducto().getArticulo().getMarca().getIdMarca() + ","
+                        + "  0)";
+                st.executeUpdate(ordenDetalle);
             }
+            st.executeUpdate("COMMIT TRANSACTION");
         } catch (SQLException ex) {
-            st.executeUpdate("rollback transaction");
+            st.executeUpdate("ROLLBACK TRANSACTION");
             throw ex;
         } finally {
             cn.close();
         }
-
-        st.executeUpdate("commit transaction");
-
-
-
     }
 }

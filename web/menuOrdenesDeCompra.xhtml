@@ -338,8 +338,6 @@
 
 
                     <!-- ////////////////////////////////////////////////////    DIRECTAS   /////////////////////////////////////////////////////////////////////             -->
-
-
                     <p:dialog widgetVar="odecD"
                               width="950"
                               header="GENERACION DE ORDENES DE COMPRA DIRECTAS"
@@ -356,7 +354,6 @@
                                 update=":form:encabezadoOCD"/> 
                         <p:panelGrid id="encabezadoOCD" style="width: 900px; height: auto; margin:0 auto; "  >
                             <p:row>
-
                                 <p:column    >
                                     <h:outputLabel   styleClass="textoContenido" />
                                     <p:selectOneMenu id="empresaD" value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.empresa}" style="width: 200px;" >
@@ -365,31 +362,19 @@
                                         <p:ajax event="change"
                                                 />
                                     </p:selectOneMenu><br></br>
-
                                 </p:column>
-                                <p:column colspan="3"  >
-                                    <p:calendar id="fEmision"  
-                                                showOn="button"
-                                                value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.fechaEmisionDirectas}" maxlength="8" size="15"
-                                                placeholder="Fecha de Emisión">
-                                    </p:calendar>
-                                </p:column>
-                                <p:column colspan="3"   >
-
+                                <p:column colspan="6"   >
                                     <p:calendar id="fEntrega"  
                                                 showOn="button"
                                                 value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.fechaEntregaDirectas}" maxlength="8" size="15"
                                                 placeholder="Fecha de Entrega">
-
                                         <p:ajax event="dateSelect"
-                                                process="@this fEmision"
-                                                listener="#{mbOrdenCompra.validarRangoFechas()}"/>
+                                                process="@this "
+                                                listener="#{mbOrdenCompra.compararFechasConDate}"/>
                                     </p:calendar>
-
                                 </p:column>
                             </p:row>
                             <p:row>
-
                                 <p:column    rowspan="2"  >
                                     <h:outputLabel   styleClass="textoContenido"  />
                                     <p:selectOneMenu  id="proveedorD"  
@@ -405,7 +390,7 @@
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column     >
-                                    <h:outputLabel value="Desc. Comercial (%): " styleClass="textoEtiquetas" /> 
+                                    <h:outputLabel value="Desc. Comerc. (%): " styleClass="textoEtiquetas" /> 
                                 </p:column>
                                 <p:column>
                                     <p:inputText  value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoComercial}" 
@@ -415,9 +400,8 @@
                                                 update=":form:pieD"/>
                                     </p:inputText>
                                 </p:column>
-
                                 <p:column>
-                                    <h:outputLabel  value=" Desc. Pronto Pago (%): " styleClass="textoEtiquetas"  /> 
+                                    <h:outputLabel  value=" Desc. P. Pago (%): " styleClass="textoEtiquetas"  /> 
                                 </p:column>
                                 <p:column>
                                     <p:inputText id="dppi" value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago}" >
@@ -426,10 +410,8 @@
                                                 update=":form:pieD"/>
                                     </p:inputText>
                                 </p:column>
-                              
                             </p:row>
                             <p:row>
-
                                 <p:column colspan="6" >
                                     <p:selectOneMenu id="monedaD" value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.moneda}"  >
                                         <f:converter converterId="converters.Moneda" />
@@ -476,6 +458,8 @@
                                     oncomplete="PF('odecD').hide()"
                                     process="@this :form:encabezadoOCD :form:mensajeProducto"
                                     actionListener="#{mbOrdenCompra.guardarOrdenCompraDirecta()}"
+                                    update=":form:ordenCompra"
+                                    
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -698,8 +682,7 @@
                         </p:panelGrid>
                     </p:dialog>
 
-
-                    <!--  FORMULARIO DE ENVIO DE CORREO ///////////////////////////////////////////////////////////////////////////////////////////////////////  -->
+<!--                                      FORMULARIO DE ENVIO DE CORREO...                  -->
                     <p:dialog widgetVar="correo" width="900" header="Formulario de envio de correo" id="dialogoCorreo" modal="true">
                         <p:messages id="messagePanel6" showDetail="true" closable="true" showSummary="false" autoUpdate="true" />
                         <p:panelGrid id="formCorreo" style="width:850px; height: auto; margin:0 auto; "  >
@@ -760,7 +743,7 @@
                         </p:blockUI>
                     </p:dialog> 
 
-                    <!-- B U S C A D O R  DE  P R O D U C T O S... -->
+            <!--                                B U S C A D O R  DE  P R O D U C T O S.. -->
                     <p:dialog header="BUSCADOR DE PRODUCTOS" 
                               widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />

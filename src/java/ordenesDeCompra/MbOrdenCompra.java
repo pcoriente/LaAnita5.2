@@ -13,11 +13,10 @@ import java.io.File;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
-import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -107,8 +106,8 @@ public class MbOrdenCompra implements Serializable {
     private Empresa empre;
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
-    @ManagedProperty(value = "#{mbCalculoRCOD}")
-    private MbCalculoRCOD mbCalculoRCOD;
+    //@ManagedProperty(value = "#{mbCalculoRCOD}")
+    // private MbCalculoRCOD mbCalculoRCOD;
     private double descuentoGeneralAplicado;
     private TotalesOrdenCompra totales = new TotalesOrdenCompra();
     double sumaDescuentosProductos = 0.0;
@@ -130,7 +129,7 @@ public class MbOrdenCompra implements Serializable {
         this.provee = new Proveedor();
         //-------DIRECTAS
         this.mbMonedas = new MbMonedas();
-        this.mbCalculoRCOD = new MbCalculoRCOD();
+        //  this.mbCalculoRCOD = new MbCalculoRCOD();
         this.ordenCompraDetalleSeleccionado = new OrdenCompraDetalle();
 
 
@@ -138,6 +137,7 @@ public class MbOrdenCompra implements Serializable {
 
     //M E T O D O S  ////////////////////////////////////////////////////////////////////////////////////////////
     public void cargaOrdenesEncabezado() throws NamingException, SQLException {
+       
         listaOrdenesEncabezado = new ArrayList<>();
         DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
         ArrayList<OrdenCompraEncabezado> lista = daoOC.listaOrdenes();
@@ -265,9 +265,7 @@ public class MbOrdenCompra implements Serializable {
                 this.calculosOrdenCompra(d.getProducto().getIdProducto());
                 d.setNombreProducto(d.getProducto().toString());
             }
-        } catch (NamingException ex) {
-            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+        } catch (NamingException | SQLException ex) {
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -328,6 +326,7 @@ public class MbOrdenCompra implements Serializable {
         setSumaDescuentoTotales(sumaDescuentosProductos + sumaDescuentosGenerales);
     }
 
+    @SuppressWarnings("empty-statement")
     public void calcularSubtotalBruto() {
         subtotalBruto = 0;
         this.setSubtotalBruto(this.getSubtotalGeneral() - this.getSumaDescuentoTotales());;
@@ -360,7 +359,8 @@ public class MbOrdenCompra implements Serializable {
         try {
             if (estado == 1) {
                 daoO.procesarOrdenCompra(idOrden);
-                this.setListaOrdenesEncabezado(null);
+
+
                 this.cargaOrdenesEncabezado();
 
                 fMsg.setDetail("Se ha guardado con satisfactoriamente...");
@@ -373,6 +373,8 @@ public class MbOrdenCompra implements Serializable {
         }
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
     }
+
+    
 
     public void cancelarOrden(int idOrden, int estado) throws NamingException {
         Boolean correcto = false;
@@ -519,7 +521,7 @@ public class MbOrdenCompra implements Serializable {
 
     public void cargaContactos() {
         try {
-            this.listaContactos = new ArrayList<Contacto>();
+            this.listaContactos = new ArrayList<>();
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             try {
                 listaContactos = daoOC.obtenerContactos(ordenElegida.getIdOrdenCompra());
@@ -586,25 +588,19 @@ public class MbOrdenCompra implements Serializable {
     public void guardarOrdenCompraDirecta() {
         ordenCompraEncabezadoDirecta.getDesctoComercial();
         mbProveedores.getMiniProveedor();
-        if (ordenCompraDetallesDirectas.size() == 0) {
+        if (ordenCompraDetallesDirectas.isEmpty()) {
             Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
         } else {
             try {
                 DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
                 dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
                 Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
+                this.cargaOrdenesEncabezado();
 
-            } catch (NamingException ex) {
-                Mensajes.MensajeErrorP(ex.getMessage());
-            } catch (SQLException ex) {
+            } catch (NamingException | SQLException ex) {
                 Mensajes.MensajeErrorP(ex.getMessage());
             }
-
-
         }
-
-
-
     }
 
     public void calcularImporte() throws NamingException {
@@ -620,11 +616,6 @@ public class MbOrdenCompra implements Serializable {
                 double neto = e.getCostoOrdenado() - (e.getCostoOrdenado() * (e.getDescuentoProducto() / 100));
                 double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
                 e.setNeto(neto2);
-
-
-
-
-
                 e.setSubtotal(e.getCostoOrdenado() * e.getCantOrdenada());
                 subtotalGeneral += e.getSubtotal();
                 sumaCostoCotizado += (e.getCantOrdenada() * e.getNeto());
@@ -701,9 +692,9 @@ public class MbOrdenCompra implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "validarRangoFechas");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        this.ordenCompraEncabezado.setFechaCreacion(sdf.format(ordenCompraEncabezado.getFechaEmisionDirectas()));
-        this.ordenCompraEncabezado.setFechaFinalizacion(sdf.format(ordenCompraEncabezado.getFechaEntregaDirectas()));
+//        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+//        this.ordenCompraEncabezado.setFechaCreacion(sdf.format(ordenCompraEncabezado.getFechaEmisionDirectas()));
+//        this.ordenCompraEncabezado.setFechaFinalizacion(sdf.format(ordenCompraEncabezado.getFechaEntregaDirectas()));
         if (this.ordenCompraEncabezado.getFechaCreacion() != null && ordenCompraEncabezado.getFechaFinalizacion() != null) {
             if (this.ordenCompraEncabezado.getFechaCreacion().compareTo(ordenCompraEncabezado.getFechaFinalizacion()) <= 0) {
                 ok = true;
@@ -734,13 +725,14 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void limpiaOrdenCompraDirecta() throws NamingException {
-        for (OrdenCompraDetalle d : ordenCompraDetallesDirectas) {
+        for (OrdenCompraDetalle d :  listaOrdenDetalle) {
             d.setCostoOrdenado(0);
             d.setDescuentoProducto(0);
             d.setDescuentoProducto2(0);
             d.setNeto(0);
             d.setSubtotal(0);
         }
+        this.listaOrdenDetalle=null;
         this.subtotalGeneral = 0.00;
         this.sumaDescuentosProductos = 0.00;
         this.descuentoGeneralAplicado = 0.00;
@@ -748,7 +740,35 @@ public class MbOrdenCompra implements Serializable {
         this.subtotalBruto = 0.00;
         this.impuesto = 0.00;
         this.total = 0.00;
-        ordenCompraDetallesDirectas.clear();
+        
+        ordenElegida = new OrdenCompraEncabezado();
+        
+        this.setListaOrdenesEncabezado(null);
+        this.setOrdenCompraDetalle(null);
+
+        this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
+         ordenCompraDetallesDirectas.clear();
+        this.totales = new TotalesOrdenCompra();
+    }
+
+    public void compararFechasConDate() {
+        Date fechaDate1 = this.getOrdenCompraEncabezadoDirecta().getFechaEntregaDirectas();
+        Date fechaDate2 = new Date();
+        String resultado = "";
+        System.out.println("Parametro Date Fecha 1 = " + fechaDate1 + "\n"
+                + "Parametro Date fechaActual = " + fechaDate2 + "\n");
+
+        if (fechaDate1.before(fechaDate2)) {
+            resultado = "La Fecha 1 es menor ";
+        } else {
+            if (fechaDate2.before(fechaDate1)) {
+                resultado = "La Fecha 1 es Mayor ";
+            } else {
+                resultado = "Las Fechas Son iguales ";
+            }
+        }
+
+        // return resultado;
     }
 
     // GET Y SETS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1043,14 +1063,13 @@ public class MbOrdenCompra implements Serializable {
         this.ordenCompraDetallesDirectas = ordenCompraDetallesDirectas;
     }
 
-    public MbCalculoRCOD getMbCalculoRCOD() {
-        return mbCalculoRCOD;
-    }
-
-    public void setMbCalculoRCOD(MbCalculoRCOD mbCalculoRCOD) {
-        this.mbCalculoRCOD = mbCalculoRCOD;
-    }
-
+//    public MbCalculoRCOD getMbCalculoRCOD() {
+//        return mbCalculoRCOD;
+//    }
+//
+//    public void setMbCalculoRCOD(MbCalculoRCOD mbCalculoRCOD) {
+//        this.mbCalculoRCOD = mbCalculoRCOD;
+//    }
     public double getDescuentoGeneralAplicado() {
         return descuentoGeneralAplicado;
     }
