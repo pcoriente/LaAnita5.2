@@ -94,6 +94,7 @@ public class DAOMovimientos {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
                 ResultSet rs1;
+                to.setIdUsuario(this.idUsuario);
                 to.setFolio(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
 
                 strSQL = "UPDATE movimientosAlmacen SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
@@ -169,17 +170,21 @@ public class DAOMovimientos {
 
     public void grabarSalidaOficina(TOMovimiento to) throws SQLException {
         String strSQL;
-
+//        ArrayList<TOMovimientoProducto> detalle = new ArrayList<>();
+        
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
+                to.setIdUsuario(this.idUsuario);
                 to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
 
-                strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
+                strSQL = "UPDATE movimientos "
+                        + "SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
                         + "WHERE idMovto=" + to.getIdMovto();
                 st.executeUpdate(strSQL);
 
-                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + to.getIdMovto() + " AND cantFacturada=0";
+                strSQL = "DELETE FROM movimientosDetalle "
+                        + "WHERE idMovto=" + to.getIdMovto() + " AND cantFacturada=0";
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE d "
@@ -190,30 +195,37 @@ public class DAOMovimientos {
                         + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=m.idAlmacen AND a.idEmpaque=d.idEmpaque "
                         + "INNER JOIN empresasEmpaques e ON e.idEmpaque=d.idEmpaque "
                         + "WHERE e.idEmpresa=m.idEmpresa AND d.idMovto=" + to.getIdMovto();
-                st.executeUpdate(strSQL);
-
+                int n=st.executeUpdate(strSQL);
+                
+                strSQL="SELECT idEmpaque "
+                        + "FROM movimientosDetalle "
+                        + "WHERE idMovto="+to.getIdMovto()+" AND unitario <= 0";
+                ResultSet rs=st.executeQuery(strSQL);
+                if(rs.next()) {
+                    throw new SQLException("(idMovto="+to.getIdMovto()+") Producto id="+rs.getInt("idEmpaque")+" Sin costo unitario !!!");
+                }
                 strSQL = "UPDATE e "
                         + "SET e.separados=e.separados-d.cantFacturada, e.existenciaOficina=e.existenciaOficina-d.cantFacturada "
                         + "FROM (SELECT m.idAlmacen, d.* "
                         + "		FROM movimientosDetalle d "
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
-                        + "INNER JOIN almacenesEmpaques e ON e.idAlmacen=d.idAlmacen AND e.idEmpaque=d.idEmpaque";
-                if (st.executeUpdate(strSQL) == 0) {
-                    throw new SQLException("No se encuentra empaque en almacen !!!");
+                        + "INNER JOIN almacenesEmpaques e ON e.idAlmacen=d.idAlmacen AND e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.separados >= d.cantFacturada AND e.existenciaOficina >= d.cantFacturada";
+                if (st.executeUpdate(strSQL) != n) {
+                    throw new SQLException("(idMovto="+to.getIdMovto()+") No se permite valor negativo en separados o existencia de almacen");
                 }
-
                 strSQL = "UPDATE e "
                         + "SET e.existenciaOficina=e.existenciaOficina-d.cantFacturada "
                         + "FROM (SELECT m.idEmpresa, d.* "
                         + "		FROM movimientosDetalle d "
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
-                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
-                if (st.executeUpdate(strSQL) == 0) {
-                    throw new SQLException("No se encuentra empaque en empresa !!!");
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.existenciaOficina >= d.cantFacturada";
+                if (st.executeUpdate(strSQL) != n) {
+                    throw new SQLException("(idMovto="+to.getIdMovto()+") No se permite valor negativo en separados o existencia de empresa");
                 }
-
                 strSQL = "UPDATE e "
                         + "SET e.costoUnitarioPromedio=0 "
                         + "FROM (SELECT m.idEmpresa, d.* "
@@ -225,6 +237,12 @@ public class DAOMovimientos {
                 st.executeUpdate(strSQL);
 
                 cn.commit();
+//                
+//                strSQL="SELECT * FROM movimientosDetalle WHERE idMovto="+to.getIdMovto();
+//                rs=st.executeQuery(strSQL);
+//                while(rs.next()) {
+//                    detalle.add(this.construirDetalle(rs));
+//                }
             } catch (SQLException ex) {
                 cn.rollback();
                 throw ex;
@@ -232,6 +250,7 @@ public class DAOMovimientos {
                 cn.setAutoCommit(true);
             }
         }
+//        return detalle;
     }
 
     public void agregarProductoSalidaOficina(int idMovto, TOMovimientoProducto to) throws SQLException {
@@ -274,6 +293,7 @@ public class DAOMovimientos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
+                to.setIdUsuario(this.idUsuario);
                 to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
 
                 strSQL = "UPDATE movimientos SET fecha=GETDATE(), estatus=1, folio=" + to.getFolio() + ", idUsuario=" + this.idUsuario + " "
@@ -284,15 +304,21 @@ public class DAOMovimientos {
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE d "
-                        + "SET d.costoPromedio=e.costoUnitarioPromedio, d.costo=e.costoUnitarioPromedio, d.unitario=e.costoUnitarioPromedio"
+                        + "SET d.costoPromedio=dd.unitario, d.costo=dd.unitario, d.unitario=dd.unitario "
                         + "     , d.fecha=GETDATE(), d.existenciaAnterior=a.existenciaOficina "
                         + "FROM movimientosDetalle d "
                         + "INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=m.idAlmacen AND a.idEmpaque=d.idEmpaque "
-                        + "INNER JOIN empresasEmpaques e ON e.idEmpaque=d.idEmpaque "
-                        + "WHERE e.idEmpresa=m.idEmpresa AND d.idMovto=" + to.getIdMovto();
-                st.executeUpdate(strSQL);
-
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=m.idEmpresa AND e.idEmpaque=d.idEmpaque "
+                        + "INNER JOIN movimientosDetalle dd ON dd.idMovto=e.idMovtoUltimaEntrada AND dd.idEmpaque=d.idEmpaque "
+                        + "WHERE d.idMovto=" + to.getIdMovto();
+                int n=st.executeUpdate(strSQL);
+                
+                strSQL="SELECT idEmpaque FROM movimientosDetalle WHERE idMovto="+to.getIdMovto()+" AND unitario=0";
+                ResultSet rs=st.executeQuery(strSQL);
+                if(rs.next()) {
+                    throw new SQLException("(idMovto="+to.getIdMovto()+"), Producto id="+rs.getInt("idEmpaque")+" Sin costo unitario !!!");
+                }
                 strSQL = "UPDATE a "
                         + "SET a.existenciaOficina=a.existenciaOficina+d.cantFacturada "
                         + "FROM (SELECT m.idAlmacen, d.* "
@@ -300,24 +326,20 @@ public class DAOMovimientos {
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
                         + "INNER JOIN almacenesEmpaques a ON a.idAlmacen=d.idAlmacen AND a.idEmpaque=d.idEmpaque";
-                if (st.executeUpdate(strSQL) == 0) {
+                if (st.executeUpdate(strSQL) != n) {
                     throw new SQLException("No se encontro empaque en almacen !!!");
-//                    strSQL = "INSERT INTO almacenesEmpaques (idAlmacen, idEmpaque, existenciaOficina, separados, existenciaAlmacen, existenciaMinima, existenciaMaxima)\n" +
-//                            "SELECT M.idAlmacen, D.idEmpaque, D.cantFacturada, 0, 0, 0, 0 \n" +
-//                            "FROM movimientosDetalle D\n" +
-//                            "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n" +
-//                            "WHERE D.idMovto="+to.getIdMovto();
-//                    st.executeUpdate(strSQL);
                 }
                 strSQL = "UPDATE e "
-                        + "SET e.existenciaOficina=e.existenciaOficina+d.cantFacturada "
+                        + "SET e.costoUnitarioPromedio=(e.existenciaOficina*e.costoUnitarioPromedio+d.cantFacturada*d.unitario)/(e.existenciaOficina+d.cantFacturada) "
+                        + "    , e.existenciaOficina=e.existenciaOficina+d.cantFacturada "
                         + "FROM (SELECT m.idEmpresa, d.* "
                         + "		FROM movimientosDetalle d "
                         + "		INNER JOIN movimientos m ON m.idMovto=d.idMovto "
                         + "		WHERE d.idMovto=" + to.getIdMovto() + ") d "
-                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque";
-                if (st.executeUpdate(strSQL) == 0) {
-                    throw new SQLException("No se encontro empaque en la empresa !!!");
+                        + "INNER JOIN empresasEmpaques e ON e.idEmpresa=d.idEmpresa AND e.idEmpaque=d.idEmpaque "
+                        + "WHERE e.existenciaOficina >= d.cantFacturada";
+                if (st.executeUpdate(strSQL) != n) {
+                    throw new SQLException("No se encontro empaque en empresa !!!");
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -329,7 +351,7 @@ public class DAOMovimientos {
         }
     }
 
-    public double actualizaEntrada(int idMovto, int idAlmacen, int idProducto, double cantidad) throws SQLException {
+    public double actualizaEntrada(int idMovto, int idProducto, double cantidad) throws SQLException {
         String strSQL = "UPDATE movimientosDetalle "
                 + "SET cantFacturada=" + cantidad + " "
                 + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idProducto;

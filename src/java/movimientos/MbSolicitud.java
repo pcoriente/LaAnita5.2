@@ -151,8 +151,8 @@ public class MbSolicitud implements Serializable {
         return "index.xhtml";
     }
 
-    public void cargaAlmacenesEmpresa() {
-        this.getMbAlmacenes().cargaAlmacenesEmpresa(this.toAlmacen.getIdEmpresa(), this.toAlmacen.getIdAlmacen());
+    public void cargaAlmacenesCedisEmpresa() {
+        this.getMbAlmacenes().cargaAlmacenesEmpresa(this.mbCedis.getCedis().getIdCedis(), this.toAlmacen.getIdEmpresa(), this.toAlmacen.getIdAlmacen());
     }
 
     public MovimientoProducto getResSolicitudProducto() {

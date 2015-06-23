@@ -28,7 +28,8 @@
                                     <p:selectOneMenu value="#{mbSolicitud.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
+                                                update=":main:msgs almacenOrigen btnEditarComprobante" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
@@ -40,7 +41,7 @@
                                     <p:selectOneMenu id="cedisOrigen" value="#{mbSolicitud.mbCedis.cedis}" style="width: 450px;" >
                                         <f:converter converterId="converters.MiniCedis" />
                                         <f:selectItems value="#{mbSolicitud.mbCedis.listaMiniCedis}" />
-                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesEmpresa()}" 
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
                                                 update=":main:msgs almacenOrigen" />
                                     </p:selectOneMenu>
                                 </p:column>

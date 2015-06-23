@@ -2,20 +2,37 @@ package salidas;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
+import entradas.dominio.MovimientoOficinaProductoReporte;
+import java.io.IOException;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoProducto;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
@@ -55,6 +72,71 @@ public class MbSalidasOficina implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
+    
+    private MovimientoOficinaProductoReporte convertirProductoReporte(SalidaOficinaProducto prod) {
+        MovimientoOficinaProductoReporte rep = new MovimientoOficinaProductoReporte();
+        rep.setEmpaque(prod.getProducto().toString());
+        rep.setSku(prod.getProducto().getCod_pro());
+        rep.setCantFacturada(prod.getCantFacturada());
+        rep.setUnitario(prod.getUnitario());
+        return rep;
+    }
+    
+    public void imprimir() {
+        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+
+        ArrayList<MovimientoOficinaProductoReporte> detalleReporte = new ArrayList<>();
+        for (SalidaOficinaProducto p : this.salidaDetalle) {
+            if (p.getCantFacturada() != 0) {
+                detalleReporte.add(this.convertirProductoReporte(p));
+            }
+        }
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\MovimientoOficina.jasper";
+        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+        Map parameters = new HashMap();
+        parameters.put("empresa", this.salida.getAlmacen().getEmpresa());
+
+        parameters.put("cedis", this.salida.getAlmacen().getCedis());
+        parameters.put("almacen", this.salida.getAlmacen().getAlmacen());
+
+        parameters.put("concepto", this.salida.getTipo().getTipo());
+        parameters.put("conceptoTipo", "SALIDA OFICINA CONCEPTOS VARIOS");
+
+        parameters.put("capturaFolio", this.salida.getFolio());
+        parameters.put("capturaFecha", formatoFecha.format(this.salida.getFecha()));
+        parameters.put("capturaHora", formatoHora.format(this.salida.getFecha()));
+
+        parameters.put("idUsuario", this.salida.getIdUsuario());
+
+        try {
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=SalidaOficina_" + this.salida.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+        this.salidaProducto = this.salidaDetalle.get(event.getRowIndex());
+        if (newValue != null && newValue != oldValue) {
+            oldValue=newValue;
+        } else {
+            newValue=oldValue;
+            Mensajes.mensajeAlert("Checar que pasa !!!");
+        }
+    }
 
     public void cancelar() {
         try {
@@ -68,17 +150,20 @@ public class MbSalidasOficina implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
+    
+    private void obtenerDetalle() throws NamingException, SQLException {
+        this.salidaDetalle = new ArrayList<>();
+        this.dao = new DAOMovimientos();
+        for (TOMovimientoProducto to : this.dao.obtenerDetalle(this.salida.getIdMovto())) {
+            this.salidaDetalle.add(this.convertirProductoOficina(to));
+        }
+    }
 
     public void cargaDetalleSalida(SelectEvent event) {
         this.salida = ((Salida) event.getObject());
-        this.salidaDetalle = new ArrayList<>();
-//        this.mbComprobantes.getMbAlmacenes().setToAlmacen(this.salida.getAlmacen());
         this.tipo = this.salida.getTipo();
         try {
-            this.dao = new DAOMovimientos();
-            for (TOMovimientoProducto to : this.dao.obtenerDetalle(this.salida.getIdMovto())) {
-                this.salidaDetalle.add(this.convertirProductoOficina(to));
-            }
+            this.obtenerDetalle();
             this.salidaProducto = new SalidaOficinaProducto();
             this.modoEdicion = true;
         } catch (SQLException ex) {
@@ -91,9 +176,9 @@ public class MbSalidasOficina implements Serializable {
     private SalidaOficinaProducto convertirProductoOficina(TOMovimientoProducto to) throws SQLException {
         SalidaOficinaProducto p = new SalidaOficinaProducto();
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        p.setCantidad(to.getCantFacturada());
+        p.setCantFacturada(to.getCantFacturada());
         p.setSeparados(to.getCantFacturada());
-        p.setCosto(to.getUnitario());
+        p.setUnitario(to.getUnitario());
         return p;
     }
 
@@ -122,15 +207,32 @@ public class MbSalidasOficina implements Serializable {
         s.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         s.setFecha(to.getFecha());
         s.setIdUsuario(to.getIdUsuario());
+        s.setEstatus(to.getEstatus());
         return s;
     }
 
     public void grabar() {
         try {
-            this.dao = new DAOMovimientos();
-            this.dao.grabarSalidaOficina(this.convertirTO());
-            Mensajes.mensajeSucces("La salida se realizo con exito !!!");
-            this.modoEdicion = false;
+            if(this.salidaDetalle.isEmpty()) {
+                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+            } else {
+                double total = 0;
+                for (SalidaOficinaProducto e : this.salidaDetalle) {
+                    total += e.getCantFacturada();
+                }
+                if (total != 0) {
+                    this.dao = new DAOMovimientos();
+                    TOMovimiento to = this.convertirTO();
+                    this.dao.grabarSalidaOficina(to);
+                    this.salida.setIdUsuario(to.getIdUsuario());
+                    this.salida.setFolio(to.getFolio());
+                    this.salida.setEstatus(1);
+                    this.obtenerDetalle();
+                    Mensajes.mensajeSucces("La salida se realizo con exito !!!");
+                } else {
+                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+                }
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -142,7 +244,7 @@ public class MbSalidasOficina implements Serializable {
         double separados;
         try {
             this.daoLotes = new DAOLotes();
-            double separar = this.salidaProducto.getCantidad() - this.salidaProducto.getSeparados();
+            double separar = this.salidaProducto.getCantFacturada() - this.salidaProducto.getSeparados();
             if (separar > 0) {
                 separados = this.daoLotes.separarOficina(this.salida.getIdMovto(), this.salida.getAlmacen().getIdAlmacen(), this.salidaProducto.getProducto().getIdProducto(), separar, false);
                 if (separados < separar) {
@@ -153,12 +255,12 @@ public class MbSalidasOficina implements Serializable {
                 separados = separar;
             }
             this.salidaProducto.setSeparados(this.salidaProducto.getSeparados() + separados);
-            this.salidaProducto.setCantidad(this.salidaProducto.getSeparados());
+            this.salidaProducto.setCantFacturada(this.salidaProducto.getSeparados());
         } catch (SQLException ex) {
-            this.salidaProducto.setCantidad(this.salidaProducto.getSeparados());
+            this.salidaProducto.setCantFacturada(this.salidaProducto.getSeparados());
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            this.salidaProducto.setCantidad(this.salidaProducto.getSeparados());
+            this.salidaProducto.setCantFacturada(this.salidaProducto.getSeparados());
             Mensajes.mensajeError(ex.getMessage());
         }
     }
@@ -197,7 +299,7 @@ public class MbSalidasOficina implements Serializable {
     private TOMovimientoProducto convertirTOProducto(SalidaOficinaProducto p) {
         TOMovimientoProducto to = new TOMovimientoProducto();
         to.setIdProducto(p.getProducto().getIdProducto());
-        to.setCantFacturada(p.getCantidad());
+        to.setCantFacturada(p.getCantFacturada());
         return to;
     }
 
@@ -210,7 +312,7 @@ public class MbSalidasOficina implements Serializable {
     }
 
     public void salir() {
-        this.inicializar();
+//        this.inicializar();
         this.modoEdicion = false;
     }
 
@@ -375,5 +477,13 @@ public class MbSalidasOficina implements Serializable {
 
     public void setSalidasPendientes(ArrayList<Salida> salidasPendientes) {
         this.salidasPendientes = salidasPendientes;
+    }
+
+    public Salida getSalida() {
+        return salida;
+    }
+
+    public void setSalida(Salida salida) {
+        this.salida = salida;
     }
 }

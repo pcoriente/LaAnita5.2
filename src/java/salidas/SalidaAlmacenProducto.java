@@ -11,7 +11,7 @@ import producto2.dominio.Producto;
 public class SalidaAlmacenProducto {
     private Producto producto;
     private double cantidad;
-    private double separados;
+//    private double separados;
     private ArrayList<Lote> lotes;
     
     public SalidaAlmacenProducto() {
@@ -51,13 +51,13 @@ public class SalidaAlmacenProducto {
         return true;
     }
 
-    public double getSeparados() {
-        return separados;
-    }
-
-    public void setSeparados(double separados) {
-        this.separados = separados;
-    }
+//    public double getSeparados() {
+//        return separados;
+//    }
+//
+//    public void setSeparados(double separados) {
+//        this.separados = separados;
+//    }
 
     public Producto getProducto() {
         return producto;
