@@ -64,6 +64,7 @@ public class MbOrdenCompra implements Serializable {
     private MbCotizaciones mbCotizaciones;
     private OrdenCompraEncabezado ordenCompraEncabezado;
     private ArrayList<OrdenCompraEncabezado> listaOrdenesEncabezado;
+    private ArrayList<OrdenCompraEncabezado> listaOrdenesEncabezadoD;
     private OrdenCompraEncabezado ordenElegida;
     private ArrayList<OrdenCompraDetalle> listaOrdenDetalle;
     private OrdenCompraDetalle ordenCompraDetalle;
@@ -111,10 +112,14 @@ public class MbOrdenCompra implements Serializable {
     private double descuentoGeneralAplicado;
     private TotalesOrdenCompra totales = new TotalesOrdenCompra();
     double sumaDescuentosProductos = 0.0;
-    private OrdenCompraDetalle ordenCompraDetalleSeleccionado;
+    private OrdenCompraDetalle ordenCompraDetalleSeleccionado; //para eliminar producto en el formulario
+    private OrdenCompraEncabezado ordenElegidaD;
+    private ArrayList<OrdenCompraDetalle> listaOrdenDetalleD;
+    private OrdenCompraDetalle ordenCompraDetalleD;
 
     public MbOrdenCompra() throws NamingException {
         this.ordenCompraEncabezado = new OrdenCompraEncabezado();
+
         this.mbCotizaciones = new MbCotizaciones();
         this.ordenCompraDetalle = new OrdenCompraDetalle();
         this.ordenElegida = new OrdenCompraEncabezado();
@@ -131,19 +136,38 @@ public class MbOrdenCompra implements Serializable {
         this.mbMonedas = new MbMonedas();
         //  this.mbCalculoRCOD = new MbCalculoRCOD();
         this.ordenCompraDetalleSeleccionado = new OrdenCompraDetalle();
+        this.ordenElegidaD = new OrdenCompraEncabezado();
+        this.ordenCompraDetalleD = new OrdenCompraDetalle();
+
 
 
     }
 
     //M E T O D O S  ////////////////////////////////////////////////////////////////////////////////////////////
     public void cargaOrdenesEncabezado() throws NamingException, SQLException {
-       
+
         listaOrdenesEncabezado = new ArrayList<>();
         DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
         ArrayList<OrdenCompraEncabezado> lista = daoOC.listaOrdenes();
         for (OrdenCompraEncabezado d : lista) {
             listaOrdenesEncabezado.add(d);
         }
+
+
+    }
+
+    public void cargaOrdenesEncabezadoD() throws NamingException, SQLException {
+
+        listaOrdenesEncabezadoD = new ArrayList<>();
+        DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
+        ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
+        for (OrdenCompraEncabezado oced : listaD) {
+            listaOrdenesEncabezadoD.add(oced);
+        }
+
+
+
+
     }
 
     public void cargaOrdenesEncabezadoAlmacen(int idProveedor, int status) throws NamingException, SQLException {
@@ -374,8 +398,6 @@ public class MbOrdenCompra implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
     }
 
-    
-
     public void cancelarOrden(int idOrden, int estado) throws NamingException {
         Boolean correcto = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
@@ -588,19 +610,26 @@ public class MbOrdenCompra implements Serializable {
     public void guardarOrdenCompraDirecta() {
         ordenCompraEncabezadoDirecta.getDesctoComercial();
         mbProveedores.getMiniProveedor();
-        if (ordenCompraDetallesDirectas.isEmpty()) {
-            Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
-        } else {
-            try {
-                DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
-                dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
-                Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
-                this.cargaOrdenesEncabezado();
-
-            } catch (NamingException | SQLException ex) {
-                Mensajes.MensajeErrorP(ex.getMessage());
+        Date fe = ordenCompraEncabezadoDirecta.getFechaEntregaDirectas();
+        Date fhoy = new Date();
+//
+//        if (fe.before(fhoy)) {
+//            Mensajes.MensajeAlertP("Se requiere una fecha igual o mayor del día de hoy...");
+//        } else {
+            if (ordenCompraDetallesDirectas.isEmpty()) {
+                Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
+            } else {
+                try {
+                    DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
+                    dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
+                    Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
+                    this.cargaOrdenesEncabezado();
+                    this.listaOrdenesEncabezadoD=null;
+                } catch (NamingException | SQLException ex) {
+                    Mensajes.MensajeErrorP(ex.getMessage());
+                }
             }
-        }
+//        }
     }
 
     public void calcularImporte() throws NamingException {
@@ -711,11 +740,14 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void handleClose() throws NamingException {
+        System.out.println("Entro  a limpiar");
         this.mbEmpresas = new MbEmpresas();
         this.mbProveedores = new MbMiniProveedor();
         this.provee = new Proveedor();
         this.ordenCompraEncabezado = new OrdenCompraEncabezado();
         this.mbMonedas.getMoneda().setIdMoneda(0);
+        ordenCompraDetallesDirectas = new ArrayList<>();
+        totales = new TotalesOrdenCompra();
     }
 
     public void eliminaProducto() throws NamingException {
@@ -725,14 +757,13 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void limpiaOrdenCompraDirecta() throws NamingException {
-        for (OrdenCompraDetalle d :  listaOrdenDetalle) {
+        for (OrdenCompraDetalle d : listaOrdenDetalle) {
             d.setCostoOrdenado(0);
             d.setDescuentoProducto(0);
             d.setDescuentoProducto2(0);
             d.setNeto(0);
             d.setSubtotal(0);
         }
-        this.listaOrdenDetalle=null;
         this.subtotalGeneral = 0.00;
         this.sumaDescuentosProductos = 0.00;
         this.descuentoGeneralAplicado = 0.00;
@@ -740,36 +771,36 @@ public class MbOrdenCompra implements Serializable {
         this.subtotalBruto = 0.00;
         this.impuesto = 0.00;
         this.total = 0.00;
-        
-        ordenElegida = new OrdenCompraEncabezado();
-        
+
+        //    ordenElegida = new OrdenCompraEncabezado();
+
         this.setListaOrdenesEncabezado(null);
         this.setOrdenCompraDetalle(null);
 
         this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
-         ordenCompraDetallesDirectas.clear();
+        ordenCompraDetallesDirectas.clear();
         this.totales = new TotalesOrdenCompra();
     }
-
-    public void compararFechasConDate() {
-        Date fechaDate1 = this.getOrdenCompraEncabezadoDirecta().getFechaEntregaDirectas();
-        Date fechaDate2 = new Date();
-        String resultado = "";
-        System.out.println("Parametro Date Fecha 1 = " + fechaDate1 + "\n"
-                + "Parametro Date fechaActual = " + fechaDate2 + "\n");
-
-        if (fechaDate1.before(fechaDate2)) {
-            resultado = "La Fecha 1 es menor ";
-        } else {
-            if (fechaDate2.before(fechaDate1)) {
-                resultado = "La Fecha 1 es Mayor ";
-            } else {
-                resultado = "Las Fechas Son iguales ";
-            }
-        }
-
-        // return resultado;
-    }
+//
+//    public void compararFechasConDate() {
+//        Date fechaDate1 = this.getOrdenCompraEncabezadoDirecta().getFechaEntregaDirectas();
+//        Date fechaDate2 = new Date();
+//        String resultado = "";
+//        System.out.println("Parametro Date Fecha 1 = " + fechaDate1 + "\n"
+//                + "Parametro Date fechaActual = " + fechaDate2 + "\n");
+//
+//        if (fechaDate1.before(fechaDate2)) {
+//            resultado = "La Fecha 1 es menor ";
+//        } else {
+//            if (fechaDate2.before(fechaDate1)) {
+//                resultado = "La Fecha 1 es Mayor ";
+//            } else {
+//                resultado = "Las Fechas Son iguales ";
+//            }
+//        }
+//
+//        // return resultado;
+//    }
 
     // GET Y SETS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public MbMiniProveedor getMbProveedores() {
@@ -1092,5 +1123,90 @@ public class MbOrdenCompra implements Serializable {
 
     public void setOrdenCompraDetalleSeleccionado(OrdenCompraDetalle ordenCompraDetalleSeleccionado) {
         this.ordenCompraDetalleSeleccionado = ordenCompraDetalleSeleccionado;
+    }
+
+    public ArrayList<OrdenCompraEncabezado> getListaOrdenesEncabezadoD() throws NamingException {
+        try {
+            if (listaOrdenesEncabezadoD == null) {
+                this.cargaOrdenesEncabezadoD();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MbOrdenCompra.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+        return listaOrdenesEncabezadoD;
+    }
+
+    public void setListaOrdenesEncabezadoD(ArrayList<OrdenCompraEncabezado> listaOrdenesEncabezadoD) {
+        this.listaOrdenesEncabezadoD = listaOrdenesEncabezadoD;
+    }
+
+    public OrdenCompraEncabezado getOrdenElegidaD() {
+        return ordenElegidaD;
+    }
+
+    public void setOrdenElegidaD(OrdenCompraEncabezado ordenElegidaD) {
+        this.ordenElegidaD = ordenElegidaD;
+    }
+
+    public ArrayList<OrdenCompraDetalle> getListaOrdenDetalleD() {
+        return listaOrdenDetalleD;
+    }
+
+    public void setListaOrdenDetalleD(ArrayList<OrdenCompraDetalle> listaOrdenDetalleD) {
+        this.listaOrdenDetalleD = listaOrdenDetalleD;
+    }
+
+    public OrdenCompraDetalle getOrdenCompraDetalleD() {
+        return ordenCompraDetalleD;
+    }
+
+    public void setOrdenCompraDetalleD(OrdenCompraDetalle ordenCompraDetalleD) {
+        this.ordenCompraDetalleD = ordenCompraDetalleD;
+    }
+
+    public void dameOrdenCompraDirectaV(SelectEvent event) {
+        this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
+        subtotalGeneral = 0;
+        double sumaCostoCotizado = 0;
+        double descuentoC;
+        double descuentoPP;
+        double sumaDescuentosProductos = 0;
+        listaOrdenDetalleD = new ArrayList<>();
+        try {
+            int idOC = ordenElegidaD.getIdOrdenCompra();
+            DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
+            ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
+            DAOMovimientos dao = new DAOMovimientos();
+            Double impuestos = 0.00;
+            for (OrdenCompraDetalle d : lista) {
+                double neto = d.getCostoOrdenado() - (d.getCostoOrdenado() * (d.getDescuentoProducto() / 100));
+                double neto2 = neto - neto * (d.getDescuentoProducto2() / 100);
+                d.setNeto(neto2);
+                d.setSubtotal(d.getCostoOrdenado() * d.getCantOrdenada());
+                d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
+                sumaDescuentosProductos += (d.getCantOrdenada() * (d.getCostoOrdenado() - d.getNeto()));
+                sumaCostoCotizado += (d.getCantOrdenada() * d.getNeto());
+                subtotalGeneral += d.getSubtotal();
+                ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(d.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), ordenElegidaD.getProveedor().getImpuestoZona().getIdZona());
+                for (ImpuestosProducto impuestosProducto : lst) {
+                    impuestos = impuestos + ((d.getNeto() * d.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
+                }
+                listaOrdenDetalleD.add(d);
+            }
+            descuentoC = sumaCostoCotizado * (ordenElegidaD.getProveedor().getDesctoComercial() / 100);
+            sumaCostoCotizado = sumaCostoCotizado - descuentoC;
+            descuentoPP = sumaCostoCotizado * (ordenElegidaD.getProveedor().getDesctoProntoPago() / 100);
+            totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
+            totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
+            totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
+            totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+            totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+            totales.setImpuesto(truncarNumeros(impuestos));
+            totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
+            totales.setImpuesto(impuestos);
+        } catch (NamingException | SQLException ex) {
+            Mensajes.MensajeErrorP(ex.getMessage());
+        }
     }
 }

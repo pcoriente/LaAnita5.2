@@ -5,6 +5,7 @@ import cotizaciones.dao.DAOCotizaciones;
 import direccion.dao.DAODirecciones;
 import empresas.dao.DAOEmpresas;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,6 +18,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import monedas.DAOMonedas;
 import monedas.Moneda;
 import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import ordenesDeCompra.dominio.OrdenCompraEncabezado;
@@ -92,7 +94,7 @@ public class DAOOrdenDeCompra {
                     + "                                           inner join requisiciones r on r.idRequisicion = c.idRequisicion\n"
                     + "                                           inner join empresasGrupo eg on eg.idEmpresa = r.idEmpresa\n"
                     + "                                           inner join direcciones d on d.idDireccion = co.idDireccion) c on c.idCotizacion=oc.idCotizacion\n"
-                    + "                               where oc.estado >0\n"
+                    + "                               where oc.estado >0 and oc.idCotizacion>0\n"
                     + "                               order by oc.idOrdenCompra desc";
 
             ResultSet rs = sentencia.executeQuery(stringSQL);
@@ -139,7 +141,7 @@ public class DAOOrdenDeCompra {
     }
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
-        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<OrdenCompraEncabezado>();
+        ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
         String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
@@ -361,15 +363,19 @@ public class DAOOrdenDeCompra {
     public void guardarOrdenCompraDirecta(MiniProveedor mp, OrdenCompraEncabezado oced, ArrayList<OrdenCompraDetalle> ocd) throws SQLException {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
+     // Date fEntrega= (Date) oced.getFechaEntregaDirectas();
         int idEncabezado = 0;
         String ordenDetalle;
+        
+        java.sql.Date fecha=new java.sql.Date(oced.getFechaEntregaDirectas().getTime());
+
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial,"
-                    + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen) "
+                    + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
                     + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
-                    + " " + mp.getDesctoProntoPago() + ", GETDATE(), " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2)";
+                    + " " + mp.getDesctoProntoPago() + ", '"+fecha.toString()+"', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
@@ -401,5 +407,95 @@ public class DAOOrdenDeCompra {
         } finally {
             cn.close();
         }
+    }
+
+    public ArrayList<OrdenCompraEncabezado> listaOrdenesD() throws SQLException, NamingException {
+        ArrayList<OrdenCompraEncabezado> listaD = new ArrayList<>();
+        Connection cn = ds.getConnection();
+        Statement sentencia = cn.createStatement();
+        try {
+
+            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaCreacion, oc.fechaEntrega,\n"
+                    + "		oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
+                    + "    from ordenCompra oc\n"
+                    + "		inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
+                    + "		inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
+                    + "		inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
+                    + "	where oc.idCotizacion=0 \n"
+                    + "	order by oc.idOrdenCompra desc";
+            ResultSet rs = sentencia.executeQuery(stringSQL);
+            while (rs.next()) {
+                listaD.add(construirOCEncabezadoD(rs));
+            }
+        } finally {
+            cn.close();
+        }
+        return listaD;
+    }
+
+    private OrdenCompraEncabezado construirOCEncabezadoD(ResultSet rs) throws SQLException, NamingException {
+
+        OrdenCompraEncabezado oced = new OrdenCompraEncabezado();
+        
+        oced.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
+
+        DAOEmpresas daoE = new DAOEmpresas();
+        oced.setEmpresa(daoE.obtenerEmpresaConverter(rs.getInt("idEmpresa")));
+        
+        oced.setNombreComercial(rs.getString("contribuyente"));
+        
+//
+        DAOProveedores daoP = new DAOProveedores();
+        int idProveedor = rs.getInt("idProveedor");
+        if (idProveedor == 0) {
+            oced.setProveedor(new Proveedor());
+        } else {
+            oced.setProveedor(daoP.obtenerProveedor(idProveedor));
+        }
+
+        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaCreacion")));
+        oced.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
+
+        oced.setDesctoComercial(rs.getDouble("desctoComercial"));
+        oced.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
+        
+        DAOMonedas daoM = new DAOMonedas();
+        oced.setMoneda(daoM.obtenerMoneda(rs.getInt("idMoneda")));
+
+        int idDireccion = oced.getProveedor().getContribuyente().getDireccion().getIdDireccion(); //correcion daap
+        DAODirecciones daoD = new DAODirecciones();
+        if (idDireccion != 0) {
+            oced.getProveedor().setDireccionFiscal(daoD.obtener(idDireccion)); // correcion daap
+        }
+        int idDireccionEntrega = oced.getProveedor().getDireccionEntrega().getIdDireccion();
+        if (idDireccionEntrega != 0) {
+            oced.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
+        }
+
+        oced.setEstado(rs.getInt("estado"));
+        switch (rs.getInt("estado")) {
+            case 0:
+                oced.setStatus("Rechazado");
+                break;
+            case 1:
+                oced.setStatus("Activado");
+                break;
+            case 2:
+                oced.setStatus("Ordenado");
+                break;
+            case 3:
+                oced.setStatus("No Aprobado");
+                break;
+            case 4:
+                oced.setStatus("Cerrado");
+                break;
+            case 5:
+                oced.setStatus("Recibiendo");
+                break;
+            default:
+                oced.setStatus("Desconocido");
+        }
+
+        return oced;
     }
 }

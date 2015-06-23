@@ -230,7 +230,7 @@ public class MbEmpresas implements Serializable{
 
     //DAVID
     public ArrayList<SelectItem> obtenerListaEmpresas() throws SQLException, NamingException {
-        ArrayList<SelectItem> listaComboEmpresas = new ArrayList<SelectItem>();
+        ArrayList<SelectItem> listaComboEmpresas = new ArrayList<>();
 
         try {
             Empresa e0 = new Empresa();

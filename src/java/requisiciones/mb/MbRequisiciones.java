@@ -321,6 +321,7 @@ public class MbRequisiciones implements Serializable {
         for (RequisicionEncabezado e : toLista) {
             listaRequisicionesEncabezado.add(e);
         }
+        
 
     }
 
