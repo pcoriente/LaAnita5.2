@@ -68,21 +68,21 @@ public class MbOrdenCompra implements Serializable {
     private OrdenCompraEncabezado ordenElegida;
     private ArrayList<OrdenCompraDetalle> listaOrdenDetalle;
     private OrdenCompraDetalle ordenCompraDetalle;
-    private double subtotalGeneral;
-    private double sumaDescuentosGenerales;
-    private double subtotalBruto;
-    private double impuesto;
-    private double total;
-    private String subtotF;
-    private String descF;
-    private String subtotalBrutoF;
-    private String impF;
-    private String totalF;
-    private String sumaDescuentosProductosF;
-    private String sumaDescuentosGeneralesF;
-    private double iva = 0.16;
-    private double sumaDescuentoTotales;
-    private String sumaDescuentosTotalesF;
+   private double subtotalGeneral;
+  //  private double sumaDescuentosGenerales;
+ //   private double subtotalBruto;
+  //  private double impuesto;
+//    private double total;
+//    private String subtotF;
+//    private String descF;
+//    private String subtotalBrutoF;
+//    private String impF;
+//    private String totalF;
+//    private String sumaDescuentosProductosF;
+//    private String sumaDescuentosGeneralesF;
+  //  private double iva = 0.16;
+  //  private double sumaDescuentoTotales;
+//    private String sumaDescuentosTotalesF;
     private transient Correo correo;
     private ArrayList<Contacto> listaContactos;
     private transient Contacto contactoElegido;
@@ -107,8 +107,6 @@ public class MbOrdenCompra implements Serializable {
     private Empresa empre;
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
-    //@ManagedProperty(value = "#{mbCalculoRCOD}")
-    // private MbCalculoRCOD mbCalculoRCOD;
     private double descuentoGeneralAplicado;
     private TotalesOrdenCompra totales = new TotalesOrdenCompra();
     double sumaDescuentosProductos = 0.0;
@@ -119,7 +117,6 @@ public class MbOrdenCompra implements Serializable {
 
     public MbOrdenCompra() throws NamingException {
         this.ordenCompraEncabezado = new OrdenCompraEncabezado();
-
         this.mbCotizaciones = new MbCotizaciones();
         this.ordenCompraDetalle = new OrdenCompraDetalle();
         this.ordenElegida = new OrdenCompraEncabezado();
@@ -134,12 +131,9 @@ public class MbOrdenCompra implements Serializable {
         this.provee = new Proveedor();
         //-------DIRECTAS
         this.mbMonedas = new MbMonedas();
-        //  this.mbCalculoRCOD = new MbCalculoRCOD();
         this.ordenCompraDetalleSeleccionado = new OrdenCompraDetalle();
         this.ordenElegidaD = new OrdenCompraEncabezado();
         this.ordenCompraDetalleD = new OrdenCompraDetalle();
-
-
 
     }
 
@@ -152,22 +146,6 @@ public class MbOrdenCompra implements Serializable {
         for (OrdenCompraEncabezado d : lista) {
             listaOrdenesEncabezado.add(d);
         }
-
-
-    }
-
-    public void cargaOrdenesEncabezadoD() throws NamingException, SQLException {
-
-        listaOrdenesEncabezadoD = new ArrayList<>();
-        DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
-        ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
-        for (OrdenCompraEncabezado oced : listaD) {
-            listaOrdenesEncabezadoD.add(oced);
-        }
-
-
-
-
     }
 
     public void cargaOrdenesEncabezadoAlmacen(int idProveedor, int status) throws NamingException, SQLException {
@@ -314,68 +292,68 @@ public class MbOrdenCompra implements Serializable {
         }
     }
 
-    public void calculoSubtotalGeneral() {
-        subtotalGeneral = 0;
-        sumaDescuentosProductos = 0;
-        sumaDescuentosGenerales = 0;
-        double descProds = 0;
-        double descuentoC;
-        double descuentoPP;
-        double subt;
+//    public void calculoSubtotalGeneral() {
+//        subtotalGeneral = 0;
+//        sumaDescuentosProductos = 0;
+//        sumaDescuentosGenerales = 0;
+//        double descProds = 0;
+//        double descuentoC;
+//        double descuentoPP;
+//        double subt;
+//
+//        if (this.listaOrdenDetalle != null) {
+//            for (OrdenCompraDetalle oc : listaOrdenDetalle) {
+//                subtotalGeneral += oc.getSubtotal();
+//                descProds += (oc.getCantidadSolicitada() * (oc.getCostoOrdenado() - oc.getNeto()));
+//            }
+//            setSumaDescuentosProductos(descProds);
+//            double dc = this.ordenElegida.getDesctoComercial();
+//            double dpp = this.ordenElegida.getDesctoProntoPago();
+//            subt = subtotalGeneral;
+//            descuentoC = subt * (dc / 100);
+//
+//            subt = subt - descuentoC;
+//
+//            descuentoPP = subt * (dpp / 100);
+//            double descuentosGenerales = descuentoC + descuentoPP;
+//
+//            setSumaDescuentosGenerales(descuentosGenerales);
+//        } else {
+//            System.out.println("No hay valores en el arraylist");
+//        }
+//    }
 
-        if (this.listaOrdenDetalle != null) {
-            for (OrdenCompraDetalle oc : listaOrdenDetalle) {
-                subtotalGeneral += oc.getSubtotal();
-                descProds += (oc.getCantidadSolicitada() * (oc.getCostoOrdenado() - oc.getNeto()));
-            }
-            setSumaDescuentosProductos(descProds);
-            double dc = this.ordenElegida.getDesctoComercial();
-            double dpp = this.ordenElegida.getDesctoProntoPago();
-            subt = subtotalGeneral;
-            descuentoC = subt * (dc / 100);
+//    public void calcularSumaDescuentosTotales() {
+//        sumaDescuentoTotales = 0;
+//        setSumaDescuentoTotales(sumaDescuentosProductos + sumaDescuentosGenerales);
+//    }
 
-            subt = subt - descuentoC;
+//    @SuppressWarnings("empty-statement")
+//    public void calcularSubtotalBruto() {
+//        subtotalBruto = 0;
+//        this.setSubtotalBruto(this.getSubtotalGeneral() - this.getSumaDescuentoTotales());;
+//    }
 
-            descuentoPP = subt * (dpp / 100);
-            double descuentosGenerales = descuentoC + descuentoPP;
+//    public void calculoIVA() {
+//        impuesto = 0;
+//        if (this.getSubtotalBruto() > 0) {
+//            this.setImpuesto((this.getSubtotalBruto()) * iva);
+//        } else {
+//            this.setImpuesto(0.00);
+//        }
+//    }
 
-            setSumaDescuentosGenerales(descuentosGenerales);
-        } else {
-            System.out.println("No hay valores en el arraylist");
-        }
-    }
-
-    public void calcularSumaDescuentosTotales() {
-        sumaDescuentoTotales = 0;
-        setSumaDescuentoTotales(sumaDescuentosProductos + sumaDescuentosGenerales);
-    }
-
-    @SuppressWarnings("empty-statement")
-    public void calcularSubtotalBruto() {
-        subtotalBruto = 0;
-        this.setSubtotalBruto(this.getSubtotalGeneral() - this.getSumaDescuentoTotales());;
-    }
-
-    public void calculoIVA() {
-        impuesto = 0;
-        if (this.getSubtotalBruto() > 0) {
-            this.setImpuesto((this.getSubtotalBruto()) * iva);
-        } else {
-            this.setImpuesto(0.00);
-        }
-    }
-
-    public void calculoTotal() {
-        total = 0;
-        if (this.getSubtotalBruto() > 0) {
-
-            this.setTotal(this.getSubtotalBruto() + this.getImpuesto());
-
-        } else {
-            this.setTotal(0.00);
-
-        }
-    }
+//    public void calculoTotal() {
+//        total = 0;
+//        if (this.getSubtotalBruto() > 0) {
+//
+//            this.setTotal(this.getSubtotalBruto() + this.getImpuesto());
+//
+//        } else {
+//            this.setTotal(0.00);
+//
+//        }
+//    }
 
     public void guardarOrden(int idOrden, int estado) throws NamingException {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso: ", "guardarOrden");
@@ -426,17 +404,26 @@ public class MbOrdenCompra implements Serializable {
         return navega;
     }
 
-    public void generarReporte() {
+//    public void generarReporte() {
+//        try {
+//            TotalesOrdenCompra totalOrdenCompra = new TotalesOrdenCompra();
+//            totalOrdenCompra.setSubtotalGeneral(subtotalGeneral);
+//            totalOrdenCompra.setImpF(impF);
+//            totalOrdenCompra.setSubTotalBrutoF(subtotalBrutoF);
+// //           totalOrdenCompra.setSubtoF(subtotF);
+//            totalOrdenCompra.setSumaDescuentosGeneralesF(sumaDescuentosGeneralesF);
+//            totalOrdenCompra.setSumaDescuentosTotalesF(sumaDescuentosTotalesF);
+//            totalOrdenCompra.setSumaDescuentsoProductosF(sumaDescuentosProductosF);
+//            totalOrdenCompra.setTotalF(totalF);
+//            ocr.generarReporte(listaOrdenDetalle, ordenElegida, totalOrdenCompra, 0);
+//        } catch (JRException ex) {
+//            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+
+    public void generarReporteD() throws NamingException, SQLException {
         try {
-            TotalesOrdenCompra totalOrdenCompra = new TotalesOrdenCompra();
-            totalOrdenCompra.setImpF(impF);
-            totalOrdenCompra.setSubTotalBrutoF(subtotalBrutoF);
-            totalOrdenCompra.setSubtoF(subtotF);
-            totalOrdenCompra.setSumaDescuentosGeneralesF(sumaDescuentosGeneralesF);
-            totalOrdenCompra.setSumaDescuentosTotalesF(sumaDescuentosTotalesF);
-            totalOrdenCompra.setSumaDescuentsoProductosF(sumaDescuentosProductosF);
-            totalOrdenCompra.setTotalF(totalF);
-            ocr.generarReporte(listaOrdenDetalle, ordenElegida, totalOrdenCompra, 0);
+            ocr.generarReporte(listaOrdenDetalleD, ordenElegidaD, totales, 0);
         } catch (JRException ex) {
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -461,13 +448,13 @@ public class MbOrdenCompra implements Serializable {
             } else {
                 try {
                     TotalesOrdenCompra totalOrdenCompra = new TotalesOrdenCompra();
-                    totalOrdenCompra.setImpF(impF);
-                    totalOrdenCompra.setSubTotalBrutoF(subtotalBrutoF);
-                    totalOrdenCompra.setSubtoF(subtotF);
-                    totalOrdenCompra.setSumaDescuentosGeneralesF(sumaDescuentosGeneralesF);
-                    totalOrdenCompra.setSumaDescuentosTotalesF(sumaDescuentosTotalesF);
-                    totalOrdenCompra.setSumaDescuentsoProductosF(sumaDescuentosProductosF);
-                    totalOrdenCompra.setTotalF(totalF);
+//                    totalOrdenCompra.setImpF(impF);
+//                    totalOrdenCompra.setSubTotalBrutoF(subtotalBrutoF);
+//                //    totalOrdenCompra.setSubtoF(subtotF);
+//                    totalOrdenCompra.setSumaDescuentosGeneralesF(sumaDescuentosGeneralesF);
+//                    totalOrdenCompra.setSumaDescuentosTotalesF(sumaDescuentosTotalesF);
+//                    totalOrdenCompra.setSumaDescuentsoProductosF(sumaDescuentosProductosF);
+//                    totalOrdenCompra.setTotalF(totalF);
                     //DATOS FIJOS
 //                    String servidorCorreos = "mail.laanita.com";
 //                    String user = "carlos.pat";
@@ -607,201 +594,6 @@ public class MbOrdenCompra implements Serializable {
         return validar;
     }
 
-    public void guardarOrdenCompraDirecta() {
-        ordenCompraEncabezadoDirecta.getDesctoComercial();
-        mbProveedores.getMiniProveedor();
-        Date fe = ordenCompraEncabezadoDirecta.getFechaEntregaDirectas();
-        Date fhoy = new Date();
-//
-//        if (fe.before(fhoy)) {
-//            Mensajes.MensajeAlertP("Se requiere una fecha igual o mayor del día de hoy...");
-//        } else {
-            if (ordenCompraDetallesDirectas.isEmpty()) {
-                Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
-            } else {
-                try {
-                    DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
-                    dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
-                    Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
-                    this.cargaOrdenesEncabezado();
-                    this.listaOrdenesEncabezadoD=null;
-                } catch (NamingException | SQLException ex) {
-                    Mensajes.MensajeErrorP(ex.getMessage());
-                }
-            }
-//        }
-    }
-
-    public void calcularImporte() throws NamingException {
-        subtotalGeneral = 0;
-        double sumaCostoCotizado = 0;
-        double descuentoC;
-        double descuentoPP;
-        double sumaDescuentosProductos = 0;
-        DAOMovimientos dao = new DAOMovimientos();
-        Double impuestos = 0.00;
-        for (OrdenCompraDetalle e : ordenCompraDetallesDirectas) {
-            try {
-                double neto = e.getCostoOrdenado() - (e.getCostoOrdenado() * (e.getDescuentoProducto() / 100));
-                double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
-                e.setNeto(neto2);
-                e.setSubtotal(e.getCostoOrdenado() * e.getCantOrdenada());
-                subtotalGeneral += e.getSubtotal();
-                sumaCostoCotizado += (e.getCantOrdenada() * e.getNeto());
-                sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
-                ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
-                for (ImpuestosProducto impuestosProducto : lst) {
-                    impuestos = impuestos + ((e.getNeto() * e.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
-                }
-            } catch (SQLException ex) {
-                Mensajes.MensajeErrorP(ex.getMessage());
-                Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-
-        }
-        descuentoC = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoComercial() / 100);
-        sumaCostoCotizado = sumaCostoCotizado - descuentoC;
-        descuentoPP = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
-        totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
-        totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
-        totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
-        totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
-        totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-        totales.setImpuesto(truncarNumeros(impuestos));
-        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
-
-    }
-
-    public double truncarNumeros(double dato) {
-        DecimalFormat df = new DecimalFormat("##.##");
-        return Double.parseDouble(df.format(dato));
-    }
-
-    public void buscarSku() {
-        try {
-            this.mbBuscar.buscarLista();
-            if (this.mbBuscar.getProducto() != null) {
-                OrdenCompraDetalle req = new OrdenCompraDetalle();
-                req.setProducto(mbBuscar.getProducto());
-                ordenCompraDetallesDirectas.add(req);
-//                this.actualizaProductosSeleccionados();
-                mbBuscar.setProducto(new Producto());
-            }
-        } catch (NullPointerException e) {
-            Mensajes.MensajeAlertP("Error de excepcion");
-        }
-
-    }
-
-    public void buscar() throws NamingException, SQLException {
-        this.mbBuscar.buscarLista();
-        if (this.mbBuscar.getProducto() != null) {
-            this.dameEmpaqueSeleccionado();
-        }
-    }
-
-    public void cargaDatosProveedor() throws NamingException {
-
-        int idProve = this.mbProveedores.getMiniProveedor().getIdProveedor();
-        DAODirecciones daoD = new DAODirecciones();
-        DAOProveedores daoProv = new DAOProveedores();
-        try {
-            provee = daoProv.obtenerProveedor(idProve);
-            int idDirProv = provee.getContribuyente().getDireccion().getIdDireccion(); //CAMBIAR CUANDO TENGAMOS LA DIRECCION DE ENTREGA
-            this.provee.setDireccionEntrega(daoD.obtener(idDirProv));
-        } catch (SQLException ex) {
-            Logger.getLogger(MbOrdenCompra.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void validarRangoFechas() {
-
-        boolean ok = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "validarRangoFechas");
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-//        this.ordenCompraEncabezado.setFechaCreacion(sdf.format(ordenCompraEncabezado.getFechaEmisionDirectas()));
-//        this.ordenCompraEncabezado.setFechaFinalizacion(sdf.format(ordenCompraEncabezado.getFechaEntregaDirectas()));
-        if (this.ordenCompraEncabezado.getFechaCreacion() != null && ordenCompraEncabezado.getFechaFinalizacion() != null) {
-            if (this.ordenCompraEncabezado.getFechaCreacion().compareTo(ordenCompraEncabezado.getFechaFinalizacion()) <= 0) {
-                ok = true;
-            } else {
-                fMsg.setDetail("La fecha de emision  debe ser menor o igual a la fecha de entrega... ");
-            }
-        } else {
-            fMsg.setDetail("Las fechas no deben ser vacías... ");
-        }
-
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
-    }
-
-    public void handleClose() throws NamingException {
-        System.out.println("Entro  a limpiar");
-        this.mbEmpresas = new MbEmpresas();
-        this.mbProveedores = new MbMiniProveedor();
-        this.provee = new Proveedor();
-        this.ordenCompraEncabezado = new OrdenCompraEncabezado();
-        this.mbMonedas.getMoneda().setIdMoneda(0);
-        ordenCompraDetallesDirectas = new ArrayList<>();
-        totales = new TotalesOrdenCompra();
-    }
-
-    public void eliminaProducto() throws NamingException {
-        ordenCompraDetallesDirectas.remove(ordenCompraDetalleSeleccionado);
-        ordenCompraDetalleSeleccionado = null;
-        calcularImporte();
-    }
-
-    public void limpiaOrdenCompraDirecta() throws NamingException {
-        for (OrdenCompraDetalle d : listaOrdenDetalle) {
-            d.setCostoOrdenado(0);
-            d.setDescuentoProducto(0);
-            d.setDescuentoProducto2(0);
-            d.setNeto(0);
-            d.setSubtotal(0);
-        }
-        this.subtotalGeneral = 0.00;
-        this.sumaDescuentosProductos = 0.00;
-        this.descuentoGeneralAplicado = 0.00;
-        this.sumaDescuentoTotales = 0.00;
-        this.subtotalBruto = 0.00;
-        this.impuesto = 0.00;
-        this.total = 0.00;
-
-        //    ordenElegida = new OrdenCompraEncabezado();
-
-        this.setListaOrdenesEncabezado(null);
-        this.setOrdenCompraDetalle(null);
-
-        this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
-        ordenCompraDetallesDirectas.clear();
-        this.totales = new TotalesOrdenCompra();
-    }
-//
-//    public void compararFechasConDate() {
-//        Date fechaDate1 = this.getOrdenCompraEncabezadoDirecta().getFechaEntregaDirectas();
-//        Date fechaDate2 = new Date();
-//        String resultado = "";
-//        System.out.println("Parametro Date Fecha 1 = " + fechaDate1 + "\n"
-//                + "Parametro Date fechaActual = " + fechaDate2 + "\n");
-//
-//        if (fechaDate1.before(fechaDate2)) {
-//            resultado = "La Fecha 1 es menor ";
-//        } else {
-//            if (fechaDate2.before(fechaDate1)) {
-//                resultado = "La Fecha 1 es Mayor ";
-//            } else {
-//                resultado = "Las Fechas Son iguales ";
-//            }
-//        }
-//
-//        // return resultado;
-//    }
-
     // GET Y SETS ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public MbMiniProveedor getMbProveedores() {
         return mbProveedores;
@@ -869,14 +661,14 @@ public class MbOrdenCompra implements Serializable {
         this.ordenCompraDetalle = ordenCompraDetalle;
     }
 
-    public double getSubtotalGeneral() {
-        calculoSubtotalGeneral();
-        return subtotalGeneral;
-    }
-
-    public void setSubtotalGeneral(double subtotalGeneral) {
-        this.subtotalGeneral = subtotalGeneral;
-    }
+//    public double getSubtotalGeneral() {
+//        calculoSubtotalGeneral();
+//        return subtotalGeneral;
+//    }
+//
+//    public void setSubtotalGeneral(double subtotalGeneral) {
+//        this.subtotalGeneral = subtotalGeneral;
+//    }
 
     public double getSumaDescuentosProductos() {
         return sumaDescuentosProductos;
@@ -886,90 +678,90 @@ public class MbOrdenCompra implements Serializable {
         this.sumaDescuentosProductos = sumaDescuentosProductos;
     }
 
-    public double getImpuesto() {
-        calculoIVA();
-        return impuesto;
-    }
+//    public double getImpuesto() {
+//        calculoIVA();
+//        return impuesto;
+//    }
 
-    public void setImpuesto(double impuesto) {
-        this.impuesto = impuesto;
-    }
+//    public void setImpuesto(double impuesto) {
+//        this.impuesto = impuesto;
+//    }
 
-    public double getTotal() {
-        calculoTotal();
-        return total;
-    }
+//    public double getTotal() {
+//        calculoTotal();
+//        return total;
+//    }
+//
+//    public void setTotal(double total) {
+//        this.total = total;
+//    }
 
-    public void setTotal(double total) {
-        this.total = total;
-    }
+//    public String getSubtotF() {
+//        subtotF = utilerias.Utilerias.formatoMonedas(this.getSubtotalGeneral());
+//        return subtotF;
+//    }
 
-    public String getSubtotF() {
-        subtotF = utilerias.Utilerias.formatoMonedas(this.getSubtotalGeneral());
-        return subtotF;
-    }
+//    public String getDescF() {
+//        descF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
+//        return descF;
+//    }
 
-    public String getDescF() {
-        descF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
-        return descF;
-    }
+//    public String getImpF() { //IVA
+//        impF = utilerias.Utilerias.formatoMonedas(this.getImpuesto());
+//        return impF;
+//    }
+//
+//    public String getTotalF() {
+//        totalF = utilerias.Utilerias.formatoMonedas(this.getTotal());
+//        return totalF;
+//    }
 
-    public String getImpF() { //IVA
-        impF = utilerias.Utilerias.formatoMonedas(this.getImpuesto());
-        return impF;
-    }
+//    public double getSumaDescuentosGenerales() {
+//        return sumaDescuentosGenerales;
+//    }
+//
+//    public void setSumaDescuentosGenerales(double sumaDescuentosGenerales) {
+//        this.sumaDescuentosGenerales = sumaDescuentosGenerales;
+//    }
 
-    public String getTotalF() {
-        totalF = utilerias.Utilerias.formatoMonedas(this.getTotal());
-        return totalF;
-    }
+//    public String getSumaDescuentosProductosF() {
+//        sumaDescuentosProductosF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
+//        return sumaDescuentosProductosF;
+//    }
+//
+//    public String getSumaDescuentosGeneralesF() {
+//        sumaDescuentosGeneralesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosGenerales());
+//        return sumaDescuentosGeneralesF;
+//    }
 
-    public double getSumaDescuentosGenerales() {
-        return sumaDescuentosGenerales;
-    }
+//    public double getSubtotalBruto() {
+//        calcularSubtotalBruto();
+//        return subtotalBruto;
+//    }
+//
+//    public void setSubtotalBruto(double subtotalBruto) {
+//        this.subtotalBruto = subtotalBruto;
+//    }
 
-    public void setSumaDescuentosGenerales(double sumaDescuentosGenerales) {
-        this.sumaDescuentosGenerales = sumaDescuentosGenerales;
-    }
+//    public String getSubtotalBrutoF() {
+//        subtotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
+//        return subtotalBrutoF;
+//    }
 
-    public String getSumaDescuentosProductosF() {
-        sumaDescuentosProductosF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
-        return sumaDescuentosProductosF;
-    }
-
-    public String getSumaDescuentosGeneralesF() {
-        sumaDescuentosGeneralesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosGenerales());
-        return sumaDescuentosGeneralesF;
-    }
-
-    public double getSubtotalBruto() {
-        calcularSubtotalBruto();
-        return subtotalBruto;
-    }
-
-    public void setSubtotalBruto(double subtotalBruto) {
-        this.subtotalBruto = subtotalBruto;
-    }
-
-    public String getSubtotalBrutoF() {
-        subtotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
-        return subtotalBrutoF;
-    }
-
-    public double getSumaDescuentoTotales() {
-        calcularSumaDescuentosTotales();
-        return sumaDescuentoTotales;
-    }
-
-    public void setSumaDescuentoTotales(double sumaDescuentoTotales) {
-        this.sumaDescuentoTotales = sumaDescuentoTotales;
-    }
-
-    public String getSumaDescuentosTotalesF() {
-        sumaDescuentosTotalesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentoTotales());
-
-        return sumaDescuentosTotalesF;
-    }
+//    public double getSumaDescuentoTotales() {
+//        calcularSumaDescuentosTotales();
+//        return sumaDescuentoTotales;
+//    }
+//
+//    public void setSumaDescuentoTotales(double sumaDescuentoTotales) {
+//        this.sumaDescuentoTotales = sumaDescuentoTotales;
+//    }
+//
+//    public String getSumaDescuentosTotalesF() {
+//        sumaDescuentosTotalesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentoTotales());
+//
+//        return sumaDescuentosTotalesF;
+//    }
 
     public Correo getCorreo() {
         return correo;
@@ -1094,13 +886,6 @@ public class MbOrdenCompra implements Serializable {
         this.ordenCompraDetallesDirectas = ordenCompraDetallesDirectas;
     }
 
-//    public MbCalculoRCOD getMbCalculoRCOD() {
-//        return mbCalculoRCOD;
-//    }
-//
-//    public void setMbCalculoRCOD(MbCalculoRCOD mbCalculoRCOD) {
-//        this.mbCalculoRCOD = mbCalculoRCOD;
-//    }
     public double getDescuentoGeneralAplicado() {
         return descuentoGeneralAplicado;
     }
@@ -1165,6 +950,184 @@ public class MbOrdenCompra implements Serializable {
         this.ordenCompraDetalleD = ordenCompraDetalleD;
     }
 
+    //MENU SEGUNDA TABLA DE ORDENES DIRECTAS
+    public void cargaOrdenesEncabezadoD() throws NamingException, SQLException {
+
+        listaOrdenesEncabezadoD = new ArrayList<>();
+        DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
+        ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
+        for (OrdenCompraEncabezado oced : listaD) {
+            listaOrdenesEncabezadoD.add(oced);
+        }
+    }
+
+    public void guardarOrdenCompraDirecta() {
+        ordenCompraEncabezadoDirecta.getDesctoComercial();
+        mbProveedores.getMiniProveedor();
+        Date fe = ordenCompraEncabezadoDirecta.getFechaEntregaDirectas();
+        Date fhoy = new Date();
+//
+//        if (fe.before(fhoy)) {
+//            Mensajes.MensajeAlertP("Se requiere una fecha igual o mayor del día de hoy...");
+//        } else {
+        if (ordenCompraDetallesDirectas.isEmpty()) {
+            Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
+        } else {
+            try {
+                DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
+                dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
+                Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
+                this.cargaOrdenesEncabezado();
+                this.listaOrdenesEncabezadoD = null;
+            } catch (NamingException | SQLException ex) {
+                Mensajes.MensajeErrorP(ex.getMessage());
+            }
+        }
+    }
+
+    public double truncarNumeros(double dato) {
+        DecimalFormat df = new DecimalFormat("##.##");
+        return Double.parseDouble(df.format(dato));
+    }
+
+    public void buscarSku() {
+        try {
+            this.mbBuscar.buscarLista();
+            if (this.mbBuscar.getProducto() != null) {
+                OrdenCompraDetalle req = new OrdenCompraDetalle();
+                req.setProducto(mbBuscar.getProducto());
+                ordenCompraDetallesDirectas.add(req);
+                mbBuscar.setProducto(new Producto());
+            }
+        } catch (NullPointerException e) {
+            Mensajes.MensajeAlertP("Error de excepcion");
+        }
+    }
+
+    public void buscar() throws NamingException, SQLException {
+        this.mbBuscar.buscarLista();
+        if (this.mbBuscar.getProducto() != null) {
+            this.dameEmpaqueSeleccionado();
+        }
+    }
+
+    public void cargaDatosProveedor() throws NamingException {
+
+        int idProve = this.mbProveedores.getMiniProveedor().getIdProveedor();
+        DAODirecciones daoD = new DAODirecciones();
+        DAOProveedores daoProv = new DAOProveedores();
+        try {
+            provee = daoProv.obtenerProveedor(idProve);
+            int idDirProv = provee.getContribuyente().getDireccion().getIdDireccion(); //CAMBIAR CUANDO TENGAMOS LA DIRECCION DE ENTREGA
+            this.provee.setDireccionEntrega(daoD.obtener(idDirProv));
+        } catch (SQLException ex) {
+            Logger.getLogger(MbOrdenCompra.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void validarRangoFechas() {
+
+        boolean ok = false;
+        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "validarRangoFechas");
+
+        if (this.ordenCompraEncabezado.getFechaCreacion() != null && ordenCompraEncabezado.getFechaFinalizacion() != null) {
+            if (this.ordenCompraEncabezado.getFechaCreacion().compareTo(ordenCompraEncabezado.getFechaFinalizacion()) <= 0) {
+                ok = true;
+            } else {
+                fMsg.setDetail("La fecha de emision  debe ser menor o igual a la fecha de entrega... ");
+            }
+        } else {
+            fMsg.setDetail("Las fechas no deben ser vacías... ");
+        }
+
+        if (!ok) {
+            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+        }
+    }
+
+    public void handleClose() throws NamingException {
+        System.out.println("Entro  a limpiar");
+        this.mbEmpresas = new MbEmpresas();
+        this.mbProveedores = new MbMiniProveedor();
+        this.provee = new Proveedor();
+        this.ordenCompraEncabezado = new OrdenCompraEncabezado();
+        this.mbMonedas.getMoneda().setIdMoneda(0);
+        ordenCompraDetallesDirectas = new ArrayList<>();
+        totales = new TotalesOrdenCompra();
+    }
+
+    public void eliminaProducto() throws NamingException {
+        ordenCompraDetallesDirectas.remove(ordenCompraDetalleSeleccionado);
+        ordenCompraDetalleSeleccionado = null;
+        calcularImporte();
+    }
+
+    public void limpiaOrdenCompraDirecta() throws NamingException {
+        for (OrdenCompraDetalle d : listaOrdenDetalle) {
+            d.setCostoOrdenado(0);
+            d.setDescuentoProducto(0);
+            d.setDescuentoProducto2(0);
+            d.setNeto(0);
+            d.setSubtotal(0);
+        }
+        this.subtotalGeneral = 0.00;
+        this.sumaDescuentosProductos = 0.00;
+        this.descuentoGeneralAplicado = 0.00;
+       // this.sumaDescuentoTotales = 0.00;
+      //  this.subtotalBruto = 0.00;
+     //   this.impuesto = 0.00;
+    //    this.total = 0.00;
+
+        this.setListaOrdenesEncabezado(null);
+        this.setOrdenCompraDetalle(null);
+
+        this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
+        ordenCompraDetallesDirectas.clear();
+        this.totales = new TotalesOrdenCompra();
+    }
+
+    public void calcularImporte() throws NamingException {
+        // ordenCompraDetallesDirectas
+        subtotalGeneral = 0;
+        double sumaCostoCotizado = 0;
+        double descuentoC;
+        double descuentoPP;
+        double sumaDescuentosProductos = 0;
+        DAOMovimientos dao = new DAOMovimientos();
+        Double impuestos = 0.00;
+
+        //CALCULOS
+        for (OrdenCompraDetalle e : ordenCompraDetallesDirectas) {
+            try {
+                double neto = e.getCostoOrdenado() - (e.getCostoOrdenado() * (e.getDescuentoProducto() / 100));
+                double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
+                e.setNeto(neto2);
+                e.setSubtotal(e.getCostoOrdenado() * e.getCantOrdenada());
+                subtotalGeneral += e.getSubtotal();
+                sumaCostoCotizado += (e.getCantOrdenada() * e.getNeto());
+                sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
+                ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
+                for (ImpuestosProducto impuestosProducto : lst) {
+                    impuestos = impuestos + ((e.getNeto() * e.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
+                }
+            } catch (SQLException ex) {
+                Mensajes.MensajeErrorP(ex.getMessage());
+                Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        descuentoC = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoComercial() / 100);
+        sumaCostoCotizado = sumaCostoCotizado - descuentoC;
+        descuentoPP = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
+        totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
+        totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
+        totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
+        totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+        totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+        totales.setImpuesto(truncarNumeros(impuestos));
+        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
+    }
+
     public void dameOrdenCompraDirectaV(SelectEvent event) {
         this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
         subtotalGeneral = 0;
@@ -1179,6 +1142,8 @@ public class MbOrdenCompra implements Serializable {
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
             DAOMovimientos dao = new DAOMovimientos();
             Double impuestos = 0.00;
+
+            //calculos
             for (OrdenCompraDetalle d : lista) {
                 double neto = d.getCostoOrdenado() - (d.getCostoOrdenado() * (d.getDescuentoProducto() / 100));
                 double neto2 = neto - neto * (d.getDescuentoProducto2() / 100);
@@ -1209,4 +1174,6 @@ public class MbOrdenCompra implements Serializable {
             Mensajes.MensajeErrorP(ex.getMessage());
         }
     }
+    
+   
 }

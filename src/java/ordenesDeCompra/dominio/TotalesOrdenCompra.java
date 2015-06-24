@@ -13,7 +13,7 @@ package ordenesDeCompra.dominio;
 public class TotalesOrdenCompra {
     private String subtoF;
     private String sumaDescuentosGeneralesF;
-    private String sumaDescuentsoProductosF;
+    private String sumaDescuentosProductosF;
     private String sumaDescuentosTotalesF;
     private String subTotalBrutoF;
     private String impF;
@@ -42,6 +42,7 @@ public class TotalesOrdenCompra {
     
 
     public String getSubtoF() {
+         subtoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalGeneral());
         return subtoF;
     }
 
@@ -50,6 +51,7 @@ public class TotalesOrdenCompra {
     }
 
     public String getSumaDescuentosGeneralesF() {
+        sumaDescuentosGeneralesF = utilerias.Utilerias.formatoMonedas(this.getDescuentoGeneralAplicado());
         return sumaDescuentosGeneralesF;
     }
 
@@ -57,15 +59,19 @@ public class TotalesOrdenCompra {
         this.sumaDescuentosGeneralesF = sumaDescuentosGeneralesF;
     }
 
-    public String getSumaDescuentsoProductosF() {
-        return sumaDescuentsoProductosF;
+    public String getSumaDescuentosProductosF() {
+         sumaDescuentosProductosF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
+        
+        return sumaDescuentosProductosF;
     }
 
     public void setSumaDescuentsoProductosF(String sumaDescuentsoProductosF) {
-        this.sumaDescuentsoProductosF = sumaDescuentsoProductosF;
+        this.sumaDescuentosProductosF = sumaDescuentsoProductosF;
     }
 
     public String getSumaDescuentosTotalesF() {
+        sumaDescuentosTotalesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentoTotales());
+        
         return sumaDescuentosTotalesF;
     }
 
@@ -74,6 +80,7 @@ public class TotalesOrdenCompra {
     }
 
     public String getSubTotalBrutoF() {
+         subTotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
         return subTotalBrutoF;
     }
 
@@ -82,6 +89,7 @@ public class TotalesOrdenCompra {
     }
 
     public String getImpF() {
+          impF = utilerias.Utilerias.formatoMonedas(this.getImpuesto());
         return impF;
     }
 
@@ -90,6 +98,7 @@ public class TotalesOrdenCompra {
     }
 
     public String getTotalF() {
+        totalF = utilerias.Utilerias.formatoMonedas(this.getTotal());
         return totalF;
     }
 
@@ -106,6 +115,7 @@ public class TotalesOrdenCompra {
     }
 
     public double getDescuentoGeneralAplicado() {
+       
         return descuentoGeneralAplicado;
     }
 

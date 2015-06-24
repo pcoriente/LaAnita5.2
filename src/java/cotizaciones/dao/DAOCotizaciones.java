@@ -232,7 +232,7 @@ public class DAOCotizaciones {
                 if (idProv != idProveedor) {
                     idProveedor = idProv;
                     String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen,idEmpresa) "
-                            + "                        VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 1, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",1,0)";
+                            + "                        VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 2, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",2,0)";
                     //  cs1 = cn.prepareStatement();
                     cs1.executeUpdate(strSQL1);
                     String strSQLIdentity = "SELECT @@IDENTITY as idOrd";

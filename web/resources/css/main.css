@@ -190,6 +190,14 @@ a.nueva{ display:  inline;}
 
 }
 
+.dariasProceso.ui-dialog .ui-dialog-titlebar {
+    padding: .4em .4em .4em 1em;
+    position: relative;
+    border: 0px;
+    background-color: springgreen;
+
+}
+
 .dariasPanel.ui-panel .ui-panel-titlebar {
     padding: .4em .4em .4em 1em;
     position: relative;

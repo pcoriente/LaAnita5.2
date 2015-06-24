@@ -35,7 +35,7 @@ public class OrdenCompraReporte {
         String ubicacionCompilado = "C:\\Reportes\\ordenCompra.jasper";
         JasperPrint jasperprint;
         JasperReport report;
-        Map<String, Object> parametros = new HashMap<String, Object>();
+        Map<String, Object> parametros = new HashMap<>();
 // aqui es donde paso los parametros del encabezado lo que dice numeroOrden es el nombre del campo del ireport
         parametros.put("numeroOrden", ordenEncabezado.getIdOrdenCompra());
         parametros.put("proveedor", ordenEncabezado.getProveedor());
@@ -47,7 +47,7 @@ public class OrdenCompraReporte {
 //        ------------------------------Totales---------------------------------
         parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
         parametros.put("sumaDescuentosGeneralesF", totalesOrdenesCompra.getSumaDescuentosGeneralesF());
-        parametros.put("sumaDescuentosProductosF", totalesOrdenesCompra.getSumaDescuentsoProductosF());
+        parametros.put("sumaDescuentosProductosF", totalesOrdenesCompra.getSumaDescuentosProductosF());
         parametros.put("sumaDescuentosTotalesF", totalesOrdenesCompra.getSumaDescuentosTotalesF());
         parametros.put("subTotalBrutoF", totalesOrdenesCompra.getSubTotalBrutoF());
         parametros.put("impF", totalesOrdenesCompra.getImpF());

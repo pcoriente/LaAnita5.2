@@ -40,7 +40,7 @@ public class Reportes {
 //        ---------------------------------
         parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
         parametros.put("sumaDescuentosGeneralesF", totalesOrdenesCompra.getSumaDescuentosGeneralesF());
-        parametros.put("sumaDescuentosProductosF", totalesOrdenesCompra.getSumaDescuentsoProductosF());
+        parametros.put("sumaDescuentosProductosF", totalesOrdenesCompra.getSumaDescuentosProductosF());
         parametros.put("sumaDescuentosTotalesF", totalesOrdenesCompra.getSumaDescuentosTotalesF());
         parametros.put("subTotalBrutoF", totalesOrdenesCompra.getSubTotalBrutoF());
         parametros.put("impF", totalesOrdenesCompra.getImpF());
