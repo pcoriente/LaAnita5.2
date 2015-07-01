@@ -146,14 +146,14 @@
                               >
                         <p:toolbar  id="tb" style="width: 900px; height: auto; margin:0 auto; " >  
                             <p:toolbarGroup id="toolbar" align="right">  
-<!--                                <p:commandButton
-                                    icon="ui-icon-disk"
-                                    title="Guardar orden de compra"
-                                    actionListener="#{mbOrdenCompra.guardarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,mbOrdenCompra.ordenElegida.estado)}"
-                                    oncomplete="PF('odec').hide()"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 2 }"
-                                    update=":form:ordenCompra :form:dialogoOC"
-                                    />-->
+                                <!--                                <p:commandButton
+                                                                    icon="ui-icon-disk"
+                                                                    title="Guardar orden de compra"
+                                                                    actionListener="#{mbOrdenCompra.guardarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,mbOrdenCompra.ordenElegida.estado)}"
+                                                                    oncomplete="PF('odec').hide()"
+                                                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 2 }"
+                                                                    update=":form:ordenCompra :form:dialogoOC"
+                                                                    />-->
                                 <p:commandButton
                                     icon="ui-icon-cancel"
                                     title="Cancelar orden de compra"
@@ -162,13 +162,13 @@
                                     update=":form:ordenCompra :form:dialogoOC "
                                     />
                                 <p:separator />
-<!--                                <p:commandButton
-                                    icon="ui-icon-mail-closed"
-                                    title="Enviar orden de compra"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
-                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
-                                    oncomplete="PF('correo').show();"
-                                    update=":form:dialogoCorreo" />-->
+                                <!--                                <p:commandButton
+                                                                    icon="ui-icon-mail-closed"
+                                                                    title="Enviar orden de compra"
+                                                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
+                                                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
+                                                                    oncomplete="PF('correo').show();"
+                                                                    update=":form:dialogoCorreo" />-->
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra"
@@ -423,6 +423,8 @@
                                                 >
                                         <p:ajax event="dateSelect"
                                                 process="@this "
+                                                listener="#{mbOrdenCompra.validarRangoFechas()}"
+                                                update=":form:fEntrega"
                                                 />
                                     </p:calendar>
                                 </p:column>
@@ -482,11 +484,13 @@
                         <p:toolbar  id="tbD" style="width: 900px; height: auto; margin:0 auto; " >  
                             <f:facet name="left">
                                 <p:commandButton
+                                    id="idEliminaD"
                                     icon="ui-icon-trash"
                                     title="Eliminar empaque de la orden de compra directa"
+                                    disabled="#{mbOrdenCompra.ordenCompraDetallesDirectas == null}"
                                     actionListener="#{mbOrdenCompra.eliminaProducto}"
                                     update=":form:detalleOCD 
-                                    :form:buscarProductos :form:pieD :form:sumaDescuentosTotalesD"
+                                    :form:buscarProductos :form:pieD :form:sumaDescuentosTotalesD  "
 
                                     process="@this :form:detalleOCD"
                                     />
@@ -499,7 +503,7 @@
                                     icon="ui-icon-search"
                                     title="Buscar Productos"
                                     process="@this"
-                                    actionListener="#{mbOrdenCompra.limpiarCamposBusqueda()}"
+                                    actionListener="#{mbOrdenCompra.mbBuscar.inicializar()}"
                                     oncomplete="PF('buscarProductoDlg').show()"
                                     update=":form:buscarProductos 
                                     :form:opcionParte 
@@ -508,23 +512,27 @@
                                     :form:btnBuscarSKU"
                                     />
                             </f:facet>
-                            <f:facet name="right" >
+                            <f:facet id="idToolD" name="right" >
                                 <p:commandButton
+                                    id="idGuardaD"
                                     icon="ui-icon-disk"
                                     title="Guardar orden de compra directa"
-                                    oncomplete="PF('odecD').hide()"
+                                   
                                     process="@this :form:encabezadoOCD :form:mensajeProducto"
                                     actionListener="#{mbOrdenCompra.guardarOrdenCompraDirecta()}"
-                                    update=":form:ordenCompraD"
+                                    update=":form:ordenCompra :form:ordenCompraD "
+                                     oncomplete="PF('odec').hide()"
 
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
                                 </span>
                                 <p:commandButton
+                                    id="idRefreshD"
                                     icon="ui-icon-refresh"
                                     title="Limpiar formulario de orden de compra directa"
-                                    actionListener="#{mbOrdenCompra.limpiaOrdenCompraDirecta()}"
+                                    
+                                    actionListener="#{mbOrdenCompra.handleClose()}"
                                     update=":form:detalleOCD :form:encabezadoOCD "
                                     />
                                 <span class="ui-separator">
@@ -532,8 +540,11 @@
                                 </span>
 
                                 <p:commandButton
+                                    id="idCancelaD"
                                     icon="ui-icon-cancel"
                                     title="Cancelar orden de compra directa"
+                                  
+                                  
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -541,33 +552,17 @@
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
                                 </span>
-<!--                                <p:commandButton
-                                    icon="ui-icon-mail-closed"
-                                    title="Enviar orden de compra directa"
-                                    />-->
+                                <!--                                <p:commandButton
+                                                                    icon="ui-icon-mail-closed"
+                                                                    title="Enviar orden de compra directa"
+                                                                    />-->
 
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra directa"
-
+                                  
                                     />
 
-                                <span class="ui-separator">
-                                    <span class="ui-icon ui-icon-grip-dotted-vertical" />
-                                </span>
-
-                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
-                                                 title="Ir al menu de Ordenes de Compra"
-                                                 actionListener="#{mbOrdenCompra.limpiaOrdenCompraDirecta()}"
-                                                 update=":form:detalleOCD :form:encabezadoOCD "
-                                                 >
-                                    <p:confirm header="Deseas salir de la orden de compra?" message="Si no has guardado, los cambios se perderán..." icon="ui-icon-alert" />
-                                </p:commandButton>
-
-                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
-                                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecD').hide();" />
-                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
-                                </p:confirmDialog>
 
                             </f:facet>
                         </p:toolbar>
@@ -900,21 +895,21 @@
                         <p:toolbar  id="tbDV" style="width: 900px; height: auto; margin:0 auto; " >  
                             <p:toolbarGroup id="toolbarDV" align="right">  
 
-                                <p:commandButton
+<!--                                <p:commandButton
                                     icon="ui-icon-cancel"
                                     title="Cancelar orden de compra"
                                     actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
                                     oncomplete="PF('odecDV').hide()"
                                     update=":form:ordenCompra :form:dialogoOC "
                                     />
-                                <p:separator />
-<!--                                <p:commandButton
-                                    icon="ui-icon-mail-closed"
-                                    title="Enviar orden de compra"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
-                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
-                                    oncomplete="PF('correo').show();"
-                                    update=":form:dialogoCorreo" />-->
+                                <p:separator />-->
+                                <!--                                <p:commandButton
+                                                                    icon="ui-icon-mail-closed"
+                                                                    title="Enviar orden de compra"
+                                                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
+                                                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
+                                                                    oncomplete="PF('correo').show();"
+                                                                    update=":form:dialogoCorreo" />-->
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra"
@@ -924,7 +919,7 @@
                                     disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
                                     update=":form:ordenCompra"
                                     />
-                                <p:separator />
+<!--                                <p:separator />
                                 <p:commandButton
                                     id="salirOCDV"
                                     icon="ui-icon-arrowreturnthick-1-w"
@@ -937,7 +932,7 @@
                                 <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
                                     <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecDV').hide();" />
                                     <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
-                                </p:confirmDialog>
+                                </p:confirmDialog>-->
                             </p:toolbarGroup>  
                         </p:toolbar>
                         <p:separator style="width:900px;height:0.5px" />

@@ -162,16 +162,8 @@ public class DAORequisiciones {
     }
 
     private TORequisicionDetalle construirDetalle(ResultSet rs) throws SQLException, NamingException {
-//        RequisicionDetalle to = new RequisicionDetalle();
-//        DAOEmpaques daoEmp = new DAOEmpaques();
-//        DAOProductos daoProds = new DAOProductos();
-//        TOEmpaque toE = daoEmp.obtenerEmpaque(rs.getInt("idEmpaque"));
-//        Empaque empaque = this.convertir(toE, daoProds.obtenerProducto(toE.getIdProducto()));
-
         TORequisicionDetalle to = new TORequisicionDetalle();
         to.setIdRequisicion(rs.getInt("idRequisicion"));
-        //   to.setEmpaque(daoEmp.obtenerEmpaque(rs.getInt("idEmpaque")));
-//        to.setEmpaque(empaque);
         to.setIdProducto(rs.getInt("idEmpaque"));
         to.setCantidad(rs.getDouble("cantidadSolicitada"));
         to.setCantidadAutorizada(rs.getDouble("cantidadAutorizada"));

@@ -3,6 +3,7 @@
  * and open the template in the editor.
  */
 package ordenDeCompra.Report;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import ordenesDeCompra.dominio.TotalesOrdenCompra;
 import utilerias.Numero_a_Letra;
 import utilerias.Utilerias;
+
 /**
  *
  * @author daap
@@ -29,7 +31,7 @@ public class OrdenCompraReporte {
 
     public OrdenCompraReporte() {
     }
-    
+
     public String generarReporte(ArrayList<OrdenCompraDetalle> orden, OrdenCompraEncabezado ordenEncabezado, TotalesOrdenCompra totalesOrdenesCompra, int control) throws JRException {
         String ruta = "C:\\Reportes\\rOrdenCompra" + ordenEncabezado.getIdCotizacion() + ".pdf";
         String ubicacionCompilado = "C:\\Reportes\\ordenCompra.jasper";
@@ -55,7 +57,10 @@ public class OrdenCompraReporte {
         Numero_a_Letra numeroALetra = new Numero_a_Letra();
         Utilerias utilerias = new Utilerias();
         String letras = utilerias.quitarSigno$(totalesOrdenesCompra.getTotalF());
+        letras = utilerias.quitarComas(letras);
+        letras = Double.toString(Double.parseDouble(letras));
         letras = numeroALetra.Convertir(letras.trim(), true);
+        
         parametros.put("letras", letras);
         report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
         jasperprint = JasperFillManager.fillReport(report, parametros, new JRBeanCollectionDataSource(orden));
@@ -75,8 +80,8 @@ public class OrdenCompraReporte {
             FacesContext.getCurrentInstance().responseComplete();
         } catch (Exception e) {
             System.out.println(e);
-            
+
         }
-          return ruta;
+        return ruta;
     }
 }
