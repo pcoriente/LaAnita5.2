@@ -16,7 +16,7 @@
         <div id="wrapper" align="center">
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="center"  >
-                <h:form id="form" >
+                <h:form id="form"  onkeypress="return event.keyCode !== 13;" >
                     <p:messages id="msgMensaje" showDetail="true" autoUpdate="true" closable="true" />
                     <p:toolbar>
                         <f:facet name="right">
@@ -407,12 +407,14 @@
                             <p:row>
                                 <p:column    >
                                     <h:outputLabel   styleClass="textoContenido" />
-                                    <p:selectOneMenu id="empresaD" value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.empresa}" style="width: 200px;" >
+                                    <p:selectOneMenu id="empresaD" 
+                                                     value="#{mbOrdenCompra.empresa}" 
+                                                     style="width: 200px;">
                                         <f:converter converterId="converters.Empresa" />
                                         <f:selectItems value="#{mbOrdenCompra.mbEmpresas.listaObtenerEmpresas}" />
-                                        <p:ajax event="change"
-                                                />
-                                    </p:selectOneMenu><br></br>
+                                        <p:ajax event="change"/>
+                                    </p:selectOneMenu>
+                                    <br></br>
                                 </p:column>
                                 <p:column colspan="6"   >
                                     <p:calendar id="fEntrega"  
@@ -436,7 +438,6 @@
                                                       value="#{mbOrdenCompra.mbProveedores.miniProveedor}" 
                                                       filter="true" 
                                                       style="width: 200px;"
-
                                                       >
                                         <f:converter converterId="converters.miniProveedor" />
                                         <f:selectItems value="#{mbOrdenCompra.mbProveedores.listaMiniProveedores}" />
@@ -472,7 +473,8 @@
                             </p:row>
                             <p:row>
                                 <p:column colspan="6" >
-                                    <p:selectOneMenu id="monedaD" value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.moneda}"  >
+                                    <p:selectOneMenu id="monedaD" 
+                                                     value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.moneda}"  >
                                         <f:converter converterId="converters.Moneda" />
                                         <f:selectItems value="#{mbOrdenCompra.mbMonedas.listaMonedas}" />
                                         <p:ajax event="change" />
@@ -517,12 +519,9 @@
                                     id="idGuardaD"
                                     icon="ui-icon-disk"
                                     title="Guardar orden de compra directa"
-                                   
-                                    process="@this :form:encabezadoOCD :form:mensajeProducto"
+                                    process="@this :form:encabezadoOCD :form:empresaD"
                                     actionListener="#{mbOrdenCompra.guardarOrdenCompraDirecta()}"
-                                    update=":form:ordenCompra :form:ordenCompraD "
-                                     oncomplete="PF('odec').hide()"
-
+                                    update=":form:ordenCompra :form:ordenCompraD :form:mensajeProducto "
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />

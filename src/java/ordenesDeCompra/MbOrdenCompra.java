@@ -51,6 +51,7 @@ import ordenesDeCompra.dominio.Correo;
 import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import ordenesDeCompra.dominio.TotalesOrdenCompra;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import producto2.dominio.Producto;
@@ -71,20 +72,6 @@ public class MbOrdenCompra implements Serializable {
     private ArrayList<OrdenCompraDetalle> listaOrdenDetalle;
     private OrdenCompraDetalle ordenCompraDetalle;
     private double subtotalGeneral;
-    //  private double sumaDescuentosGenerales;
-    //   private double subtotalBruto;
-    //  private double impuesto;
-//    private double total;
-//    private String subtotF;
-//    private String descF;
-//    private String subtotalBrutoF;
-//    private String impF;
-//    private String totalF;
-//    private String sumaDescuentosProductosF;
-//    private String sumaDescuentosGeneralesF;
-    //  private double iva = 0.16;
-    //  private double sumaDescuentoTotales;
-//    private String sumaDescuentosTotalesF;
     private transient Correo correo;
     private ArrayList<Contacto> listaContactos;
     private transient Contacto contactoElegido;
@@ -104,7 +91,7 @@ public class MbOrdenCompra implements Serializable {
     private MbMiniProveedor mbProveedores;
     private Proveedor provee;
     //---------------------DIRECTAS
-    private OrdenCompraEncabezado ordenCompraEncabezadoDirecta;
+    private OrdenCompraEncabezado ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
     private ArrayList<OrdenCompraDetalle> ordenCompraDetallesDirectas = new ArrayList<>();
     private Empresa empre;
     @ManagedProperty(value = "#{mbMonedas}")
@@ -947,36 +934,8 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void guardarOrdenCompraDirecta() {
-//        int idEmpresa;
-//        int idProveedor;
-//        ordenCompraEncabezadoDirecta.getDesctoComercial();
-//        mbProveedores.getMiniProveedor();
-//        boolean control = true;
-//        
-//        try {
-//            idEmpresa = this.ordenCompraEncabezadoDirecta.getEmpresa().getIdEmpresa();
-//        } catch (Exception e) {
-//            idEmpresa = 0;
-//        }
-//
-//        try {
-//            idProveedor = this.mbProveedores.getMiniProveedor().getIdProveedor();
-//        } catch (Exception e) {
-//            idProveedor = 0;
-//        }
-//        boolean ok = this.validarRangoFechas();
-//
-//        if (idEmpresa == 0) {
-//            Mensajes.MensajeSuccesP("Elige una empresa..");
-//        } else if (idProveedor == 0) {
-//            Mensajes.MensajeSuccesP("Elige un proveedor");
-//        } else if (!ok) {
-//            Mensajes.MensajeSuccesP("Elige correctamente una fecha...");
-//        } else 
-
-        if (ordenCompraDetallesDirectas.isEmpty()) {
-            Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
-        } else {
+        if (validar() == true) {
+            ordenCompraEncabezadoDirecta.setEmpresa(empresa);
             boolean control = false;
             for (OrdenCompraDetalle p : this.ordenCompraDetallesDirectas) {
                 if (p.getCantOrdenada() <= 0) {
@@ -985,22 +944,39 @@ public class MbOrdenCompra implements Serializable {
                     break;
                 }
             }
-
             if (control == false) {
                 try {
                     DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
                     dao.guardarOrdenCompraDirecta(mbProveedores.getMiniProveedor(), ordenCompraEncabezadoDirecta, ordenCompraDetallesDirectas);
                     Mensajes.MensajeSuccesP("Nueva orden de compra disponible");
-                    this.listaOrdenesEncabezado=null;
-                    this.listaOrdenesEncabezadoD=null;
+                    this.listaOrdenesEncabezado = null;
+                    this.listaOrdenesEncabezadoD = null;
                     this.getListaOrdenesEncabezado();
                     this.getListaOrdenesEncabezadoD();
-                  //  this.cargaOrdenesEncabezado();
+                    RequestContext primeContext = RequestContext.getCurrentInstance();
+                    primeContext.execute("PF('odec').hide()");
                 } catch (NamingException | SQLException ex) {
                     Mensajes.MensajeErrorP(ex.getMessage());
                 }
             }
+
         }
+    }
+
+    public boolean validar() {
+        boolean ok = false;
+        if (empresa.getIdEmpresa() == 0) {
+            Mensajes.MensajeAlertP("Se requiere una empresa");
+        } else if (ordenCompraEncabezadoDirecta.getFechaEntregaDirectas().equals("")) {
+            Mensajes.MensajeAlertP("Se requiere una fecha de entrega");
+        } else if (ordenCompraEncabezadoDirecta.getMoneda().getIdMoneda() == 0) {
+            Mensajes.MensajeAlertP("Se requiere una moneda");
+        } else if (ordenCompraDetallesDirectas.isEmpty()) {
+            Mensajes.MensajeAlertP("Se requiere por lo menos un producto");
+        } else {
+            ok = true;
+        }
+        return ok;
     }
 
     public double truncarNumeros(double dato) {
@@ -1182,7 +1158,7 @@ public class MbOrdenCompra implements Serializable {
 
             totales.setImpuesto(truncarNumeros(impuestos));
             totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
-         //   totales.setImpuesto(impuestos);
+            //   totales.setImpuesto(impuestos);
         } catch (NamingException | SQLException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         }
