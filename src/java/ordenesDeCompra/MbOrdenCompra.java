@@ -246,7 +246,6 @@ public class MbOrdenCompra implements Serializable {
         try {
             int idOC = ordenElegida.getIdOrdenCompra();
 
-
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
 
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
@@ -346,7 +345,6 @@ public class MbOrdenCompra implements Serializable {
         try {
             if (estado == 1) {
                 daoO.procesarOrdenCompra(idOrden);
-
 
                 this.cargaOrdenesEncabezado();
 
@@ -520,12 +518,10 @@ public class MbOrdenCompra implements Serializable {
                 listaContactos = daoOC.obtenerContactos(ordenElegida.getIdOrdenCompra());
                 cadena = "";
 
-
             } catch (SQLException ex) {
                 Logger.getLogger(MbOrdenCompra.class
                         .getName()).log(Level.SEVERE, null, ex);
             }
-
 
         } catch (NamingException ex) {
             Logger.getLogger(MbOrdenCompra.class
@@ -607,7 +603,6 @@ public class MbOrdenCompra implements Serializable {
         try {
             if (listaOrdenesEncabezado == null) {
                 this.cargaOrdenesEncabezado();
-
 
             }
         } catch (SQLException ex) {
@@ -850,7 +845,6 @@ public class MbOrdenCompra implements Serializable {
 
     public ArrayList<OrdenCompraDetalle> getOrdenCompraDetallesDirectas() {
 
-
         return ordenCompraDetallesDirectas;
     }
 
@@ -938,8 +932,8 @@ public class MbOrdenCompra implements Serializable {
             ordenCompraEncabezadoDirecta.setEmpresa(empresa);
             boolean control = false;
             for (OrdenCompraDetalle p : this.ordenCompraDetallesDirectas) {
-                if (p.getCantOrdenada() <= 0) {
-                    Mensajes.MensajeAlertP("Aviso: Para el producto " + p.getProducto().toString() + " Capture una cantidad. ");
+                if (p.getCantOrdenada() <= 0 || p.getCostoOrdenado() == 0.00) {
+                    Mensajes.MensajeAlertP("Aviso: Para el producto " + p.getProducto().toString() + " Capture una cantidad o un costo. ");
                     control = true;
                     break;
                 }
@@ -967,7 +961,7 @@ public class MbOrdenCompra implements Serializable {
         boolean ok = false;
         if (empresa.getIdEmpresa() == 0) {
             Mensajes.MensajeAlertP("Se requiere una empresa");
-        } else if (ordenCompraEncabezadoDirecta.getFechaEntregaDirectas().equals("")) {
+        } else if (ordenCompraEncabezadoDirecta.getFechaEntregaDirectas() == null) {
             Mensajes.MensajeAlertP("Se requiere una fecha de entrega");
         } else if (ordenCompraEncabezadoDirecta.getMoneda().getIdMoneda() == 0) {
             Mensajes.MensajeAlertP("Se requiere una moneda");
