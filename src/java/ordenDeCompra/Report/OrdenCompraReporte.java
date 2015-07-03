@@ -33,8 +33,8 @@ public class OrdenCompraReporte {
     }
 
     public String generarReporte(ArrayList<OrdenCompraDetalle> orden, OrdenCompraEncabezado ordenEncabezado, TotalesOrdenCompra totalesOrdenesCompra, int control) throws JRException {
-        String ruta = "C:\\Reportes\\rOrdenCompra" + ordenEncabezado.getIdCotizacion() + ".pdf";
-        String ubicacionCompilado = "C:\\Reportes\\ordenCompra.jasper";
+        String ruta = "C:\\Carlos Pat\\Reportes\\rOrdenCompra" + ordenEncabezado.getIdOrdenCompra() + ".pdf";
+        String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\ordenCompra.jasper";
         JasperPrint jasperprint;
         JasperReport report;
         Map<String, Object> parametros = new HashMap<>();
@@ -43,9 +43,12 @@ public class OrdenCompraReporte {
         parametros.put("proveedor", ordenEncabezado.getProveedor());
         parametros.put("emision", ordenEncabezado.getFechaCreacion());
         parametros.put("entrega", ordenEncabezado.getFechaEntrega());
-        parametros.put("empresa", ordenEncabezado.getNombreComercial());
+        parametros.put("empresa", ordenEncabezado.getEmpresa().getEmpresa());
         parametros.put("comercial", ordenEncabezado.getDesctoComercial());
         parametros.put("prontoPago", ordenEncabezado.getDesctoProntoPago());
+        parametros.put("direccionProveedor", ordenEncabezado.getProveedor().getDireccionFiscal().toString2().toUpperCase());
+        parametros.put("direccionEntregaProveedor", ordenEncabezado.getProveedor().getDireccionEntrega().toString2().toUpperCase());
+        parametros.put("proveedorRFC", ordenEncabezado.getProveedor().getContribuyente().getRfc());
 //        ------------------------------Totales---------------------------------
         parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
         parametros.put("sumaDescuentosGeneralesF", totalesOrdenesCompra.getSumaDescuentosGeneralesF());
@@ -67,7 +70,7 @@ public class OrdenCompraReporte {
         try {
             if (control == 0) {
                 HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
-                httpServletResponse.addHeader("Content-disposition", "attachment; filename=rOrdenCompra" + ordenEncabezado.getIdCotizacion() + ".pdf");
+                httpServletResponse.addHeader("Content-disposition", "attachment; filename=rOrdenCompra" + ordenEncabezado.getIdOrdenCompra() + ".pdf");
                 ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
                 JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
             } else {

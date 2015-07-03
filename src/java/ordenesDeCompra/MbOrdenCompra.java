@@ -359,28 +359,28 @@ public class MbOrdenCompra implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
     }
 
-    public void cancelarOrden(int idOrden, int estado) throws NamingException {
-        Boolean correcto = false;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
-        DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
-        try {
-            if (estado == 0) {
-                daoO.cancelarOrdenCompra(idOrden);
-                this.setListaOrdenesEncabezado(null);
-                this.cargaOrdenesEncabezado();
-
-                fMsg.setDetail("Se ha CANCELADO");
-                correcto = true;
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-            fMsg.setDetail("No se realizó la cancelación de la orden de compra.." + ex.getMessage());
-        }
-
-        if (!correcto) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-        }
-    }
+//    public void cancelarOrden(int idOrden, int estado) throws NamingException {
+//        Boolean correcto = false;
+//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
+//        DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
+//        try {
+//            if (estado == 0) {
+//                daoO.cancelarOrdenCompra(idOrden);
+//                this.setListaOrdenesEncabezado(null);
+//                this.cargaOrdenesEncabezado();
+//
+//                fMsg.setDetail("Se ha CANCELADO");
+//                correcto = true;
+//            }
+//        } catch (SQLException ex) {
+//            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
+//            fMsg.setDetail("No se realizó la cancelación de la orden de compra.." + ex.getMessage());
+//        }
+//
+//        if (!correcto) {
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//        }
+//    }
 
     public String irMenu() throws NamingException {
         String navega = "menuOrdenesDeCompra.xhtml";

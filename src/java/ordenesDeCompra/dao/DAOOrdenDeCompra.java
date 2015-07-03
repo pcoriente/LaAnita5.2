@@ -312,22 +312,22 @@ public class DAOOrdenDeCompra {
         }
     }
 
-    public void cancelarOrdenCompra(int idOrden) throws SQLException {
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        PreparedStatement ps2;
-        try {
-
-            //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
-            ps2 = cn.prepareStatement(strSQL2);
-            ps2.executeUpdate();
-        } catch (SQLException e) {
-            throw (e);
-        } finally {
-            cn.close();
-        }
-    }
+//    public void cancelarOrdenCompra(int idOrden) throws SQLException {
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        PreparedStatement ps2;
+//        try {
+//
+//            //CABECERO
+//            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
+//            ps2 = cn.prepareStatement(strSQL2);
+//            ps2.executeUpdate();
+//        } catch (SQLException e) {
+//            throw (e);
+//        } finally {
+//            cn.close();
+//        }
+//    }
 
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
         ArrayList<Contacto> lista;

@@ -154,15 +154,9 @@
                                                                     disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 2 }"
                                                                     update=":form:ordenCompra :form:dialogoOC"
                                                                     />-->
-                                <p:commandButton
-                                    icon="ui-icon-cancel"
-                                    title="Cancelar orden de compra"
-                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegida.idOrdenCompra,0)}"
-                                    oncomplete="PF('odec').hide()"
-                                    update=":form:ordenCompra :form:dialogoOC "
-                                    />
+<!--                               
                                 <p:separator />
-                                <!--                                <p:commandButton
+                                                              <p:commandButton
                                                                     icon="ui-icon-mail-closed"
                                                                     title="Enviar orden de compra"
                                                                     disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
@@ -600,7 +594,7 @@
                                 <pe:inputNumber
                                     value="#{detD.costoOrdenado}"
                                     id="cotizada"
-                                    decimalPlaces="3"
+                                    decimalPlaces="5"
                                     minValue="0"
                                     decimalSeparator="."
                                     thousandSeparator=","
@@ -894,14 +888,8 @@
                         <p:toolbar  id="tbDV" style="width: 900px; height: auto; margin:0 auto; " >  
                             <p:toolbarGroup id="toolbarDV" align="right">  
 
-<!--                                <p:commandButton
-                                    icon="ui-icon-cancel"
-                                    title="Cancelar orden de compra"
-                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
-                                    oncomplete="PF('odecDV').hide()"
-                                    update=":form:ordenCompra :form:dialogoOC "
-                                    />
-                                <p:separator />-->
+
+                                <p:separator />
                                 <!--                                <p:commandButton
                                                                     icon="ui-icon-mail-closed"
                                                                     title="Enviar orden de compra"
