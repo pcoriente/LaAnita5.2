@@ -53,11 +53,11 @@
                     </p:toolbar>
                     <!-- P A N E L   D E  A D M I N I S T R A C I O N... -->
                     <p:panel header="ORDENES DE COMPRA-POR PROCESO" styleClass="dariasPanel" >
-                        <h:outputText value="No hay ORDENES DE COMPRA que mostrar !!" rendered="#{empty mbOrdenCompra.listaOrdenesEncabezado}" />
                         <p:dataTable id="ordenCompra"
                                      value="#{mbOrdenCompra.listaOrdenesEncabezado}"
                                      var="oc"
                                      rowKey="#{oc}"
+                                     emptyMessage="No hay ORDENES DE COMPRA que mostrar !!"
                                      selectionMode="single"
                                      selection="#{mbOrdenCompra.ordenElegidaD}"
                                      >
@@ -96,10 +96,10 @@
                         </p:dataTable>
                     </p:panel >
                     <p:panel header="ORDENES DE COMPRA-DIRECTAS" styleClass="dariasPanelD" >
-                        <h:outputText value="No hay ORDENES DE COMPRA-DIRECTAS que mostrar !!!!" rendered="#{empty mbOrdenCompra.listaOrdenesEncabezado}" />
                         <p:dataTable id="ordenCompraD"
                                      value="#{mbOrdenCompra.listaOrdenesEncabezadoD}"
                                      var="ocd"
+                                     emptyMessage="No hay ORDENES DE COMPRA-DIRECTAS que mostrar !!"
                                      rowKey="#{ocd}"
                                      selectionMode="single"
                                      selection="#{mbOrdenCompra.ordenElegidaD}"
