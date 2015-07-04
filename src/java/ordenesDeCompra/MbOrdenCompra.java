@@ -281,64 +281,6 @@ public class MbOrdenCompra implements Serializable {
         }
     }
 
-//    public void calculoSubtotalGeneral() {
-//        subtotalGeneral = 0;
-//        sumaDescuentosProductos = 0;
-//        sumaDescuentosGenerales = 0;
-//        double descProds = 0;
-//        double descuentoC;
-//        double descuentoPP;
-//        double subt;
-//
-//        if (this.listaOrdenDetalle != null) {
-//            for (OrdenCompraDetalle oc : listaOrdenDetalle) {
-//                subtotalGeneral += oc.getSubtotal();
-//                descProds += (oc.getCantidadSolicitada() * (oc.getCostoOrdenado() - oc.getNeto()));
-//            }
-//            setSumaDescuentosProductos(descProds);
-//            double dc = this.ordenElegida.getDesctoComercial();
-//            double dpp = this.ordenElegida.getDesctoProntoPago();
-//            subt = subtotalGeneral;
-//            descuentoC = subt * (dc / 100);
-//
-//            subt = subt - descuentoC;
-//
-//            descuentoPP = subt * (dpp / 100);
-//            double descuentosGenerales = descuentoC + descuentoPP;
-//
-//            setSumaDescuentosGenerales(descuentosGenerales);
-//        } else {
-//            System.out.println("No hay valores en el arraylist");
-//        }
-//    }
-//    public void calcularSumaDescuentosTotales() {
-//        sumaDescuentoTotales = 0;
-//        setSumaDescuentoTotales(sumaDescuentosProductos + sumaDescuentosGenerales);
-//    }
-//    @SuppressWarnings("empty-statement")
-//    public void calcularSubtotalBruto() {
-//        subtotalBruto = 0;
-//        this.setSubtotalBruto(this.getSubtotalGeneral() - this.getSumaDescuentoTotales());;
-//    }
-//    public void calculoIVA() {
-//        impuesto = 0;
-//        if (this.getSubtotalBruto() > 0) {
-//            this.setImpuesto((this.getSubtotalBruto()) * iva);ñ
-//        } else {
-//            this.setImpuesto(0.00);
-//        }
-//    }
-//    public void calculoTotal() {
-//        total = 0;
-//        if (this.getSubtotalBruto() > 0) {
-//
-//            this.setTotal(this.getSubtotalBruto() + this.getImpuesto());
-//
-//        } else {
-//            this.setTotal(0.00);
-//
-//        }
-//    }
     public void guardarOrden(int idOrden, int estado) throws NamingException {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso: ", "guardarOrden");
         DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
@@ -359,50 +301,11 @@ public class MbOrdenCompra implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
     }
 
-//    public void cancelarOrden(int idOrden, int estado) throws NamingException {
-//        Boolean correcto = false;
-//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
-//        DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
-//        try {
-//            if (estado == 0) {
-//                daoO.cancelarOrdenCompra(idOrden);
-//                this.setListaOrdenesEncabezado(null);
-//                this.cargaOrdenesEncabezado();
-//
-//                fMsg.setDetail("Se ha CANCELADO");
-//                correcto = true;
-//            }
-//        } catch (SQLException ex) {
-//            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-//            fMsg.setDetail("No se realizó la cancelación de la orden de compra.." + ex.getMessage());
-//        }
-//
-//        if (!correcto) {
-//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-//        }
-//    }
-
     public String irMenu() throws NamingException {
         String navega = "menuOrdenesDeCompra.xhtml";
         return navega;
     }
 
-//    public void generarReporte() {
-//        try {
-//            TotalesOrdenCompra totalOrdenCompra = new TotalesOrdenCompra();
-//            totalOrdenCompra.setSubtotalGeneral(subtotalGeneral);
-//            totalOrdenCompra.setImpF(impF);
-//            totalOrdenCompra.setSubTotalBrutoF(subtotalBrutoF);
-// //           totalOrdenCompra.setSubtoF(subtotF);
-//            totalOrdenCompra.setSumaDescuentosGeneralesF(sumaDescuentosGeneralesF);
-//            totalOrdenCompra.setSumaDescuentosTotalesF(sumaDescuentosTotalesF);
-//            totalOrdenCompra.setSumaDescuentsoProductosF(sumaDescuentosProductosF);
-//            totalOrdenCompra.setTotalF(totalF);
-//            ocr.generarReporte(listaOrdenDetalle, ordenElegida, totalOrdenCompra, 0);
-//        } catch (JRException ex) {
-//            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
     public void generarReporteD() throws NamingException, SQLException {
         try {
             ocr.generarReporte(listaOrdenDetalleD, ordenElegidaD, totales, 0);
@@ -640,14 +543,6 @@ public class MbOrdenCompra implements Serializable {
         this.ordenCompraDetalle = ordenCompraDetalle;
     }
 
-//    public double getSubtotalGeneral() {
-//        calculoSubtotalGeneral();
-//        return subtotalGeneral;
-//    }
-//
-//    public void setSubtotalGeneral(double subtotalGeneral) {
-//        this.subtotalGeneral = subtotalGeneral;
-//    }
     public double getSumaDescuentosProductos() {
         return sumaDescuentosProductos;
     }
@@ -656,80 +551,6 @@ public class MbOrdenCompra implements Serializable {
         this.sumaDescuentosProductos = sumaDescuentosProductos;
     }
 
-//    public double getImpuesto() {
-//        calculoIVA();
-//        return impuesto;
-//    }
-//    public void setImpuesto(double impuesto) {
-//        this.impuesto = impuesto;
-//    }
-//    public double getTotal() {
-//        calculoTotal();
-//        return total;
-//    }
-//
-//    public void setTotal(double total) {
-//        this.total = total;
-//    }
-//    public String getSubtotF() {
-//        subtotF = utilerias.Utilerias.formatoMonedas(this.getSubtotalGeneral());
-//        return subtotF;
-//    }
-//    public String getDescF() {
-//        descF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
-//        return descF;
-//    }
-//    public String getImpF() { //IVA
-//        impF = utilerias.Utilerias.formatoMonedas(this.getImpuesto());
-//        return impF;
-//    }
-//
-//    public String getTotalF() {
-//        totalF = utilerias.Utilerias.formatoMonedas(this.getTotal());
-//        return totalF;
-//    }
-//    public double getSumaDescuentosGenerales() {
-//        return sumaDescuentosGenerales;
-//    }
-//
-//    public void setSumaDescuentosGenerales(double sumaDescuentosGenerales) {
-//        this.sumaDescuentosGenerales = sumaDescuentosGenerales;
-//    }
-//    public String getSumaDescuentosProductosF() {
-//        sumaDescuentosProductosF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosProductos());
-//        return sumaDescuentosProductosF;
-//    }
-//
-//    public String getSumaDescuentosGeneralesF() {
-//        sumaDescuentosGeneralesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentosGenerales());
-//        return sumaDescuentosGeneralesF;
-//    }
-//    public double getSubtotalBruto() {
-//        calcularSubtotalBruto();
-//        return subtotalBruto;
-//    }
-//
-//    public void setSubtotalBruto(double subtotalBruto) {
-//        this.subtotalBruto = subtotalBruto;
-//    }
-//    public String getSubtotalBrutoF() {
-//        subtotalBrutoF = utilerias.Utilerias.formatoMonedas(this.getSubtotalBruto());
-//        return subtotalBrutoF;
-//    }
-//    public double getSumaDescuentoTotales() {
-//        calcularSumaDescuentosTotales();
-//        return sumaDescuentoTotales;
-//    }
-//
-//    public void setSumaDescuentoTotales(double sumaDescuentoTotales) {
-//        this.sumaDescuentoTotales = sumaDescuentoTotales;
-//    }
-//
-//    public String getSumaDescuentosTotalesF() {
-//        sumaDescuentosTotalesF = utilerias.Utilerias.formatoMonedas(this.getSumaDescuentoTotales());
-//
-//        return sumaDescuentosTotalesF;
-//    }
     public Correo getCorreo() {
         return correo;
     }
@@ -1035,25 +856,7 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void limpiaOrdenCompraDirecta() throws NamingException {
-//        for (OrdenCompraDetalle d : listaOrdenDetalle) {
-//            d.setCostoOrdenado(0);
-//            d.setDescuentoProducto(0);
-//            d.setDescuentoProducto2(0);
-//            d.setNeto(0);
-//            d.setSubtotal(0);
-//        }
-//        this.subtotalGeneral = 0.00;
-//        this.sumaDescuentosProductos = 0.00;
-//        this.descuentoGeneralAplicado = 0.00;
-        // this.sumaDescuentoTotales = 0.00;
-        //  this.subtotalBruto = 0.00;
-        //   this.impuesto = 0.00;
-        //    this.total = 0.00;
-
         this.setListaOrdenesEncabezado(null);
-        //     this.setOrdenCompraDetalleD(null);
-
-        //    this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
         ordenCompraDetallesDirectas.clear();
         this.totales = new TotalesOrdenCompra();
     }

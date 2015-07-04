@@ -29,6 +29,7 @@ public class Proveedor implements Serializable {
     private ArrayList<Contacto> contactos;
     private double desctoComercial;
     private double desctoProntoPago;
+    private int codigoProveedor;
 
     public Proveedor() {
         this.idProveedor = 0;
@@ -46,6 +47,7 @@ public class Proveedor implements Serializable {
         this.fechaAlta = "";
         this.desctoComercial = 0.00;
         this.desctoProntoPago = 0.00;
+        this.codigoProveedor=0;
     }
 
     @Override
@@ -181,4 +183,14 @@ public class Proveedor implements Serializable {
     public void setDesctoProntoPago(double desctoProntoPago) {
         this.desctoProntoPago = desctoProntoPago;
     }
+
+    public int getCodigoProveedor() {
+        return codigoProveedor;
+    }
+
+    public void setCodigoProveedor(int codigoProveedor) {
+        this.codigoProveedor = codigoProveedor;
+    }
+    
+    
 }

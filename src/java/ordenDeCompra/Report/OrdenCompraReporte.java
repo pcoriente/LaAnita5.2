@@ -46,10 +46,17 @@ public class OrdenCompraReporte {
         parametros.put("empresa", ordenEncabezado.getEmpresa().getEmpresa());
         parametros.put("comercial", ordenEncabezado.getDesctoComercial());
         parametros.put("prontoPago", ordenEncabezado.getDesctoProntoPago());
+        //PARAMETROS AÑADIDOS PARA REPORTE 3/JULIO/2015
         parametros.put("direccionProveedor", ordenEncabezado.getProveedor().getDireccionFiscal().toString2().toUpperCase());
         parametros.put("direccionEntregaProveedor", ordenEncabezado.getProveedor().getDireccionEntrega().toString2().toUpperCase());
         parametros.put("proveedorRFC", ordenEncabezado.getProveedor().getContribuyente().getRfc());
-//        ------------------------------Totales---------------------------------
+        parametros.put("limiteCredito",ordenEncabezado.getProveedor().getLimiteCredito());
+        parametros.put("codigoProveedor",ordenEncabezado.getProveedor().getCodigoProveedor());
+        parametros.put("proveedorMunicipio",ordenEncabezado.getProveedor().getDireccionFiscal().getMunicipio());
+        parametros.put("proveedorEstado",ordenEncabezado.getProveedor().getDireccionFiscal().getEstado());
+        
+        
+//        ------------------------------Totales---------------------------------;
         parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
         parametros.put("sumaDescuentosGeneralesF", totalesOrdenesCompra.getSumaDescuentosGeneralesF());
         parametros.put("sumaDescuentosProductosF", totalesOrdenesCompra.getSumaDescuentosProductosF());
