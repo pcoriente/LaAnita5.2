@@ -133,6 +133,7 @@ a.nueva{ display:  inline;}
 .textoEtiquetas{
     color: blue;
     text-align: right;
+    width: 150px;
 }
 
 .ui-panel, ui-widget, ui-widget-content, ui-corner-all {
