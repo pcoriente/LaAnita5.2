@@ -11,15 +11,11 @@ public class Recepcion {
     private int idMovto;
     private TOAlmacenJS almacen;
     private int folio;
-//    private TOComprobante comprobante;
-//    private int idImpuestoZona;
-//    private Moneda moneda;
-//    private double tipoCambio;
-//    private double desctoComercial;
-//    private double desctoProntoPago;
+    private TOAlmacenJS almacenOrigen;
     private Date fecha;
     private int idUsuario;
-    private TOAlmacenJS almacenOrigen;
+    private int estatus;
+    private int referencia;
     private int idMovtoAlmacen;
     private int folioAlmacen;
     private double subTotal;
@@ -177,5 +173,21 @@ public class Recepcion {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    public int getEstatus() {
+        return estatus;
+    }
+
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
+    }
+
+    public int getReferencia() {
+        return referencia;
+    }
+
+    public void setReferencia(int referencia) {
+        this.referencia = referencia;
     }
 }

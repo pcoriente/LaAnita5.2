@@ -22,6 +22,7 @@ public class PedidoProducto {
     
     public PedidoProducto() {
         this.producto=new Producto();
+        this.impuestos=new ArrayList<>();
     }
 
     public PedidoProducto(Producto producto) {

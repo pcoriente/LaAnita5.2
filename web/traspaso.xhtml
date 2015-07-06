@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -22,7 +21,7 @@
                         <p:panelGrid id="encabezadoEnvio" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="ALMACEN QUE ENVIA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:selectOneMenu id="almacenOrigen" value="#{mbTraspaso.toAlmacen}" style="width: 450px;" >
@@ -83,9 +82,15 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
-                                                     process="@this" actionListener="#{mbTraspaso.grabarEnvio()}" update="main" />
+                                                     disabled="#{mbTraspaso.envio.estatus!=0}"
+                                                     process="@this" actionListener="#{mbTraspaso.grabar()}" 
+                                                     update="main" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                     disabled="#{mbTraspaso.envio.estatus==0}"
+                                                     ajax="false" immediate="true" action="#{mbTraspaso.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
-                                                     process="@this" actionListener="#{mbTraspaso.salir()}" update="main" />
+                                                     process="@this" actionListener="#{mbTraspaso.salir()}" 
+                                                     update="main" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -121,14 +126,6 @@
                                 <p:column >
                                     <p:inputText value="#{mbTraspaso.envioProducto.cantOrdenada}" size="14" readonly="true" />
                                 </p:column>
-                                <p:column >
-                                    <h:outputLabel value="Enviar :" style="font-weight: bold; color: red; width: 60px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbTraspaso.envioProducto.cantFacturada}" size="14" >
-                                        <p:ajax event="change" process="@this" />
-                                    </p:inputText>
-                                </p:column>
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="listaLotes" widgetVar="listaLotesEdit" 
@@ -150,9 +147,15 @@
                             </p:column>
                             <p:column headerText="SEPARADOS" style="width: 80px;" >
                                 <p:cellEditor>
-                                    <f:facet name="output"><h:outputText value="#{lote.separados}" /></f:facet>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{lote.separados}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{lote.separados}" onblur="" >
+                                        <p:inputText value="#{lote.separados}" readonly="#{mbTraspaso.envio.estatus!=0}" >
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <p:ajax event="change" listener="#{mbTraspaso.gestionarLotes1()}" 
                                                     update=":main:msgs1 :main:listaLotes lotesTotales" 
                                                     oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
@@ -164,7 +167,7 @@
                                 <p:panelGrid id="lotesTotales" >
                                     <p:row >
                                         <p:column colspan="3" style="text-align: right; text-align: right;" >
-                                            <h:outputText value="Suma Separados :" />
+                                            <h:outputText value="Enviar :" />
                                         </p:column>
                                         <p:column style="text-align: left" >
                                             <h:outputText value="#{mbTraspaso.sumaLotes}" />

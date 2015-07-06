@@ -319,10 +319,12 @@ public class MbEntradasAlmacen implements Serializable {
         turnos.add("3");
         try {
             this.daoLotes = new DAOLotes();
-            if (!this.daoLotes.validaLote(this.lote.getLote().substring(0, 4))) {
-                Mensajes.mensajeAlert("Lote no valido !!!");
+            if(this.lote.getLote().length()<5) {
+                Mensajes.mensajeAlert("La longitud de un lote no puede ser menor a 5 !!!");
             } else if (turnos.indexOf(this.lote.getLote().substring(4, 5)) == -1) {
                 Mensajes.mensajeAlert("Turno incorrecto. Debe ser (1, 2, 3) !!!");
+            } else if (!this.daoLotes.validaLote(this.lote)) {
+                Mensajes.mensajeAlert("Lote no valido !!!");
             } else if (this.entradaProducto.getLotes().indexOf(this.lote) == -1) {
                 this.entradaProducto.getLotes().add(this.lote);
                 ok = true;

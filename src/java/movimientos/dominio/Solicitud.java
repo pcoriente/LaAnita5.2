@@ -11,9 +11,10 @@ public class Solicitud {
     private int idMovto;
     private TOAlmacenJS almacen;
     private int folio;
+    private TOAlmacenJS almacenOrigen;
     private Date fecha;
     private int idUsuario;
-    private TOAlmacenJS almacenOrigen;
+    private int estatus;
     private int idMovtoAlmacen;
     private int folioAlmacen;
     
@@ -84,5 +85,13 @@ public class Solicitud {
 
     public void setFolioAlmacen(int folioAlmacen) {
         this.folioAlmacen = folioAlmacen;
+    }
+
+    public int getEstatus() {
+        return estatus;
+    }
+
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

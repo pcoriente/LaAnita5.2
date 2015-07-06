@@ -6,9 +6,14 @@ package pedidos.to;
  */
 public class TOPedidoProducto {
     private int idPedido;
-    private int idEmpaque;
+    private int idProducto;
     private double cantFacturada;
     private double cantSinCargo;
+    private double costoPromedio;
+    private double costo;
+    private double desctoProducto1;
+    private double desctoProducto2;
+    private double desctoConfidencial;
     private double unitario;
     private int idImpuestoGrupo;
 
@@ -20,12 +25,12 @@ public class TOPedidoProducto {
         this.idPedido = idPedido;
     }
 
-    public int getIdEmpaque() {
-        return idEmpaque;
+    public int getIdProducto() {
+        return idProducto;
     }
 
-    public void setIdEmpaque(int idEmpaque) {
-        this.idEmpaque = idEmpaque;
+    public void setIdProducto(int idProducto) {
+        this.idProducto = idProducto;
     }
 
     public double getCantFacturada() {
@@ -42,6 +47,46 @@ public class TOPedidoProducto {
 
     public void setCantSinCargo(double cantSinCargo) {
         this.cantSinCargo = cantSinCargo;
+    }
+
+    public double getCostoPromedio() {
+        return costoPromedio;
+    }
+
+    public void setCostoPromedio(double costoPromedio) {
+        this.costoPromedio = costoPromedio;
+    }
+
+    public double getCosto() {
+        return costo;
+    }
+
+    public void setCosto(double costo) {
+        this.costo = costo;
+    }
+
+    public double getDesctoProducto1() {
+        return desctoProducto1;
+    }
+
+    public void setDesctoProducto1(double desctoProducto1) {
+        this.desctoProducto1 = desctoProducto1;
+    }
+
+    public double getDesctoProducto2() {
+        return desctoProducto2;
+    }
+
+    public void setDesctoProducto2(double desctoProducto2) {
+        this.desctoProducto2 = desctoProducto2;
+    }
+
+    public double getDesctoConfidencial() {
+        return desctoConfidencial;
+    }
+
+    public void setDesctoConfidencial(double desctoConfidencial) {
+        this.desctoConfidencial = desctoConfidencial;
     }
 
     public double getUnitario() {

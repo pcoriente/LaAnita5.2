@@ -9,18 +9,13 @@ import java.util.Date;
  */
 public class Envio {
     private int idMovto;
-    private int idMovtoAlmacen;
     private TOAlmacenJS almacen;
     private int folio;
-//    private TOComprobante comprobante;
-//    private int idImpuestoZona;
-//    private Moneda moneda;
-//    private double tipoCambio;
-//    private double desctoComercial;
-//    private double desctoProntoPago;
+    private TOAlmacenJS almacenDestino;
     private Date fecha;
     private int idUsuario;
-    private TOAlmacenJS almacenDestino;
+    private int estatus;
+    private int idMovtoAlmacen;
     private int folioAlmacen;
     private double subTotal;
     private double descuento;
@@ -177,5 +172,13 @@ public class Envio {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    public int getEstatus() {
+        return estatus;
+    }
+
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

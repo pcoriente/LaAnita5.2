@@ -324,7 +324,7 @@ public class MbSalidasAlmacen implements Serializable {
         this.salidaProducto = (SalidaAlmacenProducto) event.getObject();
         try {
             this.daoLotes = new DAOLotes();
-            this.salidaProducto.setLotes(this.daoLotes.obtenerLotes(this.salida.getIdMovto(), this.salidaProducto.getProducto().getIdProducto()));
+            this.salidaProducto.setLotes(this.daoLotes.obtenerLotes(this.salida.getAlmacen().getIdAlmacen(), this.salida.getIdMovto(), this.salidaProducto.getProducto().getIdProducto()));
             if (this.salidaProducto.getLotes().isEmpty()) {
                 Mensajes.mensajeAlert("No hay lotes disponibles para el producto !!!");
             } else {
