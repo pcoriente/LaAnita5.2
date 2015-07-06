@@ -19,14 +19,20 @@ public class EmpresaConverter implements Converter {
     public Object getAsObject(FacesContext context, UIComponent component, String value) {
         Empresa emp = null;
         try {
-            int idEmp=Integer.parseInt(value);
-            DAOEmpresas dao=new DAOEmpresas();
-            emp=dao.obtenerEmpresaConverter(idEmp);
-        }catch(Throwable ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            throw new ConverterException(msg);
+            int idEmp = Integer.parseInt(value);
+            if (idEmp == 0) {
+                 emp = new Empresa();
+            } else {
+               
+
+                DAOEmpresas dao = new DAOEmpresas();
+                emp = dao.obtenerEmpresaConverter(idEmp);
+            }
+        } catch (Throwable ex) {
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            throw new ConverterException(msg);
         }
         return emp;
     }
@@ -37,7 +43,7 @@ public class EmpresaConverter implements Converter {
         try {
             Empresa mini = (Empresa) value;
             val = Integer.toString(mini.getIdEmpresa());
-        }catch(Throwable ex) {
+        } catch (Throwable ex) {
             ResourceBundle bundle = ResourceBundle.getBundle("messages");
             FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pedido_getAsString"));
             msg.setSeverity(FacesMessage.SEVERITY_ERROR);

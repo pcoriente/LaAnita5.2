@@ -29,8 +29,8 @@ public class OrdenCompraEncabezado implements Serializable {
     private String status;
     private Date fechaEmisionDirectas;
     private Date fechaEntregaDirectas;
-    private Empresa empresa;
-    private Moneda moneda;
+    private Empresa empresa = new Empresa();
+    private Moneda moneda = new Moneda();
 
     public OrdenCompraEncabezado() {
         this.idOrdenCompra = 0;
@@ -47,7 +47,7 @@ public class OrdenCompraEncabezado implements Serializable {
         this.desctoComercial = 0.00;
         this.desctoProntoPago = 0.00;
         this.fechaEntrega = "";
-        this.moneda=new Moneda();
+        this.moneda = new Moneda();
     }
 
     @Override
@@ -223,7 +223,4 @@ public class OrdenCompraEncabezado implements Serializable {
     public void setMoneda(Moneda moneda) {
         this.moneda = moneda;
     }
-    
-    
-
 }

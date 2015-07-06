@@ -59,11 +59,12 @@ public class MbCotizaciones implements Serializable {
     private String navega;
 
     private int miIdReq;
+    
+    
 
     //CONSTRUCTORES-------------------------------------------------------------------------------------------------------------------------------------------------------
     public MbCotizaciones() {
         this.mbBuscar = new MbProductosBuscar();
-
         this.mbMiniProveedor = new MbMiniProveedor();
         this.mbMonedas = new MbMonedas();
     }
@@ -102,15 +103,6 @@ public class MbCotizaciones implements Serializable {
         }
     }
 
-//    public void cargaCotizacionesProveedorEncabezado(int idReq) throws NamingException, SQLException {
-//        listaCotizacionEncabezado = new ArrayList<CotizacionEncabezado>();
-//        DAOCotizaciones daoCot = new DAOCotizaciones();
-//        ArrayList<CotizacionEncabezado> lista = daoCot.consultaCotizacionesProveedoresEncabezado(idReq);
-//        for (CotizacionEncabezado d : lista) {
-//
-//            listaCotizacionEncabezado.add(d);
-//        }
-//    }
     public void cotizacionxProveedor() {
         miniCotizacionProveedor = new ArrayList<>();
     }
@@ -761,28 +753,32 @@ public class MbCotizaciones implements Serializable {
 
     public String cerrarCotizacion(int idReq) {
         String navegar = "";
-        FacesMessage msg = null;
+      //  FacesMessage msg = null;
         try {
             if (numCotizacion == 0) {
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No ha realizado ninguna cotización, por lo que no puede ser CERRADA..");
+                Mensajes.mensajeAlert("No ha realizado ninguna cotización, por lo que no puede ser CERRADA..");
+               // msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "No ha realizado ninguna cotización, por lo que no puede ser CERRADA..");
             } else {
                 DAORequisiciones daoReq = new DAORequisiciones();
                 daoReq.cerrarCotizacion(idReq);
-                msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La cotización ha sido CERRADA..");
+                Mensajes.mensajeSucces("La cotización ha sido CERRADA..");
+             //   msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La cotización ha sido CERRADA..");
                 //    this.setNumCotizacion(numCotizacion);
                 this.limpiaCotizacion();
                 mbMiniProveedor.getMiniProveedor().setIdProveedor(0);
                 mbMonedas.getMoneda().setIdMoneda(0);
+                
                 navegar = "menuRequisiciones.xhtml";
             }
         } catch (NamingException ex) {
             Logger.getLogger(MbRequisiciones.class.getName()).log(Level.SEVERE, null, ex);
-            msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
+            Mensajes.MensajeErrorP("Error en la aprobación, verifique su información...");
+            //msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "Error en la aprobación, verifique su información...");
         } catch (SQLException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
             Logger.getLogger(MbCotizaciones.class.getName()).log(Level.SEVERE, null, ex);
         }
-        FacesContext.getCurrentInstance().addMessage(null, msg);
+        //FacesContext.getCurrentInstance().addMessage(null, msg);
         return navegar;
     }
 }

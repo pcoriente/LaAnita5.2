@@ -321,6 +321,7 @@ public class MbRequisiciones implements Serializable {
         for (RequisicionEncabezado e : toLista) {
             listaRequisicionesEncabezado.add(e);
         }
+        
 
     }
 
@@ -373,7 +374,7 @@ public class MbRequisiciones implements Serializable {
 
     public String nuevo() throws NamingException {
         this.limpiaRequisicion();
-        this.limpiarCamposBusqueda();
+       // this.limpiarCamposBusqueda();
         navega = "requisiciones.xhtml";
         return navega;
     }
@@ -389,7 +390,7 @@ public class MbRequisiciones implements Serializable {
         this.mbUsuarios = new MbUsuarios();
         this.seleccionRequisicionEncabezado = null;
         this.seleccionFila = null;
-
+        
     }
 
     public void eliminarProducto(int idEmpaque) {
@@ -416,6 +417,7 @@ public class MbRequisiciones implements Serializable {
                     break;
                 } else if (estado == 2) {
                     daoReq.actualizaRequisicion(idReq, estado);
+                    this.listaRequisicionesEncabezado=null;
                     this.requisicionEncabezado.setStatus(estado);
                     msg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "La aprobación se ha realizado..");
                     this.cargaRequisiciones();
@@ -548,39 +550,8 @@ public class MbRequisiciones implements Serializable {
         requisicionDetalles.removeAll(requisicionDetalles);
         requisicionDetalles.addAll(hs);
     }
-
-    public void limpiarCamposBusqueda()  {
-        
-        mbBuscar.getMbParte().setParte(null);
-        mbBuscar.setStrBuscar("");
-        mbBuscar.setProductos(new ArrayList<Producto>());
-        
-        
+    
+    public void inicializarLista(){
+    this.listaRequisicionesEncabezado=null;
     }
-//    public void actualizaProductoSeleccionado() {
-//        FacesMessage msg = null;
-//        boolean ok = true;
-//        boolean nuevo = true;
-//        RequisicionDetalle rd = new RequisicionDetalle();
-//        rd.setProducto(this.mbBuscar.getProducto());
-//        this.requisicionDetalles.add(rd);
-//        FacesContext.getCurrentInstance().addMessage(null, msg);
-//                
-//    }
-//    public void actualizaProductoSeleccionado() {
-//        boolean nuevo=true;
-//        
-//        EntradaAlmacenProducto productoSeleccionado=new EntradaAlmacenProducto(this.mbBuscar.getProducto());
-//        for(EntradaAlmacenProducto p: this.entradaDetalle) {
-//            if(p.equals(productoSeleccionado)) {
-//                this.entradaProducto=p;
-//                nuevo=false;
-//                break;
-//            }
-//        }
-//        if(nuevo) {
-//            this.entradaDetalle.add(productoSeleccionado);
-//            this.entradaProducto=productoSeleccionado;
-//        }
-//    }
 }

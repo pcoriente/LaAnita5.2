@@ -6,12 +6,10 @@ import producto2.dominio.Producto;
 
 public class OrdenCompraDetalle implements Serializable {
 
- //   private Empaque producto;
     private Producto producto;
     private CotizacionDetalle cotizacionDetalle;
     private int idOrdenCompra; //1
     private int idEmpaque; //2
-//    private String sku;   //JULIO
     private double cantOrdenada;
     private double cantOrdenadaSinCargo; //JULIO
     private double cantidadSolicitada;
@@ -40,12 +38,10 @@ public class OrdenCompraDetalle implements Serializable {
     }
 
     public OrdenCompraDetalle(Producto producto, CotizacionDetalle cotizacionDetalle, int idOrdenCompra, int idEmpaque, String sku, double cantOrdenada, double cantidadSolicitada, double costoOrdenado, double descuentoProducto, double descuentoProducto2, double desctoConfidencial, int sinCargoBase, int sinCargoCant, double ptjeOferte, double margen, int IdImpuestosGrupo, int idMarca, double neto, double subtotal) {
-     //   this.producto = producto;
         this.producto=producto;
         this.cotizacionDetalle = cotizacionDetalle;
         this.idOrdenCompra = 0;
         this.idEmpaque = 0;
-//        this.sku = "";
         this.cantOrdenada = 0.00;
         this.cantOrdenadaSinCargo=0.00;
         this.cantidadSolicitada=0.00;

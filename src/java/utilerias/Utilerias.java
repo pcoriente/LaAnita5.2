@@ -120,6 +120,13 @@ public  class Utilerias {
         canti = cantidad.replace("$", " ");
         return canti;
     }
+    
+    public String quitarComas(String cantidad){
+        String canti = "";
+        canti = cantidad.replace(",", " ");
+        canti = canti.replace(" ", "");
+        return canti;
+    }
 
     public String verificarRfc(String rfc) {
         if (rfc == null) {

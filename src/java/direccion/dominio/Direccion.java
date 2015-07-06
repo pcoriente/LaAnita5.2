@@ -42,6 +42,15 @@ public class Direccion implements Serializable {
                 + "\n" + (localidad.isEmpty() || localidad.equals(municipio)?"":localidad + ", ") + municipio + ", "+ estado
                 + "\n" + pais + ", "+codigoPostal);
     }
+    
+    //DAAP 3/julio/2015 Para reporte orden de compra.
+     public String toString2() {
+        return calle.isEmpty() ? "" : (calle + " " + numeroExterior + " "+ (numeroInterior.isEmpty()?"":" " + numeroInterior)
+                + (referencia.isEmpty()?"":"" + referencia+" ")
+               + (colonia.isEmpty()?"":colonia) );
+//                + (localidad.isEmpty() || localidad.equals(municipio)?"":localidad + ", ") + municipio + ", "+ estado+", "
+//                 + pais + ", "+codigoPostal);
+    }
 
 
     public String getCalle() {

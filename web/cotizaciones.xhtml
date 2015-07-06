@@ -57,17 +57,12 @@
                                                  />
                                 <p:separator />
                                 <p:commandButton 
-                                    icon="ui-icon-note"
+                                    icon="ui-icon-arrowreturnthick-1-w"
                                     title="ir a Menú Requisiciones"
                                     action="#{mbRequisiciones.salirMenu(1)}"
                                     update=":fc:detalleCotizacion  :fc:cabeceroCotizacion"
                                     />
-                                <p:commandButton id="salirCotizacion"
-                                                 icon="ui-icon-arrowreturnthick-1-w"
-                                                 title="Ir a Menú Cotizaciones"
-                                                 action="#{mbRequisiciones.salirMenu(2)}"
-                                                 update=":fc:detalleCotizacion  :fc:cabeceroCotizacion"
-                                                 />
+                                
                             </f:facet>  
                         </p:toolbar>  
                         <center>
@@ -77,8 +72,7 @@
                                     <f:converter converterId="converters.miniProveedor" />
                                     <f:selectItems value="#{mbCotizaciones.mbMiniProveedor.listaMiniProveedores}"  />
                                     <p:ajax event="change"
-                                            listener="#{mbCotizaciones.limpiaDetalle()}"
-                                            update=":fc:cabeceroProveedor :fc:cabeceroCotizacion :fc:detalleCotizacion :fc:pie  "/>
+                                            />
                                 </p:selectOneMenu>
                                 <p:selectOneMenu id="moneda" value="#{mbCotizaciones.mbMonedas.moneda}">
                                     <f:converter converterId="converters.Moneda" />

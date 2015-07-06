@@ -133,6 +133,7 @@ a.nueva{ display:  inline;}
 .textoEtiquetas{
     color: blue;
     text-align: right;
+    width: 150px;
 }
 
 .ui-panel, ui-widget, ui-widget-content, ui-corner-all {
@@ -150,7 +151,7 @@ a.nueva{ display:  inline;}
 
 .textoContenido{
     font-size: 10px;
-   
+
 }
 
 .fondoCelda{
@@ -159,10 +160,10 @@ a.nueva{ display:  inline;}
 
 .alineacionD
 {
-  text-align:right;
-  font-weight: bold;
-  width: 100px;
-  
+    text-align:right;
+    font-weight: bold;
+    width: 100px;
+
 }
 .etiquetaD{
     font-weight: bold;
@@ -183,9 +184,33 @@ a.nueva{ display:  inline;}
 }
 
 .darias.ui-dialog .ui-dialog-titlebar {
-  padding: .4em .4em .4em 1em;
-  position: relative;
-  border: 0px;
-  background-color: #F8831C;
-  
+    padding: .4em .4em .4em 1em;
+    position: relative;
+    border: 0px;
+    background-color: #F8831C;
+
+}
+
+.dariasProceso.ui-dialog .ui-dialog-titlebar {
+    padding: .4em .4em .4em 1em;
+    position: relative;
+    border: 0px;
+    background-color: springgreen;
+
+}
+
+.dariasPanel.ui-panel .ui-panel-titlebar {
+    padding: .4em .4em .4em 1em;
+    position: relative;
+    border: 0px;
+    background-color: springgreen;
+
+}
+
+.dariasPanelD.ui-panel .ui-panel-titlebar {
+    padding: .4em .4em .4em 1em;
+    position: relative;
+    border: 0px;
+    background-color: #F8831C;
+
 }

@@ -215,7 +215,7 @@ public class DAOCotizaciones {
         PreparedStatement ps3;
         int idProveedor = 0;
         int ident = 0;
-
+        
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
@@ -227,10 +227,12 @@ public class DAOCotizaciones {
                 double dC = c.getCotizacionEncabezado().getDescuentoCotizacion();
                 double dPP = c.getCotizacionEncabezado().getDescuentoProntoPago();
                 //     this.cambiaEstadoCotizacion(idCot);
+                    
                 int identity = 0;
                 if (idProv != idProveedor) {
                     idProveedor = idProv;
-                    String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen) VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 1, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",1)";
+                    String strSQL1 = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial, desctoProntoPago,fechaEntrega,idMoneda,idProveedor,estadoAlmacen,idEmpresa) "
+                            + "                        VALUES(" + idCot + ", GETDATE(), GETDATE(), GETDATE(), 2, " + dC + ", " + dPP + ", GETDATE()," + idMon + "," + idProv + ",2,0)";
                     //  cs1 = cn.prepareStatement();
                     cs1.executeUpdate(strSQL1);
                     String strSQLIdentity = "SELECT @@IDENTITY as idOrd";
@@ -253,7 +255,7 @@ public class DAOCotizaciones {
                 ps3.setInt(1, ident);
                 ps3.setInt(2, 1); //interno
                 ps3.setInt(3, c.getProducto().getIdProducto()); //idEmpaque
-                ps3.setString(4, "null"); //sku
+                ps3.setString(4, c.getProducto().getCod_pro()); //sku
                 ps3.setDouble(5, c.getCantidadCotizada()); //cantOrdenada
                 ps3.setDouble(6, 0.00); //cantRecibidaOficina
                 ps3.setDouble(7, 0.00); //cantRecibidaAlmacen
@@ -268,6 +270,7 @@ public class DAOCotizaciones {
                 ps3.setInt(16, 0); //idImpuestosGrupo
                 ps3.setInt(17, 0); //idMarca
                 ps3.setDouble(18, 0.00); // cantOrdenadaSinCargo
+                
                 ps3.executeUpdate();
 
             } //FOR DETALLE

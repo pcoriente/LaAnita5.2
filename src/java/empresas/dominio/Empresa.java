@@ -5,12 +5,13 @@
 package empresas.dominio;
 
 import direccion.dominio.Direccion;
+import java.io.Serializable;
 
 /**
  *
  * @author david
  */
-public class Empresa {
+public class Empresa implements Serializable{
 
     private int idEmpresa;
     private int codigoEmpresa;
@@ -22,7 +23,7 @@ public class Empresa {
     private String fax;
     private String correo;
     private String representanteLegal;
-    private Direccion direccion;
+    private Direccion direccion = new Direccion();
 
     public Empresa() {
     }
