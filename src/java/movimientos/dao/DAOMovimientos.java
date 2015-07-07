@@ -50,12 +50,28 @@ public class DAOMovimientos {
     }
 
     // -------------------------------------- PEDIDOS ----------------------------------
+    private TOMovimientoProducto convertir(TOPedidoProducto toPed) {
+        TOMovimientoProducto toProd = new TOMovimientoProducto();
+        toProd.setIdProducto(toPed.getIdProducto());
+        toProd.setCantOrdenada(toPed.getCantFacturada());
+        toProd.setCantOrdenadaSinCargo(toPed.getCantSinCargo());
+        toProd.setCostoOrdenado(toPed.getCosto());
+        toProd.setCosto(toPed.getCosto());
+        toProd.setCostoPromedio(toPed.getCostoPromedio());
+        toProd.setDesctoConfidencial(toPed.getDesctoConfidencial());
+        toProd.setDesctoProducto1(toPed.getDesctoProducto1());
+        toProd.setDesctoProducto2(toPed.getDesctoProducto2());
+        toProd.setIdImpuestoGrupo(toPed.getIdImpuestoGrupo());
+        toProd.setUnitario(toPed.getUnitario());
+        return toProd;
+    }
+
     private void agregaMovimientoRelacionado(Connection cn, TOMovimiento to) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
             to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
             strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, idReferencia, referencia, estatus, propietario) "
-                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", "+to.getFolio()+", "+to.getIdComprobante()+", " + to.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + to.getIdUsuario() + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + to.getIdUsuario() + ")";
+                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolio() + ", " + to.getIdComprobante() + ", " + to.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + to.getIdUsuario() + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + to.getIdUsuario() + ")";
             st.executeUpdate(strSQL);
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -63,7 +79,7 @@ public class DAOMovimientos {
             }
             to.setFolioAlmacen(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
             strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idReferencia, referencia, idUsuario, estatus, propietario) "
-                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", "+to.getFolioAlmacen()+", "+to.getIdComprobante()+", GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getIdUsuario() + ", " + to.getEstatus() + ", " + to.getIdUsuario() + ")";
+                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolioAlmacen() + ", " + to.getIdComprobante() + ", GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getIdUsuario() + ", " + to.getEstatus() + ", " + to.getIdUsuario() + ")";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {
@@ -73,20 +89,20 @@ public class DAOMovimientos {
             st.executeUpdate(strSQL);
         }
     }
-    
+
     public void cerrarPedido(int idPedido) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                strSQL= "SELECT A.idEmpresa, A.idAlmacen, PT.idTienda, T.idImpuestoZona\n" +
-                        "FROM pedidosOCTienda PT\n" +
-                        "INNER JOIN pedidosOC P ON P.idPedidoOC=PT.idPedidoOC\n" +
-                        "INNER JOIN clientesTiendas T ON T.idTienda=PT.idTienda\n" +
-                        "INNER JOIN almacenes A ON A.idAlmacen=P.idAlmacen\n" +
-                        "WHERE PT.idPedido=" + idPedido;
+                strSQL = "SELECT A.idEmpresa, A.idAlmacen, PT.idTienda, T.idImpuestoZona\n"
+                        + "FROM pedidosOCTienda PT\n"
+                        + "INNER JOIN pedidosOC P ON P.idPedidoOC=PT.idPedidoOC\n"
+                        + "INNER JOIN clientesTiendas T ON T.idTienda=PT.idTienda\n"
+                        + "INNER JOIN almacenes A ON A.idAlmacen=P.idAlmacen\n"
+                        + "WHERE PT.idPedido=" + idPedido;
                 ResultSet rs = st.executeQuery(strSQL);
-                if(rs.next()) {
+                if (rs.next()) {
                     TOMovimiento toMv = new TOMovimiento();
                     toMv.setIdTipo(28);
                     toMv.setIdEmpresa(rs.getInt("idEmpresa"));
@@ -99,17 +115,8 @@ public class DAOMovimientos {
                     toMv.setIdUsuario(this.idUsuario);
 
                     this.agregaMovimientoRelacionado(cn, toMv);
-
-                    TOMovimientoProducto toProd;
-                    strSQL = "SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido=" + idPedido;
-                    rs = st.executeQuery(strSQL);
-                    while (rs.next()) {
-                        toProd = new TOMovimientoProducto();
-                        toProd.setIdProducto(rs.getInt("idEmpaque"));
-                        toProd.setCantOrdenada(rs.getDouble("cantFacturada"));
-                        toProd.setIdImpuestoGrupo(rs.getInt("idImpuestoGrupo"));
-
-                        this.agregarProductoOficina(cn, toMv.getIdEmpresa(), toProd, toMv.getIdImpuestoZona(), toMv.getIdReferencia());
+                    for (TOPedidoProducto toPed : this.obtenerPedidoDetalle(idPedido)) {
+                        this.agregarProductoOficina(cn, toMv.getIdMovto(), this.convertir(toPed), toMv.getIdImpuestoZona(), toMv.getIdEmpresa(), toMv.getIdReferencia());
                     }
                     strSQL = "UPDATE movimientos SET propietario=0 WHERE idMovto=" + toMv.getIdMovto();
                     st.executeUpdate(strSQL);
@@ -119,7 +126,7 @@ public class DAOMovimientos {
 
                     strSQL = "UPDATE pedidos SET estatus=1 WHERE idPedido=" + idPedido;
                     st.executeUpdate(strSQL);
-                    
+
                     cn.commit();
                 } else {
                     throw new SQLException("No se encontro cabecero del pedido !!!");
@@ -140,7 +147,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
-                    to = this.construirProducto(rs);
+                    to = this.construirPedidoProducto(rs);
                 }
             }
         }
@@ -163,7 +170,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    productos.add(this.construirProducto(rs));
+                    productos.add(this.construirPedidoProducto(rs));
                 }
             }
         }
@@ -180,7 +187,7 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    productos.add(this.construirProducto(rs));
+                    productos.add(this.construirPedidoProducto(rs));
                 }
             }
         }
@@ -375,7 +382,7 @@ public class DAOMovimientos {
         return importeImpuestos;
     }
 
-    public TOPedidoProducto construirProducto(ResultSet rs) throws SQLException {
+    public TOPedidoProducto construirPedidoProducto(ResultSet rs) throws SQLException {
         TOPedidoProducto to = new TOPedidoProducto();
         to.setIdPedido(rs.getInt("idPedido"));
         to.setIdProducto(rs.getInt("idEmpaque"));
@@ -398,34 +405,34 @@ public class DAOMovimientos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    productos.add(this.construirProducto(rs));
+                    productos.add(this.construirPedidoProducto(rs));
                 }
             }
         }
         return productos;
     }
-    
+
     public void actualizarPedido(int idEmpresa, int idTienda, int idPedido) throws SQLException {
         int idProducto;
         double unitario, desctoProducto1, costo;
-        String strSQL= "SELECT idProducto FROM pedidosOCTiendaDetalle WHERE idPedido="+idPedido;
+        String strSQL = "SELECT idProducto FROM pedidosOCTiendaDetalle WHERE idPedido=" + idPedido;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
-                while(rs.next()) {
-                    idProducto=rs.getInt("idEmpaque");
-                    
+                while (rs.next()) {
+                    idProducto = rs.getInt("idEmpaque");
+
                     ArrayList<Double> precio = this.calcularPrecioNeto(cn, idEmpresa, idTienda, idProducto);
-                    unitario=precio.get(0).doubleValue();
-                    desctoProducto1=precio.get(1).doubleValue();
-                    costo=precio.get(2).doubleValue();
-                    
+                    unitario = precio.get(0).doubleValue();
+                    desctoProducto1 = precio.get(1).doubleValue();
+                    costo = precio.get(2).doubleValue();
+
                     strSQL = "UPDATE pedidosOCTiendaDetalle\n"
-                        + "SET unitario=" + unitario + ", desctoProducto1=" + desctoProducto1 + ", costo=" + costo + "\n"
-                        + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + idProducto;
+                            + "SET unitario=" + unitario + ", desctoProducto1=" + desctoProducto1 + ", costo=" + costo + "\n"
+                            + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + idProducto;
                     st.executeUpdate(strSQL);
-                    
+
                     this.calculaImpuestosPedidoProducto(cn, idPedido, idProducto, unitario);
                 }
                 cn.commit();
@@ -569,15 +576,15 @@ public class DAOMovimientos {
     }
 
     // ----------------------------- VENTAS -----------------------------------------
-    private void agregarProductoOficina(Connection cn, int idEmpresa, TOMovimientoProducto to, int idZonaImpuestos, int idTienda) throws SQLException {
+    private void agregarProductoOficina(Connection cn, int idMovto, TOMovimientoProducto to, int idZonaImpuestos, int idEmpresa, int idTienda) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
             strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantOrdenada, cantFacturada, cantSinCargo, cantRecibida, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, costoPromedio) "
-                    + "VALUES (" + to.getIdMovto() + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantFacturada() + ", " + to.getCantSinCargo() + ", " + to.getCantRecibida() + ", " + to.getCosto() + ", " + to.getDesctoProducto1() + ", " + to.getDesctoProducto2() + ", " + to.getDesctoConfidencial() + ", " + to.getUnitario() + ", " + to.getIdImpuestoGrupo() + ", GETDATE(), 0, 0)";
+                    + "VALUES (" + idMovto + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantFacturada() + ", " + to.getCantSinCargo() + ", " + to.getCantRecibida() + ", " + to.getCosto() + ", " + to.getDesctoProducto1() + ", " + to.getDesctoProducto2() + ", " + to.getDesctoConfidencial() + ", " + to.getUnitario() + ", " + to.getIdImpuestoGrupo() + ", GETDATE(), 0, 0)";
             st.executeUpdate(strSQL);
 
             strSQL = "INSERT INTO movimientosDetalleImpuestos (idMovto, idEmpaque, idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable) "
-                    + "SELECT " + to.getIdMovto() + ", " + to.getIdProducto() + ", ID.idImpuesto, I.impuesto, ID.valor, I.aplicable, I.modo, I.acreditable, 0.00 as importe, I.acumulable "
+                    + "SELECT " + idMovto + ", " + to.getIdProducto() + ", ID.idImpuesto, I.impuesto, ID.valor, I.aplicable, I.modo, I.acreditable, 0.00 as importe, I.acumulable "
                     + "FROM impuestosDetalle ID "
                     + "INNER JOIN impuestos I on I.idImpuesto=ID.idImpuesto "
                     + "WHERE ID.idGrupo=" + to.getIdImpuestoGrupo() + " AND ID.idZona=" + idZonaImpuestos + " AND GETDATE() BETWEEN ID.fechaInicial AND ID.fechaFinal";
@@ -591,8 +598,12 @@ public class DAOMovimientos {
 
             strSQL = "UPDATE movimientosDetalle\n"
                     + "SET costo=" + to.getCosto() + ",desctoProducto1=" + to.getDesctoProducto1() + ",unitario=" + to.getUnitario() + ",fecha=GETDATE()\n"
-                    + "WHERE idMovto=" + to.getIdMovto() + " AND idEmpaque=" + to.getIdProducto();
+                    + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + to.getIdProducto();
             st.executeUpdate(strSQL);
+
+            this.calculaImpuestosProducto(cn, idMovto, to.getIdProducto(), to.getUnitario());
+
+            to.setIdMovto(idMovto);
         }
     }
 
@@ -603,8 +614,7 @@ public class DAOMovimientos {
         String strSQL;
         try (Statement st = cn.createStatement()) {
             if (to.getIdMovto() == 0) {
-                to.setIdMovto(idMovto);
-                this.agregarProductoOficina(cn, idEmpresa, to, idZonaImpuestos, idTienda);
+                this.agregarProductoOficina(cn, idMovto, to, idZonaImpuestos, idEmpresa, idTienda);
             } else if (to.getCantFacturada() + to.getCantSinCargo() != separados) {
                 idProducto = to.getIdProducto();
                 if (to.getCantFacturada() > (separados - to.getCantSinCargo())) {
@@ -1728,7 +1738,7 @@ public class DAOMovimientos {
             cn.setAutoCommit(false);
             try (PreparedStatement ps = cn.prepareStatement(strSQL)) {
                 to.setIdUsuario(this.idUsuario);
-                
+
                 this.agregaMovimientoRelacionado(cn, to);
 
                 for (MovimientoProducto p : productos) {

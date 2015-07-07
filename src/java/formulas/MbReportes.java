@@ -44,29 +44,29 @@ public class MbReportes implements Serializable {
         this.ok=false;
     }
     
-//    private void verVariablesNo() {
-//        this.ok=false;
-//        int idEmpresa=0;
-//        int idTipo=0;
-//        int idGrupo=0;
-//        int idSubGrupo=0;
-//        String busca="";
-//        if(this.mbFormulas.getMbEmpresas().getEmpresa()!=null) {
-//            idEmpresa=this.mbFormulas.getMbEmpresas().getEmpresa().getIdEmpresa();
-//        }
-//        if(this.mbTipo.getTipo()!=null) {
-//            idTipo=this.mbTipo.getTipo().getIdTipo();
-//        }
-//        if(this.mbGrupo.getGrupo()!=null) {
-//            idGrupo=this.mbGrupo.getGrupo().getIdGrupo();
-//        }
-//        if(this.mbGrupo.getMbSubGrupo().getSubGrupo()!=null) {
-//            idSubGrupo=this.mbGrupo.getMbSubGrupo().getSubGrupo().getIdSubGrupo();
-//        }
-//        if(this.buscarPor!=null) {
-//            busca=this.buscarPor;
-//        }
-//    }
+    public void verVariables() {
+        this.ok=false;
+        int idEmpresa=0;
+        int idTipo=0;
+        int idGrupo=0;
+        int idSubGrupo=0;
+        String busca="";
+        if(this.mbFormulas.getMbEmpresas().getEmpresa()!=null) {
+            idEmpresa=this.mbFormulas.getMbEmpresas().getEmpresa().getIdEmpresa();
+        }
+        if(this.mbTipo.getTipo()!=null) {
+            idTipo=this.mbTipo.getTipo().getIdTipo();
+        }
+        if(this.mbGrupo.getGrupo()!=null) {
+            idGrupo=this.mbGrupo.getGrupo().getIdGrupo();
+        }
+        if(this.mbGrupo.getMbSubGrupo().getSubGrupo()!=null) {
+            idSubGrupo=this.mbGrupo.getMbSubGrupo().getSubGrupo().getIdSubGrupo();
+        }
+        if(this.buscarPor!=null) {
+            busca=this.buscarPor;
+        }
+    }
     
     public void generarFormulasPdf() {
 //        this.verVariables();
