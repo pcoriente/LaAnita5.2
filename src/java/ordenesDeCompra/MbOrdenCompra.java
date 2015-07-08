@@ -803,13 +803,22 @@ public class MbOrdenCompra implements Serializable {
         try {
             this.mbBuscar.buscarLista();
             if (this.mbBuscar.getProducto() != null) {
+                DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
                 OrdenCompraDetalle req = new OrdenCompraDetalle();
                 req.setProducto(mbBuscar.getProducto());
+                Double ultimoCosto = dao.ObtenerUltimoCosto(req.getProducto().getEmpaque().getIdEmpaque());
+                req.setCostoOrdenado(ultimoCosto);
                 ordenCompraDetallesDirectas.add(req);
                 mbBuscar.setProducto(new Producto());
             }
         } catch (NullPointerException e) {
             Mensajes.MensajeAlertP("Error de excepcion");
+        } catch (NamingException ex) {
+            Mensajes.MensajeAlertP(ex.getMessage());
+            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Mensajes.MensajeAlertP(ex.getMessage());
+            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -883,9 +892,11 @@ public class MbOrdenCompra implements Serializable {
                 sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
                 for (ImpuestosProducto impuestosProducto : lst) {
-                    impuestos = impuestos + (sumaCostoCotizado * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
+                    if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
+                        impuestos = impuestos + ((e.getCantOrdenada() * e.getNeto()) * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
+//                        impuestos = impuestos + (sumaCostoCotizado * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
+                    }
                 }
-                //   totales.setImpuesto(truncarNumeros(impuestos));
             } catch (SQLException ex) {
                 Mensajes.MensajeErrorP(ex.getMessage());
                 Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
@@ -899,11 +910,6 @@ public class MbOrdenCompra implements Serializable {
         totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
         totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
         totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-
-        if (totales.getSumaDescuentoTotales() != 0 || totales.getSumaDescuentosProductos() == 0) {
-            impuestos = 0.00;
-            impuestos = (totales.getSubtotalBruto() * .16);
-        }
         totales.setImpuesto(truncarNumeros(impuestos));
         totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
     }
@@ -935,7 +941,10 @@ public class MbOrdenCompra implements Serializable {
                 subtotalGeneral += d.getSubtotal();
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(d.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), ordenElegidaD.getProveedor().getImpuestoZona().getIdZona());
                 for (ImpuestosProducto impuestosProducto : lst) {
-                    impuestos = impuestos + ((d.getNeto() * d.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
+//                  impuestosProducto
+                    if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
+                        impuestos = impuestos + ((d.getNeto() * d.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
+                    }
                 }
                 listaOrdenDetalleD.add(d);
             }
@@ -948,10 +957,10 @@ public class MbOrdenCompra implements Serializable {
             totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
             totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
 
-            if (totales.getSumaDescuentoTotales() != 0 || totales.getSumaDescuentosProductos() == 0) {
-                impuestos = 0.00;
-                impuestos = (totales.getSubtotalBruto() * .16);
-            }
+//            if (totales.getSumaDescuentoTotales() != 0 || totales.getSumaDescuentosProductos() == 0) {
+//                impuestos = 0.00;
+//                impuestos = (totales.getSubtotalBruto() * .16);
+//            }
 
             totales.setImpuesto(truncarNumeros(impuestos));
             totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
