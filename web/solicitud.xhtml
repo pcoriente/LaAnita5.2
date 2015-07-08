@@ -167,7 +167,7 @@
                                     </p:selectOneRadio>
                                 </p:column>
                                 <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='1'}" >
-                                    <p:inputText id="opcionSKU" value="#{mbSolicitud.mbBuscar.strBuscar}" onkeypress="return otra(event);" maxlength="8" size="10" >
+                                    <p:inputText id="opcionSKU" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="8" size="10" >
                                         <p:ajax event="change" listener="#{mbSolicitud.buscar()}" 
                                                 update=":main:detalleSolicitud" 
                                                 oncomplete="handleBuscar(xhr, status, args);" />

@@ -42,6 +42,11 @@ public class MbReportes implements Serializable {
     
     public void cambioDeParametros() {
         this.ok=false;
+        this.buscarPor = "BUSCAR";
+    }
+    
+    public void cambioDeBuscar() {
+        this.ok=false;
     }
     
     public void verVariables() {

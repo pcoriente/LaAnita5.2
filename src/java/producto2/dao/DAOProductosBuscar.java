@@ -90,18 +90,18 @@ public class DAOProductosBuscar {
         if(idInsumo!=0) {
             strSQL=strSQL+"INNER JOIN formulasInsumos I ON I.idFormula=F.idFormula\n";
         }
-        strSQL=strSQL+"WHERE ";
+//        strSQL=strSQL+"WHERE ";
         if(idTipo!=0) {
-            strSQL=strSQL+="p.idTipo="+idTipo;
+            strSQL=strSQL+="WHERE p.idTipo="+idTipo;
         }
         if(idGrupo!=0) {
-            strSQL=strSQL+(idTipo!=0?" AND ":"")+"p.idGrupo="+idGrupo;
+            strSQL=strSQL+(idTipo!=0?" AND ":"WHERE ")+"p.idGrupo="+idGrupo;
             if(idSubGrupo!=0) {
                 strSQL=strSQL+" AND p.idSubGrupo="+idSubGrupo;
             }
         }
         if(idInsumo!=0) {
-            strSQL=strSQL+(idTipo!=0 || idGrupo!=0?" AND ":"")+"I.idProducto="+idInsumo;
+            strSQL=strSQL+(idTipo!=0 || idGrupo!=0?" AND ":"WHERE ")+"I.idProducto="+idInsumo;
         }
         strSQL=strSQL+"\nORDER BY p.idProducto, pp.parte, p.descripcion";
         Connection cn=ds.getConnection();
@@ -145,6 +145,24 @@ public class DAOProductosBuscar {
             "LEFT JOIN productosPartes pp on pp.idParte=p.idParte\n" +
             "WHERE p.descripcion like '%"+descripcion+"%'\n"+
             "ORDER BY pp.parte, p.descripcion";
+        Connection cn=ds.getConnection();
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs=st.executeQuery(strSQL);
+            while(rs.next()) {
+                productos.add(this.construir(rs));
+            }
+        } finally {
+            cn.close();
+        }
+        return productos;
+    }
+    
+    public ArrayList<TOProducto> obtenerProductosParte(String parte) throws SQLException {
+        ArrayList<TOProducto> productos=new ArrayList<>();
+        String strSQL=sqlEmpaque()+
+            "INNER JOIN productos p on p.idProducto=e.idProducto\n" +
+            "WHERE p.idParte IN (SELECT idParte FROM productosPartes WHERE parte like '%"+parte+"%')\n"+
+            "ORDER BY p.descripcion";
         Connection cn=ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs=st.executeQuery(strSQL);

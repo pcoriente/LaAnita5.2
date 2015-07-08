@@ -14,6 +14,10 @@ public class TOFormula {
     private double piezas;
     private double costoPromedio;
     private String observaciones;
+    
+    public TOFormula() {
+        this.observaciones="";
+    }
 
     public int getIdFormula() {
         return idFormula;
