@@ -2,22 +2,39 @@ package salidas;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
+import entradas.dominio.MovimientoAlmacenProductoReporte;
+import java.io.IOException;
 import movimientos.to.TOMovimiento;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Lote;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacenProducto;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import usuarios.MbAcciones;
@@ -38,9 +55,8 @@ public class MbSalidasAlmacen implements Serializable {
     private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    
     private boolean modoEdicion;
-    private double sumaLotes;
+//    private double sumaLotes;
     private Lote lote;
     private ArrayList<SelectItem> listaMovimientosTipos;
     private MovimientoTipo tipo;
@@ -58,18 +74,94 @@ public class MbSalidasAlmacen implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
-    
-    public void respaldaSeparados() {
-        
+
+    private MovimientoAlmacenProductoReporte convertirProductoReporte(SalidaAlmacenProducto prod) {
+        boolean ya = false;
+        MovimientoAlmacenProductoReporte rep = new MovimientoAlmacenProductoReporte();
+        rep.setCantidad(prod.getCantidad());
+        rep.setEmpaque(prod.getProducto().toString());
+        rep.setSku(prod.getProducto().getCod_pro());
+        for (Lote l : prod.getLotes()) {
+            if (l.getCantidad() != 0) {
+                if (ya) {
+                    rep.getLotes().add(l);
+                } else {
+                    rep.setLote(l.getLote());
+                    rep.setLoteCantidad(l.getCantidad());
+                    ya = true;
+                }
+            }
+        }
+        return rep;
     }
-    
+
+    public void imprimir() {
+        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+
+        ArrayList<MovimientoAlmacenProductoReporte> detalleReporte = new ArrayList<>();
+        for (SalidaAlmacenProducto p : this.salidaDetalle) {
+            if (p.getCantidad() != 0) {
+                detalleReporte.add(this.convertirProductoReporte(p));
+            }
+        }
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\MovimientoAlmacen.jasper";
+        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+        Map parameters = new HashMap();
+        parameters.put("empresa", this.salida.getAlmacen().getEmpresa());
+
+        parameters.put("cedis", this.salida.getAlmacen().getCedis());
+        parameters.put("almacen", this.salida.getAlmacen().getAlmacen());
+
+        parameters.put("concepto", this.salida.getTipo().getTipo());
+        parameters.put("conceptoTipo", "SALIDA ALMACEN CONCEPTOS VARIOS");
+
+        parameters.put("capturaFolio", this.salida.getFolio());
+        parameters.put("capturaFecha", formatoFecha.format(this.salida.getFecha()));
+        parameters.put("capturaHora", formatoHora.format(this.salida.getFecha()));
+
+        parameters.put("idUsuario", this.salida.getIdUsuario());
+
+        try {
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=SalidaAlmacen_" + this.salida.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void eliminarProducto() {
+        try {
+            this.daoLotes = new DAOLotes();
+            this.daoLotes.eliminarProductoSalidaAlmacen(this.salida.getIdMovto(), this.salidaProducto.getProducto().getIdProducto());
+            this.salidaDetalle.remove(this.salidaProducto);
+            this.salidaProducto = new SalidaAlmacenProducto();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void respaldaSeparados() {
+    }
+
     public void respaldaFila() {
-        if(this.resSalidaProducto==null) {
-            this.resSalidaProducto=new SalidaAlmacenProducto();
+        if (this.resSalidaProducto == null) {
+            this.resSalidaProducto = new SalidaAlmacenProducto();
         }
         this.resSalidaProducto.setProducto(this.salidaProducto.getProducto());
         this.resSalidaProducto.setCantidad(this.salidaProducto.getCantidad());
-        this.resSalidaProducto.setSeparados(this.salidaProducto.getSeparados());
+//        this.resSalidaProducto.setSeparados(this.salidaProducto.getSeparados());
         this.resSalidaProducto.setLotes(this.salidaProducto.getLotes());
     }
 
@@ -109,7 +201,7 @@ public class MbSalidasAlmacen implements Serializable {
         SalidaAlmacenProducto p = new SalidaAlmacenProducto();
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantidad(to.getCantidad());
-        p.setSeparados(to.getCantidad());
+//        p.setSeparados(to.getCantidad());
 //        p.setLotes(this.daoLotes.obtenerLotes(this.salida.getIdMovto(), to.getIdProducto()));
         return p;
     }
@@ -144,10 +236,27 @@ public class MbSalidasAlmacen implements Serializable {
 
     public void grabar() {
         try {
-            this.dao = new DAOMovimientos();
-            this.dao.grabarSalidaAlmacen(this.convertirTO());
-            Mensajes.mensajeSucces("La salida se grabo correctamente !!!");
-            this.modoEdicion = false;
+            if (this.salidaDetalle.isEmpty()) {
+                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+            } else {
+                double total = 0;
+                for (SalidaAlmacenProducto s : this.salidaDetalle) {
+                    for (Lote l : s.getLotes()) {
+                        total += l.getCantidad();
+                    }
+                }
+                if (total != 0) {
+                    this.dao = new DAOMovimientos();
+                    TOMovimiento to = this.convertirTO();
+                    this.dao.grabarSalidaAlmacen(to);
+                    Mensajes.mensajeSucces("La salida se grabo correctamente !!!");
+                    this.salida.setIdUsuario(to.getIdUsuario());
+                    this.salida.setFolio(to.getFolio());
+                    this.salida.setEstatus(1);
+                } else {
+                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+                }
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -164,37 +273,27 @@ public class MbSalidasAlmacen implements Serializable {
     }
 
     public void actualizarCantidad() {
-        this.salidaProducto.setCantidad(this.sumaLotes);
-        this.salidaProducto.setSeparados(this.sumaLotes);
+//        this.salidaProducto.setCantidad(this.sumaLotes);
+//        this.salidaProducto.setSeparados(this.sumaLotes);
     }
 
     public void gestionarLotes() {
-        boolean cierra = false;
-        this.gestionLotes(this.salida.getIdMovto());
-        if (this.salidaProducto.getCantidad() == this.sumaLotes) {
-            cierra = true;
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLotes", cierra);
-    }
-
-    public void gestionLotes(int idMovto) {
         double separados;
         try {
             this.daoLotes = new DAOLotes();
             double separar = this.lote.getCantidad() - this.lote.getSeparados();
             if (separar > 0) {
-                separados = this.daoLotes.separaAlmacen(idMovto, this.lote, separar, true);
+                separados = this.daoLotes.separaAlmacen(this.salida.getIdMovto(), this.lote, separar, true);
                 if (separados < separar) {
                     Mensajes.mensajeAlert("No se pudieron obtener los lotes solicitados");
                 }
             } else {
-                this.daoLotes.liberaAlmacen(idMovto, this.lote, -separar);
+                this.daoLotes.liberaAlmacen(this.salida.getIdMovto(), this.lote, -separar);
                 separados = separar;
             }
             this.lote.setSeparados(this.lote.getSeparados() + separados);
-            this.lote.setCantidad(this.lote.getSeparados());
-            this.sumaLotes += separados;
+            this.lote.setSaldo(this.lote.getSaldo() - separados);
+            this.salidaProducto.setCantidad(this.salidaProducto.getCantidad() + separados);
         } catch (SQLException ex) {
             this.lote.setCantidad(this.lote.getSeparados());
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -204,27 +303,37 @@ public class MbSalidasAlmacen implements Serializable {
         }
     }
 
-    public void editarLotes() {
-        boolean ok = false;
-        if (this.salidaProducto.getCantidad() < 0) {
-            Mensajes.mensajeAlert("La cantidad enviada no puede ser menor que cero");
-        } else if (this.salidaProducto.getCantidad() == this.salidaProducto.getSeparados()) {
-            ok = true;
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+        this.lote = this.salidaProducto.getLotes().get(event.getRowIndex());
+//        if (newValue == null) {
+//            this.lote.setCantidad((double) oldValue);
+//        }
+        if (newValue != null && newValue != oldValue) {
+            oldValue=newValue;
         } else {
-            try {
-                this.sumaLotes = 0;
-                this.daoLotes = new DAOLotes();
-                this.salidaProducto.setLotes(this.daoLotes.obtenerLotes(this.salida.getIdMovto(), this.salidaProducto.getProducto().getIdProducto()));
-                for (Lote l : this.salidaProducto.getLotes()) {
-                    this.sumaLotes += l.getSeparados();
-                }
-                this.lote = new Lote();
+            newValue=oldValue;
+            this.lote.setCantidad((double) oldValue);
+            Mensajes.mensajeAlert("Checar que pasa !!!");
+        }
+    }
+
+    public void editarLotes(SelectEvent event) {
+        boolean ok = false;
+        this.salidaProducto = (SalidaAlmacenProducto) event.getObject();
+        try {
+            this.daoLotes = new DAOLotes();
+            this.salidaProducto.setLotes(this.daoLotes.obtenerLotes(this.salida.getAlmacen().getIdAlmacen(), this.salida.getIdMovto(), this.salidaProducto.getProducto().getIdProducto()));
+            if (this.salidaProducto.getLotes().isEmpty()) {
+                Mensajes.mensajeAlert("No hay lotes disponibles para el producto !!!");
+            } else {
                 ok = true;
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
             }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okLotes", ok);
@@ -262,7 +371,7 @@ public class MbSalidasAlmacen implements Serializable {
     }
 
     public void salir() {
-        this.inicializar();
+//        this.inicializar();
         this.modoEdicion = false;
     }
 
@@ -311,7 +420,7 @@ public class MbSalidasAlmacen implements Serializable {
             this.listaMovimientosTipos = new ArrayList<>();
             this.tipo = new MovimientoTipo(0, "Seleccione");
             this.listaMovimientosTipos.add(new SelectItem(this.tipo, this.tipo.toString()));
-            
+
             this.dao = new DAOMovimientos();
             for (MovimientoTipo t : this.dao.obtenerMovimientosTipos(false)) {
                 this.listaMovimientosTipos.add(new SelectItem(t, t.toString()));
@@ -337,14 +446,6 @@ public class MbSalidasAlmacen implements Serializable {
 
     public void setLote(Lote lote) {
         this.lote = lote;
-    }
-
-    public double getSumaLotes() {
-        return sumaLotes;
-    }
-
-    public void setSumaLotes(double sumaLotes) {
-        this.sumaLotes = sumaLotes;
     }
 
     public Salida getSalida() {
@@ -437,7 +538,7 @@ public class MbSalidasAlmacen implements Serializable {
     public void setMbAcciones(MbAcciones mbAcciones) {
         this.mbAcciones = mbAcciones;
     }
-    
+
     public MbAlmacenesJS getMbAlmacenes() {
         return mbAlmacenes;
     }

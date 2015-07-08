@@ -12,7 +12,7 @@ public class EntradaProducto extends MovimientoProducto {
     
     public EntradaProducto() {
         super();
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
 
     public ArrayList<Lote> getLotes() {

@@ -22,7 +22,7 @@
                         <p:panelGrid id="encabezadoRecepcion" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="ALMACEN QUE RECIBE :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.toAlmacen}" style="width: 450px;" >
@@ -42,7 +42,7 @@
                                      var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargaDetalleRecepcion}" update="main" />
-                            
+
                             <p:column headerText="CEDIS" >
                                 <h:outputText value="#{recepcion.almacen.cedis}" />
                             </p:column>
@@ -85,20 +85,23 @@
                                     <p:inputText value="#{mbRecepcion.recepcion.almacenOrigen.toString()}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
-                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
-                                                     process="@this" actionListener="#{mbRecepcion.grabarRecepcion()}" update="@this main :main:msgs" />
+                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio"
+                                                     disabled="#{mbRecepcion.recepcion.estatus!=0}"
+                                                     process="@this" actionListener="#{mbRecepcion.grabar()}" 
+                                                     update="@this main :main:msgs" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                     disabled="#{mbRecepcion.recepcion.estatus==0}"
+                                                     ajax="false" immediate="true" action="#{mbRecepcion.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbRecepcion.salir()}" update="main" />
-                                    <p:commandButton id="btnEditarLotes" icon="ui-icon-document" title="Editar lotes recibidos" 
-                                                     process="@this" actionListener="#{mbRecepcion.editarLotes()}" update="listaLotes" 
-                                                     oncomplete="PF('editarLotesDlg').show();" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="detalleRecepcion" widgetVar="detalleRecepcion" value="#{mbRecepcion.recepcionDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbRecepcion.recepcionProducto}" selectionMode="single" 
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaFila()}" update="@this" />
+                                     var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="5" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.editarLotes}" 
+                                    update=":main:listaLotes :main:lotesTotales" oncomplete="PF('editarLotesDlg').show();" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
@@ -116,44 +119,53 @@
                     </p:panel>
                     <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
                         <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
-                        <p:ajax event="close" listener="#{mbRecepcion.actualizarCantidad()}" update=":main:detalleRecepcion"  />
+                        <p:ajax event="close" update=":main:detalleRecepcion"  />
+
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" value="#{mbRecepcion.recepcionProducto.lotes}" style="border: solid 1px" 
-                                     var="lte" rowKey="#{lte.lote}" selection="#{mbRecepcion.lote}" selectionMode="single"
+                                     var="lte" rowKey="#{lte.lote}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="rowSelect" listener="#{mbRecepcion.respaldaSeparados()}" update="listaLotes" />
+                            <p:ajax event="cellEdit" listener="#{mbRecepcion.onCellEdit}" update=":main:msgs1" />
 
                             <p:column headerText="LOTE" style="width: 80px;" >
                                 <h:outputText value="#{lte.lote}" />
                             </p:column>
                             <p:column headerText="ENVIADOS" style="width: 80px;" >
-                                <h:outputText value="#{lte.cantidad}" />
+                                <h:outputText value="#{lte.saldo}" />
                             </p:column>
                             <p:column headerText="RECIBIDOS" style="width: 80px;" >
-                                <pe:inputNumber value="#{lte.separados}" disabled="#{mbRecepcion.comparaLotes(lte)}"
-                                                decimalPlaces="3" style="width: 80px;" >
-                                    <p:ajax event="change" process="@this" listener="#{mbRecepcion.gestionarLotes()}" 
-                                            update=":main:msgs1 listaLotes lotesTotales" />
-                                </pe:inputNumber>
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{lte.separados}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{lte.separados}" readonly="#{mbRecepcion.recepcion.estatus!=0}" >
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                            <p:ajax event="change" listener="#{mbRecepcion.gestionarLotes()}" 
+                                                    update=":main:msgs1 listaLotes :main:lotesTotales" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
                             </p:column>
-                            <f:facet name="footer">
-                                <p:panelGrid id="lotesTotales" >
-                                    <p:row >
-                                        <p:column style="text-align: right" >
-                                            <h:outputText value="Enviados" />
-                                        </p:column>
-                                        <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbRecepcion.recepcionProducto.cantOrdenada}" />
-                                        </p:column>
-                                        <p:column style="text-align: right" >
-                                            <h:outputText value="Recibidos" />
-                                        </p:column>
-                                        <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbRecepcion.sumaLotes}" />
-                                        </p:column>
-                                    </p:row>
-                                </p:panelGrid>
-                            </f:facet>
                         </p:dataTable>
+                        <p:panelGrid id="lotesTotales" >
+                            <p:row >
+                                <p:column style="text-align: right; width: 190px;" >
+                                    <h:outputText value="Enviados :" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 100px;" >
+                                    <h:outputText value="#{mbRecepcion.recepcionProducto.cantOrdenada}" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 100px;" >
+                                    <h:outputText value="Recibidos :" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 100px;" >
+                                    <h:outputText value="#{mbRecepcion.recepcionProducto.cantFacturada}" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
                     </p:dialog>
                 </h:form>
             </div>

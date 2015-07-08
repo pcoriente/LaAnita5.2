@@ -24,34 +24,35 @@
                                 <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="almacen" value="#{mbPedidos.mbAlmacenes.almacen}" >
-                                    <f:converter converterId="converters.MiniAlmacenConverter" />
+                                <p:selectOneMenu id="almacen" value="#{mbPedidos.mbAlmacenes.toAlmacen}" >
+                                    <f:converter converterId="converters.TOAlmacenJSConverter" />
                                     <f:selectItems value="#{mbPedidos.mbAlmacenes.listaAlmacenes}" />
                                     <p:ajax event="change" listener="#{mbPedidos.obtenerPedidos()}" 
-                                            update=":main:msgsPedidos fechaInicial btnNuevoPedido listaDePedidos" />
+                                            update=":main:msgsPedidos chkTodosLosPedios fechaInicial btnNuevoPedido listaDePedidos" />
                                 </p:selectOneMenu>
                             </p:column>
                             <p:column style="text-align: right;" >
-                                <h:outputLabel for="chkTodosLosPedios" value="TODOS :" style="font-weight: bold; color: black;"
-                                               title="Ver a la fecha indicada, todos los pedidos o solo los pendientes" />
+                                <h:outputLabel for="chkTodosLosPedios" value="PENDIENTES :" style="font-weight: bold; color: black;"
+                                               title="Ver a la fecha indicada, los pendientes o los cerrados" />
                             </p:column>
                             <p:column >
-                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbPedidos.todos}" >
-                                    <p:ajax listener="#{mbPedidos.regresarFechaActual()}" 
-                                            update=":main:msgsPedidos fechaInicial listaDePedidos" />
+                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbPedidos.pendientes}" 
+                                                         disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}" >
+                                    <p:ajax listener="#{mbPedidos.obtenerPedidos()}" 
+                                            update=":main:msgsPedidos listaDePedidos" />
                                 </p:selectBooleanCheckbox>
                             </p:column>
                             <p:column >
-                                <p:calendar id="fechaInicial" value="#{mbPedidos.fechaInicial}" readonly="#{!mbPedidos.todos}" 
-                                            readonlyInput="true" disabled="#{mbPedidos.mbAlmacenes.almacen.idAlmacen==0}"
+                                <p:calendar id="fechaInicial" value="#{mbPedidos.fechaInicial}" 
+                                            readonlyInput="true" disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}"
                                             locale="es" navigator="true" pattern="dd/MM/yyyy" >
                                     <p:ajax event="dateSelect" process="@this" listener="#{mbPedidos.obtenerPedidos()}" 
-                                            update=":main:msgsPedidos :main:listaDePedidos" />
+                                            update=":main:msgsPedidos listaDePedidos" />
                                 </p:calendar>
                             </p:column>
                             <p:column colspan="5" style="text-align: right;" >
                                 <p:commandButton id="btnNuevoPedido" icon="ui-icon-document" title="Nuevo Pedido" 
-                                                 disabled="#{mbPedidos.mbAlmacenes.almacen.idAlmacen==0}"
+                                                 disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}"
                                                  process="@this" actionListener="#{mbPedidos.nuevoPedido()}" 
                                                  update=":main:nuevoPedido" oncomplete="PF('nuevoPedidoDlg').show();" />
                                 <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
@@ -162,7 +163,8 @@
                             <h:outputLabel value="CANT.CON CARGO :" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column >
-                            <p:inputText value="#{mbPedidos.producto.cantFacturada}" converterMessage="El valor proporcionado no es un numero" >
+                            <p:inputText value="#{mbPedidos.producto.cantFacturada}" style="width: 80px;"
+                                         converterMessage="El valor proporcionado no es un numero" >
                                 <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
                                 <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
                                         update=":main:msgsEdicion :main:btnPedidoCerrar :main:btnPedidoEliminar" 
@@ -259,7 +261,7 @@
                             update=":main:msgsPedido :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
 
                     <f:facet name="header" >Detalle del pedido</f:facet>
-                    <p:column headerText="Codigo" style="width: 50px;" >
+                    <p:column headerText="Codigo" style="width: 49px;" >
                         <h:outputText value="#{prod.producto.cod_pro}" />
                     </p:column>
                     <p:column headerText="Producto" >
@@ -267,12 +269,32 @@
                     </p:column>
                     <p:column headerText="Con Cargo" style="width: 70px; text-align: right;" >
                         <h:outputText value="#{prod.cantFacturada}" >
-                            <f:convertNumber pattern="###,##0.0000" />
+                            <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                    <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
                         <h:outputText value="#{prod.cantSinCargo}" >
-                            <f:convertNumber pattern="###,##0.0000" />
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Precio Lista" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.precio}" >
+                            <f:convertNumber pattern="###,##0.00" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="% Descto" style="width: 55px; text-align: right;" >
+                        <h:outputText value="#{prod.descuento}" >
+                            <f:convertNumber pattern="###,##0.00" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Unitario" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.unitario}" >
+                            <f:convertNumber pattern="###,##0.00" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Importe" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.unitario*prod.cantFacturada}" >
+                            <f:convertNumber pattern="###,##0.00" />
                         </h:outputText>
                     </p:column>
                 </p:dataTable>
@@ -280,12 +302,12 @@
                     <p:row >
                         <p:column >
                             <p:commandButton id="btnPedidoEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar el pedido" 
-                                             disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.status!=0}"
+                                             disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.estatus!=0}"
                                              process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
                                              update=":main:msgsPedido :main:listaDePedidos" 
                                              oncomplete="handlePedido(xhr, status, args);" />
                             <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Cerrar pedido, ya no se podra modificar" 
-                                             disabled="#{mbPedidos.pedido.status!=0 || mbPedidos.pedido.cantArticulos==0}"
+                                             disabled="#{mbPedidos.pedido.estatus!=0 || mbPedidos.pedido.cantArticulos==0}"
                                              process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
                                              update=":main:msgsPedido :main:listaDePedidos" 
                                              oncomplete="handlePedido(xhr, status, args);" />

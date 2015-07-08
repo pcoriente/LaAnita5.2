@@ -1,7 +1,7 @@
 package pedidos;
 
 import Message.Mensajes;
-import almacenes.MbMiniAlmacenes;
+import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
 import entradas.dao.DAOMovimientos1;
 import formatos.MbFormatos;
@@ -12,11 +12,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
+import movimientos.dao.DAOMovimientos;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import pedidos.DAO.DAOPedidos;
@@ -25,7 +24,6 @@ import pedidos.dominio.PedidoProducto;
 import pedidos.to.TOPedido;
 import pedidos.to.TOPedidoProducto;
 import producto2.MbProductosBuscar;
-import producto2.dominio.Producto;
 import tiendas.MbMiniTiendas;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
@@ -41,8 +39,8 @@ public class MbPedidos implements Serializable {
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
-    @ManagedProperty(value = "#{mbMiniAlmacenes}")
-    private MbMiniAlmacenes mbAlmacenes;
+    @ManagedProperty(value = "#{mbAlmacenesJS}")
+    private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbMenuClientesGrupos}")
     private MbClientesGrupos mbGrupos;
     @ManagedProperty(value = "#{mbMiniClientes}")
@@ -57,18 +55,19 @@ public class MbPedidos implements Serializable {
     private ArrayList<Pedido> pedidos;
     private ArrayList<PedidoProducto> detalle, similares;
     private PedidoProducto producto, similar;
-    private double cantRespaldo, cantTraspasar;
+    private double cantTraspasar;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private boolean asegurado;
+    private DAOMovimientos daoMv;
     private DAOPedidos dao;
-    private boolean todos;
+    private boolean pendientes;
     private Date fechaInicial;
     private TimeZone zonaHoraria = TimeZone.getDefault();
 
-    public MbPedidos() {
+    public MbPedidos() throws NamingException {
         this.mbAcciones = new MbAcciones();
-        this.mbAlmacenes = new MbMiniAlmacenes();
+        this.mbAlmacenes = new MbAlmacenesJS();
 
         this.mbGrupos = new MbClientesGrupos();
         this.mbClientes = new MbMiniClientes();
@@ -81,10 +80,10 @@ public class MbPedidos implements Serializable {
 
     public void traspasoSimilar() {
         boolean ok = false;
-        this.similares = new ArrayList<PedidoProducto>();
+        this.similares = new ArrayList<>();
         try {
-            this.dao = new DAOPedidos();
-            for (TOPedidoProducto to : this.dao.obtenerSimilaresPedido(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto())) {
+            this.daoMv = new DAOMovimientos();
+            for (TOPedidoProducto to : daoMv.obtenerSimilaresPedido(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto())) {
 //                if (to.getCantSinCargo() > 0) {
                     this.similares.add(this.convertir(to));
 //                }
@@ -103,37 +102,12 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okSimilares", ok);
     }
 
-//    public void traspasoSimilar2() {
-//        int idx;
-//        boolean ok=false;
-//        this.similar=null;
-//        PedidoProducto prod;
-//        this.cantTraspasar=0;
-//        this.similares=new ArrayList<PedidoProducto>();
-//        try {
-//            for(Producto p: this.mbBuscar.obtenerSimilares(this.producto.getProducto().getIdProducto())) {
-//                prod=new PedidoProducto(p);
-//                if((idx=this.detalle.indexOf(prod)) != -1) {
-//                    prod.setIdPedido(this.detalle.get(idx).getIdPedido());
-//                    prod.setCantSinCargo(this.detalle.get(idx).getCantSinCargo());
-//                }
-//                this.similares.add(prod);
-//            }
-//            ok=true;
-//        } catch (NamingException ex) {
-//            Mensajes.mensajeError(ex.getMessage());
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-//        }
-//        RequestContext context = RequestContext.getCurrentInstance();
-//        context.addCallbackParam("okSimilares", ok);
-//    }
     public void eliminarPedido() {
         boolean ok = false;
         this.asegurado = false;
         try {
             this.dao = new DAOPedidos();
-            this.dao.eliminarPedido(this.pedido.getIdPedido());
+            this.dao.eliminarPedido(this.pedido.getIdPedidoOC(), this.pedido.getIdPedido());
             this.pedidos.remove(this.pedido);
             this.pedido = null;
             ok = true;
@@ -149,9 +123,9 @@ public class MbPedidos implements Serializable {
     public void cerrarPedido() {
         boolean ok = false;
         try {
-            DAOMovimientos1 daoMv = new DAOMovimientos1();
-            daoMv.cerrarPedido(this.pedido.getIdPedido());
-            this.pedido.setStatus(1);
+            this.daoMv = new DAOMovimientos();
+            this.daoMv.cerrarPedido(this.pedido.getIdPedido());
+            this.pedido.setEstatus(1);
             Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
             ok = true;
         } catch (NamingException ex) {
@@ -165,11 +139,10 @@ public class MbPedidos implements Serializable {
 
     public void modificarProducto(SelectEvent event) {
         boolean ok = false;
-        if (this.pedido.getStatus() != 0) {
+        if (this.pedido.getEstatus() != 0) {
             Mensajes.mensajeAlert("El pedido ya esta cerrado, no se puede modificar !!!");
         } else if (this.asegurado) {
             this.producto = (PedidoProducto) event.getObject();
-            this.cantRespaldo = this.producto.getCantFacturada();
             ok = true;
         } else {
             Mensajes.mensajeAlert("El pedido esta en modo lectura, no se puede modificar !!!");
@@ -187,11 +160,14 @@ public class MbPedidos implements Serializable {
         } else {
             this.producto.setIdPedido(this.pedido.getIdPedido());
             try {
-                TOPedidoProducto to=this.convertir(this.producto);
+                TOPedidoProducto to=new TOPedidoProducto();
                 to.setIdPedido(this.pedido.getIdPedido());
+                to.setIdProducto(this.producto.getProducto().getIdProducto());
+                to.setIdImpuestoGrupo(this.producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
                 
-                DAOMovimientos1 daoMv = new DAOMovimientos1();
-                daoMv.agregarPedidoProducto(this.pedido.getIdEmpresa(), to, this.pedido.getTienda().getIdTienda());
+                this.daoMv = new DAOMovimientos();
+                this.daoMv.agregarPedidoProducto(this.mbAlmacenes.getToAlmacen().getIdEmpresa(), this.pedido.getTienda().getIdTienda(), this.pedido.getTienda().getIdImpuestoZona(), to);
+                this.producto=this.convertir(to);
                 this.detalle.add(this.producto);
                 ok = true;
             } catch (NamingException ex) {
@@ -243,29 +219,13 @@ public class MbPedidos implements Serializable {
     private TOPedidoProducto convertir(PedidoProducto p) {
         TOPedidoProducto to = new TOPedidoProducto();
         to.setIdPedido(p.getIdPedido());
-        to.setIdEmpaque(p.getProducto().getIdProducto());
+        to.setIdProducto(p.getProducto().getIdProducto());
         to.setCantFacturada(p.getCantFacturada());
         to.setCantSinCargo(p.getCantSinCargo());
         to.setUnitario(p.getUnitario());
         to.setIdImpuestoGrupo(p.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
         return to;
     }
-
-//    public void actualizaProducto() {
-//        boolean ok=false;
-//        try {
-//            this.dao=new DAOPedidos();
-//            this.dao.grabarMovimiento(this.convertir(this.producto));
-//            this.pedido.setCantArticulos(this.pedido.getCantArticulos()-this.cantRespaldo+this.producto.getCantFacturada());
-//            ok=true;
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
-//        } catch (NamingException ex) {
-//            Mensajes.mensajeError(ex.getMessage());
-//        }
-//        RequestContext context = RequestContext.getCurrentInstance();
-//        context.addCallbackParam("okEdicion", ok);
-//    }
     
     public void actualizaTraspasoSimilar() {
         int idx;
@@ -276,11 +236,11 @@ public class MbPedidos implements Serializable {
                 TOPedidoProducto toProd = this.convertir(this.producto);
                 TOPedidoProducto toSimilar = this.convertir(this.similar);
                 
-                DAOMovimientos1 daoMv = new DAOMovimientos1();
-                daoMv.trasferirSinCargo(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto(), toSimilar, this.cantTraspasar);
+                DAOMovimientos1 daoMv1 = new DAOMovimientos1();
+                daoMv1.trasferirSinCargo(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto(), toSimilar, this.cantTraspasar);
                 
-                this.dao=new DAOPedidos();
-                for (TOPedidoProducto to : this.dao.obtenerPedidoSimilares(this.pedido.getIdPedido(), toProd.getIdEmpaque())) {
+                this.daoMv = new DAOMovimientos();
+                for (TOPedidoProducto to : this.daoMv.obtenerPedidoSimilares(this.pedido.getIdPedido(), toProd.getIdProducto())) {
                     prod = this.convertir(to);
                     if ((idx = this.detalle.indexOf(prod)) != -1) {
                         this.detalle.set(idx, prod);
@@ -310,12 +270,11 @@ public class MbPedidos implements Serializable {
                 TOPedido toPed = this.convertir(this.pedido);
                 TOPedidoProducto toProd = this.convertir(this.producto);
 
-                DAOMovimientos1 daoMv = new DAOMovimientos1();
+                this.daoMv = new DAOMovimientos();
                 okSimilares = daoMv.grabarPedidoDetalle(toPed, this.pedido.getTienda().getIdImpuestoZona(), toProd, cantFacturadaOld);
-
                 if (okSimilares) {
-                    this.dao = new DAOPedidos();
-                    for (TOPedidoProducto to : this.dao.obtenerPedidoSimilares(toPed.getIdPedido(), toProd.getIdEmpaque())) {
+                    this.daoMv = new DAOMovimientos();
+                    for (TOPedidoProducto to : this.daoMv.obtenerPedidoSimilares(toPed.getIdPedido(), toProd.getIdProducto())) {
                         prod = this.convertir(to);
                         if ((idx = this.detalle.indexOf(prod)) != -1) {
                             this.detalle.set(idx, prod);
@@ -341,16 +300,17 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okEdicion", ok);
     }
 
-    private PedidoProducto convertir(TOPedidoProducto to) {
+    private PedidoProducto convertir(TOPedidoProducto to) throws SQLException {
         PedidoProducto p = new PedidoProducto();
         p.setIdPedido(to.getIdPedido());
-        p.setProducto(this.mbBuscar.obtenerProducto(to.getIdEmpaque()));
+        p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantFacturada(to.getCantFacturada());
         p.setCantSinCargo(to.getCantSinCargo());
         p.setSeparados(to.getCantFacturada() + to.getCantSinCargo());
-        p.setPrecio(to.getUnitario());
-        p.setDescuento(0);
+        p.setPrecio(to.getCosto());
+        p.setDescuento(to.getDesctoProducto1());
         p.setUnitario(to.getUnitario());
+        p.setNeto(p.getUnitario()+ this.daoMv.obtenerImpuestosPedidoProducto(to.getIdPedido(), to.getIdProducto(), p.getImpuestos()));
         return p;
     }
 
@@ -358,7 +318,7 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
         int n = 0;
         this.pedido = (Pedido) event.getObject();
-        this.detalle = new ArrayList<PedidoProducto>();
+        this.detalle = new ArrayList<>();
         try {
             this.dao = new DAOPedidos();
             try {
@@ -366,17 +326,15 @@ public class MbPedidos implements Serializable {
             } catch (Exception ex) {
                 Mensajes.mensajeAlert(ex.getMessage());
             }
-//            PedidoProducto p;
-//            DAOMovimientos daoMv=new DAOMovimientos();
-            for (TOPedidoProducto to : this.dao.obtenerPedidoDetalle(this.pedido.getIdPedido())) {
-//                p=this.convertir(to);
-//                p.setImpuestos(daoMv.obtenerImpuestosProducto(idMovto, idEmpaque));
+            this.daoMv = new DAOMovimientos();
+            if(this.pedido.getEstatus()==0) {
+                this.daoMv.actualizarPedido(this.mbAlmacenes.getToAlmacen().getIdEmpresa(), this.pedido.getTienda().getIdTienda(), this.pedido.getIdPedido());
+            }
+            for (TOPedidoProducto to : this.daoMv.obtenerPedidoDetalle(this.pedido.getIdPedido())) {
                 this.detalle.add(this.convertir(to));
                 n += to.getCantFacturada();
-//                this.detalle.add(p);
             }
             this.pedido.setCantArticulos(n);
-//            this.actualizaTotales();
             ok = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -390,27 +348,31 @@ public class MbPedidos implements Serializable {
     private TOPedido convertir(Pedido p) {
         TOPedido to = new TOPedido();
         to.setIdPedido(p.getIdPedido());
-        to.setIdEmpresa(p.getIdEmpresa());
-        to.setIdAlmacen(p.getIdAlmacen());
+        to.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
+        to.setIdAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen());
+        to.setIdCliente(this.mbClientes.getCliente().getIdCliente());
         to.setIdTienda(p.getTienda().getIdTienda());
+        to.setIdImpuestoZona(p.getTienda().getIdImpuestoZona());
         to.setFecha(p.getFecha());
-        to.setStatus(p.getStatus());
+        to.setEstatus(p.getEstatus());
         to.setOrdenDeCompra(p.getOrdenDeCompra());
         to.setOrdenDeCompraFecha(p.getOrdenDeCompraFecha());
-        to.setCancelacionMotivo(p.getCancelacionMotivo());
-        to.setCancelacionFecha(p.getCancelacionFecha());
+        to.setCanceladoMotivo(p.getCancelacionMotivo());
+        to.setCanceladoFecha(p.getCancelacionFecha());
         return to;
     }
 
     public void crearPedido() {
         boolean ok = false;
-        this.pedido = new Pedido(this.mbAlmacenes.getAlmacen().getIdAlmacen(), this.mbTiendas.getTienda(), this.mbFormatos.getFormatoSeleccion(), this.mbClientes.getCliente());
+        this.pedido = new Pedido(this.mbTiendas.getTienda(), this.mbFormatos.getFormatoSeleccion(), this.mbClientes.getCliente());
         this.pedido.setOrdenDeCompra(this.ordenDeCompra);
         this.pedido.setOrdenDeCompraFecha(this.ordenDeCompraFecha);
         TOPedido to = this.convertir(this.pedido);
         try {
             this.dao = new DAOPedidos();
-            this.pedido.setIdPedido(this.dao.agregarPedido(to));
+            this.dao.agregarPedido(to);
+            this.pedido.setIdPedido(to.getIdPedido());
+            this.pedido.setIdPedidoOC(to.getIdPedidoOC());
             this.pedidos.add(this.pedido);
             this.asegurado = true;
             ok = true;
@@ -419,7 +381,7 @@ public class MbPedidos implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
-        this.detalle = new ArrayList<PedidoProducto>();
+        this.detalle = new ArrayList<>();
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
@@ -429,16 +391,9 @@ public class MbPedidos implements Serializable {
         this.mbTiendas.nuevaTienda();
     }
 
-    public void cambioDeCliente() {
-//        this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
-//        this.mbFormatos.nuevoFormato();
-//        this.cambioDeFormato();
-    }
+    public void cambioDeCliente() {}
 
     public void cambioDeGrupo() {
-//        this.mbClientes.cargarClientesGrupo(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
-//        this.mbClientes.nuevoCliente();
-//        this.cambioDeCliente();
         this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
         this.mbTiendas.inicializar();
     }
@@ -450,35 +405,34 @@ public class MbPedidos implements Serializable {
         this.ordenDeCompraFecha = new Date();
     }
 
-    public void regresarFechaActual() {
-        this.fechaInicial = new Date();
-        this.obtenerPedidos();
-        this.ordenDeCompra = "";
-        this.ordenDeCompraFecha = new Date();
-    }
+//    public void regresarFechaActual() {
+//        this.fechaInicial = new Date();
+//        this.obtenerPedidos();
+//        this.ordenDeCompra = "";
+//        this.ordenDeCompraFecha = new Date();
+//    }
 
     private Pedido convertir(TOPedido to) {
         Pedido p = new Pedido();
         p.setIdPedido(to.getIdPedido());
-        p.setIdEmpresa(to.getIdEmpresa());
-        p.setIdAlmacen(to.getIdAlmacen());
+        p.setIdPedidoOC(to.getIdPedidoOC());
         p.setTienda(this.mbTiendas.obtenerTienda(to.getIdTienda()));
         p.setFormato(this.mbFormatos.obtenerFormato(p.getTienda().getIdFormato()));
         p.setCliente(this.mbClientes.obtenerCliente(p.getFormato().getIdCliente()));
         p.setOrdenDeCompra(to.getOrdenDeCompra());
         p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
         p.setFecha(to.getFecha());
-        p.setStatus(to.getStatus());
-        p.setCancelacionFecha(to.getCancelacionFecha());
-        p.setCancelacionMotivo(to.getCancelacionMotivo());
+        p.setEstatus(to.getEstatus());
+        p.setCancelacionFecha(to.getCanceladoFecha());
+        p.setCancelacionMotivo(to.getCanceladoMotivo());
         return p;
     }
 
     public void obtenerPedidos() {
         try {   // Segun fecha y status
-            this.pedidos = new ArrayList<Pedido>();
+            this.pedidos = new ArrayList<>();
             this.dao = new DAOPedidos();
-            for (TOPedido to : this.dao.obtenerPedidos(this.mbAlmacenes.getAlmacen().getIdAlmacen(), (this.todos ? 9999 : 1), this.fechaInicial)) {
+            for (TOPedido to : this.dao.obtenerPedidos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 0 : 1), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -499,20 +453,16 @@ public class MbPedidos implements Serializable {
     }
 
     public void inicializar() {
-        this.mbAlmacenes.nuevoAlmacen();
-        this.mbAlmacenes.setSinEmpresa(true);
-        this.mbAlmacenes.setListaAlmacenes(null);
+        this.mbAlmacenes.inicializaAlmacen();
 
         this.mbGrupos.inicializar();
-//        this.mbClientes.inicializar();
-//        this.mbFormatos.inicializar();
         this.mbBuscar.inicializar();
 
-        this.todos = false;
+        this.pendientes = true;
         this.fechaInicial = new Date();
-        this.pedidos = new ArrayList<Pedido>();
+        this.pedidos = new ArrayList<>();
         this.pedido = new Pedido();
-        this.detalle = new ArrayList<PedidoProducto>();
+        this.detalle = new ArrayList<>();
     }
 
     public double getCantTraspasar() {
@@ -595,12 +545,12 @@ public class MbPedidos implements Serializable {
         this.pedidos = pedidos;
     }
 
-    public boolean isTodos() {
-        return todos;
+    public boolean isPendientes() {
+        return pendientes;
     }
 
-    public void setTodos(boolean todos) {
-        this.todos = todos;
+    public void setPendientes(boolean pendientes) {
+        this.pendientes = pendientes;
     }
 
     public Date getFechaInicial() {
@@ -659,11 +609,11 @@ public class MbPedidos implements Serializable {
         this.mbTiendas = mbTiendas;
     }
 
-    public MbMiniAlmacenes getMbAlmacenes() {
+    public MbAlmacenesJS getMbAlmacenes() {
         return mbAlmacenes;
     }
 
-    public void setMbAlmacenes(MbMiniAlmacenes mbAlmacenes) {
+    public void setMbAlmacenes(MbAlmacenesJS mbAlmacenes) {
         this.mbAlmacenes = mbAlmacenes;
     }
 

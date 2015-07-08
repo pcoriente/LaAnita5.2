@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Rechazos de traspaso</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main"  onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel header="RECHAZOS DE TRASPASO"
+                             rendered="#{not empty mbRechazo.obtenerAcciones(38) and not mbRechazo.modoEdicion}">
+                        <p:panelGrid id="encabezado" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="almacenDestino" value="#{mbRechazo.almacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbRechazo.listaAlmacenes}" />
+                                        <p:ajax event="change" listener="#{mbRechazo.obtenerRechazos()}" 
+                                                update=":main:msgs lista" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton icon="ui-icon-home" title="Salir" 
+                                                     action="#{mbRechazo.terminar()}" immediate="true" ajax="false" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="lista" value="#{mbRechazo.rechazos}" style="border:solid 1px"
+                                     var="rechazo" rowKey="#{rechazo.idMovto}" selectionMode="single" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRechazo.cargaDetalle}" update="main" />
+
+                            <p:column headerText="CEDIS" >
+                                <h:outputText value="#{rechazo.almacenOrigen.cedis}" />
+                            </p:column>
+                            <p:column headerText="Almacen" >
+                                <h:outputText value="#{rechazo.almacenOrigen.toString()}" />
+                            </p:column>
+                            <p:column headerText="Fecha" style="width: 120px;" >
+                                <h:outputText value="#{rechazo.fecha}" >
+                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panel header="RECHAZOS DE TRASPASO" rendered="#{mbRechazo.modoEdicion}" >
+                        <p:panelGrid id="mantenimiento" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText value="#{mbRechazo.rechazo.almacenDestino}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Rechaza CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText value="#{mbRechazo.rechazo.almacenOrigen.cedis}" readonly="true" size="52" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Rechaza Almacen :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbRechazo.rechazo.almacenOrigen.toString()}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir Rechazo"
+                                                     ajax="false" immediate="true" action="#{mbRechazo.imprimir()}" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                                     process="@this" actionListener="#{mbRechazo.salir()}" 
+                                                     update="main" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="detalle" value="#{mbRechazo.detalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" 
+                                     selectionMode="single" selection="#{mbRechazo.producto}"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                            <p:ajax event="rowSelect" update=":main:listaLotes" oncomplete="PF('editarLotesDlg').show();" />
+
+                            <p:column headerText="SKU" style="width: 60px;" >
+                                <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
+                            </p:column>
+                            <p:column headerText="Producto" style="width: 450px;" >
+                                <h:outputText value="#{prod.producto}" style="width: 440px;" />
+                            </p:column>
+                            <p:column headerText="Rechazados" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
+                        <p:dataTable id="listaLotes" widgetVar="listaLotesEdit" 
+                                     value="#{mbRechazo.producto.lotes}" style="border: solid 1px" 
+                                     var="lote" rowKey="#{lote.lote}"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+
+                            <p:column headerText="LOTE" style="width: 80px;" >
+                                <h:outputText value="#{lote.lote}" />
+                            </p:column>
+                            <p:column headerText="CADUCIDAD" style="width: 80px;" >
+                                <h:outputText value="#{lote.fechaCaducidad}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="RECHAZADOS" style="width: 80px;" >
+                                <h:outputText value="#{lote.separados}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </p:column>
+                            <f:facet name="footer">
+                                <p:panelGrid id="lotesTotales" >
+                                    <p:row >
+                                        <p:column colspan="3" style="text-align: right; text-align: right;" >
+                                            <h:outputText value="Total :" />
+                                        </p:column>
+                                        <p:column style="text-align: left" >
+                                            <h:outputText value="#{mbRechazo.producto.cantFacturada}" />
+                                        </p:column>
+                                    </p:row>
+                                </p:panelGrid>
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+            </div>
+        </div>
+    </body>
+</html>

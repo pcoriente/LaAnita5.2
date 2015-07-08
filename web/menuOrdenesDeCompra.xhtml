@@ -1018,6 +1018,9 @@
                                      var="v"
 
                                      >
+                            <p:column headerText="SKU" width="50" >
+                                #{v.producto.cod_pro}
+                            </p:column>
                             <p:column headerText="Producto" width="300" >
                                 #{v.producto.toString()}
                             </p:column>

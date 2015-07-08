@@ -8,22 +8,26 @@ import java.util.Date;
  */
 public class TOPedido {
     private int idPedido;
+    private int idPedidoOC;
     private int idEmpresa;
     private int idAlmacen;
+    private int idCliente;
     private int idTienda;
+    private int idImpuestoZona;
+    private Date fecha;
+    private int estatus;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
-    private Date fecha;
-    private int status;
-    private Date cancelacionFecha;
-    private String cancelacionMotivo;
+    private boolean cancelado;
+    private Date canceladoFecha;
+    private String canceladoMotivo;
 
     public TOPedido() {
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
         this.fecha=new Date();
-        this.cancelacionFecha=new Date();
-        this.cancelacionMotivo="";
+        this.canceladoFecha=new Date();
+        this.canceladoMotivo="";
     }
 
     public int getIdPedido() {
@@ -32,6 +36,38 @@ public class TOPedido {
 
     public void setIdPedido(int idPedido) {
         this.idPedido = idPedido;
+    }
+    
+    public int getIdPedidoOC() {
+        return idPedidoOC;
+    }
+
+    public void setIdPedidoOC(int idPedidoOC) {
+        this.idPedidoOC = idPedidoOC;
+    }
+
+    public int getIdTienda() {
+        return idTienda;
+    }
+
+    public void setIdTienda(int idTienda) {
+        this.idTienda = idTienda;
+    }
+
+    public int getIdImpuestoZona() {
+        return idImpuestoZona;
+    }
+
+    public void setIdImpuestoZona(int idImpuestoZona) {
+        this.idImpuestoZona = idImpuestoZona;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public int getIdAlmacen() {
@@ -42,12 +78,12 @@ public class TOPedido {
         this.idAlmacen = idAlmacen;
     }
 
-    public int getIdTienda() {
-        return idTienda;
+    public int getIdCliente() {
+        return idCliente;
     }
 
-    public void setIdTienda(int idTienda) {
-        this.idTienda = idTienda;
+    public void setIdCliente(int idCliente) {
+        this.idCliente = idCliente;
     }
 
     public String getOrdenDeCompra() {
@@ -74,35 +110,35 @@ public class TOPedido {
         this.fecha = fecha;
     }
 
-    public int getStatus() {
-        return status;
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 
-    public Date getCancelacionFecha() {
-        return cancelacionFecha;
+    public boolean isCancelado() {
+        return cancelado;
     }
 
-    public void setCancelacionFecha(Date cancelacionFecha) {
-        this.cancelacionFecha = cancelacionFecha;
+    public void setCancelado(boolean cancelado) {
+        this.cancelado = cancelado;
     }
 
-    public String getCancelacionMotivo() {
-        return cancelacionMotivo;
+    public Date getCanceladoFecha() {
+        return canceladoFecha;
     }
 
-    public void setCancelacionMotivo(String cancelacionMotivo) {
-        this.cancelacionMotivo = cancelacionMotivo;
+    public void setCanceladoFecha(Date canceladoFecha) {
+        this.canceladoFecha = canceladoFecha;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
+    public String getCanceladoMotivo() {
+        return canceladoMotivo;
     }
 
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
+    public void setCanceladoMotivo(String canceladoMotivo) {
+        this.canceladoMotivo = canceladoMotivo;
     }
 }

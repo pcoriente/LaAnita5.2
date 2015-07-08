@@ -3,6 +3,7 @@ package pedidos.dominio;
 import clientes.to.TOCliente;
 import formatos.dominio.ClienteFormato;
 import java.util.Date;
+import menuClientesGrupos.dominio.ClienteGrupo;
 import tiendas.to.TOTienda;
 
 /**
@@ -11,15 +12,15 @@ import tiendas.to.TOTienda;
  */
 public class Pedido {
     private int idPedido;
-    private int idEmpresa;
-    private int idAlmacen;
+    private int idPedidoOC;
     private TOTienda tienda;
+    private ClienteGrupo grupo;
     private ClienteFormato formato;
     private TOCliente cliente;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private Date fecha;
-    private int status;
+    private int estatus;
     private Date cancelacionFecha;
     private String cancelacionMotivo;
     private double cantArticulos;
@@ -35,8 +36,7 @@ public class Pedido {
         this.cancelacionMotivo="";
     }
 
-    public Pedido(int idAlmacen, TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
-        this.idAlmacen = idAlmacen;
+    public Pedido(TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
         this.tienda = tienda;
         this.formato = formato;
         this.cliente = cliente;
@@ -62,12 +62,12 @@ public class Pedido {
         this.idPedido = idPedido;
     }
 
-    public int getIdAlmacen() {
-        return idAlmacen;
+    public int getIdPedidoOC() {
+        return idPedidoOC;
     }
 
-    public void setIdAlmacen(int idAlmacen) {
-        this.idAlmacen = idAlmacen;
+    public void setIdPedidoOC(int idPedidoOC) {
+        this.idPedidoOC = idPedidoOC;
     }
 
     public TOTienda getTienda() {
@@ -118,12 +118,12 @@ public class Pedido {
         this.fecha = fecha;
     }
 
-    public int getStatus() {
-        return status;
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 
     public Date getCancelacionFecha() {
@@ -142,11 +142,11 @@ public class Pedido {
         this.cancelacionMotivo = cancelacionMotivo;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
+    public ClienteGrupo getGrupo() {
+        return grupo;
     }
 
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
+    public void setGrupo(ClienteGrupo grupo) {
+        this.grupo = grupo;
     }
 }

@@ -3,9 +3,9 @@ package ventas;
 import Message.Mensajes;
 import almacenes.MbMiniAlmacenes;
 import clientes.MbMiniClientes;
+import entradas.dao.DAOMovimientos1;
 import ventas.dominio.Venta;
 import ventas.dominio.VentaProducto;
-import entradas.dao.DAOMovimientos1;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
 import formatos.MbFormatos;
@@ -92,7 +92,7 @@ public class MbVentas implements Serializable {
             this.dao=new DAOMovimientos1();
             this.dao.surtirOrdenDeCompra(true, this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), this.venta.getTienda().getIdImpuestoZona());
             
-            this.detalle=new ArrayList<VentaProducto>();
+            this.detalle=new ArrayList<>();
             for(TOMovimientoProducto to: this.dao.obtenerMovimientoDetalle(this.venta.getIdMovto())) {
                 this.detalle.add(this.convertirProducto(to));
             }
@@ -156,7 +156,7 @@ public class MbVentas implements Serializable {
         this.cantTraspasar=0;
         this.loteDestino=null;
         VentaAlmacenProducto prod;
-        this.empaqueLotes=new ArrayList<VentaAlmacenProducto>();
+        this.empaqueLotes=new ArrayList<>();
         try {
             this.dao=new DAOMovimientos1();
             for(TOLote to: this.dao.obtenerEmpaqueLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.loteOrigen.getProducto().getIdProducto())) {
@@ -199,7 +199,7 @@ public class MbVentas implements Serializable {
         boolean ok=false;
         this.loteOrigen=null;
         this.venta = (Venta) event.getObject();
-        this.almacenDetalle=new ArrayList<VentaAlmacenProducto>();
+        this.almacenDetalle=new ArrayList<>();
         try {
             this.dao=new DAOMovimientos1();
             try {
@@ -318,7 +318,7 @@ public class MbVentas implements Serializable {
         this.similar=null;
         VentaProducto prod;
         this.cantTraspasar=0;
-        this.similares=new ArrayList<VentaProducto>();
+        this.similares=new ArrayList<>();
         try {
             for(Producto p: this.mbBuscar.obtenerSimilares(this.producto.getProducto().getIdProducto())) {
                 prod=new VentaProducto(p);
@@ -356,7 +356,7 @@ public class MbVentas implements Serializable {
                 
                 DAOMovimientos daoMv=new DAOMovimientos();
                 this.venta = this.convertir(daoMv.obtenerMovimientoRelacionado(to.getIdMovto()));
-                this.detalle = new ArrayList<VentaProducto>();
+                this.detalle = new ArrayList<>();
                 this.producto = new VentaProducto();
                 ok = true;
             } catch (SQLException ex) {
@@ -446,9 +446,9 @@ public class MbVentas implements Serializable {
 
         this.todos = false;
         this.fechaInicial = new Date();
-        this.pedidos = new ArrayList<Venta>();
+        this.pedidos = new ArrayList<>();
         this.venta = new Venta();
-        this.detalle = new ArrayList<VentaProducto>();
+        this.detalle = new ArrayList<>();
 //        this.modoEdicion=false;
     }
     
@@ -525,7 +525,7 @@ public class MbVentas implements Serializable {
     public void obtenerDetalle(SelectEvent event) {
         boolean ok=false;
         this.venta = (Venta) event.getObject();
-        this.detalle=new ArrayList<VentaProducto>();
+        this.detalle=new ArrayList<>();
         try {
             this.dao=new DAOMovimientos1();
             try {
@@ -553,7 +553,7 @@ public class MbVentas implements Serializable {
         ImpuestosProducto nuevo;
         this.venta.setSubTotal(0);
         this.venta.setDescuento(0);
-        this.impuestosTotales=new ArrayList<ImpuestosProducto>();
+        this.impuestosTotales=new ArrayList<>();
         this.venta.setTotal(0);
         for(VentaProducto prod: this.detalle) {
             this.venta.setSubTotal(this.venta.getSubTotal()+prod.getPrecio()*prod.getCantidadFacturada());
@@ -689,7 +689,7 @@ public class MbVentas implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
         }
-        this.detalle = new ArrayList<VentaProducto>();
+        this.detalle = new ArrayList<>();
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okNuevoPedido", ok);
     }
@@ -716,7 +716,7 @@ public class MbVentas implements Serializable {
     
     public void obtenerPedidosAlmacen() {
         try {   // Segun fecha y status
-            this.pedidos=new ArrayList<Venta>();
+            this.pedidos=new ArrayList<>();
             this.dao=new DAOMovimientos1();
             for(TOMovimiento to: this.dao.obtenerMovimientosAlmacenRelacionados(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.todos?9999:1), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
@@ -730,7 +730,7 @@ public class MbVentas implements Serializable {
 
     public void obtenerPedidos() {
         try {   // Segun fecha y status
-            this.pedidos=new ArrayList<Venta>();
+            this.pedidos=new ArrayList<>();
             this.dao=new DAOMovimientos1();
             for(TOMovimiento to: this.dao.obtenerMovimientosRelacionados(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.todos?9999:1), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));

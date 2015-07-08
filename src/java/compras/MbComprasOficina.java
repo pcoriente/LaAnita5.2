@@ -657,6 +657,7 @@ public class MbComprasOficina implements Serializable {
     private void crearCompra() {
         this.compra = new CompraOficina(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
         this.detalle = new ArrayList<>();
+        this.tipoDeCambio = this.compra.getTipoDeCambio();
         this.modoEdicion = true;
         this.producto = null;
     }

@@ -55,27 +55,29 @@
                         <p:panelGrid id="mttoFormulas" >
                             <p:row >
                                 <p:column style="width: 90px;" >
-                                    <h:outputLabel for="txtMerma" value="MERMA :" style="font-weight: bold; color: black;" />
+                                    <h:outputLabel for="txtMerma" value="MERMA (%):" style="font-weight: bold; color: black;" />
                                 </p:column>
-                                <p:column style="width: 100px;" >
-                                    <pe:inputNumber id="txtMerma" value="#{mbFormulas.formula.merma}" style="width: 100px;" 
-                                                    disabled="#{mbFormulas.formula.idFormula==0}"
-                                                    decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
+                                <p:column style="width: 90px;" >
+                                    <p:inputText id="txtMerma" value="#{mbFormulas.formula.merma}" style="width: 80px;" 
+                                                 disabled="#{mbFormulas.formula.idFormula==0}" >
+                                        <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
+                                        <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
                                         <p:ajax event="change" process="@this" 
                                                 listener="#{mbFormulas.calculaSumas()}" update=":main:mttoFormulasTotales" />
-                                    </pe:inputNumber>
+                                    </p:inputText>
                                 </p:column>
-                                <p:column style="width: 150px; text-align: right;" >
-                                    <h:outputLabel value="COSTO MANO OBRA:" style="font-weight: bold; color: black;" />
+                                <p:column style="width: 185px; text-align: right;" >
+                                    <h:outputLabel value="COSTO MANO OBRA UNIT:" style="font-weight: bold; color: black;" />
                                 </p:column>
-                                <p:column style="width: 100px;" >
-                                    <pe:inputNumber id="txtCostoManoObra" value="#{mbFormulas.formula.manoDeObra}" style="width: 90px;" 
-                                                    disabled="#{mbFormulas.formula.idFormula==0}" 
-                                                    decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
+                                <p:column style="width: 90px;" >
+                                    <p:inputText id="txtCostoManoObra" value="#{mbFormulas.formula.manoDeObra}" style="width: 80px;" 
+                                                 disabled="#{mbFormulas.formula.idFormula==0}" >
+                                        <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
+                                        <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
                                         <p:ajax event="change" process="@this" />
-                                    </pe:inputNumber>
+                                    </p:inputText>
                                 </p:column>
-                                <p:column style="text-align: right; width: 140px;" >
+                                <p:column style="text-align: right; width: 135px;" >
                                     <h:outputLabel value="OBSERVACIONES :" style="font-weight: bold; color: black;" />
                                 </p:column>
                                 <p:column style="text-align: left; width: 30px;" >
@@ -83,12 +85,10 @@
                                                      disabled="#{mbFormulas.formula.idFormula==0}" 
                                                      process="@this" update="mttoObservaciones" oncomplete="PF('mttoObservacionesDlg').show()" />
                                 </p:column>
-                                <p:column style="text-align: left; width: 35px;" >
+                                <p:column style="text-align: right; width: 85px;" >
                                     <p:commandButton id="btnGrabarFormula" icon="ui-icon-disk" title="Grabar"
                                                      disabled="#{mbFormulas.formula.idFormula==0}"
                                                      process="@this" actionListener="#{mbFormulas.grabarFormula()}" update="messages" />
-                                </p:column>
-                                <p:column style="text-align: right; width: 30px;" >
                                     <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Generar Excel"
                                                      disabled="#{mbFormulas.formula.idFormula==0}"
                                                      process="@this" actionListener="#{mbFormulas.generaExcel()}" update="messages" />
@@ -141,16 +141,25 @@
                         </p:dataTable>
                         <p:panelGrid id="mttoFormulasTotales" >
                             <p:row >
-                                <p:column style="width: 140px; text-align: right;" >
-                                    <h:outputLabel value="COSTO UNITARIO :" style="font-weight: bold; color: black;" />
+                                <p:column style="width: 125px; text-align: right;" >
+                                    <h:outputLabel value="COSTO UNIT MP :" style="font-weight: bold; color: black;" />
                                 </p:column>
-                                <p:column style="width: 110px;" >
+                                <p:column style="width: 90px;" >
                                     <p:inputText id="txtCostoFormula" value="#{mbFormulas.formula.costoPromedio}" 
-                                                 style="width: 100px; text-align: left;" readonly="true" >
+                                                 style="width: 80px; text-align: left;" readonly="true" >
                                         <f:convertNumber pattern="###,##0.000000" />
                                     </p:inputText>
                                 </p:column>
-                                <p:column style="width: 185px; text-align: right;" >
+                                <p:column style="width: 110px; text-align: right;" >
+                                    <h:outputLabel value="COSTO PRIMO :" style="font-weight: bold; color: black;" />
+                                </p:column>
+                                <p:column style="width: 90px;" >
+                                    <p:inputText id="txtCostoPrimo" value="#{mbFormulas.formula.costoPrimo}" 
+                                                 style="width: 80px; text-align: left;" readonly="true" >
+                                        <f:convertNumber pattern="###,##0.000000" />
+                                    </p:inputText>
+                                </p:column>
+                                <p:column style="width: 45px; text-align: right;" >
                                     <h:outputText value="Total :" style="font-size: 14px; font-weight: bold;" />
                                 </p:column>
                                 <p:column style="width: 80px; text-align: right;" >
@@ -164,11 +173,10 @@
                                         <f:convertNumber pattern="$ ###,##0.000000" />
                                     </h:outputText>
                                 </p:column>
-                                <p:column colspan="2" ></p:column>
                             </p:row>
                             <f:facet name="footer" >
                                 <p:row >
-                                    <p:column colspan="6" style="text-align: right;" >
+                                    <p:column colspan="8" style="text-align: right;" >
                                         <p:commandButton id="btnAgregarInsumo" icon="ui-icon-document" title="Agregar Insumo" 
                                                          disabled="#{mbFormulas.formula.idFormula==0}"
                                                          process="@this" actionListener="#{mbFormulas.buscarEmpaqueInsumo()}" 
