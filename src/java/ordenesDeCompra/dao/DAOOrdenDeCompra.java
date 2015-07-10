@@ -312,23 +312,22 @@ public class DAOOrdenDeCompra {
         }
     }
 
-    public void cancelarOrdenCompra(int idOrden) throws SQLException {
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        PreparedStatement ps2;
-        try {
-
-            //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
-            ps2 = cn.prepareStatement(strSQL2);
-            ps2.executeUpdate();
-        } catch (SQLException e) {
-            throw (e);
-        } finally {
-            cn.close();
-        }
-    }
-
+//    public void cancelarOrdenCompra(int idOrden) throws SQLException {
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        PreparedStatement ps2;
+//        try {
+//
+//            //CABECERO
+//            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
+//            ps2 = cn.prepareStatement(strSQL2);
+//            ps2.executeUpdate();
+//        } catch (SQLException e) {
+//            throw (e);
+//        } finally {
+//            cn.close();
+//        }
+//    }
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
         ArrayList<Contacto> lista;
         lista = new ArrayList<>();
@@ -363,11 +362,11 @@ public class DAOOrdenDeCompra {
     public void guardarOrdenCompraDirecta(MiniProveedor mp, OrdenCompraEncabezado oced, ArrayList<OrdenCompraDetalle> ocd) throws SQLException {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-     // Date fEntrega= (Date) oced.getFechaEntregaDirectas();
+        // Date fEntrega= (Date) oced.getFechaEntregaDirectas();
         int idEncabezado = 0;
         String ordenDetalle;
-        
-        java.sql.Date fecha=new java.sql.Date(oced.getFechaEntregaDirectas().getTime());
+
+        java.sql.Date fecha = new java.sql.Date(oced.getFechaEntregaDirectas().getTime());
 
         try {
             st.executeUpdate("BEGIN TRANSACTION");
@@ -375,7 +374,7 @@ public class DAOOrdenDeCompra {
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
                     + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
-                    + " " + mp.getDesctoProntoPago() + ", '"+fecha.toString()+"', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
+                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
@@ -436,14 +435,14 @@ public class DAOOrdenDeCompra {
     private OrdenCompraEncabezado construirOCEncabezadoD(ResultSet rs) throws SQLException, NamingException {
 
         OrdenCompraEncabezado oced = new OrdenCompraEncabezado();
-        
+
         oced.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
 
         DAOEmpresas daoE = new DAOEmpresas();
         oced.setEmpresa(daoE.obtenerEmpresaConverter(rs.getInt("idEmpresa")));
-        
+
         oced.setNombreComercial(rs.getString("contribuyente"));
-        
+
 //
         DAOProveedores daoP = new DAOProveedores();
         int idProveedor = rs.getInt("idProveedor");
@@ -458,7 +457,7 @@ public class DAOOrdenDeCompra {
 
         oced.setDesctoComercial(rs.getDouble("desctoComercial"));
         oced.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
-        
+
         DAOMonedas daoM = new DAOMonedas();
         oced.setMoneda(daoM.obtenerMoneda(rs.getInt("idMoneda")));
 
@@ -497,5 +496,27 @@ public class DAOOrdenDeCompra {
         }
 
         return oced;
+    }
+
+    public Double ObtenerUltimoCosto(int idEmpaque) throws SQLException {
+        Double ultimoCosto = 0.00;
+        Connection cn = ds.getConnection();
+        Statement st = cn.createStatement();
+
+        String sql = "SELECT EE.*, D.unitario, M.fecha\n"
+                + "FROM empresasEmpaques EE\n"
+                + "     INNER JOIN movimientosDetalle D ON D.idMovto=EE.idMovtoUltimaEntrada AND D.idEmpaque=EE.idEmpaque\n"
+                + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "WHERE EE.idEmpaque=" + idEmpaque;
+        try {
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+                ultimoCosto = rs.getDouble("D.unitario");
+            }
+        } finally {
+            st.close();
+            cn.close();
+        }
+        return ultimoCosto;
     }
 }

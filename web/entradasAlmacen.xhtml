@@ -98,7 +98,8 @@
                         <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbEntradasAlmacen.entradaDetalle}" style="border:solid 1px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbEntradasAlmacen.editarLotes}" update=":main:msgs :main:listaLotes" 
+                            <p:ajax event="rowSelect" listener="#{mbEntradasAlmacen.editarLotes}" 
+                                    update=":main:msgs :main:listaTotales :main:listaLotes" 
                                     oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
 
                             <p:column headerText="SKU" width="64"  >
@@ -165,7 +166,9 @@
                             <p:ajax event="cellEdit" listener="#{mbEntradasAlmacen.onCellEdit}" update=":main:msgs1" />
 
                             <p:column colspan="2" headerText="LOTE" style="width: 80px;" >
-                                <h:outputText value="#{lote.lote}" />
+                                <h:outputText value="#{lote.lote}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
                             </p:column>
                             <p:column headerText="CANTIDAD" style="width: 100px;" >
                                 <p:cellEditor>
@@ -180,7 +183,7 @@
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" pattern="###,##0.000" />
                                             <p:ajax event="change" process="@this" listener="#{mbEntradasAlmacen.gestionarLotes()}" 
-                                                    update=":main:msgs1 :main:listaTotales" />
+                                                    update=":main:msgs1 listaLotes :main:listaTotales" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>

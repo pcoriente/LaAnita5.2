@@ -160,11 +160,6 @@ public class DAOFormulas {
 
     public TOFormula obtenerFormula(int idEmpresa, int idEmpaque) throws SQLException {
         TOFormula to = new TOFormula();
-//        String strSQL="SELECT F.*, E.piezas, P.idTipo "
-//                + "FROM formulas F "
-//                + "INNER JOIN empaques E ON E.idEmpaque=F.idEmpaque "
-//                + "INNER JOIN productos P ON P.idProducto=E.idProducto "
-//                + "WHERE F.idEmpresa="+idEmpresa+" AND F.idEmpaque="+idEmpaque;
         String strSQL = "SELECT F.* "
                 + "FROM formulas F "
                 + "WHERE F.idEmpresa=" + idEmpresa + " AND F.idEmpaque=" + idEmpaque;
@@ -174,6 +169,8 @@ public class DAOFormulas {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 to = construirTOFormula(rs);
+//            } else {
+//                throw new SQLException("No se encotro formula idEmpresa="+idEmpresa+", idEmpaque="+idEmpaque+" !!!");
             }
         } finally {
             st.close();

@@ -45,10 +45,11 @@
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
-                                                     process="@this" actionListener="#{mbSalidasOficina.capturar()}" update="main" />
+                                                     process="@this" actionListener="#{mbSalidasOficina.capturar()}" 
+                                                     update="main" />
                                     <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
                                                      process="@this" actionListener="#{mbSalidasOficina.pendientes()}" 
-                                                     update=":main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
+                                                     update="main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
                                     <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
                                                      process="@this" action="#{mbSalidasOficina.terminar()}" />
                                 </p:column>
@@ -65,9 +66,15 @@
                                     <p:inputText value="#{mbSalidasOficina.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar salida" 
-                                                     process="@this" actionListener="#{mbSalidasOficina.grabar()}" update="main" />
+                                    <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar salida"
+                                                     disabled="#{mbSalidasOficina.salida.estatus!=0}"
+                                                     process="@this" actionListener="#{mbSalidasOficina.grabar()}" 
+                                                     update="main" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                     disabled="#{mbSalidasOficina.salida.estatus==0}"
+                                                     ajax="false" immediate="true" action="#{mbSalidasOficina.imprimir()}" />
                                     <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen" 
+                                                     disabled="#{mbSalidasOficina.salida.estatus!=0}"
                                                      process="@this" actionListener="#{mbSalidasOficina.cancelar()}" update="main" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
                                                      process="@this" actionListener="#{mbSalidasOficina.salir()}" update="main" />
@@ -82,15 +89,17 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                     disabled="#{mbSalidasOficina.salida.estatus!=0}"
                                                      process="@this" actionListener="#{mbSalidasOficina.mbBuscar.inicializar()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleSalida" widgetVar="detalleSalida" value="#{mbSalidasOficina.salidaDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbSalidasOficina.salidaProducto}" selectionMode="single" 
+                        <p:dataTable id="detalleSalida" widgetVar="detalleSalida" 
+                                     value="#{mbSalidasOficina.salidaDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" update="detalleSalida" />
+                            <p:ajax event="cellEdit" listener="#{mbSalidasOficina.onCellEdit}" update=":main:msgs" />
                             
                             <p:column headerText="SKU" width="64"  >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
@@ -98,12 +107,23 @@
                             <p:column headerText="Producto" width="500" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
-                            <p:column headerText="Solicitada" width="64" >
-                                <pe:inputNumber value="#{prod.cantidad}" decimalPlaces="3" minValue="0" 
-                                                disabled="#{mbSalidasOficina.comparaProducto(prod)}" >
-                                    <p:ajax event="change" process="@this" 
-                                            listener="#{mbSalidasOficina.gestionar()}" update=":main:msgs detalleSalida" />
-                                </pe:inputNumber>
+                            <p:column headerText="Solicitada" style="width: 100px;" >
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{prod.cantFacturada}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{prod.cantFacturada}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                                     readonly="#{mbSalidasOficina.salida.estatus!=0}" >
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                            <p:ajax event="change" process="@this" listener="#{mbSalidasOficina.gestionar()}" 
+                                                    update=":main:msgs detalleSalida" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
                             </p:column>
                         </p:dataTable>
                     </p:panel>

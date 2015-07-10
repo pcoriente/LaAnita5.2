@@ -46,6 +46,7 @@ import usuarios.dominio.Accion;
 @Named(value = "mbFormulas")
 @SessionScoped
 public class MbFormulas implements Serializable {
+
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
@@ -53,7 +54,6 @@ public class MbFormulas implements Serializable {
     private MbMiniEmpresas mbEmpresas;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    
     private ArrayList<Formula> formulas;
     private Formula formula;
     private Insumo insumo;
@@ -63,52 +63,50 @@ public class MbFormulas implements Serializable {
     private int caso;
     private Generador generador;
     private DAOFormulas dao;
-    
+
     public MbFormulas() {
-        this.formula=new Formula();
-        this.insumo=new Insumo();
-        this.respInsumo=new Insumo();
-        
+        this.formula = new Formula();
+        this.insumo = new Insumo();
+        this.respInsumo = new Insumo();
+
         this.mbAcciones = new MbAcciones();
         this.mbEmpresas = new MbMiniEmpresas();
         this.mbBuscar = new MbProductosBuscar();
     }
-    
+
 //    public void validaCantidad() {
 //        this.formula.setSumaCantidad(this.formula.getSumaCantidad()-this.respInsumo.getCantidad()+this.insumo.getCantidad());
 //        this.formula.setSumaCosto(this.formula.getSumaCosto()-this.respInsumo.getCostoPromedio()+this.insumo.getCostoPromedio());
 //    }
-    
     public void remplazar() {
         try {
-            this.dao=new DAOFormulas();
+            this.dao = new DAOFormulas();
             this.dao.remplazaInsumo(this.insumo1.getIdProducto(), this.insumo2.getIdProducto());
             Mensajes.mensajeSucces("El insumo fue remplazado con exito !!!");
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public void buscarNuevo() {
-        this.caso=4;
+        this.caso = 4;
         this.mbBuscar.inicializar();
         this.mbBuscar.setUpdate(":main:mttoNuevo");
     }
-    
+
     public void buscarInsumo() {
-        this.caso=3;
+        this.caso = 3;
         this.mbBuscar.inicializar();
         this.mbBuscar.setUpdate(":main:mttoSustituir");
     }
-    
+
 //    public void generarDoc() {
 ////        String ubicacion = "E:\\LaAnita\\Reportes\\formula.jasper";
 //        Map<String, Object> parametros = new HashMap<String, Object>();
 //        parametros.put("empresa", "LA ANITA, S.A. DE C.V.");
 //    }
-    
     public void generarDoc() {
         // Escribe directamente el archivo PDF
         String sourceFileName = "C:\\Carlos Pat\\Reportes\\formula.jasper";
@@ -118,8 +116,8 @@ public class MbFormulas implements Serializable {
         parameters.put("cod_pro", this.formula.getCod_pro());
         parameters.put("empaque", this.formula.getEmpaque());
 //        parameters.put("observaciones", this.formula.getObservaciones());
-        ArrayList<Linea> listaObservaciones=new ArrayList<>();
-        for(String str: this.formula.getObservaciones().split("\r\n")) {
+        ArrayList<Linea> listaObservaciones = new ArrayList<>();
+        for (String str : this.formula.getObservaciones().split("\r\n")) {
             listaObservaciones.add(new Linea(str));
         }
         parameters.put("listaObservaciones", listaObservaciones);
@@ -130,7 +128,7 @@ public class MbFormulas implements Serializable {
 //            }
             JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
             JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
-            
+
             HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
             httpServletResponse.setContentType("application/pdf");
             httpServletResponse.addHeader("Content-disposition", "attachment; filename=formulas.pdf");
@@ -143,7 +141,7 @@ public class MbFormulas implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public void generarDocs() {
         String sourceFileName = "C:\\Carlos Pat\\Reportes\\formulas2.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.formulas);
@@ -165,42 +163,42 @@ public class MbFormulas implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public void generarPdf(String buscarPor) {
 //        if(this.generar(buscarPor, idTipo, idGrupo, idSubGrupo)) {
-            if(buscarPor==null || buscarPor.equals("INSUMO")) {
-                this.generarDocs();
-            } else {
+        if (buscarPor == null || buscarPor.equals("INSUMO")) {
+            this.generarDocs();
+        } else {
 //                this.setFormulas(new ArrayList<Formula>());
 //                this.getFormulas().add(this.formula);
-                this.generarDoc();
-            }
+            this.generarDoc();
+        }
 //        }
     }
-    
+
     public void generaExcels() {
         this.generador = new Generador();
-        for(Formula f:this.formulas) {
-            this.formula=f;
+        for (Formula f : this.formulas) {
+            this.formula = f;
             this.generaFormulaExcel();
         }
         try {
             this.generador.generaDocumento();
         } catch (IOException ex) {
-            Mensajes.mensajeError("IOExcepcion: "+ex.getMessage());
+            Mensajes.mensajeError("IOExcepcion: " + ex.getMessage());
         }
     }
-    
+
     private void generaFormulaExcel() {
         ArrayList<String> fila;
-        fila=new ArrayList<>();
+        fila = new ArrayList<>();
         fila.add(this.mbEmpresas.getEmpresa().getNombreComercial());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<>();
+        fila = new ArrayList<>();
         fila.add(this.formula.getCod_pro());
         fila.add(this.formula.getEmpaque());
         generador.agregarFilaEncabezado(fila);
-        fila=new ArrayList<>();
+        fila = new ArrayList<>();
         fila.add("SKU");            // A
         fila.add("INSUMO");         // B
         fila.add("CANTIDAD");       // C
@@ -212,120 +210,129 @@ public class MbFormulas implements Serializable {
         fila.add("% CANTIDAD PARTICIPACION");
         generador.agregarFilaEncabezado(fila);
         generador.inicializaFilas();
-        for(Insumo ins: this.formula.getInsumos()) {
+        for (Insumo ins : this.formula.getInsumos()) {
             generador.agregaFila(ins);
         }
-        int t=generador.agregarTotales();
+        int t = generador.agregarTotales();
         String form;
-        for(int f=1; f<=this.generador.getFilas(); f++) {
-            form="G"+(t-f)+"*100.00/G"+t;
-            this.generador.setCeldaFormatoNumero(this.generador.agregarColumnaFormula(t-f, form));
-            form="C"+(t-f)+"*100.00/C"+t;
-            this.generador.setCeldaFormatoNumero(this.generador.agregarColumnaFormula(t-f, form));
+        for (int f = 1; f <= this.generador.getFilas(); f++) {
+            form = "G" + (t - f) + "*100.00/G" + t;
+            this.generador.setCeldaFormatoNumero(this.generador.agregarColumnaFormula(t - f, form));
+            form = "C" + (t - f) + "*100.00/C" + t;
+            this.generador.setCeldaFormatoNumero(this.generador.agregarColumnaFormula(t - f, form));
         }
     }
-    
+
     public void generaExcel() {
         this.generador = new Generador();
         this.generaFormulaExcel();
         try {
             this.generador.generaDocumento();
         } catch (IOException ex) {
-            Mensajes.mensajeError("IOExcepcion: "+ex.getMessage());
+            Mensajes.mensajeError("IOExcepcion: " + ex.getMessage());
         }
     }
-    
+
     public void generarXls(String buscarPor) {
 //        if(this.generar(buscarPor, idTipo, idGrupo, idSubGrupo)) {
-            if(buscarPor==null || buscarPor.equals("INSUMO")) {
-                this.generaExcels();
-            } else {
-                this.generaExcel();
-            }
+        if (buscarPor == null || buscarPor.equals("INSUMO")) {
+            this.generaExcels();
+        } else {
+            this.generaExcel();
+        }
 //        }
     }
-    
+
     private boolean generarFormulas() {
-        boolean ok=false;
-        this.formulas=new ArrayList<>();
+        boolean ok = false;
+        this.formulas = new ArrayList<>();
         try {
-            this.dao=new DAOFormulas();
-            for(Producto producto: this.mbBuscar.getProductos()) {
-                this.convertirFormula(producto, this.dao.obtenerFormula(this.mbEmpresas.getEmpresa().getIdEmpresa(), producto.getIdProducto()));
-                this.formulas.add(this.formula);
+            this.dao = new DAOFormulas();
+            TOFormula toF;
+            for (Producto producto : this.mbBuscar.getProductos()) {
+                toF=this.dao.obtenerFormula(this.mbEmpresas.getEmpresa().getIdEmpresa(), producto.getIdProducto());
+                if(toF.getIdFormula()!=0) {
+                    this.convertirFormula(producto, toF);
+                    this.formulas.add(this.formula);
+                }
             }
-            if(this.formulas.isEmpty()) {
+            if (this.formulas.isEmpty()) {
                 Mensajes.mensajeAlert("No se encontraron elementos para imprimir !!!");
             } else {
                 Mensajes.mensajeSucces("Las formulas se generaron correctamente !!!");
-                ok=true;
+                ok = true;
             }
+            ok = true;
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
         return ok;
     }
-    
+
     private boolean generarFormula() {
-        boolean ok=false;
+        boolean ok = false;
         try {
-            this.dao=new DAOFormulas();
+            this.dao = new DAOFormulas();
             this.convertirFormula(this.mbBuscar.getProducto(), this.dao.obtenerFormula(this.mbEmpresas.getEmpresa().getIdEmpresa(), this.mbBuscar.getProducto().getIdProducto()));
             Mensajes.mensajeSucces("La formula se genero correctamente !!!");
-            ok=true;
+            ok = true;
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
         return ok;
     }
-    
+
     public boolean generar(String buscarPor, int idTipo, int idGrupo, int idSubGrupo) {
-        boolean ok=false;
-        if(this.getMbEmpresas().getEmpresa().getIdEmpresa()==0) {
+        boolean ok = false;
+        if (this.getMbEmpresas().getEmpresa().getIdEmpresa() == 0) {
             Mensajes.mensajeError("Se requiere seleccionar una empresa !!!");
-        } else if (buscarPor==null) {
-            Mensajes.mensajeError("Error de parametro buscar !!!");
-        } else if(buscarPor.equals("FORMULA")) {
-            if (this.getMbBuscar().getProducto() == null) {
-                Mensajes.mensajeError("Se requiere la formula a buscar !!!");
-            } else {
-                ok=generarFormula();
-            }
         } else {
-            int idInsumo=0;
-            if(this.getMbBuscar().getProducto()!=null) {
-                idInsumo = this.getMbBuscar().getProducto().getIdProducto();
-            }
-            if(buscarPor.equals("INSUMO") && idInsumo==0) {
-                Mensajes.mensajeError("Se requiere el insumo a buscar !!!");
-            } else if(idTipo==0 && idGrupo==0) {
-                Mensajes.mensajeError("Debe seleccionar un tipo o un grupo de producto !!!");
-            } else if(this.getMbBuscar().buscarPorClasificacion(idTipo, idGrupo, idSubGrupo, idInsumo)) {
-                ok=generarFormulas();
+            if (buscarPor == null) {
+                Mensajes.mensajeError("Error de parametro buscar !!!");
+            } else if (buscarPor.equals("FORMULA")) {
+                if (this.getMbBuscar().getProducto() == null) {
+                    Mensajes.mensajeError("Se requiere la formula a buscar !!!");
+                } else {
+                    ok = generarFormula();
+                }
+            } else {
+                int idInsumo = 0;
+                if (this.getMbBuscar().getProducto() != null) {
+                    idInsumo = this.getMbBuscar().getProducto().getIdProducto();
+                }
+                if (buscarPor.equals("INSUMO")) {
+                    if(idInsumo==0) {
+                        Mensajes.mensajeError("Se requiere el insumo a buscar !!!");
+                    } else if (this.getMbBuscar().buscarPorClasificacion(idTipo, idGrupo, idSubGrupo, idInsumo)) {
+                        ok = generarFormulas();
+                    }
+                } else if (this.getMbBuscar().buscarPorClasificacion(idTipo, idGrupo, idSubGrupo, idInsumo)) {
+                    ok = generarFormulas();
+                }
             }
         }
         return ok;
     }
-    
+
     public String salir() {
         this.mbEmpresas.setEmpresa(new MiniEmpresa());
         this.mbEmpresas.setListaEmpresas(null);
         this.mbBuscar.inicializar();
-        this.insumo1=null;
-        this.insumo2=null;
-        this.formula=new Formula();
+        this.insumo1 = null;
+        this.insumo2 = null;
+        this.formula = new Formula();
         return "index.xhtml";
     }
-    
+
     public void insumoSeleccionado(SelectEvent event) {
-        this.insumo=(Insumo) event.getObject();
+        this.insumo = (Insumo) event.getObject();
         respaldaInsumo();
     }
-    
+
     public void respaldaInsumo() {
         this.respInsumo.setCantidad(this.insumo.getCantidad());
         this.respInsumo.setCod_pro(this.insumo.getCod_pro());
@@ -334,11 +341,11 @@ public class MbFormulas implements Serializable {
         this.respInsumo.setIdEmpaque(this.insumo.getIdEmpaque());
         this.respInsumo.setVariacion(this.insumo.getVariacion());
     }
-    
+
     private Insumo convertirInsumo(TOInsumo to) {
-        Producto producto=this.mbBuscar.obtenerProducto(to.getIdEmpaque());
-        
-        Insumo tmpInsumo=new Insumo();
+        Producto producto = this.mbBuscar.obtenerProducto(to.getIdEmpaque());
+
+        Insumo tmpInsumo = new Insumo();
         tmpInsumo.setNuevo(false);
         tmpInsumo.setIdEmpaque(to.getIdEmpaque());
         tmpInsumo.setCod_pro(producto.getCod_pro());
@@ -348,9 +355,9 @@ public class MbFormulas implements Serializable {
         tmpInsumo.setCostoPromedio(to.getCostoUnitarioPromedio());
         return tmpInsumo;
     }
-    
+
     private void convertirFormula(Producto producto, TOFormula toFormula) throws SQLException {
-        this.formula=new Formula();
+        this.formula = new Formula();
         this.formula.setIdEmpresa(this.mbEmpresas.getEmpresa().getIdEmpresa());
         this.formula.setIdEmpaque(producto.getIdProducto());
         this.formula.setCod_pro(producto.getCod_pro());
@@ -364,20 +371,21 @@ public class MbFormulas implements Serializable {
         this.formula.setObservaciones(toFormula.getObservaciones());
         this.formula.setSumaCantidad(0.00);
         this.formula.setSumaCosto(0.00);
-        for(TOInsumo toInsumo:this.dao.obtenerInsumos(toFormula.getIdFormula())) {
+        for (TOInsumo toInsumo : this.dao.obtenerInsumos(toFormula.getIdFormula())) {
             this.formula.getInsumos().add(this.convertirInsumo(toInsumo));
         }
         this.calculaSumas();
+        this.formula.setCostoPrimo(this.formula.getCostoPromedio()*this.formula.getSumaCantidad()/(this.formula.getSumaCantidad()*(1-this.formula.getMerma()/100)));
     }
-    
+
     public String getTotalSumaCostoPromedio() {
         return new DecimalFormat("###,##0.000000").format(this.formula.getSumaCosto());
     }
-    
+
     public String getTotalSumaCantidad() {
         return new DecimalFormat("###,##0.000000").format(this.formula.getSumaCantidad());
     }
-    
+
     public void validaProductoSeleccionado() {
         boolean nuevo = true;
         Insumo producto = new Insumo();
@@ -399,7 +407,7 @@ public class MbFormulas implements Serializable {
                 producto.setCostoPromedio(this.dao.agregarInsumo(this.formula.getIdFormula(), this.formula.getIdEmpresa(), this.convertTOInsumo(producto)));
                 this.insumo = producto;
                 this.insumo.setNuevo(false);
-                this.formula.setSumaCosto(this.formula.getSumaCosto()+this.insumo.getCostoPromedio());
+                this.formula.setSumaCosto(this.formula.getSumaCosto() + this.insumo.getCostoPromedio());
                 this.formula.getInsumos().add(this.insumo);
                 ok = true;
             } catch (SQLException ex) {
@@ -414,22 +422,22 @@ public class MbFormulas implements Serializable {
             }
         }
     }
-    
+
     public void actualizaProductoSeleccionado() {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "actualizaProductoSeleccionado");
         try {
-            this.dao=new DAOFormulas();
-            if(this.caso==1) {
+            this.dao = new DAOFormulas();
+            if (this.caso == 1) {
                 this.convertirFormula(this.mbBuscar.getProducto(), this.dao.obtenerFormula(this.mbEmpresas.getEmpresa().getIdEmpresa(), this.mbBuscar.getProducto().getIdProducto()));
-            } else if(this.caso==2) {
+            } else if (this.caso == 2) {
                 this.validaProductoSeleccionado();
-            } else if(this.caso==3) {
-                this.insumo1=this.mbBuscar.getProducto();
+            } else if (this.caso == 3) {
+                this.insumo1 = this.mbBuscar.getProducto();
             } else {
-                this.insumo2=this.mbBuscar.getProducto();
+                this.insumo2 = this.mbBuscar.getProducto();
             }
-            ok=true;
+            ok = true;
         } catch (SQLException ex) {
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -439,46 +447,46 @@ public class MbFormulas implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
-    
+
     public void buscar() {
         this.mbBuscar.buscarLista();
-        if(this.mbBuscar.getProducto()!=null) {
+        if (this.mbBuscar.getProducto() != null) {
             this.actualizaProductoSeleccionado();
         }
     }
-    
+
     public void buscarEmpaqueInsumo() {
-        this.caso=2;
+        this.caso = 2;
         this.mbBuscar.inicializar();
         this.mbBuscar.setUpdate(":main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales :main:messages");
     }
-    
+
     public void buscarEmpaqueFormula() {
-        this.caso=1;
+        this.caso = 1;
         this.mbBuscar.inicializar();
         this.mbBuscar.setUpdate(":main:mttoFormulasDatos :main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales :main:btnGrabarFormula :main:messages");
     }
-    
+
     private TOInsumo convertTOInsumo(Insumo tmp) {
-        TOInsumo to=new TOInsumo();
+        TOInsumo to = new TOInsumo();
         to.setIdEmpaque(tmp.getIdEmpaque());
         to.setCantidad(tmp.getCantidad());
         to.setPorcentVariacion(tmp.getVariacion());
         to.setCostoUnitarioPromedio(tmp.getCostoPromedio());
         return to;
     }
-    
+
     public void eliminarInsumo() {
-        boolean ok=false;
+        boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "eliminarInsumo");
         try {
-            this.dao=new DAOFormulas();
+            this.dao = new DAOFormulas();
             this.dao.eliminarInsumo(this.formula.getIdFormula(), this.insumo.getIdEmpaque());
-            this.formula.setSumaCantidad(this.formula.getSumaCantidad()-this.insumo.getCantidad());
-            this.formula.setSumaCosto(this.formula.getSumaCosto()-this.insumo.getCostoPromedio());
+            this.formula.setSumaCantidad(this.formula.getSumaCantidad() - this.insumo.getCantidad());
+            this.formula.setSumaCosto(this.formula.getSumaCosto() - this.insumo.getCostoPromedio());
             this.formula.getInsumos().remove(this.insumo);
-            ok=true;
+            ok = true;
         } catch (SQLException ex) {
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -489,42 +497,42 @@ public class MbFormulas implements Serializable {
         }
         context.addCallbackParam("okInsumo", ok);
     }
-    
+
     public void cancelarInsumo() {
         this.insumo.setCantidad(this.respInsumo.getCantidad());
         this.insumo.setVariacion(this.respInsumo.getVariacion());
     }
-    
+
     public void calculaSumas() {
         this.formula.setSumaCantidad(0);
         this.formula.setSumaCosto(0);
-        for(Insumo ins: this.formula.getInsumos()) {
-            this.formula.setSumaCantidad(this.formula.getSumaCantidad()+ins.getCantidad());
-            this.formula.setSumaCosto(this.formula.getSumaCosto()+ins.getCostoPromedio()*ins.getCantidad());
+        for (Insumo ins : this.formula.getInsumos()) {
+            this.formula.setSumaCantidad(this.formula.getSumaCantidad() + ins.getCantidad());
+            this.formula.setSumaCosto(this.formula.getSumaCosto() + ins.getCostoPromedio() * ins.getCantidad());
         }
-        for(Insumo ins: this.formula.getInsumos()) {
-            ins.setPtjeCantParticipacion(ins.getCantidad()/this.formula.getSumaCantidad());
-            ins.setPtjeCtoParticipacion(ins.getCostoPromedio()*ins.getCantidad()/this.formula.getSumaCosto());
+        for (Insumo ins : this.formula.getInsumos()) {
+            ins.setPtjeCantParticipacion(ins.getCantidad() / this.formula.getSumaCantidad());
+            ins.setPtjeCtoParticipacion(ins.getCostoPromedio() * ins.getCantidad() / this.formula.getSumaCosto());
         }
 //        this.formula.setCostoPromedio(this.formula.getSumaCosto()-this.formula.getMerma());
-        if(this.formula.getIdTipo()==4) { // Semiterminado
-            this.formula.setMermaCant(this.formula.getSumaCantidad()*this.formula.getMerma()/100);
-            this.formula.setCostoPromedio(this.formula.getSumaCosto()/(this.formula.getSumaCantidad()-this.formula.getMermaCant()));
-        } else if(this.formula.getIdTipo()==5) {  // Terminado
-            this.formula.setMermaCant(this.formula.getPiezas()*this.formula.getMerma()/100);
-            this.formula.setCostoPromedio(this.formula.getSumaCosto()/(this.formula.getPiezas()-this.formula.getMermaCant()));
-        } else if(this.formula.getIdTipo()==3) {  // Material de empaque
-            int piezas=1;   // La cantidad = 1 (uno) para todas las formulas de este tipo
-            this.formula.setMermaCant(piezas*this.formula.getMerma()/100);
-            this.formula.setCostoPromedio(this.formula.getSumaCosto()/(piezas-this.formula.getMermaCant()));
+        if (this.formula.getIdTipo() == 4) { // Semiterminado
+            this.formula.setMermaCant(this.formula.getSumaCantidad() * this.formula.getMerma() / 100);
+            this.formula.setCostoPromedio(this.formula.getSumaCosto() / (this.formula.getSumaCantidad() - this.formula.getMermaCant()));
+        } else if (this.formula.getIdTipo() == 5) {  // Terminado
+            this.formula.setMermaCant(this.formula.getPiezas() * this.formula.getMerma() / 100);
+            this.formula.setCostoPromedio(this.formula.getSumaCosto() / (this.formula.getPiezas() - this.formula.getMermaCant()));
+        } else if (this.formula.getIdTipo() == 3) {  // Material de empaque
+            int piezas = 1;   // La cantidad = 1 (uno) para todas las formulas de este tipo
+            this.formula.setMermaCant(piezas * this.formula.getMerma() / 100);
+            this.formula.setCostoPromedio(this.formula.getSumaCosto() / (piezas - this.formula.getMermaCant()));
         }
     }
-    
+
     public void grabarInsumo() {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabarInsumo");
         try {
-            this.dao=new DAOFormulas();
-            if(this.insumo.isNuevo()) {
+            this.dao = new DAOFormulas();
+            if (this.insumo.isNuevo()) {
                 this.insumo.setCostoPromedio(this.dao.agregarInsumo(this.formula.getIdFormula(), this.formula.getIdEmpresa(), convertTOInsumo(this.insumo)));
                 this.insumo.setNuevo(false);
 //                this.respInsumo.setCostoPromedio(0);
@@ -544,9 +552,9 @@ public class MbFormulas implements Serializable {
         }
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
     }
-    
+
     private TOFormula convertTOFormula(Formula formula) {
-        TOFormula to=new TOFormula();
+        TOFormula to = new TOFormula();
         to.setIdFormula(formula.getIdFormula());
         to.setIdEmpresa(formula.getIdEmpresa());
         to.setIdEmpaque(formula.getIdEmpaque());
@@ -558,18 +566,18 @@ public class MbFormulas implements Serializable {
         to.setObservaciones(formula.getObservaciones());
         return to;
     }
-    
+
     public void grabarFormula() {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "grabarFormula");
         try {
-            this.dao=new DAOFormulas();
-            if(this.formula.getIdFormula()==0) {
+            this.dao = new DAOFormulas();
+            if (this.formula.getIdFormula() == 0) {
                 this.formula.setIdFormula(this.dao.agregarFormula(this.convertTOFormula(this.formula)));
             } else {
                 this.dao.modificarFormula(this.convertTOFormula(this.formula));
             }
-            ok=true;
+            ok = true;
         } catch (SQLException ex) {
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {

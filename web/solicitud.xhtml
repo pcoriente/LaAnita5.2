@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -28,7 +27,8 @@
                                     <p:selectOneMenu value="#{mbSolicitud.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
+                                                update=":main:msgs almacenOrigen btnEditarComprobante" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
@@ -40,7 +40,7 @@
                                     <p:selectOneMenu id="cedisOrigen" value="#{mbSolicitud.mbCedis.cedis}" style="width: 450px;" >
                                         <f:converter converterId="converters.MiniCedis" />
                                         <f:selectItems value="#{mbSolicitud.mbCedis.listaMiniCedis}" />
-                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesEmpresa()}" 
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
                                                 update=":main:msgs almacenOrigen" />
                                     </p:selectOneMenu>
                                 </p:column>
@@ -61,9 +61,9 @@
                             <f:facet name="footer" >
                                 <p:row >
                                     <p:column colspan="2" style="text-align: right;" >
-                                        <p:commandButton id="btnEditarComprobante" icon="ui-icon-pencil" title="Editar Solicitud" 
+                                        <p:commandButton id="btnEditarComprobante" icon="ui-icon-document" title="Nueva Solicitud" 
                                                          disabled="#{mbSolicitud.toAlmacen.idAlmacen==0 or mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
-                                                         process="@this" actionListener="#{mbSolicitud.solicitud()}" update="main" />
+                                                         process="@this" actionListener="#{mbSolicitud.nuevaSolicitud()}" update="main" />
                                         <p:commandButton icon="ui-icon-home" title="Salir" 
                                                          action="#{mbSolicitud.terminar()}" immediate="true" ajax="false" />
                                     </p:column>
@@ -102,22 +102,29 @@
                                 <p:row >
                                     <p:column >
                                         <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                         disabled="#{mbSolicitud.solicitud.estatus!=0}"
                                                          process="@this" actionListener="#{mbSolicitud.mbBuscar.inicializar()}" 
-                                                         update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                                         update="buscarProductos listaBuscarProductos" 
+                                                         oncomplete="PF('buscarProductoDlg').show()" />
                                     </p:column>
                                     <p:column colspan="2" style="text-align: right;" >
                                         <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar Solicitud" 
-                                                         process="@this" actionListener="#{mbSolicitud.grabarSolicitud()}" update="@this main :main:msgs" />
+                                                         disabled="#{mbSolicitud.solicitud.estatus!=0}"
+                                                         process="@this" actionListener="#{mbSolicitud.grabar()}" 
+                                                         update="@this main :main:msgs" />
+                                        <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                         disabled="#{mbSolicitud.solicitud.estatus==0}"
+                                                         ajax="false" immediate="true" action="#{mbSolicitud.imprimir()}" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                          process="@this" actionListener="#{mbSolicitud.salir()}" update="main" />
                                     </p:column>
                                 </p:row>
                             </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="detalleSolicitud" widgetVar="detalleSolicitud" value="#{mbSolicitud.solicitudDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbSolicitud.solicitudProducto}" selectionMode="single" 
+                        <p:dataTable id="detalleSolicitud" value="#{mbSolicitud.solicitudDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbSolicitud.respaldaFila()}" update="detalleSolicitud" />
+                            <p:ajax event="cellEdit" listener="#{mbSolicitud.onCellEdit}" update=":main:msgs" />
 
                             <p:column headerText="SKU" width="64"  >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
@@ -125,11 +132,22 @@
                             <p:column headerText="Producto" width="500" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
-                            <p:column headerText="Solicitada" width="64" >
-                                <pe:inputNumber value="#{prod.cantOrdenada}" decimalPlaces="3"  minValue="0" 
-                                                disabled="#{prod.producto.idProducto!=mbSolicitud.solicitudProducto.producto.idProducto}" >
-                                    <p:ajax event="change" />
-                                </pe:inputNumber>
+                            <p:column headerText="Solicitada" style="width: 100px;" >
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{prod.cantOrdenada}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{prod.cantOrdenada}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                                     readonly="#{mbSolicitud.solicitud.estatus!=0}" >
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                            <p:ajax event="change" process="@this" update=":main:msgs" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -149,25 +167,24 @@
                                     </p:selectOneRadio>
                                 </p:column>
                                 <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='1'}" >
-                                    <p:inputText id="opcionSKU" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="8" size="10" />
-                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionSKU" actionListener="#{mbSolicitud.buscar()}" 
-                                                     update=":main:detalleSolicitud" oncomplete="handleBuscar(xhr, status, args)" />
+                                    <p:inputText id="opcionSKU" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="8" size="10" >
+                                        <p:ajax event="change" listener="#{mbSolicitud.buscar()}" 
+                                                update=":main:detalleSolicitud" 
+                                                oncomplete="handleBuscar(xhr, status, args);" />
+                                    </p:inputText>
                                 </p:column>
                                 <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='2'}" >
                                     <p:autoComplete id="opcionParte" value="#{mbSolicitud.mbBuscar.mbParte.parte}" maxlength="24" size="24"
                                                     completeMethod="#{mbSolicitud.mbBuscar.mbParte.completePartes}" 
                                                     var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
-                                                    forceSelection="true" />
-                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionParte" actionListener="#{mbSolicitud.buscar()}" 
-                                                     update="listaBuscarProductos"  />
+                                                    forceSelection="true" >
+                                        <p:ajax event="itemSelect" listener="#{mbSolicitud.buscar()}" update="listaBuscarProductos" />
+                                    </p:autoComplete>
                                 </p:column>
                                 <p:column rendered="#{mbSolicitud.mbBuscar.tipoBuscar=='3'}" >
-                                    <p:inputText id="opcionDescripcion" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="24" size="24" />
-                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionDescripcion" actionListener="#{mbSolicitud.buscar()}" 
-                                                     update="listaBuscarProductos" />
+                                    <p:inputText id="opcionDescripcion" value="#{mbSolicitud.mbBuscar.strBuscar}" maxlength="24" size="24" >
+                                        <p:ajax event="change" listener="#{mbSolicitud.buscar()}" update="listaBuscarProductos" />
+                                    </p:inputText>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -202,6 +219,13 @@
                         if (!(args.validationFailed || !args.okBuscar)) {
                             PF('buscarProductoDlg').hide();
                         }
+                    }
+                    
+                    function otra(event) {
+                        if(event.charCode === 13) {
+                            event.charCode = 8;
+                        }
+                        return true;
                     }
                 </script>
             </div>

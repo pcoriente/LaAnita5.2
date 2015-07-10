@@ -6,21 +6,37 @@ import almacenes.to.TOAlmacenJS;
 import cedis.MbMiniCedis;
 //import entradas.dao.DAOMovimientos1;
 import entradas.dominio.MovimientoProducto;
+import entradas.dominio.MovimientoRelacionadoProductoReporte;
+import java.io.IOException;
 import movimientos.to.TOMovimiento;
 import movimientos.to.TOMovimientoProducto;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.Envio;
 import movimientos.dominio.Lote;
 import movimientos.dominio.SalidaProducto;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
@@ -69,6 +85,73 @@ public class MbTraspaso implements Serializable {
 
         this.inicializa();
     }
+    
+    private MovimientoRelacionadoProductoReporte convertirProductoReporte(SalidaProducto prod) {
+        boolean ya = false;
+        MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
+        rep.setSku(prod.getProducto().getCod_pro());
+        rep.setEmpaque(prod.getProducto().toString());
+        rep.setCantFacturada(prod.getCantFacturada());
+        rep.setUnitario(prod.getUnitario());
+        for (Lote l : prod.getLotes()) {
+            if (l.getSeparados() != 0) {
+                if (ya) {
+                    rep.getLotes().add(l);
+                } else {
+                    rep.setLote(l.getLote());
+                    rep.setLoteCantidad(l.getSeparados());
+                    ya = true;
+                }
+            }
+        }
+        return rep;
+    }
+
+    public void imprimir() {
+        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+
+        ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
+        for (SalidaProducto p : this.envioDetalle) {
+            if (p.getCantFacturada() != 0) {
+                detalleReporte.add(this.convertirProductoReporte(p));
+            }
+        }
+        String sourceFileName = "C:\\Carlos Pat\\Reportes\\Traspaso.jasper";
+        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+        Map parameters = new HashMap();
+        parameters.put("empresa", this.envio.getAlmacen().getEmpresa());
+
+        parameters.put("cedis", this.envio.getAlmacen().getCedis());
+        parameters.put("almacen", this.envio.getAlmacen().getAlmacen());
+
+        parameters.put("concepto", "TRASPASO AL ALMACEN :");
+
+        parameters.put("cedisOrigen", this.envio.getAlmacenDestino().getCedis());
+        parameters.put("almacenOrigen", this.envio.getAlmacenDestino().getAlmacen());
+
+        parameters.put("capturaFolio", this.envio.getFolio());
+        parameters.put("capturaFecha", formatoFecha.format(this.envio.getFecha()));
+        parameters.put("capturaHora", formatoHora.format(this.envio.getFecha()));
+
+        parameters.put("idUsuario", this.envio.getIdUsuario());
+
+        try {
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=Solicitud_" + this.envio.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
 
     private void inicializa() {
         this.mbAlmacenes.setListaAlmacenes(null);
@@ -91,14 +174,38 @@ public class MbTraspaso implements Serializable {
         this.resEnvioProducto = new SalidaProducto();
         this.lote = new Lote();
     }
+    
+    public void convertirDetalle(ArrayList<TOMovimientoProducto> detalle) throws SQLException {
+        this.envioDetalle = new ArrayList<>();
+        for (TOMovimientoProducto p : detalle) {
+            this.envioDetalle.add(this.convertirDetalle(p));
+        }
+    }
 
-    public void grabarEnvio() {
+    public void grabar() {
         try {
-            this.dao = new DAOMovimientos();
-            this.dao.grabarTraspasoEnvio(this.convertirTOMovimiento(), this.convertirDetalle());
-            Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
-            this.obtenerSolicitudes();
-            this.modoEdicion = false;
+            if (this.envioDetalle.isEmpty()) {
+                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+            } else {
+                double total = 0;
+                for (MovimientoProducto e : this.envioDetalle) {
+                    total += e.getCantFacturada();
+                }
+                if (total != 0) {
+                    this.dao = new DAOMovimientos();
+                    TOMovimiento to = this.convertirTOMovimiento();
+                    ArrayList<TOMovimientoProducto> detalle=this.convertirDetalle();
+                    this.dao.grabarTraspasoEnvio(to, detalle);
+                    this.envio.setIdUsuario(to.getIdUsuario());
+                    this.envio.setFolioAlmacen(to.getFolioAlmacen());
+                    this.envio.setFolio(to.getFolio());
+                    this.envio.setEstatus(1);
+                    Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
+                    this.convertirDetalle(detalle);
+                } else {
+                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+                }
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -175,17 +282,17 @@ public class MbTraspaso implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public void gestionarLotes1() {
         boolean cierra = false;
-        if(this.sumaLotes + (this.lote.getSeparados()-this.lote.getCantidad())>this.envioProducto.getCantOrdenada()) {
+        if (this.sumaLotes + (this.lote.getSeparados() - this.lote.getCantidad()) > this.envioProducto.getCantOrdenada()) {
             Mensajes.mensajeAlert("No se pueden separar mas lotes que los solicitados !!!");
             this.lote.setSeparados(this.lote.getCantidad());
             this.lote.setCantidad(0);
         } else {
             this.gestionLotes(this.lote.getSeparados(), this.lote.getCantidad());
-            if(this.envioProducto.getCantFacturada()==this.sumaLotes) {
-                cierra=true;
+            if (this.envioProducto.getCantFacturada() == this.sumaLotes) {
+                cierra = true;
             }
         }
         RequestContext context = RequestContext.getCurrentInstance();
@@ -250,7 +357,7 @@ public class MbTraspaso implements Serializable {
         try {
             this.sumaLotes = 0;
             this.daoLotes = new DAOLotes();
-            this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
+            this.envioProducto.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), this.envioProducto.getProducto().getIdProducto()));
             for (Lote l : this.envioProducto.getLotes()) {
                 this.sumaLotes += l.getSeparados();
             }
@@ -320,13 +427,13 @@ public class MbTraspaso implements Serializable {
         p.setDesctoConfidencial(to.getDesctoConfidencial());
         p.setUnitario(to.getUnitario());
         p.setImporte(to.getUnitario() * (to.getCantFacturada() + to.getCantSinCargo()));
-        p.setLotes(this.daoLotes.obtenerLotes(this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
+        p.setLotes(this.daoLotes.obtenerLotes(this.envio.getAlmacen().getIdAlmacen(), this.envio.getIdMovtoAlmacen(), to.getIdProducto()));
         this.sumaLotes = 0;
         for (Lote l : p.getLotes()) {
             this.sumaLotes += l.getSeparados();
         }
         if (p.getCantFacturada() != this.sumaLotes) {
-            throw new SQLException("Error de sincronizacion Lotes en producto: " + p.getProducto().getIdProducto());
+            throw new SQLException("(idMovtoAlmacen="+this.envio.getIdMovtoAlmacen()+") Error de sincronizacion Lotes en producto: " + p.getProducto().getIdProducto());
         }
         return p;
     }
@@ -351,7 +458,8 @@ public class MbTraspaso implements Serializable {
     }
 
     public void salir() {
-        this.inicializar();
+//        this.inicializar();
+        this.obtenerSolicitudes();
         this.modoEdicion = false;
     }
 

@@ -67,13 +67,28 @@ public class MbAlmacenesJS implements Serializable {
         this.toAlmacen=(TOAlmacenJS)this.listaAlmacenes.get(0).getValue();
     }
     
+    public void cargaAlmacenesEmpresa(int idCedis, int idEmpresa, int noSelect) {
+        try {
+            if(idEmpresa!=0 && idCedis!=0) {
+                this.dao=new DAOAlmacenesJS();
+                this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idCedis, idEmpresa), noSelect);
+            } else {
+                Mensajes.mensajeAlert("Se requiere una empresa y un cedis");
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+    
     public void cargaAlmacenesEmpresa(int idEmpresa, int noSelect) {
         try {
             if(idEmpresa!=0) {
                 this.dao=new DAOAlmacenesJS();
                 this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idEmpresa), noSelect);
             } else {
-                Mensajes.mensajeAlert("Debe seleccionar un cedis y un almacen");
+                Mensajes.mensajeAlert("Se requiere una empresa !!!");
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());

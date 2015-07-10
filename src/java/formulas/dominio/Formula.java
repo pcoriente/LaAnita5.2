@@ -20,6 +20,7 @@ public class Formula implements Serializable {
     private double manoDeObra;
     private double piezas;
     private double costoPromedio;
+    private double costoPrimo;
     private String observaciones;
     private ArrayList<Insumo> insumos;
     private double sumaCantidad;
@@ -86,6 +87,14 @@ public class Formula implements Serializable {
 
     public void setCostoPromedio(double costoPromedio) {
         this.costoPromedio = costoPromedio;
+    }
+
+    public double getCostoPrimo() {
+        return costoPrimo;
+    }
+
+    public void setCostoPrimo(double costoPrimo) {
+        this.costoPrimo = costoPrimo;
     }
 
     public String getObservaciones() {

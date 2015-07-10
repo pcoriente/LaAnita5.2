@@ -166,7 +166,7 @@ public class DAOProveedores {
 "	, isnull(tipTer.idTipoTercero, 0) as idTipoTercero, isnull(tipTer.tercero, '') as tercero\n" +
 "       , p.desctoComercial, p.desctoProntoPago\n" +
 "	, isnull(iz.idZona, 0) as idImpuestoZona, isnull(iz.zona, '') as impuestoZona\n" +
-"	, p.idDireccionEntrega, p.diasCredito, p.limiteCredito, p.fechaAlta\n" +
+"	, p.idDireccionEntrega, p.diasCredito, p.limiteCredito, p.codigoProveedor, p.fechaAlta\n" +
 "from proveedores p\n" +
 "inner join contribuyentes c on p.idContribuyente=c.idContribuyente\n" +
 "inner join contribuyentesRfc r on c.idRfc=r.idRfc\n" +
@@ -293,6 +293,8 @@ public class DAOProveedores {
         p.setDiasCredito(rs.getInt("diasCredito"));
         p.setLimiteCredito(rs.getDouble("limiteCredito"));
         p.setFechaAlta(utilerias.Utilerias.date2String(rs.getDate("fechaAlta")));
+        p.setCodigoProveedor(rs.getInt("codigoProveedor")); //DAAP 2/jul/2015
+        
         return p;
     }
 }

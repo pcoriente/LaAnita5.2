@@ -1281,7 +1281,7 @@ public class DAOMovimientos1 {
                 + "INNER JOIN clientesFormatos F ON F.idFormato=T.idFormato\n"
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=F.idGrupoCte\n"
                 + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
-                + "INNER JOIN empaques E ON E.idEmpaque=" + to.getIdEmpaque() + "\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=" + to.getIdProducto() + "\n"
                 + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
                 + "WHERE T.idTienda=" + idTienda;
         Statement st = this.cnx.createStatement();
@@ -1302,7 +1302,7 @@ public class DAOMovimientos1 {
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=" + idTienda + "))\n"
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
-                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + to.getIdEmpaque() + "))\n"
+                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + to.getIdProducto() + "))\n"
                         + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND B.finVigencia";
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
@@ -1311,7 +1311,7 @@ public class DAOMovimientos1 {
                     
                     strSQL = "UPDATE pedidosOCTiendaDetalle\n"
                             + "SET unitario=" + to.getUnitario() + "\n"
-                            + "WHERE idPedido=" + to.getIdPedido() + " AND idEmpaque=" + to.getIdEmpaque();
+                            + "WHERE idPedido=" + to.getIdPedido() + " AND idEmpaque=" + to.getIdProducto();
                     st.executeUpdate(strSQL);
                 } else {
                     throw (new SQLException("No se encontro precio de venta !!!"));
@@ -1374,8 +1374,8 @@ public class DAOMovimientos1 {
     }
     
     public void agregarPedidoProducto(int idEmpresa, TOPedidoProducto to, int idTienda) throws SQLException {
-        String strSQL = "INSERT INTO pedidosOCTiendaDetalle (idPedido, idEmpaque, cantFacturada, cantSinCargo, unitario, idImpuestoGrupo)\n" +
-                        "VALUES ("+to.getIdPedido()+", "+to.getIdEmpaque()+", "+to.getCantFacturada()+", "+to.getCantSinCargo()+", "+to.getUnitario()+", "+to.getIdImpuestoGrupo()+")";
+        String strSQL = "INSERT INTO pedidosOCTiendaDetalle (idPedido, idTienda, idEmpaque, cantFacturada, cantSinCargo, unitario, idImpuestoGrupo)\n" +
+                        "VALUES ("+to.getIdPedido()+", "+idTienda+", "+to.getIdProducto()+", "+to.getCantFacturada()+", "+to.getCantSinCargo()+", "+to.getUnitario()+", "+to.getIdImpuestoGrupo()+")";
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
@@ -1539,7 +1539,7 @@ public class DAOMovimientos1 {
                 
                 strSQL= "UPDATE pedidosOCTiendaDetalle\n" +
                         "SET cantSinCargo=cantSinCargo+"+cantidad+"\n" +
-                        "WHERE idPedido="+idPedido+" AND idEmpaque="+to.getIdEmpaque();
+                        "WHERE idPedido="+idPedido+" AND idEmpaque="+to.getIdProducto();
                 st.executeUpdate(strSQL);
             }
             strSQL= "UPDATE pedidosOCTiendaDetalle SET cantSinCargo=cantSinCargo-"+cantidad+"\n" +
@@ -1649,7 +1649,7 @@ public class DAOMovimientos1 {
     public boolean grabarPedidoDetalle(TOPedido ped, int idImpuestoZona, TOPedidoProducto prod, double cantFacturadaOld) throws SQLException {
         double cantSolicitada, cantSeparada, cantLiberar, cantLiberada;
         double cantSinCargo, boletinConCargo, boletinSinCargo;
-        int idProducto = prod.getIdEmpaque();
+        int idProducto = prod.getIdProducto();
         boolean similares = false;
         String strSQL;
 
@@ -1676,14 +1676,14 @@ public class DAOMovimientos1 {
             }
             st.executeUpdate(strSQL);
 
-            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(ped.getIdEmpresa(), prod.getIdEmpaque(), ped.getIdTienda());
+            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(ped.getIdEmpresa(), prod.getIdProducto(), ped.getIdTienda());
             boletinConCargo = boletin.get(0);
             boletinSinCargo = boletin.get(1);
             if (boletinConCargo > 0 && boletinSinCargo > 0) {
                 strSQL = "SELECT ISNULL(SUM(D.cantFacturada),0) AS cantFacturada, ISNULL(SUM(D.cantSinCargo),0) AS cantSinCargo\n"
                         + "FROM pedidosOCTiendaDetalle D\n"
                         + "INNER JOIN empaquesSimilares S ON S.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idPedido=" + ped.getIdPedido() + " AND S.idSimilar=" + prod.getIdEmpaque();
+                        + "WHERE D.idPedido=" + ped.getIdPedido() + " AND S.idSimilar=" + prod.getIdProducto();
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     similares = true;

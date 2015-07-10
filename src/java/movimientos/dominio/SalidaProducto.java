@@ -14,7 +14,7 @@ public class SalidaProducto extends MovimientoProducto {
     public SalidaProducto() {
         super();
         this.separados=0;
-        this.lotes=new ArrayList<Lote>();
+        this.lotes=new ArrayList<>();
     }
 
     public ArrayList<Lote> getLotes() {
