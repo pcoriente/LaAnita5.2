@@ -1,14 +1,12 @@
-package pedidos.to;
+package movimientos.to;
 
 /**
  *
  * @author jesc
  */
-public class TOPedidoProducto {
-    private int idPedido;
+public class TOProductoOficina {
+    private int idMovto;
     private int idProducto;
-    private double cantOrdenada;
-    private double cantOrdenadaSinCargo;
     private double cantFacturada;
     private double cantSinCargo;
     private double costoPromedio;
@@ -18,13 +16,37 @@ public class TOPedidoProducto {
     private double desctoConfidencial;
     private double unitario;
     private int idImpuestoGrupo;
+    
+    public TOProductoOficina() {}
 
-    public int getIdPedido() {
-        return idPedido;
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 61 * hash + this.idProducto;
+        return hash;
     }
 
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TOProductoOficina other = (TOProductoOficina) obj;
+        if (this.idProducto != other.idProducto) {
+            return false;
+        }
+        return true;
+    }
+
+    public int getIdMovto() {
+        return idMovto;
+    }
+
+    public void setIdMovto(int idMovto) {
+        this.idMovto = idMovto;
     }
 
     public int getIdProducto() {
@@ -33,22 +55,6 @@ public class TOPedidoProducto {
 
     public void setIdProducto(int idProducto) {
         this.idProducto = idProducto;
-    }
-
-    public double getCantOrdenada() {
-        return cantOrdenada;
-    }
-
-    public void setCantOrdenada(double cantOrdenada) {
-        this.cantOrdenada = cantOrdenada;
-    }
-
-    public double getCantOrdenadaSinCargo() {
-        return cantOrdenadaSinCargo;
-    }
-
-    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
-        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
 
     public double getCantFacturada() {

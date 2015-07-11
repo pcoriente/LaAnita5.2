@@ -32,6 +32,7 @@ public class MbReportes implements Serializable {
     }
     
     public String terminar() {
+        this.ok=false;
         this.mbFormulas.getMbEmpresas().inicializar();
         this.mbTipo.inicializar();
         this.mbGrupo.inicializar();
@@ -47,6 +48,7 @@ public class MbReportes implements Serializable {
     
     public void cambioDeBuscar() {
         this.ok=false;
+        String x=this.buscarPor;
     }
     
     public void verVariables() {
@@ -90,12 +92,12 @@ public class MbReportes implements Serializable {
 
     public void limpiar() {
         this.cambioDeParametros();
-        this.buscarPor = "BUSCAR";
         this.mbFormulas.getMbBuscar().setProducto(null);
     }
     
     public void cargaSubGrupos() {
-        this.cambioDeParametros();
+//        this.cambioDeParametros();
+        this.limpiar();
         this.mbGrupo.getMbSubGrupo().cargaListaSubGrupos(this.mbGrupo.getGrupo().getIdGrupo());
     }
 
@@ -104,7 +106,7 @@ public class MbReportes implements Serializable {
     }
 
     public void configurarReporte() {
-        this.cambioDeParametros();
+        this.cambioDeBuscar();
         this.mbFormulas.getMbBuscar().inicializar();
         this.mbFormulas.getMbBuscar().setUpdate(":main:txtCod_pro :main:txtProducto :main:btnBuscar :main:btnNuevaBusqueda :main:btnAceptar :main:btnImprimirXls :main:btnImprimirPdf");
     }

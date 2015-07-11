@@ -175,6 +175,9 @@ public class MbProductosBuscar implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerProducto");
         Producto p = new Producto();
         try {
+//            if(idProducto==14) {
+//                ok=false;
+//            }
             this.dao = new DAOProductosBuscar();
             this.daoSubProductos = new DAOSubProductos();
             TOProducto to = this.dao.obtenerProducto(idProducto);

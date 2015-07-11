@@ -24,8 +24,8 @@
                             <p:selectOneMenu id="empresa" value="#{mbReportesFormulas.mbFormulas.mbEmpresas.empresa}" >
                                 <f:converter converterId="converters.MiniEmpresa" />
                                 <f:selectItems value="#{mbReportesFormulas.mbFormulas.mbEmpresas.listaEmpresas}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.cambioDeParametros()}" 
-                                        update="msgsReportes buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
                             </p:selectOneMenu>
                         </p:column>
                         <p:column >
@@ -35,8 +35,8 @@
                             <p:selectOneMenu id="tipo" value="#{mbReportesFormulas.mbTipo.tipo}" >
                                 <f:converter converterId="converters.TipoProducto" />
                                 <f:selectItems value="#{mbReportesFormulas.mbTipo.listaTipos}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.cambioDeParametros()}" 
-                                        update="msgsReportes buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
                             </p:selectOneMenu>
                         </p:column>
                         <p:column style="text-align: right;" >
@@ -53,7 +53,7 @@
                                 <f:converter converterId="converters.Grupos" />
                                 <f:selectItems value="#{mbReportesFormulas.mbGrupo.listaGrupos}" />
                                 <p:ajax event="change" listener="#{mbReportesFormulas.cargaSubGrupos()}" 
-                                        update="msgsReportes subGrupo buscarPor btnAceptar btnImprimirXls btnImprimirPdf" /> 
+                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto subGrupo btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" /> 
                             </p:selectOneMenu>
                         </p:column>
                         <p:column >
@@ -63,8 +63,8 @@
                             <p:selectOneMenu id="subGrupo" value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.subGrupo}" >
                                 <f:converter converterId="converters.SubGrupos" />
                                 <f:selectItems value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.listaSubGrupos}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.cambioDeParametros()}" 
-                                        update="msgsReportes buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
                             </p:selectOneMenu>
                         </p:column>
                         <p:column >
