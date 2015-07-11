@@ -277,9 +277,12 @@
                             <p:column headerText="Producto" width="300" >
                                 #{det.producto.toString()}
                             </p:column>
-                            <p:column headerText="Cant. Ord." width="60" styleClass="alineacionD" >
-                                #{det.cantOrdenada}
+                             <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
+                                <h:outputText value="#{det.cantOrdenada}" >
+                                    <f:convertNumber pattern="#,##0.000"    />
+                                </h:outputText>
                             </p:column>
+                            
                             <p:column headerText="Nueva Cant." width="60" styleClass="alineacionD"  visible="false">
                                 <pe:inputNumber  value="#{det.cantidadSolicitada}"  id="ordenada"  
                                                  decimalPlaces="3"  minValue="0"
@@ -1024,19 +1027,18 @@
                             <p:column headerText="Producto" width="300" >
                                 #{v.producto.toString()}
                             </p:column>
-                            <p:column headerText="Cant. Ord." style="width: 90px; text-align: right;">
-                                <h:outputText value=" #{v.cantOrdenada}" >
-                                    <f:convertNumber type="number"  pattern="###,##0.000" maxIntegerDigits="6" maxFractionDigits="3" />
+                            
+                            
+                            <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
+                                <h:outputText value="#{v.cantOrdenada}" >
+                                    <f:convertNumber pattern="#,##0.000"    />
                                 </h:outputText>
-                               
                             </p:column>
 
                             <p:column headerText="Costo Cot." width="60" styleClass="alineacionD">  
                                 <h:outputText value="#{v.costoOrdenado}" >
                                     <f:convertNumber type="currency" locale="es_MX" maxFractionDigits="5"    />
                                 </h:outputText>
-                                
-                                 
                             </p:column> 
                             <p:column headerText="1 Desc.(%)" width="50" styleClass="alineacionD">  
                                 #{v.descuentoProducto}  
