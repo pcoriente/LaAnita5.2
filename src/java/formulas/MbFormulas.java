@@ -292,8 +292,10 @@ public class MbFormulas implements Serializable {
             Mensajes.mensajeError("Se requiere seleccionar una empresa !!!");
         } else {
             if (buscarPor == null) {
-                Mensajes.mensajeError("Error de parametro buscar !!!");
-            } else if (buscarPor.equals("FORMULA")) {
+//                Mensajes.mensajeError("Error de parametro buscar !!!");
+                buscarPor="BUSCAR";
+            }
+            if (buscarPor.equals("FORMULA")) {
                 if (this.getMbBuscar().getProducto() == null) {
                     Mensajes.mensajeError("Se requiere la formula a buscar !!!");
                 } else {

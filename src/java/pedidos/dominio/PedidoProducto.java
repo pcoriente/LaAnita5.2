@@ -10,7 +10,10 @@ import producto2.dominio.Producto;
  */
 public class PedidoProducto {
     private int idPedido;
+    private int idMovto;
     private Producto producto;
+    private double cantOrdenada;
+    private double cantOrdenadaSinCargo;
     private double cantFacturada;
     private double cantSinCargo;
     private double separados;
@@ -64,12 +67,36 @@ public class PedidoProducto {
         this.idPedido = idPedido;
     }
 
+    public int getIdMovto() {
+        return idMovto;
+    }
+
+    public void setIdMovto(int idMovto) {
+        this.idMovto = idMovto;
+    }
+
     public Producto getProducto() {
         return producto;
     }
 
     public void setProducto(Producto producto) {
         this.producto = producto;
+    }
+
+    public double getCantOrdenada() {
+        return cantOrdenada;
+    }
+
+    public void setCantOrdenada(double cantOrdenada) {
+        this.cantOrdenada = cantOrdenada;
+    }
+
+    public double getCantOrdenadaSinCargo() {
+        return cantOrdenadaSinCargo;
+    }
+
+    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
+        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
 
     public double getCantFacturada() {

@@ -172,8 +172,8 @@ public class DAOClientes {
         to.setIdGrupoCte(rs.getInt("idGrupoCte"));
         to.setGrupoCte(rs.getString("grupoCte"));
         to.setGrupoClienteCodigo(rs.getString("codigoGrupo"));
-        to.setIdFormato(rs.getInt("idFormato"));
-        to.setFormato(rs.getString("formato"));
+//        to.setIdFormato(rs.getInt("idFormato"));
+//        to.setFormato(rs.getString("formato"));
         to.setIdEsquema(rs.getInt("idEsquema"));
         to.setIdContribuyente(rs.getInt("idContribuyente"));
         to.setContribuyente(rs.getString("contribuyente"));

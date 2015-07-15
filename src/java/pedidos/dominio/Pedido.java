@@ -12,11 +12,16 @@ import tiendas.to.TOTienda;
  */
 public class Pedido {
     private int idPedido;
+    private int idMovto;
+    private int idMovtoAlmacen;
     private int idPedidoOC;
+    private int idEmpresa;
     private TOTienda tienda;
     private ClienteGrupo grupo;
     private ClienteFormato formato;
     private TOCliente cliente;
+    private double desctoComercial;
+    private double desctoProntoPago;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private Date fecha;
@@ -62,12 +67,36 @@ public class Pedido {
         this.idPedido = idPedido;
     }
 
+    public int getIdMovto() {
+        return idMovto;
+    }
+
+    public void setIdMovto(int idMovto) {
+        this.idMovto = idMovto;
+    }
+
+    public int getIdMovtoAlmacen() {
+        return idMovtoAlmacen;
+    }
+
+    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
+        this.idMovtoAlmacen = idMovtoAlmacen;
+    }
+
     public int getIdPedidoOC() {
         return idPedidoOC;
     }
 
     public void setIdPedidoOC(int idPedidoOC) {
         this.idPedidoOC = idPedidoOC;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public TOTienda getTienda() {
@@ -92,6 +121,22 @@ public class Pedido {
 
     public void setCliente(TOCliente cliente) {
         this.cliente = cliente;
+    }
+
+    public double getDesctoComercial() {
+        return desctoComercial;
+    }
+
+    public void setDesctoComercial(double desctoComercial) {
+        this.desctoComercial = desctoComercial;
+    }
+
+    public double getDesctoProntoPago() {
+        return desctoProntoPago;
+    }
+
+    public void setDesctoProntoPago(double desctoProntoPago) {
+        this.desctoProntoPago = desctoProntoPago;
     }
 
     public String getOrdenDeCompra() {
