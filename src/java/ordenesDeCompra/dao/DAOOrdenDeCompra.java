@@ -312,22 +312,24 @@ public class DAOOrdenDeCompra {
         }
     }
 
-//    public void cancelarOrdenCompra(int idOrden) throws SQLException {
-//        Connection cn = this.ds.getConnection();
-//        Statement st = cn.createStatement();
-//        PreparedStatement ps2;
-//        try {
-//
-//            //CABECERO
-//            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
-//            ps2 = cn.prepareStatement(strSQL2);
-//            ps2.executeUpdate();
-//        } catch (SQLException e) {
-//            throw (e);
-//        } finally {
-//            cn.close();
-//        }
-//    }
+    public void cancelarOrdenCompra(int idOrden) throws SQLException {
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
+        PreparedStatement ps2;
+        try {
+
+            //CABECERO
+            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
+            ps2 = cn.prepareStatement(strSQL2);
+            ps2.executeUpdate();
+        } catch (SQLException e) {
+            throw (e);
+        } finally {
+            cn.close();
+        }
+    }
+    
+    
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
         ArrayList<Contacto> lista;
         lista = new ArrayList<>();
@@ -420,7 +422,7 @@ public class DAOOrdenDeCompra {
                     + "		inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
                     + "		inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
                     + "		inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
-                    + "	where oc.idCotizacion=0 \n"
+                    + "	where oc.idCotizacion=0 and oc.estado <>0 \n"
                     + "	order by oc.idOrdenCompra desc";
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {

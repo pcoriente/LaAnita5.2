@@ -919,20 +919,21 @@
                                     actionListener="#{mbOrdenCompra.generarReporteD()}"
                                     oncomplete="PF('odecDV').hide()"
                                     ajax="false"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
                                     update=":form:ordenCompra"
                                     />
-<!--                                <p:separator />
+                                <p:separator />
                                 <p:commandButton
                                     id="salirOCDV"
-                                    icon="ui-icon-arrowreturnthick-1-w"
+                                    icon="ui-icon-cancel"
                                     title="Ir al menu de Ordenes de Compra"
-                                    update=":form:OCDetalle "
+                                    update=":form:OCDetalle :form:ordenCompraD"
+                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
+                                    oncomplete="PF('odecDV').hide()"
                                     >
-                                    <p:confirm header="Deseas salir de la orden de compra?" message="Realizaste el procesos necesarios?" icon="ui-icon-alert" />
+<!--                                    <p:confirm header="Deseas CANCELAR la orden de compra?" message="Estás seguro?" icon="ui-icon-alert" />-->
                                 </p:commandButton>
 
-                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+<!--                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
                                     <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecDV').hide();" />
                                     <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
                                 </p:confirmDialog>-->
