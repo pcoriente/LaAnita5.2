@@ -105,7 +105,7 @@
                                      selectionMode="single"
                                      selection="#{mbOrdenCompra.ordenElegidaD}"
                                      scrollable="true" scrollRows="10"
-                                     
+
 
                                      >
                             <p:ajax event="rowSelect" 
@@ -157,15 +157,15 @@
                                                                     disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 2 }"
                                                                     update=":form:ordenCompra :form:dialogoOC"
                                                                     />-->
-<!--                               
-                                <p:separator />
-                                                              <p:commandButton
-                                                                    icon="ui-icon-mail-closed"
-                                                                    title="Enviar orden de compra"
-                                                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
-                                                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
-                                                                    oncomplete="PF('correo').show();"
-                                                                    update=":form:dialogoCorreo" />-->
+                                <!--                               
+                                                                <p:separator />
+                                                                                              <p:commandButton
+                                                                                                    icon="ui-icon-mail-closed"
+                                                                                                    title="Enviar orden de compra"
+                                                                                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
+                                                                                                    actionListener="#{mbOrdenCompra.cargaContactos()}"
+                                                                                                    oncomplete="PF('correo').show();"
+                                                                                                    update=":form:dialogoCorreo" />-->
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra"
@@ -277,12 +277,12 @@
                             <p:column headerText="Producto" width="300" >
                                 #{det.producto.toString()}
                             </p:column>
-                             <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
+                            <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
                                 <h:outputText value="#{det.cantOrdenada}" >
                                     <f:convertNumber pattern="#,##0.000"    />
                                 </h:outputText>
                             </p:column>
-                            
+
                             <p:column headerText="Nueva Cant." width="60" styleClass="alineacionD"  visible="false">
                                 <pe:inputNumber  value="#{det.cantidadSolicitada}"  id="ordenada"  
                                                  decimalPlaces="3"  minValue="0"
@@ -474,23 +474,23 @@
                                     <p:inputText id="dppi"
                                                  value="#{mbOrdenCompra.mbProveedores.miniProveedor.desctoProntoPago}"
                                                  disabled="#{mbOrdenCompra.mbProveedores.miniProveedor.idProveedor == 0}"
-                                                  style="width: 60px">
+                                                 style="width: 60px">
                                         <p:ajax event="blur"  
                                                 listener="#{mbOrdenCompra.calcularImporte()}"
                                                 update=":form:pieD"/>
                                     </p:inputText>
                                 </p:column>
                             </p:row>
-<!--                            <p:row>
-                                <p:column colspan="6" >
-                                    <p:selectOneMenu id="monedaD" 
-                                                     value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.moneda}"  >
-                                        <f:converter converterId="converters.Moneda" />
-                                        <f:selectItems value="#{mbOrdenCompra.mbMonedas.listaMonedas}" />
-                                        <p:ajax event="change" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                            </p:row>-->
+                            <!--                            <p:row>
+                                                            <p:column colspan="6" >
+                                                                <p:selectOneMenu id="monedaD" 
+                                                                                 value="#{mbOrdenCompra.ordenCompraEncabezadoDirecta.moneda}"  >
+                                                                    <f:converter converterId="converters.Moneda" />
+                                                                    <f:selectItems value="#{mbOrdenCompra.mbMonedas.listaMonedas}" />
+                                                                    <p:ajax event="change" />
+                                                                </p:selectOneMenu>
+                                                            </p:column>
+                                                        </p:row>-->
                         </p:panelGrid>
 
                         <p:toolbar  id="tbD" style="width: 900px; height: auto; margin:0 auto; " >  
@@ -540,7 +540,7 @@
                                     id="idRefreshD"
                                     icon="ui-icon-refresh"
                                     title="Limpiar formulario de orden de compra directa"
-                                    
+
                                     actionListener="#{mbOrdenCompra.handleClose()}"
                                     update=":form:detalleOCD :form:encabezadoOCD "
                                     />
@@ -552,8 +552,8 @@
                                     id="idCancelaD"
                                     icon="ui-icon-cancel"
                                     title="Cancelar orden de compra directa"
-                                  
-                                  
+
+
                                     />
                                 <span class="ui-separator">
                                     <span class="ui-icon ui-icon-grip-dotted-vertical" />
@@ -569,7 +569,7 @@
                                 <p:commandButton
                                     icon="ui-icon-print"
                                     title="Imprimir orden de compra directa"
-                                  
+
                                     />
 
 
@@ -919,23 +919,25 @@
                                     actionListener="#{mbOrdenCompra.generarReporteD()}"
                                     oncomplete="PF('odecDV').hide()"
                                     ajax="false"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado eq 1 }"
                                     update=":form:ordenCompra"
                                     />
-<!--                                <p:separator />
+                                <p:separator />
                                 <p:commandButton
                                     id="salirOCDV"
-                                    icon="ui-icon-arrowreturnthick-1-w"
-                                    title="Ir al menu de Ordenes de Compra"
-                                    update=":form:OCDetalle "
+                                    icon="ui-icon-cancel"
+                                    title="CANCELAR la Orden de Compra"
+                                    update=":form:OCDetalle :form:ordenCompraD"
+                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado==0}"
+                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
+                                    oncomplete="PF('odecDV').hide()"
                                     >
-                                    <p:confirm header="Deseas salir de la orden de compra?" message="Realizaste el procesos necesarios?" icon="ui-icon-alert" />
+                                    <p:confirm header="Deseas CANCELAR la orden de compra?" message="Estás seguro?" icon="ui-icon-alert" />
                                 </p:commandButton>
 
                                 <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
                                     <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecDV').hide();" />
                                     <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
-                                </p:confirmDialog>-->
+                                </p:confirmDialog>
                             </p:toolbarGroup>  
                         </p:toolbar>
                         <p:separator style="width:900px;height:0.5px" />
@@ -1027,8 +1029,8 @@
                             <p:column headerText="Producto" width="300" >
                                 #{v.producto.toString()}
                             </p:column>
-                            
-                            
+
+
                             <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
                                 <h:outputText value="#{v.cantOrdenada}" >
                                     <f:convertNumber pattern="#,##0.000"    />
@@ -1130,11 +1132,11 @@
                     </p:dialog>
 
                     <script type="text/javascript">
-                                        function handleBuscar(xhr, status, args) {
-                                            if (!(args.validationFailed || !args.okBuscar)) {
-                                                buscarProductoDlg.hide();
-                                            }
-                                        }
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            buscarProductoDlg.hide();
+                        }
+                    }
                     </script>
 
 
