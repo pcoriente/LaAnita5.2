@@ -93,7 +93,7 @@ public class DAOMovimientos {
         try (Statement st = cn.createStatement()) {
             to.setFolio(this.obtenerMovimientoFolio(cn, true, to.getIdAlmacen(), to.getIdTipo()));
             strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, idReferencia, referencia, estatus, propietario) "
-                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolio() + ", " + to.getIdComprobante() + ", " + to.getIdImpuestoZona() + ", 0, 0, '" + new java.sql.Date(to.getFecha().getTime()) + "', " + to.getIdUsuario() + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + to.getPropietario() + ")";
+                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolio() + ", " + to.getIdComprobante() + ", " + to.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + to.getIdUsuario() + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + to.getPropietario() + ")";
             st.executeUpdate(strSQL);
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -101,7 +101,7 @@ public class DAOMovimientos {
             }
             to.setFolioAlmacen(this.obtenerMovimientoFolio(cn, false, to.getIdAlmacen(), to.getIdTipo()));
             strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idReferencia, referencia, idUsuario, estatus, propietario) "
-                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolioAlmacen() + ", " + to.getIdComprobante() + ", '" + new java.sql.Date(to.getFecha().getTime()) + "', " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getIdUsuario() + ", " + to.getEstatus() + ", " + to.getPropietario() + ")";
+                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolioAlmacen() + ", " + to.getIdComprobante() + ", GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getIdUsuario() + ", " + to.getEstatus() + ", " + to.getPropietario() + ")";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {
@@ -238,7 +238,7 @@ public class DAOMovimientos {
                     boletin.set(1, rs.getDouble("sinCargo"));
                 }
             } else {
-                throw (new SQLException("No se encontro producto en detalle !!!"));
+                throw (new SQLException("No se encontro producto id=" + idProducto +" en detalle de tienda id="+idTienda+" !!!"));
             }
         }
         return boletin;
@@ -295,8 +295,23 @@ public class DAOMovimientos {
         }
         return productos;
     }
+    
+    public void grabarPedidoDetalle(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                this.actualizaProductoCantidadPedido(cn, toPed.getIdEmpresa(), toPed.getIdTienda(), toPed.getIdPedido(), toProd);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
 
-    public boolean grabarPedidoDetalle(TOPedido toPed, int idImpuestoZona, TOProductoPedido prod, double cantFacturadaOld) throws SQLException {
+    public boolean grabarPedidoDetalle1(TOPedido toPed, TOProductoPedido prod, double cantFacturadaOld) throws SQLException {
         double cantSolicitada, cantSeparada, cantLiberar, cantLiberada;
         double cantSinCargo, boletinConCargo, boletinSinCargo;
         int idProducto = prod.getIdProducto();
@@ -476,8 +491,8 @@ public class DAOMovimientos {
                 + "		, D.desctoProducto1, D.desctoProducto2, D.desctoConfidencial, D.unitario, D.idImpuestoGrupo\n"
                 + "FROM movimientosDetalle D\n"
                 + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "INNER JOIN pedidosDetalle P ON P.idPedido=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
-                + "WHERE M.idReferencia=" + idPedido;
+                + "INNER JOIN pedidosDetalle P ON P.idPedido=M.referencia AND P.idEmpaque=D.idEmpaque\n"
+                + "WHERE M.referencia=" + idPedido;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -522,7 +537,7 @@ public class DAOMovimientos {
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     if (rs.getDouble("precioVenta") == 0) {
-                        throw (new SQLException("No tiene precio de lista vigente !!!"));
+                        throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
                     } else {
                         precioUnitario = rs.getDouble("precioVenta");
                         if (!rs.getString("descuentos").equals("")) {
@@ -541,10 +556,10 @@ public class DAOMovimientos {
                         precio.add(precioLista);
                     }
                 } else {
-                    throw (new SQLException("No se encontro precio de venta !!!"));
+                    throw (new SQLException("No se encontro precio de venta para el producto id=" + idProducto + " !!!"));
                 }
             } else {
-                throw new SQLException("No se encotro el detalle de la tienda para obtener precio !!!");
+                throw new SQLException("No se encotro el detalle de la tienda id=" + idTienda +" para obtener precio del producto id=" + idProducto + " !!!");
             }
         }
         return precio;
@@ -573,16 +588,17 @@ public class DAOMovimientos {
         }
     }
 
-    private void actualizaProductoCantidadPedido(Connection cn, int idEmpresa, int idTienda, int idPedido, int idProducto) throws SQLException {
-        ArrayList<Double> boletin = this.obtenerBoletinSinCargo(cn, idEmpresa, idTienda, idProducto);
+    private void actualizaProductoCantidadPedido(Connection cn, int idEmpresa, int idTienda, int idPedido, TOProductoPedido toProd) throws SQLException {
+        ArrayList<Double> boletin = this.obtenerBoletinSinCargo(cn, idEmpresa, idTienda, toProd.getIdProducto());
         double boletinConCargo = boletin.get(0);
         double boletinSinCargo = boletin.get(1);
 
         if (boletinConCargo > 0 && boletinSinCargo > 0) {
             try (Statement st = cn.createStatement()) {
+                toProd.setCantOrdenadaSinCargo((int)(toProd.getCantOrdenada()/boletinConCargo)*boletinSinCargo);
                 String strSQL = "UPDATE pedidosDetalle\n"
-                        + "SET cantOrdenadaSinCargo=FLOOR(cantOrdenada/" + boletinConCargo + ")*" + boletinSinCargo + "\n"
-                        + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + idProducto;
+                        + "SET cantOrdenada="+toProd.getCantOrdenada()+", cantOrdenadaSinCargo=" + toProd.getCantOrdenadaSinCargo() + "\n"
+                        + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
             }
         }
@@ -605,13 +621,12 @@ public class DAOMovimientos {
 
     private void actualizaProductoPedido(Connection cn, int idEmpresa, int idTienda, TOProductoPedido to) throws SQLException {
         this.actualizaProductoPrecio(cn, idEmpresa, idTienda, to);
-        this.actualizaProductoCantidadPedido(cn, idEmpresa, idTienda, to.getIdPedido(), to.getIdProducto());
+        this.actualizaProductoCantidadPedido(cn, idEmpresa, idTienda, to.getIdPedido(), to);
     }
 
-    public void actualizarPedido(int idPedido) throws SQLException {
+    public void actualizarPedido(ArrayList<TOProductoPedido> tos) throws SQLException {
         int idEmpresa, idTienda;
-        ArrayList<TOProductoPedido> tos = this.obtenerPedidoDetalle(idPedido);
-        String strSQL = "SELECT idEmpresa, idReferencia AS idTienda FROM movimientos WHERE referencia=" + idPedido;
+        String strSQL = "SELECT idEmpresa, idReferencia AS idTienda FROM movimientos WHERE referencia=" + tos.get(0).getIdPedido();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -676,7 +691,8 @@ public class DAOMovimientos {
     }
 
     public void agregarPedido(TOPedido toPed) throws SQLException {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+//        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+//        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -686,7 +702,7 @@ public class DAOMovimientos {
                 toPed.setFecha(new Date(rs.getDate("fecha").getTime()));
 
                 strSQL = "INSERT INTO pedidosOC (fecha, ordenDeCompra, ordenDeCompraFecha, embarqueFecha, entregaFolio, entregaFecha, cancelado, canceladoMotivo, canceladoFecha)\n"
-                        + "VALUES ('" + rs.getDate("fecha") + "', '" + toPed.getOrdenDeCompra() + "', '" + format.format(toPed.getOrdenDeCompraFecha()) + "', '1900-01-01', '', '1900-01-01', 0, '', '1900-01-01')";
+                        + "VALUES (GETDATE(), '" + toPed.getOrdenDeCompra() + "', '1900-01-01', '1900-01-01', '', '1900-01-01', 0, '', '1900-01-01')";
                 st.executeUpdate(strSQL);
 
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
@@ -694,7 +710,7 @@ public class DAOMovimientos {
                     toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
                 }
                 strSQL = "INSERT INTO pedidos (idPedidoOC, fecha, propietario, estatus)\n"
-                        + "VALUES (" + toPed.getIdPedidoOC() + ", '" + rs.getDate("fecha") + "', 0, 0)";
+                        + "VALUES (" + toPed.getIdPedidoOC() + ", GETDATE(), 0, 0)";
                 st.executeUpdate(strSQL);
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
                 if (rs.next()) {

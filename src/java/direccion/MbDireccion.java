@@ -11,8 +11,6 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
@@ -161,6 +159,13 @@ public class MbDireccion implements Serializable {
         return this.llama + ".mantenimiento";
     }
     
+    public void mttoDireccion(String actualiza) {
+        this.setEditarAsentamiento(true);
+        this.iconSearch="ui-icon-search";
+        this.iconSearchTitle="Buscar Colonias";
+        this.actualiza=actualiza;
+    }
+    
     public void mttoDireccionDlg(Direccion direccion, String actualiza) {
         this.setEditarAsentamiento(true);
         this.iconSearch="ui-icon-search";
@@ -232,7 +237,7 @@ public class MbDireccion implements Serializable {
     }
     
     private ArrayList<SelectItem> obtenerAsentamientos(String codigoPostal) throws NamingException, SQLException {
-        ArrayList<SelectItem> asentamientos = new ArrayList<SelectItem>();
+        ArrayList<SelectItem> asentamientos = new ArrayList<>();
 //        try {
             Asentamiento a0 = new Asentamiento();
 //            a0.setCodAsentamiento("0");
@@ -383,7 +388,7 @@ public class MbDireccion implements Serializable {
     }
 
     private void obtenerPaises() {
-        this.listaPaises = new ArrayList<SelectItem>();
+        this.listaPaises = new ArrayList<>();
 
         Pais p0 = new Pais();
         p0.setIdPais(0);

@@ -65,7 +65,7 @@ public class MbProductosBuscar implements Serializable {
 
     private void inicializaLocales() {
         this.strBuscar = "";
-        this.tipoBuscar = "2";
+        this.tipoBuscar = "1";
         this.tipoSeleccion = "single";
 //        this.update="";
         this.producto = null;

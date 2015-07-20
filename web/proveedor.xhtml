@@ -5,6 +5,7 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:p="http://primefaces.org/ui"
       xmlns:f="http://java.sun.com/jsf/core">
+
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
         <title>Actualización de Proveedor</title>
@@ -39,13 +40,13 @@
                                     </p:inputText>
                                 </p:column>
                                 <p:column style="width: 90px;" >
+                                    <p:commandButton id="btnAgregarContribuyente" icon="ui-icon-document" title="Agregar Contribuyente" 
+                                                     disabled="#{not mbProveedores.mbAcciones.validarAccion('btnAgregarContribuyente')}"
+                                                     process="@this" actionListener="#{mbProveedores.nuevoContribuyente()}"
+                                                     update="mttoContribuyentes" oncomplete="PF('mttoContribDialog').show()" />
                                     <p:commandButton icon="ui-icon-search" title="Buscar Contribuyentes"
                                                      process="@this" actionListener="#{mbProveedores.mbBuscarContribuyente.inicializar()}" 
                                                      update="buscarProveedores listaContribuyentes" oncomplete="PF('buscarProvDlg').show()" />
-                                    <p:commandButton id="btnAgregarContribuyente" icon="ui-icon-document" title="Nuevo Contribuyente" 
-                                                     disabled="#{mbProveedores.proveedor.idProveedor!=0 or not mbProveedores.mbAcciones.validarAccion('btnAgregarContribuyente')}"
-                                                     process="@this" actionListener="#{mbProveedores.nuevoContribuyente()}"
-                                                     update="mttoContribuyentes" oncomplete="PF('mttoContribDialog').show()" />
                                 </p:column>
                                 <p:column style="width: 50px;" >
                                     <h:outputLabel for="curp" value="CURP:" styleClass="colorLetra"/>
@@ -58,18 +59,21 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel for="contribuyente" value="Proveedor:"  styleClass="colorLetra"/>
+                                    <h:outputLabel for="cboContribuyentes" value="Proveedor:"  styleClass="colorLetra"/>
                                 </p:column>
                                 <p:column colspan="4" >
-                                    <p:inputText id="contribuyente"
-                                                 value="#{mbProveedores.proveedor.contribuyente.contribuyente}" readonly="true"
-                                                 maxlength="100"
-                                                 size="50" />
+                                    <p:selectOneMenu id="cboContribuyentes" value="#{mbProveedores.proveedor.contribuyente}" style="width: 370px">
+                                        <f:converter converterId="converters.Contribuyente" />
+                                        <f:selectItems value="#{mbProveedores.listaContribuyentes}" />
+                                        <p:ajax event="change" listener="#{mbProveedores.obtenerDireccionContribuyente()}" 
+                                                update="direccionFiscal" />
+                                    </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnEditarContribuyente" icon="ui-icon-pencil" title="Editar Contribuyente" 
-                                                     disabled="#{not mbProveedores.mbAcciones.validarAccion('btnEditarContribuyente')}"
-                                                     process="@this" actionListener="#{mbProveedores.mttoContribuyente()}"
+                                                     disabled="#{mbProveedores.proveedor.contribuyente.idContribuyente==0 
+                                                                 or not mbProveedores.mbAcciones.validarAccion('btnEditarContribuyente')}"
+                                                     process="@this rfc curp cboContribuyentes" actionListener="#{mbProveedores.mttoContribuyente()}"
                                                      update="mttoContribuyentes" oncomplete="PF('mttoContribDialog').show()" />
                                 </p:column>
                             </p:row>
@@ -82,9 +86,10 @@
                                                      value="#{mbProveedores.proveedor.contribuyente.direccion.toString()}" />
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton id="btnEditarDirFiscal" icon="ui-icon-plusthick" title="Editar" immediate="true" 
-                                                     disabled="#{not mbProveedores.mbAcciones.validarAccion('btnEditarDirFiscal')}"
-                                                     actionListener="#{mbProveedores.mbDireccion.mttoDireccionDlg(mbProveedores.proveedor.contribuyente.direccion, 'direccionFiscal')}" 
+                                    <p:commandButton id="btnEditarDirFiscal" icon="ui-icon-plusthick" title="Editar"
+                                                     disabled="#{mbProveedores.proveedor.contribuyente.idContribuyente==0 
+                                                                 or not mbProveedores.mbAcciones.validarAccion('btnEditarDirFiscal')}"
+                                                     process="@this" actionListener="#{mbProveedores.mttoDireccionFiscal()}" 
                                                      update=":main:mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
                                 </p:column>
                             </p:row>
@@ -253,15 +258,15 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Dirección Entrega:"  styleClass="colorLetra" />
+                                    <h:outputLabel for="txtAreaDirFisica" value="Dirección Entrega:"  styleClass="colorLetra" />
                                 </p:column>
                                 <p:column colspan="4" >
                                     <p:inputTextarea id="txtAreaDirFisica" disabled="true" rows="5" cols="50" 
                                                      value="#{mbProveedores.proveedor.direccionEntrega}" />
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton icon="ui-icon-plusthick" title="Editar" process="@this"
-                                                     actionListener="#{mbProveedores.mbDireccion.mttoDireccionDlg(mbProveedores.proveedor.direccionEntrega, ':main:txtAreaDirFisica')}" 
+                                    <p:commandButton id="btnEditarDirFisica" icon="ui-icon-plusthick" title="Editar" 
+                                                     process="@this" actionListener="#{mbProveedores.mttoDireccionFisica()}" 
                                                      update=":main:mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
                                 </p:column>
                             </p:row>
@@ -269,7 +274,7 @@
                                 <p:row >
                                     <p:column colspan="6" style="text-align: right;" >
                                         <p:commandButton icon="ui-icon-disk" title="Grabar" actionListener="#{mbProveedores.grabar()}" 
-                                                         update="msgs btnMttoContactos btnMttoTelefonos alta" />
+                                                         update="msgs" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                          action="#{mbProveedores.salir()}" ajax="false" immediate="true" />
                                     </p:column>
@@ -277,6 +282,67 @@
                             </f:facet>
                         </p:panelGrid>
                     </p:panel>
+                    <p:dialog header="BUSCADOR DE PROVEEDORES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="messages4" showDetail="true" closable="true" />
+                        <p:panelGrid id="buscarProveedores" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" 
+                                                      value="#{mbProveedores.mbBuscarContribuyente.tipoBuscar}"
+                                                      style="background-color: #ccc">
+                                        <f:selectItem itemLabel="RFC" itemValue="1" />
+                                        <f:selectItem itemLabel="Contribuyente" itemValue="2" />
+                                        <p:ajax listener="#{mbProveedores.mbBuscarContribuyente.verCambio()}" 
+                                                update="buscarProveedores" process="@this"/>
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="opcion" value="#{mbProveedores.mbBuscarContribuyente.strBuscar}" maxlength="30" size="35" />
+                                    <p:commandButton id="btnBuscar1" icon="ui-icon-check" title="Buscar" 
+                                                     rendered="#{mbProveedores.mbBuscarContribuyente.tipoBuscar=='1'}"
+                                                     process="@this opcion" actionListener="#{mbProveedores.buscar()}" 
+                                                     update="listaContribuyentes :main:messages4" 
+                                                     oncomplete="handleBuscarContribuyente(xhr, status, args)" />
+                                    <p:commandButton id="btnBuscar2" icon="ui-icon-check" title="Buscar" 
+                                                     rendered="#{mbProveedores.mbBuscarContribuyente.tipoBuscar=='2'}"
+                                                     process="@this opcion" actionListener="#{mbProveedores.buscar()}" 
+                                                     update="listaContribuyentes :main:messages4" 
+                                                     oncomplete="handleBuscarContribuyente(xhr, status, args)" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaContribuyentes" value="#{mbProveedores.mbBuscarContribuyente.contribuyentes}" 
+                                     filteredValue="#{mbProveedores.mbBuscarContribuyente.filtrados}"
+                                     var="prov" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prov.idContribuyente}" selectionMode="single" 
+                                     selection="#{mbProveedores.mbBuscarContribuyente.contribuyente}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column id="idRFC" headerText="RFC" style="width: 150px;"  >
+                                <h:outputText value="#{prov.rfc}" />
+                            </p:column>
+
+                            <p:column id="idContribuyente" headerText="Contribuyente" style="width: 150px;" 
+                                      filterBy="#{prov.contribuyente}" filterMatchMode="left" >
+                                <h:outputText value="#{prov.contribuyente}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbProveedores.mbBuscarContribuyente.contribuyente==null}"
+                                                 actionListener="#{mbProveedores.seleccionaContribuyente()}"
+                                                 update=":main:messages4 :main:cboContribuyentes :main:rfc :main:curp :main:direccionFiscal" 
+                                                 oncomplete="PF('buscarProvDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
                     <p:dialog header="MANTENIMIENTO DE TIPOS DE TELEFONOS" widgetVar="mttoTelefonosTiposDialog" resizable="false"
                               style="width: 500px;" modal="true" >
                         <p:messages id="messages1" showDetail="true" closable="true" autoUpdate="true" />
@@ -437,71 +503,6 @@
                                          update="messages3 contacto telefono btnMttoTelefonos" 
                                          oncomplete="PF('eContacto').hide();handleContacto(xhr, status, args);"/>
                     </p:confirmDialog>
-                    <p:dialog header="MANTENIMIENTO DE CONTRIBUYENTES" widgetVar="mttoContribDialog" resizable="false"
-                              style="width: 500px;" modal="true" >
-                        <p:messages id="messages6" showDetail="true" closable="true" autoUpdate="true" />
-                        <p:panelGrid id="mttoContribuyentes" styleClass="sinBorde" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtRfc" value="RFC:" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column colspan="2" >
-                                    <p:inputText id="txtRfc" value="#{mbProveedores.mbContribuyentes.contribuyente.rfc}"
-                                                 readonly="#{mbProveedores.mbContribuyentes.contribuyente.idRfc!=0}"
-                                                 maxlength="13" size="15" >
-                                        <p:ajax event="change" process="@this" listener="#{mbProveedores.obtenerRfc()}" 
-                                                update="txtCurp" />
-                                    </p:inputText>
-                                </p:column>
-                            </p:row>
-                            <p:row rendered="#{not empty mbProveedores.listaContribuyentes}" >
-                                <p:column >
-                                    <h:outputLabel for="cmbContribuyente" value="CONTRIBUYENTE:" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:selectOneMenu id="cmbContribuyente" value="#{mbProveedores.mbContribuyentes.contribuyente}" style="width: 300px" >
-                                        <f:converter converterId="converters.Contribuyente" />
-                                        <f:selectItems value="#{mbProveedores.listaContribuyentes}" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column >
-                                    <p:commandButton icon="ui-icon-document" title="Agregar Contribuyente" 
-                                                     actionListener="#{mbProveedores.agregarContribuyente()}" 
-                                                     update="mttoContribuyentes" />
-                                </p:column>
-                            </p:row>
-                            <p:row rendered="#{empty mbProveedores.listaContribuyentes}" >
-                                <p:column >
-                                    <h:outputLabel for="txtContribuyente" value="CONTRIBUYENTE:" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtContribuyente" value="#{mbProveedores.mbContribuyentes.contribuyente.contribuyente}"
-                                                 maxlength="100" size="60" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtCurp" value="CURP" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtCurp" value="#{mbProveedores.mbContribuyentes.contribuyente.curp}"
-                                                 disabled="#{mbProveedores.mbContribuyentes.contribuyente.rfc.length()==12}"
-                                                 maxlength="20" size="25" />
-                                </p:column>
-                            </p:row>
-                            <f:facet name="footer" >
-                                <p:row >
-                                    <p:column colspan="3" >
-                                        <p:commandButton id="btnGrabarContribuyente" value="Grabar" 
-                                                         process="@this txtRfc txtContribuyente txtCurp" 
-                                                         actionListener="#{mbProveedores.actualizarContribuyente()}"
-                                                         update="rfc contribuyente direccionFiscal curp" 
-                                                         oncomplete="handleContribuyente(xhr, status, args)" />
-                                    </p:column>
-                                </p:row>
-                            </f:facet>
-                        </p:panelGrid>
-                    </p:dialog>
                     <p:dialog header="MANTENIMIENTO DE TIPOS DE OPERACIONES" widgetVar="mttoTiposOperDlg" resizable="false" style="width: 500px;" modal="true" >
                         <p:messages id="messages7" showDetail="true" autoUpdate="true" closable="true" />
                         <p:panelGrid id="mttoTipoOperaciones" styleClass="sinBorde">
@@ -651,66 +652,69 @@
                                          update="messages8 clasificacion subClasificacion btnMttoSubClasificaciones" 
                                          oncomplete="PF('eClasificacion').hide();handleClasificacion(xhr, status, args);"/>
                     </p:confirmDialog>
-                    <p:dialog header="BUSCADOR DE PROVEEDORES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
-                        <p:messages id="messages4" showDetail="true" closable="true" />
-                        <p:panelGrid id="buscarProveedores" styleClass="sinBorde" >
+                    <p:dialog header="MANTENIMIENTO DE CONTRIBUYENTES" widgetVar="mttoContribDialog" resizable="false"
+                              style="width: 500px;" modal="true" >
+                        <p:messages id="messages6" showDetail="true" closable="true" autoUpdate="true" />
+                        <p:panelGrid id="mttoContribuyentes" styleClass="sinBorde" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel for="txtRfc" value="RFC:" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
-                                <p:column >
-                                    <p:selectOneRadio id="opciones" 
-                                                      value="#{mbProveedores.mbBuscarContribuyente.tipoBuscar}"
-                                                      style="background-color: #ccc">
-                                        <f:selectItem itemLabel="RFC" itemValue="1" />
-                                        <f:selectItem itemLabel="Contribuyente" itemValue="2" />
-                                        <p:ajax listener="#{mbProveedores.mbBuscarContribuyente.verCambio()}" 
-                                                update="buscarProveedores" process="@this"/>
-                                    </p:selectOneRadio>
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="opcion" value="#{mbProveedores.mbBuscarContribuyente.strBuscar}" maxlength="30" size="35" />
-                                    <p:commandButton id="btnBuscar1" icon="ui-icon-check" title="Buscar" 
-                                                     rendered="#{mbProveedores.mbBuscarContribuyente.tipoBuscar=='1'}"
-                                                     process="@this opcion" actionListener="#{mbProveedores.buscar()}" 
-                                                     update="listaContribuyentes :main:messages4" 
-                                                     oncomplete="handleBuscarContribuyente(xhr, status, args)" />
-                                    <p:commandButton id="btnBuscar2" icon="ui-icon-check" title="Buscar" 
-                                                     rendered="#{mbProveedores.mbBuscarContribuyente.tipoBuscar=='2'}"
-                                                     process="@this opcion" actionListener="#{mbProveedores.buscar()}" 
-                                                     update="listaContribuyentes :main:messages4" 
-                                                     oncomplete="handleBuscarContribuyente(xhr, status, args)" />
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtRfc" value="#{mbProveedores.mbContribuyentes.contribuyente.rfc}"
+                                                 readonly="#{mbProveedores.mbContribuyentes.contribuyente.idRfc!=0}"
+                                                 maxlength="13" size="15" >
+                                        <p:ajax event="change" process="@this" listener="#{mbProveedores.mbContribuyentes.obtenerIdRfc()}" 
+                                                update="txtCurp" />
+                                    </p:inputText>
                                 </p:column>
                             </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtContribuyente" value="CONTRIBUYENTE:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtContribuyente" value="#{mbProveedores.mbContribuyentes.contribuyente.contribuyente}"
+                                                 maxlength="100" size="60" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtCurp" value="CURP:" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtCurp" value="#{mbProveedores.mbContribuyentes.contribuyente.curp}"
+                                                 disabled="#{mbProveedores.mbContribuyentes.contribuyente.rfc.length()==12}"
+                                                 maxlength="20" size="25" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtDireccion" value="DIRECCION :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputTextarea id="txtDireccion" disabled="true" rows="5" cols="50" 
+                                                     value="#{mbProveedores.mbContribuyentes.contribuyente.direccion.toString()}" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnDireccionFiscal" icon="ui-icon-plusthick" title="Editar" 
+                                                     disabled="#{not mbProveedores.mbAcciones.validarAccion('btnEditarDirFiscal')}"
+                                                     actionListener="#{mbProveedores.mttoDireccion()}" 
+                                                     update=":main:mttoDireccion" oncomplete="PF('mttoDireccionDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="3" >
+                                        <p:commandButton id="btnGrabarContribuyente" value="Grabar" 
+                                                         process="@this txtRfc txtContribuyente txtCurp txtDireccion" 
+                                                         actionListener="#{mbProveedores.grabarContribuyente()}"
+                                                         update="rfc cboContribuyentes curp direccionFiscal btnEditarContribuyente btnEditarDirFiscal" 
+                                                         oncomplete="handleContribuyente(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="listaContribuyentes" value="#{mbProveedores.mbBuscarContribuyente.contribuyentes}" 
-                                     filteredValue="#{mbProveedores.mbBuscarContribuyente.filtrados}"
-                                     var="prov" scrollable="true" scrollHeight="200" style="width: 800px;"
-                                     rowKey="#{prov.idContribuyente}" selectionMode="single" 
-                                     selection="#{mbProveedores.mbBuscarContribuyente.contribuyente}" >
-                            <p:ajax event = "rowSelect" update="seleccion" />
-
-                            <f:facet name="header">
-                                Seleccione un producto  
-                            </f:facet>
-
-                            <p:column id="idRFC" headerText="RFC" style="width: 150px;"  >
-                                <h:outputText value="#{prov.rfc}" />
-                            </p:column>
-
-                            <p:column id="idContribuyente" headerText="Contribuyente" style="width: 150px;" 
-                                      filterBy="#{prov.contribuyente}" filterMatchMode="left" >
-                                <h:outputText value="#{prov.contribuyente}" />
-                            </p:column>
-
-                            <f:facet name="footer">
-                                <p:commandButton id="seleccion" value="Seleccionar" 
-                                                 disabled="#{mbProveedores.mbBuscarContribuyente.contribuyente==null}"
-                                                 actionListener="#{mbProveedores.seleccionaContribuyente()}"
-                                                 update=":main:messages4 :main:contribuyente :main:rfc :main:curp :main:direccionFiscal" 
-                                                 oncomplete="PF('buscarProvDlg').hide()" />
-                            </f:facet>
-                        </p:dataTable>
                     </p:dialog>
                     <p:dialog header="Mantenimiento de Direccion" widgetVar="mttoDireccionDlg" modal="true" resizable="false" closable="false" >
                         <p:messages id="msgsMttoDireccion" showDetail="true" closable="true" autoUpdate="false" />
@@ -792,7 +796,7 @@
                                         <f:selectItems value="#{mbProveedores.mbDireccion.listaAsentamientos}" />
                                         <f:converter converterId="converters.Asentamiento" />
                                         <p:ajax event="change" listener="#{mbProveedores.mbDireccion.actualizaAsentamiento()}" 
-                                                update="panelCapturaDireccion" />             
+                                                update="mttoDireccion" />             
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
@@ -889,9 +893,7 @@
                     }
 
                     function handleContribuyente(xhr, status, args) {
-                        if (args.validationFailed || !args.okContribuyente) {
-                            PF('mttoContribDialog').jq.effect("shake", {times: 5}, 100);
-                        } else {
+                        if (!(args.validationFailed || !args.okContribuyente)) {
                             PF('mttoContribDialog').hide();
                         }
                     }

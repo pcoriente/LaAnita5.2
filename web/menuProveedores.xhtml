@@ -1,103 +1,98 @@
-<?xml version='1.0' encoding='UTF-8' ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
-        <title>Relación de Proveedores</title>
         <h:outputStylesheet library="css" name="main.css"/>
         <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Pedidos de clientes</title>
     </h:head>
     <body>
-        <div id="wrapper" align="center">
-            <ui:include src="wrapper.xhtml" />
-            <div id="content" align="center"  >
-                <h:form >
-                    <p:panel header="LISTA DE PROVEEDORES" styleClass="quitaCuadro" rendered="#{not empty mbProveedores.acciones}">
-                        <p:panelGrid >
-                            <p:row>
-                                <p:column style="width: 755px;" >
-                                    <p:selectOneMenu id="clasificacion" value="#{mbProveedores.clasificacion}" style="width: 300px" >
-                                        <f:converter converterId="converters.Proveedor.Clasificacion" />
-                                        <f:selectItems value="#{mbProveedores.listaClasificaciones}" />
-                                        <p:ajax event="change" listener="#{mbProveedores.cargaProveedores(mbProveedores.clasificacion.idClasificacion)}" 
-                                                update="listaProveedores" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column >
-                                    <p:outputPanel >
-                                        <p:commandButton id="lnkNuevoProveedor" icon="ui-icon-document" title="Nuevo Proveedor" 
-                                                         disabled="#{not mbProveedores.mbAcciones.validarAccion('lnkNuevoProveedor')}" 
-                                                         action="#{mbProveedores.mantenimiento(0)}" ajax="false" immediate="true" />
-                                        <p:commandButton icon="ui-icon-home" title="Salir" 
-                                                         action="#{mbProveedores.terminar()}" ajax="false" immediate="true" />
-                                    </p:outputPanel>
-                                </p:column>
-                            </p:row>
-                        </p:panelGrid>
-                        <p:dataTable id="listaProveedores" value="#{mbProveedores.listaProveedores}" 
-                                     var="proveedor" filteredValue="#{mbProveedores.listaFiltrados}"
-                                     style="border:solid 1px"
-                                     widgetVar="proveedorTable" 
-                                     emptyMessage="No hay elementos que desplegar">
-                            <p:column filterBy="#{proveedor.contribuyente.rfc}" filterMatchMode="contains" style="width: 120px;" >
-                                <f:facet name="header" >
-                                    <h:outputText value="RFC" />
-                                </f:facet>
-                                <h:outputText value="#{proveedor.contribuyente.rfc}" />
-                            </p:column>
-                            <p:column filterBy="#{proveedor.toString()}" filterMatchMode="contains" >
-                                <f:facet name="header">
-                                    <h:outputText value="Proveedor" />
-                                </f:facet>
-                                <h:outputText value="#{proveedor.toString()}"/>
-                            </p:column>
-                            <p:column style="width: 150px;" >
-                                <f:facet name="header" >
-                                    <h:outputText value="Clasificacion" />
-                                </f:facet>
-                                <h:outputText value="#{proveedor.clasificacion.toString()}" />
-                            </p:column>
-                            <p:column headerText="Más" style="width: 30px; text-align: center;">
-                                <p:rowToggler  />
-                            </p:column>
-                            <p:rowExpansion  >
-                                <p:accordionPanel value="#{proveedor.contactos}" var="c" >
-                                    <p:tab title="#{c.contacto}" >
-                                        <h:panelGrid columns="2" >
-                                            <h:outputText value="Puesto :" />
-                                            <h:outputText value="#{c.puesto}" />
-                                            
-                                            <h:outputText value="eMail :" />
-                                            <h:outputText value="#{c.correo}" />
-                                            
-                                            <h:outputText value="Teléfonos :" />
-                                            <p:dataTable value="#{c.telefonos}" var="t" >
-                                                <p:column headerText="Teléfono" >
-                                                    <h:outputText value="#{t.toString()}" />
-                                                </p:column>
-                                            </p:dataTable>
-                                        </h:panelGrid>
-                                    </p:tab>
-                                </p:accordionPanel>
-                            </p:rowExpansion>
-                            <p:column  headerText="Accion"  style="width: 40px; text-align: center;">
-                                <h:commandLink id="lnkModificarProveedor" action="#{mbProveedores.mantenimiento(proveedor.idProveedor)}" 
-                                               disabled="#{not mbProveedores.mbAcciones.validarAccion('lnkModificarProveedor')}" >
-                                    <h:graphicImage library="images" name="build.png"  /> 
-                                </h:commandLink> 
-                            </p:column>
-                        </p:dataTable>
-                    </p:panel>
-                    
-                </h:form>
-            </div>
-            <!-- FIN DE CONTENIDO -->
-            <ui:include src="footer.html" />
-        </div>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true" />
+            <p:panel id="panelProveedores" header="Lista de Proveedores" style="float: left;" rendered="#{not empty mbProveedores.acciones}" >
+                <p:panelGrid id="proveedores" >
+                    <p:row>
+                        <p:column style="width: 120px;" >
+                            <h:outputLabel for="filtroClasificacion" value="CLASIFICACION :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column style="width: 640px;" >
+                            <p:selectOneMenu id="filtroClasificacion" value="#{mbProveedores.clasificacion}" style="width: 300px" >
+                                <f:converter converterId="converters.Proveedor.Clasificacion" />
+                                <f:selectItems value="#{mbProveedores.listaClasificaciones}" />
+                                <p:ajax event="change" listener="#{mbProveedores.cargaProveedores(mbProveedores.clasificacion.idClasificacion)}" 
+                                        update="listaProvs" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <p:outputPanel >
+                                <p:commandButton id="lnkNuevoProveedor" icon="ui-icon-document" title="Nuevo Proveedor" 
+                                                 disabled="#{not mbProveedores.mbAcciones.validarAccion('lnkNuevoProveedor')}" 
+                                                 action="#{mbProveedores.mantenimiento(0)}" ajax="false" immediate="true" />
+                                <p:commandButton icon="ui-icon-home" title="Salir" 
+                                                 action="#{mbProveedores.terminar()}" ajax="false" immediate="true" />
+                            </p:outputPanel>
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="listaProvs" value="#{mbProveedores.listaProveedores}" style="border:solid 1px"
+                             var="proveedor" rowKey="#{proveedor.idProveedor}" selectionMode="single" 
+                             emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="300" >
+                    <p:column filterBy="#{proveedor.contribuyente.rfc}" filterMatchMode="contains" style="width: 100px;" >
+                        <f:facet name="header" >
+                            <h:outputText value="RFC" />
+                        </f:facet>
+                        <h:outputText value="#{proveedor.contribuyente.rfc}" />
+                    </p:column>
+                    <p:column filterBy="#{proveedor.toString()}" filterMatchMode="contains" >
+                        <f:facet name="header">
+                            <h:outputText value="Proveedor" />
+                        </f:facet>
+                        <h:outputText value="#{proveedor.toString()}"/>
+                    </p:column>
+                    <p:column >
+                        <f:facet name="header" >
+                            <h:outputText value="Clasificacion" />
+                        </f:facet>
+                        <h:outputText value="#{proveedor.clasificacion.toString()}" />
+                    </p:column>
+                    <p:column headerText="Más" style="width: 30px; text-align: center;">
+                        <p:rowToggler  />
+                    </p:column>
+                    <p:rowExpansion  >
+                        <p:accordionPanel value="#{proveedor.contactos}" var="c" >
+                            <p:tab title="#{c.contacto}" >
+                                <h:panelGrid columns="2" >
+                                    <h:outputText value="Puesto :" />
+                                    <h:outputText value="#{c.puesto}" />
+
+                                    <h:outputText value="eMail :" />
+                                    <h:outputText value="#{c.correo}" />
+
+                                    <h:outputText value="Teléfonos :" />
+                                    <p:dataTable value="#{c.telefonos}" var="t" >
+                                        <p:column headerText="Teléfono" >
+                                            <h:outputText value="#{t.toString()}" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </h:panelGrid>
+                            </p:tab>
+                        </p:accordionPanel>
+                    </p:rowExpansion>
+                    <p:column  headerText="Accion"  style="width: 40px; text-align: center;">
+                        <h:commandLink id="lnkModificarProveedor" action="#{mbProveedores.mantenimiento(proveedor.idProveedor)}" 
+                                       disabled="#{not mbProveedores.mbAcciones.validarAccion('lnkModificarProveedor')}" >
+                            <h:graphicImage library="images" name="build.png"  /> 
+                        </h:commandLink> 
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </h:form>
+        <ui:include src="footer.xhtml" />
     </body>
 </html>
-

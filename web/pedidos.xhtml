@@ -154,7 +154,7 @@
                         <p:column >
                             <h:outputLabel value="PRODUCTO :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="4" >
+                        <p:column colspan="3" >
                             <h:outputText value="#{mbPedidos.producto.toString()}" />
                         </p:column>
                     </p:row>
@@ -163,7 +163,7 @@
                             <h:outputLabel value="CANT.CON CARGO :" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column >
-                            <p:inputText value="#{mbPedidos.producto.cantFacturada}" style="width: 80px;"
+                            <p:inputText value="#{mbPedidos.producto.cantOrdenada}" style="width: 80px;"
                                          converterMessage="El valor proporcionado no es un numero" >
                                 <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
                                 <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
@@ -179,17 +179,10 @@
                                 <f:convertNumber pattern="###,##0.0000" />
                             </h:outputText>
                         </p:column>
-                        <p:column >
-                            <p:commandButton id="btnTraspasoSimilares" value="Cambiar" title="Cambiar sin cargo a otro similar" 
-                                             disabled="#{mbPedidos.producto.cantSinCargo==0}"
-                                             actionListener="#{mbPedidos.traspasoSimilar()}" 
-                                             update=":main:msgsEdicion :main:panelSimilares :main:detalleSimilares" 
-                                             oncomplete="handleAbrirSimilares(xhr, status, args);" />
-                        </p:column>
                     </p:row>
                     <f:facet name="footer" >
                         <p:row >
-                            <p:column colspan="5" style="text-align: right;" >
+                            <p:column colspan="4" style="text-align: right;" >
                                 <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
                                                  immediate="true" onclick="PF('EdicionDlg').hide();" />
                             </p:column>
@@ -268,12 +261,12 @@
                         <h:outputText value="#{prod.producto.toString()}" />
                     </p:column>
                     <p:column headerText="Con Cargo" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantFacturada}" >
+                        <h:outputText value="#{prod.cantOrdenada}" >
                             <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
-                        <h:outputText value="#{prod.cantSinCargo}" >
+                        <h:outputText value="#{prod.cantOrdenadaSinCargo}" >
                             <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
@@ -293,7 +286,7 @@
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Importe" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.unitario*prod.cantFacturada}" >
+                        <h:outputText value="#{prod.unitario*prod.cantOrdenada}" >
                             <f:convertNumber pattern="###,##0.00" />
                         </h:outputText>
                     </p:column>
@@ -434,28 +427,12 @@
                             </p:dataTable>
                         </p:column>
                     </p:row>
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel for="txtOrdenDeCompra" value="Orden de Compra:" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:inputText id="txtOrdenDeCompra" value="#{mbPedidos.ordenDeCompra}" size="30" />
-                        </p:column>
-                        <p:column >
-                            <h:outputLabel for="txtOrdenDeCompraFecha" value="Fecha:" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:inputText id="txtOrdenDeCompraFecha" value="#{mbPedidos.ordenDeCompraFecha}" size="11" >
-                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
-                            </p:inputText>
-                        </p:column>
-                    </p:row>
                     <f:facet name="footer" >
                         <p:row >
                             <p:column colspan="4" style="text-align: right;" >
                                 <p:commandButton id="btnCrearPedido" icon="ui-icon-document" value="Crear" title="Crear pedido" 
                                                  disabled="#{mbPedidos.mbTiendas.tienda.idTienda==0}"
-                                                 process="@this txtOrdenDeCompra txtOrdenDeCompraFecha" 
+                                                 process="@this" 
                                                  actionListener="#{mbPedidos.crearPedido()}"
                                                  update=":main:msgsNuevoPedido :main:listaDePedidos :main:pedido :main:detallePedido :main:totales" 
                                                  oncomplete="nuevoPedido(xhr, status, args);" />

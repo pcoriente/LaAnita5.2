@@ -514,7 +514,7 @@ public class MbComprasOficina implements Serializable {
             unitario = unitario * this.producto.getCantFacturada() / (this.producto.getCantFacturada() + this.producto.getCantSinCargo());
         }
         this.producto.setCostoPromedio(unitario);
-        double subTotal = this.producto.getUnitario() * (this.producto.getCantFacturada());
+        double subTotal = this.producto.getUnitario() * this.producto.getCantFacturada();
         this.producto.setImporte(subTotal);
     }
 
