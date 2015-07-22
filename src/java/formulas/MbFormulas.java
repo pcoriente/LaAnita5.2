@@ -114,7 +114,10 @@ public class MbFormulas implements Serializable {
         Map parameters = new HashMap();
         parameters.put("empresa", this.mbEmpresas.getEmpresa().getNombreComercial());
         parameters.put("cod_pro", this.formula.getCod_pro());
-        parameters.put("empaque", this.formula.getEmpaque());
+        parameters.put("empaque", this.formula.getEmpaque()); 
+        parameters.put("mermaPtje", this.formula.getMerma());
+        parameters.put("mermaCant", this.formula.getMermaCant()); 
+        parameters.put("costoPromedio", this.formula.getCostoPromedio());
 //        parameters.put("observaciones", this.formula.getObservaciones());
         ArrayList<Linea> listaObservaciones = new ArrayList<>();
         for (String str : this.formula.getObservaciones().split("\r\n")) {
@@ -354,7 +357,7 @@ public class MbFormulas implements Serializable {
         tmpInsumo.setEmpaque(producto.toString());
         tmpInsumo.setCantidad(to.getCantidad());
         tmpInsumo.setVariacion(to.getPorcentVariacion());
-        tmpInsumo.setCostoPromedio(to.getCostoUnitarioPromedio());
+        tmpInsumo.setCostoPromedio(to.getCostoUnitario());
         return tmpInsumo;
     }
 
@@ -377,7 +380,6 @@ public class MbFormulas implements Serializable {
             this.formula.getInsumos().add(this.convertirInsumo(toInsumo));
         }
         this.calculaSumas();
-        this.formula.setCostoPrimo(this.formula.getCostoPromedio()*this.formula.getSumaCantidad()/(this.formula.getSumaCantidad()*(1-this.formula.getMerma()/100)));
     }
 
     public String getTotalSumaCostoPromedio() {
@@ -528,6 +530,8 @@ public class MbFormulas implements Serializable {
             this.formula.setMermaCant(piezas * this.formula.getMerma() / 100);
             this.formula.setCostoPromedio(this.formula.getSumaCosto() / (piezas - this.formula.getMermaCant()));
         }
+        double ctoManoObraConMerma=this.formula.getManoDeObra()*this.formula.getSumaCantidad()/(this.formula.getSumaCantidad()*(1-this.formula.getManoDeObra()/100));
+        this.formula.setCostoPrimo(this.formula.getCostoPromedio()+ctoManoObraConMerma);
     }
 
     public void grabarInsumo() {

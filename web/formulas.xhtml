@@ -12,12 +12,11 @@
 
         <title>Mantenimiento de Formulas</title>
     </h:head>
-    <body>
-        <div id="wrapper" align="center">
+    <body >
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="left" >
                 <h:form id="main" onkeypress="return event.keyCode !== 13;">
-                    <p:panel id="panelCapturaFormulas" header="Mantenimiento de Formulas" style="float: left" >
+                    <p:panel id="panelCapturaFormulas" header="Mantenimiento de Formulas" style="float: left;" >
                         <p:messages id="messages" showDetail="true" closable="true" />
                         <p:panelGrid id="mttoFormulasDatos" >
                             <p:row >
@@ -74,7 +73,8 @@
                                                  disabled="#{mbFormulas.formula.idFormula==0}" >
                                         <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
                                         <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
-                                        <p:ajax event="change" process="@this" />
+                                        <p:ajax event="change" process="@this" 
+                                                listener="#{mbFormulas.calculaSumas()}" update=":main:mttoFormulasTotales" />
                                     </p:inputText>
                                 </p:column>
                                 <p:column style="text-align: right; width: 135px;" >
@@ -96,8 +96,7 @@
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="formulaInsumos" var="ins" value="#{mbFormulas.formula.insumos}" 
-                                     selectionMode="single" rowKey="#{ins.idEmpaque}"                                     
-                                     scrollable="true" scrollHeight="120" style="width: 860px;" >
+                                     selectionMode="single" rowKey="#{ins.idEmpaque}" >
                             <p:ajax event="rowSelect" listener="#{mbFormulas.insumoSeleccionado}" 
                                     update=":main:mttoInsumos" oncomplete="PF('mttoInsumosDlg').show();" />
 
@@ -115,7 +114,7 @@
                                 </h:outputText>
                             </p:column>
 
-                            <p:column headerText="Costo Promedio" style="width: 80px; text-align: right;" >
+                            <p:column headerText="Costo Unitario" style="width: 80px; text-align: right;" >
                                 <h:outputText value="#{ins.costoPromedio}" >
                                     <f:convertNumber pattern="$ ###,##0.000000" />
                                 </h:outputText>
@@ -159,16 +158,16 @@
                                         <f:convertNumber pattern="###,##0.000000" />
                                     </p:inputText>
                                 </p:column>
-                                <p:column style="width: 45px; text-align: right;" >
+                                <p:column style="width: 85px; text-align: right;" >
                                     <h:outputText value="Total :" style="font-size: 14px; font-weight: bold;" />
                                 </p:column>
-                                <p:column style="width: 80px; text-align: right;" >
+                                <p:column style="width: 93px; text-align: right;" >
                                     <h:outputText value="#{mbFormulas.totalSumaCantidad}" style="font-size: 14px;" />
                                 </p:column>
-                                <p:column style="width: 80px;" >
-                                    <h:outputText value="Costo Total" style="font-size: 14px; font-weight: bold;" />
+                                <p:column style="width: 92px;" >
+                                    <h:outputText value="Costo Total :" style="font-size: 14px; font-weight: bold;" />
                                 </p:column>
-                                <p:column style="width: 90px; text-align: right;" >
+                                <p:column style="width: 102px; text-align: right;" >
                                     <h:outputText value="#{mbFormulas.totalSumaCostoPromedio}" style="font-size: 14px;" >
                                         <f:convertNumber pattern="$ ###,##0.000000" />
                                     </h:outputText>
@@ -342,6 +341,5 @@
                     }
                 </script>
             </div>
-        </div>
     </body>
 </html>

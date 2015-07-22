@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
@@ -74,6 +76,22 @@ public class MbPedidos implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
 
         this.inicializa();
+    }
+    
+    public void cancelarPedido() {
+        if(this.pedido.getCancelacionMotivo().isEmpty()) {
+            Mensajes.mensajeAlert("Se requiere el motivo de cancelacion !!!");
+        } else {
+            try {
+                this.daoMv=new DAOMovimientos();
+                TOPedido toPed=this.convertir(this.pedido);
+                this.daoMv.cancelarPedido(toPed);
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            }
+        }
     }
 
     public void eliminarPedido() {
@@ -188,15 +206,20 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
 //        boolean okSimilares;
 //        PedidoProducto prod;
-        double cantFacturadaOld = this.producto.getSeparados() - this.producto.getCantOrdenadaSinCargo();
+        double cantOrdenadaOld = this.producto.getSeparados() - this.producto.getCantOrdenadaSinCargo();
         try {
-            if (this.producto.getCantOrdenada() != cantFacturadaOld) {
+            if (this.producto.getCantOrdenada() != cantOrdenadaOld) {
                 TOPedido toPed = this.convertir(this.pedido);
                 TOProductoPedido toProd = this.convertir(this.producto);
-
+                this.producto.setCantOrdenada(cantOrdenadaOld);
+                
                 this.daoMv = new DAOMovimientos();
                 daoMv.grabarPedidoDetalle(toPed, toProd);
+                this.pedido.setCantArticulos(this.pedido.getCantArticulos()-this.producto.getSeparados());
+                this.producto.setCantOrdenada(toProd.getCantOrdenada());
                 this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+                this.producto.setSeparados(toProd.getCantOrdenada()+toProd.getCantOrdenadaSinCargo());
+                this.pedido.setCantArticulos(this.pedido.getCantArticulos()+this.producto.getSeparados());
 //                okSimilares = daoMv.grabarPedidoDetalle(toPed, toProd, cantFacturadaOld);
 //                if (okSimilares) {
 //                    for (TOProductoPedido to : this.daoMv.obtenerPedidoSimilares(toPed.getIdPedido(), toProd.getIdProducto())) {
@@ -219,7 +242,7 @@ public class MbPedidos implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
         if (!ok) {
-            this.producto.setCantFacturada(cantFacturadaOld);
+            this.producto.setCantFacturada(cantOrdenadaOld);
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okEdicion", ok);
@@ -312,9 +335,9 @@ public class MbPedidos implements Serializable {
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantOrdenada(to.getCantOrdenada());
         p.setCantOrdenadaSinCargo(to.getCantOrdenadaSinCargo());
+        p.setSeparados(to.getCantOrdenada() + to.getCantOrdenadaSinCargo());
         p.setCantFacturada(to.getCantFacturada());
         p.setCantSinCargo(to.getCantSinCargo());
-        p.setSeparados(to.getCantFacturada() + to.getCantSinCargo());
         p.setPrecio(to.getCosto());
         p.setDescuento(to.getDesctoProducto1());
         p.setUnitario(to.getUnitario());
@@ -340,7 +363,7 @@ public class MbPedidos implements Serializable {
             }
             for (TOProductoPedido to : tos) {
                 this.detalle.add(this.convertir(to));
-                n += to.getCantFacturada();
+                n += to.getCantOrdenada()+to.getCantOrdenadaSinCargo();
             }
             this.pedido.setCantArticulos(n);
             ok = true;

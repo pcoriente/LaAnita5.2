@@ -66,6 +66,7 @@ public class DAOFormulas {
         to.setIdEmpaque(rs.getInt("idProducto"));
         to.setCantidad(rs.getDouble("cantidad"));
         to.setPorcentVariacion(rs.getDouble("porcentVariacion"));
+        to.setCostoUnitario(rs.getDouble("costoUnitario"));
         to.setCostoUnitarioPromedio(rs.getDouble("costoUnitarioPromedio"));
         return to;
     }

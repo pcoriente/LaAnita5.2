@@ -13,7 +13,7 @@ body {
 }
 #header {
     color: #FFF;
-    width: 950px;
+    width: 1212px;
     float: left;
     padding-top: 0px;
     border: 0px solid #ccc;
@@ -35,8 +35,8 @@ body {
     border: 1px solid #ccc;
     background: #FFFFFF;
     margin: 0px;
-    height: 450px;
-    width: 937px;
+    /*height: 450px;*/
+    width: 1200px;
     display: inline;
     overflow: auto;
     font-size: 11px;
@@ -48,8 +48,8 @@ body {
     border: 1px solid #ccc;
     background: #FFFFFF;
     margin: 0px;
-    height: 450px;
-    width: 950px;
+    /*height: 450px;*/
+    width: 1212px;
     display: inline;
     overflow: auto;
     font-size: 11px;
@@ -57,7 +57,7 @@ body {
 #footer {
     color: #FFF;
     margin: 0px;
-    width: 950px;
+    width: 1212px;
     float: left;
     padding: 0px;
     border: 0px solid #ccc;

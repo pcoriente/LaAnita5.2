@@ -130,7 +130,7 @@
                     <p:column headerText="Producto" style="width: 420px;" >
                         <h:outputText value="#{similar.producto.toString()}" />
                     </p:column>
-                    
+
                     <p:column headerText="Con Cargo" >
                         <h:outputText value="#{similar.cantFacturada}" >
                             <f:convertNumber pattern="###,##0.0000" />
@@ -304,8 +304,34 @@
                                              process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
                                              update=":main:msgsPedido :main:listaDePedidos" 
                                              oncomplete="handlePedido(xhr, status, args);" />
+                            <p:commandButton id="btnPedidoCancelar" value="CANCELAR" title="Cancelar el pedido" 
+                                             disabled="#{mbPedidos.pedido.estatus==1}"
+                                             process="@this" oncomplete="PF('cancelarPedidoDlg').show();" />
                         </p:column>
                     </p:row>
+                </p:panelGrid>
+            </p:dialog>
+            <p:dialog header="CANCELAR PEDIDO" widgetVar="cancelarPedidoDlg" closable="true" resizable="false" style="width:600px;" modal="true" >
+                <p:messages id="msgCancelar" showDetail="true" autoUpdate="false" closable="true" />
+                <p:panelGrid id="cancelarPedido" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="motivo" value="MOTIVO :" style="font-waight: bold; color: red;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputTextarea id="motivo" rows="5" cols="50" 
+                                             value="#{mbPedidos.pedido.cancelacionMotivo}" />
+                        </p:column>
+                    </p:row>
+                    <f:facet name="header" >
+                        <p:row >
+                            <p:column colspan="2" >
+                                <p:commandButton id="btnCancelarPedido" icon="ui-icon-cancel" title="Cancelar pedido" 
+                                                 process="@this motivo" actionListener="#{mbPedidos.cancelarPedido()}" 
+                                                 update="@this :main:msgCancelar :main:btnPedidoCancelar" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
                 </p:panelGrid>
             </p:dialog>
             <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
