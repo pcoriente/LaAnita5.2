@@ -40,7 +40,7 @@ public class DAOTiendasFormatos {
     
     public ArrayList<TiendaFormato> obtenerFormatos(int idGrupoClte) throws SQLException {
         ArrayList<TiendaFormato> lstFormatos = null;
-        String sql = "SELECT * FROM  clientesFormato WHERE idGrupoCte  = '" + idGrupoClte + "'";
+        String sql = "SELECT * FROM  clientesFormatos WHERE idGrupoCte  = '" + idGrupoClte + "'";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {

@@ -7,6 +7,7 @@ package clientes.dominio;
 import contactos.dominio.Contacto;
 import contribuyentes.Contribuyente;
 import direccion.dominio.Direccion;
+import formatos.dominio.ClienteFormato;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,7 +22,8 @@ public class Cliente implements Serializable {
 
     private int idCliente;
     private ClienteGrupo grupo;
-    private TiendaFormato formato;
+//    private TiendaFormato formato;
+    private ClienteFormato formato ;
     private Contribuyente contribuyente;
     private Direccion direccion;
     private int idEsquema;
@@ -35,7 +37,8 @@ public class Cliente implements Serializable {
 
     public Cliente() {
         this.grupo=new ClienteGrupo();
-        this.formato=new TiendaFormato();
+//        this.formato=new TiendaFormato();
+        this.formato = new ClienteFormato();
         this.contribuyente=new Contribuyente();
         this.direccion=new Direccion();
         this.bancos=new ArrayList<ClienteBanco>();
@@ -80,13 +83,13 @@ public class Cliente implements Serializable {
         this.grupo = grupo;
     }
 
-    public TiendaFormato getFormato() {
-        return formato;
-    }
-
-    public void setFormato(TiendaFormato formato) {
-        this.formato = formato;
-    }
+//    public TiendaFormato getFormato() {
+//        return formato;
+//    }
+//
+//    public void setFormato(TiendaFormato formato) {
+//        this.formato = formato;
+//    }
 
     public int getIdEsquema() {
         return idEsquema;
@@ -167,4 +170,14 @@ public class Cliente implements Serializable {
     public void setDiasBloqueo(int diasBloqueo) {
         this.diasBloqueo = diasBloqueo;
     }
+
+    public ClienteFormato getFormato() {
+        return formato;
+    }
+
+    public void setFormato(ClienteFormato formato) {
+        this.formato = formato;
+    }
+    
+    
 }
