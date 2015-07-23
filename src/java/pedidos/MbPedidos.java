@@ -79,6 +79,7 @@ public class MbPedidos implements Serializable {
     }
     
     public void cancelarPedido() {
+        boolean ok=false;
         if(this.pedido.getCancelacionMotivo().isEmpty()) {
             Mensajes.mensajeAlert("Se requiere el motivo de cancelacion !!!");
         } else {
@@ -86,12 +87,17 @@ public class MbPedidos implements Serializable {
                 this.daoMv=new DAOMovimientos();
                 TOPedido toPed=this.convertir(this.pedido);
                 this.daoMv.cancelarPedido(toPed);
+                this.pedidos.remove(this.pedido);
+                this.pedido=null;
+                ok=true;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
             }
         }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
     }
 
     public void eliminarPedido() {
@@ -99,7 +105,8 @@ public class MbPedidos implements Serializable {
         this.asegurado = false;
         try {
             this.daoMv = new DAOMovimientos();
-            this.daoMv.eliminarPedido(this.pedido.getIdPedidoOC(), this.pedido.getIdPedido());
+            TOPedido toPed=this.convertir(this.pedido);
+            this.daoMv.eliminarPedido(toPed);
             this.pedidos.remove(this.pedido);
             this.pedido = null;
             ok = true;
@@ -116,8 +123,10 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
         try {
             this.daoMv = new DAOMovimientos();
-            this.daoMv.cerrarPedido(this.pedido.getIdPedido());
-            this.pedido.setEstatus(1);
+            TOPedido toPed=this.convertir(this.pedido);
+            this.daoMv.cerrarPedido(toPed);
+            this.pedidos.remove(this.pedido);
+            this.pedido=null;
             Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
             ok = true;
         } catch (NamingException ex) {
@@ -359,7 +368,7 @@ public class MbPedidos implements Serializable {
             }
             ArrayList<TOProductoPedido> tos = this.daoMv.obtenerPedidoDetalle(this.pedido.getIdPedido());
             if (this.pedido.getEstatus() == 0) {
-                this.daoMv.actualizarPedido(tos);
+                this.daoMv.actualizarPedido(this.pedido.getIdEmpresa(), this.pedido.getTienda().getIdTienda(), tos);
             }
             for (TOProductoPedido to : tos) {
                 this.detalle.add(this.convertir(to));

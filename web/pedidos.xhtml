@@ -242,6 +242,7 @@
                         </p:column>
                         <p:column style="text-align: right;" >
                             <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Buscar" title="Buscar productos"
+                                             disabled="#{mbPedidos.pedido.estatus!=0}"
                                              process="@this" actionListener="#{mbPedidos.buscarProductos(':main:msgsPedido :main:detallePedido')}" 
                                              update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show();" />
                         </p:column>
@@ -305,30 +306,31 @@
                                              update=":main:msgsPedido :main:listaDePedidos" 
                                              oncomplete="handlePedido(xhr, status, args);" />
                             <p:commandButton id="btnPedidoCancelar" value="CANCELAR" title="Cancelar el pedido" 
-                                             disabled="#{mbPedidos.pedido.estatus==1}"
-                                             process="@this" oncomplete="PF('cancelarPedidoDlg').show();" />
+                                             disabled="#{mbPedidos.pedido.estatus==0}"
+                                             process="@this" update=":main:cancelarPedido" 
+                                             oncomplete="PF('cancelarPedidoDlg').show();" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>
             </p:dialog>
             <p:dialog header="CANCELAR PEDIDO" widgetVar="cancelarPedidoDlg" closable="true" resizable="false" style="width:600px;" modal="true" >
-                <p:messages id="msgCancelar" showDetail="true" autoUpdate="false" closable="true" />
                 <p:panelGrid id="cancelarPedido" styleClass="sinBorde" >
                     <p:row >
                         <p:column >
-                            <h:outputLabel for="motivo" value="MOTIVO :" style="font-waight: bold; color: red;" />
+                            <h:outputLabel for="motivo" value="MOTIVO :" style="font-weight: bold; color: red;" />
                         </p:column>
                         <p:column >
                             <p:inputTextarea id="motivo" rows="5" cols="50" 
                                              value="#{mbPedidos.pedido.cancelacionMotivo}" />
                         </p:column>
                     </p:row>
-                    <f:facet name="header" >
+                    <f:facet name="footer" >
                         <p:row >
-                            <p:column colspan="2" >
-                                <p:commandButton id="btnCancelarPedido" icon="ui-icon-cancel" title="Cancelar pedido" 
+                            <p:column colspan="2" style="text-align: right;" >
+                                <p:commandButton id="btnCancelarPedido" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar pedido" 
                                                  process="@this motivo" actionListener="#{mbPedidos.cancelarPedido()}" 
-                                                 update="@this :main:msgCancelar :main:btnPedidoCancelar" />
+                                                 update="@this :main:msgsPedidos :main:listaDePedidos" 
+                                                 oncomplete="handleCancelarPedido(xhr, status, args);" />
                             </p:column>
                         </p:row>
                     </f:facet>
@@ -495,6 +497,12 @@
             function handleBuscar(xhr, status, args) {
                 if (!(args.validationFailed || !args.okBuscar)) {
                     PF('buscarProductoDlg').hide();
+                }
+            }
+            function handleCancelarPedido(xhr, status, args) {
+                if (!(args.validationFailed || !args.okPedido)) {
+                    PF('cancelarPedidoDlg').hide();
+                    PF('pedidoDlg').hide();
                 }
             }
             function handlePedido(xhr, status, args) {
