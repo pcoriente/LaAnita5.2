@@ -849,7 +849,7 @@ public class MbOrdenCompra implements Serializable {
         // ACTUALIZAR EL DATATABLE DOBLE DE ORDENES DE COMPRA
         System.out.println("Entro  a limpiar");
         this.mbEmpresas = new MbEmpresas();
-        this.mbProveedores = new MbMiniProveedor();
+//        this.mbProveedores = new MbMiniProveedor();
         this.provee = new Proveedor();
         this.ordenCompraEncabezado = new OrdenCompraEncabezado();
         //   this.ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
@@ -999,4 +999,32 @@ public class MbOrdenCompra implements Serializable {
 
         return ok;
     }
+    
+    public void cancelarOrden(int idOrden, int estado) throws NamingException {
+       // int idOrden=this.ordenElegidaD.getIdOrdenCompra();
+        Boolean correcto = false;
+        //    FacesMessage msg = null;
+        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
+        DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
+        try {
+            if (estado == 0) {
+                daoO.cancelarOrdenCompra(idOrden);
+                this.setListaOrdenesEncabezadoD(null);
+                this.cargaOrdenesEncabezadoD();
+               
+
+                fMsg.setDetail("Se ha CANCELADO");
+                correcto = true;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
+            fMsg.setDetail("No se realizÃ³ la cancelaciÃ³n de la orden de compra.." + ex.getMessage());
+        }
+
+        if (!correcto) {
+            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+        }
+    }
+
+
 }

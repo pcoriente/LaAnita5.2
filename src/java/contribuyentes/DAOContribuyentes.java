@@ -38,27 +38,27 @@ public class DAOContribuyentes {
         }
     }
 
-    public int grabarRFC(String rfc) throws SQLException {
-        int idRfc = 0;
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
-            st.executeUpdate("begin transaction");
-            st.executeUpdate("INSERT INTO contribuyentesRfc (rfc, curp) values ('" + rfc + "', '')");
-            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idRfc");
-            if (rs.next()) {
-                idRfc = rs.getInt("idRfc");
-            }
-            st.executeUpdate("commit transaction");
-        } catch (SQLException e) {
-            st.executeUpdate("rollback transaction");
-            throw (e);
-        } finally {
-            st.close();
-            cn.close();
-        }
-        return idRfc;
-    }
+//    public int grabarRFC(String rfc) throws SQLException {
+//        int idRfc = 0;
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        try {
+//            st.executeUpdate("begin transaction");
+//            st.executeUpdate("INSERT INTO contribuyentesRfc (rfc, curp) values ('" + rfc + "', '')");
+//            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idRfc");
+//            if (rs.next()) {
+//                idRfc = rs.getInt("idRfc");
+//            }
+//            st.executeUpdate("commit transaction");
+//        } catch (SQLException e) {
+//            st.executeUpdate("rollback transaction");
+//            throw (e);
+//        } finally {
+//            st.close();
+//            cn.close();
+//        }
+//        return idRfc;
+//    }
 
     public int obtenerRfc(String rfc) throws SQLException {
         int idRfc = 0;
@@ -138,7 +138,7 @@ public class DAOContribuyentes {
     }
 
     public ArrayList<Contribuyente> obtenerContribuyentesRFC(String rfc) throws SQLException {
-        ArrayList<Contribuyente> cs = new ArrayList<Contribuyente>();
+        ArrayList<Contribuyente> cs = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         String strSQL = "Select c.idContribuyente, contribuyente, cr.idRfc, cr.rfc, c.idDireccion, cr.curp "
@@ -264,14 +264,21 @@ public class DAOContribuyentes {
         Statement st = cn.createStatement();
         try {
             st.executeUpdate("begin transaction");
-
-            int idRfc = 0;
-            strSQL = "INSERT INTO contribuyentesRfc (rfc, curp) "
-                    + "VALUES ('" + contribuyente.getRfc().toUpperCase() + "', '" + contribuyente.getCurp() + "')";
-            st.executeUpdate(strSQL);
-            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idRfc");
-            if (rs.next()) {
-                idRfc = rs.getInt("idRfc");
+            
+            int idRfc=0;
+            strSQL="SELECT idRfc FROM contribuyentesRfc WHERE rfc='"+contribuyente.getRfc()+"'";
+            ResultSet rs=st.executeQuery(strSQL);
+            if(rs.next()) {
+                idRfc=rs.getInt("idRfc");
+            } else {
+                strSQL = "INSERT INTO contribuyentesRfc (rfc, curp) "
+                        + "VALUES ('" + contribuyente.getRfc().toUpperCase() + "', '" + contribuyente.getCurp().toUpperCase() + "')";
+                st.executeUpdate(strSQL);
+                
+                rs = st.executeQuery("SELECT @@IDENTITY AS idRfc");
+                if (rs.next()) {
+                    idRfc=rs.getInt("idRfc");
+                }
             }
             DAOAgregarDireccion daoAgregarDireccion = new DAOAgregarDireccion();
             int idDireccion = daoAgregarDireccion.agregar(st, contribuyente.getDireccion());
@@ -279,11 +286,15 @@ public class DAOContribuyentes {
             strSQL = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) "
                     + "VALUES ('" + contribuyente.getContribuyente() + "', '" + idRfc + "', " + idDireccion + ")";
             st.executeUpdate(strSQL);
+            
             rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
             if (rs.next()) {
                 idContribuyente = rs.getInt("idContribuyente");
             }
             st.executeUpdate("commit transaction");
+            
+            contribuyente.setIdRfc(idRfc);
+            contribuyente.getDireccion().setIdDireccion(idDireccion);
         } catch (SQLException ex) {
             st.executeUpdate("rollback transaction");
             throw ex;
@@ -330,11 +341,10 @@ public class DAOContribuyentes {
         Contribuyente contribuyente = null;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "select * from contribuyentes cr\n"
-                + "inner join contribuyentesRfc crR\n"
-                + "on cr.idContribuyente = crR.idRfc\n"
-                + "inner join direcciones dir \n"
-                + "on cr.idDireccion = dir.idDireccion\n"
+        String sql = "select *\n"
+                + "from contribuyentes cr\n"
+                + "inner join contribuyentesRfc crR on cr.idContribuyente = crR.idRfc\n"
+                + "inner join direcciones dir on cr.idDireccion = dir.idDireccion\n"
                 + "where crR.rfc ='" + rfc + "';";
         try {
             ResultSet rs = st.executeQuery(sql);

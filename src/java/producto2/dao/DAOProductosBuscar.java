@@ -235,6 +235,8 @@ public class DAOProductosBuscar {
             ResultSet rs=st.executeQuery(strSQL);
             if(rs.next()) {
                 to=this.construir(rs);
+            } else {
+                throw new SQLException("No se encontro producto id="+idProducto+" o no tiene unidad de empaque !!!");
             }
         } finally {
             cn.close();

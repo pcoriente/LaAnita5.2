@@ -203,15 +203,15 @@
                                 <p:cellEditor >
                                     <f:facet name="output" >
                                         <h:outputText value="#{prod.cantidad}" >
-                                            <f:convertNumber pattern="###,##0.0000" />
+                                            <f:convertNumber pattern="###,##0.000" maxIntegerDigits="6" maxFractionDigits="3" />
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input" >
                                         <p:inputText value="#{prod.cantidad}" readonly="#{mbComprasAlmacen.compra.estatus!=0}"
                                                      converterMessage="Se requiere un numero" 
-                                                     validatorMessage="Se requiere un valor entre 0 y 999,999.9999" >
-                                            <f:convertNumber pattern="###,##0.0000" maxIntegerDigits="6" maxFractionDigits="4" />
-                                            <f:validateDoubleRange minimum="0.0" maximum="999999.9999" />
+                                                     validatorMessage="Se requiere un numero entre 0 y 999,999.999" >
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3"  />
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <p:ajax event="change" process="@this" />
                                         </p:inputText>
                                     </f:facet>

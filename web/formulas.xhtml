@@ -13,335 +13,335 @@
         <title>Mantenimiento de Formulas</title>
     </h:head>
     <body>
-        <div id="wrapper" align="center">
-            <ui:include src="wrapper.xhtml" />
-            <div id="content" align="left" >
-                <h:form id="main" onkeypress="return event.keyCode !== 13;">
-                    <p:panel id="panelCapturaFormulas" header="Mantenimiento de Formulas" style="float: left" >
-                        <p:messages id="messages" showDetail="true" closable="true" />
-                        <p:panelGrid id="mttoFormulasDatos" >
+        <ui:include src="wrapper.xhtml" />
+        <div id="content" style="width: 1250px"  align="center" >
+            <h:form id="main" onkeypress="return event.keyCode !== 13;">
+                <p:panel id="panelCapturaFormulas" header="Mantenimiento de Formulas" style="float: left;" >
+                    <p:messages id="messages" showDetail="true" closable="true" />
+                    <p:panelGrid id="mttoFormulasDatos" >
+                        <p:row >
+                            <p:column style="width: 90px;" >
+                                <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 615px;" >
+                                <p:selectOneMenu id="empresa" value="#{mbFormulas.mbEmpresas.empresa}" style="width: 200px;" >
+                                    <f:converter converterId="converters.MiniEmpresa" />
+                                    <f:selectItems value="#{mbFormulas.mbEmpresas.listaEmpresas}" />
+                                    <p:ajax event="change" update="btnBuscarEmpaques" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column style="text-align: right; width: 85px;" >
+                                <p:commandButton icon="ui-icon-home" title="Terminar"
+                                                 ajax="false" action="#{mbFormulas.salir()}" immediate="true" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel value="PRODUCTO :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:inputText id="codigo" value="#{mbFormulas.formula.cod_pro}" style="width: 65px;" readonly="true" />
+                                <p:inputText id="empaque" value="#{mbFormulas.formula.empaque}" style="width: 520px;" readonly="true" />
+                            </p:column>
+                            <p:column colspan="2" style="text-align: left;" >
+                                <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
+                                                 disabled="#{mbFormulas.mbEmpresas.empresa.idEmpresa==0}"
+                                                 process="@this" actionListener="#{mbFormulas.buscarEmpaqueFormula()}" 
+                                                 update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:panelGrid id="mttoFormulas" >
+                        <p:row >
+                            <p:column style="width: 90px;" >
+                                <h:outputLabel for="txtMerma" value="MERMA (%):" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 90px;" >
+                                <p:inputText id="txtMerma" value="#{mbFormulas.formula.merma}" style="width: 80px;" 
+                                             disabled="#{mbFormulas.formula.idFormula==0}" >
+                                    <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
+                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
+                                    <p:ajax event="change" process="@this" 
+                                            listener="#{mbFormulas.calculaSumas()}" update=":main:mttoFormulasTotales" />
+                                </p:inputText>
+                            </p:column>
+                            <p:column style="width: 185px; text-align: right;" >
+                                <h:outputLabel value="COSTO MANO OBRA UNIT:" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 90px;" >
+                                <p:inputText id="txtCostoManoObra" value="#{mbFormulas.formula.manoDeObra}" style="width: 80px;" 
+                                             disabled="#{mbFormulas.formula.idFormula==0}" >
+                                    <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
+                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
+                                    <p:ajax event="change" process="@this" 
+                                            listener="#{mbFormulas.calculaSumas()}" update=":main:mttoFormulasTotales" />
+                                </p:inputText>
+                            </p:column>
+                            <p:column style="text-align: right; width: 135px;" >
+                                <h:outputLabel value="OBSERVACIONES :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="text-align: left; width: 30px;" >
+                                <p:commandButton id="btnMttoObservaciones" icon="ui-icon-pencil" title="Editar Observaciones" 
+                                                 disabled="#{mbFormulas.formula.idFormula==0}" 
+                                                 process="@this" update="mttoObservaciones" oncomplete="PF('mttoObservacionesDlg').show()" />
+                            </p:column>
+                            <p:column style="text-align: right; width: 85px;" >
+                                <p:commandButton id="btnGrabarFormula" icon="ui-icon-disk" title="Grabar"
+                                                 disabled="#{mbFormulas.formula.idFormula==0}"
+                                                 process="@this" actionListener="#{mbFormulas.grabarFormula()}" update="messages" />
+                                <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Generar Excel"
+                                                 disabled="#{mbFormulas.formula.idFormula==0}"
+                                                 process="@this" actionListener="#{mbFormulas.generaExcel()}" update="messages" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:dataTable id="formulaInsumos" var="ins" value="#{mbFormulas.formula.insumos}" 
+                                 selectionMode="single" rowKey="#{ins.idEmpaque}" >
+                        <p:ajax event="rowSelect" listener="#{mbFormulas.insumoSeleccionado}" 
+                                update=":main:mttoInsumos" oncomplete="PF('mttoInsumosDlg').show();" />
+
+                        <p:column headerText="SKU" style="width: 50px;" >
+                            <h:outputText value="#{ins.cod_pro}"  />
+                        </p:column>
+
+                        <p:column headerText="Insumo" style="width: 200px;" >
+                            <h:outputText value="#{ins.empaque}" />
+                        </p:column>
+
+                        <p:column headerText="Cantidad" style="width: 50px; text-align: right;" >
+                            <h:outputText value="#{ins.cantidad}" >
+                                <f:convertNumber pattern="###,##0.000000" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Costo Unitario" style="width: 50px; text-align: right;" >
+                            <h:outputText value="#{ins.costoPromedio}" >
+                                <f:convertNumber pattern="$ ###,##0.000000" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="Importe" style="width: 50px; text-align: right;" >
+                            <h:outputText value="#{ins.costoPromedio*ins.cantidad}" >
+                                <f:convertNumber pattern="$ ###,##0.000000" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="% Importe Participacion" style="width: 30px; text-align: right;" >
+                            <h:outputText value="#{ins.ptjeCtoParticipacion*100}" >
+                                <f:convertNumber pattern="##0.000000" />
+                            </h:outputText>
+                        </p:column>
+
+                        <p:column headerText="% Cantidad Paticipacion" style="width: 30px; text-align: right;" >
+                            <h:outputText value="#{ins.ptjeCantParticipacion*100}" >
+                                <f:convertNumber pattern="##0.000000" />
+                            </h:outputText>
+                        </p:column>
+
+                    </p:dataTable>
+                    <p:panelGrid id="mttoFormulasTotales" >
+                        <p:row >
+                            <p:column style="width: 125px; text-align: right;" >
+                                <h:outputLabel value="COSTO UNIT MP :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 90px;" >
+                                <p:inputText id="txtCostoFormula" value="#{mbFormulas.formula.costoPromedio}" 
+                                             style="width: 80px; text-align: left;" readonly="true" >
+                                    <f:convertNumber pattern="###,##0.000000" />
+                                </p:inputText>
+                            </p:column>
+                            <p:column style="width: 110px; text-align: right;" >
+                                <h:outputLabel value="COSTO PRIMO :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 90px;" >
+                                <p:inputText id="txtCostoPrimo" value="#{mbFormulas.formula.costoPrimo}" 
+                                             style="width: 80px; text-align: left;" readonly="true" >
+                                    <f:convertNumber pattern="###,##0.000000" />
+                                </p:inputText>
+                            </p:column>
+                            <p:column style="width: 85px; text-align: right;" >
+                                <h:outputText value="Total :" style="font-size: 14px; font-weight: bold;" />
+                            </p:column>
+                            <p:column style="width: 93px; text-align: right;" >
+                                <h:outputText value="#{mbFormulas.totalSumaCantidad}" style="font-size: 14px;" />
+                            </p:column>
+                            <p:column style="width: 92px;" >
+                                <h:outputText value="Costo Total :" style="font-size: 14px; font-weight: bold;" />
+                            </p:column>
+                            <p:column style="width: 102px; text-align: right;" >
+                                <h:outputText value="#{mbFormulas.totalSumaCostoPromedio}" style="font-size: 14px;" >
+                                    <f:convertNumber pattern="$ ###,##0.000000" />
+                                </h:outputText>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer" >
                             <p:row >
-                                <p:column style="width: 90px;" >
-                                    <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="width: 615px;" >
-                                    <p:selectOneMenu id="empresa" value="#{mbFormulas.mbEmpresas.empresa}" style="width: 200px;" >
-                                        <f:converter converterId="converters.MiniEmpresa" />
-                                        <f:selectItems value="#{mbFormulas.mbEmpresas.listaEmpresas}" />
-                                        <p:ajax event="change" update="btnBuscarEmpaques" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column style="text-align: right; width: 85px;" >
-                                    <p:commandButton icon="ui-icon-home" title="Terminar"
-                                                     ajax="false" action="#{mbFormulas.salir()}" immediate="true" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="PRODUCTO :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="codigo" value="#{mbFormulas.formula.cod_pro}" style="width: 65px;" readonly="true" />
-                                    <p:inputText id="empaque" value="#{mbFormulas.formula.empaque}" style="width: 520px;" readonly="true" />
-                                </p:column>
-                                <p:column colspan="2" style="text-align: left;" >
-                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
-                                                     disabled="#{mbFormulas.mbEmpresas.empresa.idEmpresa==0}"
-                                                     process="@this" actionListener="#{mbFormulas.buscarEmpaqueFormula()}" 
+                                <p:column colspan="8" style="text-align: right;" >
+                                    <p:commandButton id="btnAgregarInsumo" icon="ui-icon-document" title="Agregar Insumo" 
+                                                     disabled="#{mbFormulas.formula.idFormula==0}"
+                                                     process="@this" actionListener="#{mbFormulas.buscarEmpaqueInsumo()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
                             </p:row>
-                        </p:panelGrid>
-                        <p:panelGrid id="mttoFormulas" >
+                        </f:facet>
+                    </p:panelGrid>
+                </p:panel>
+                <p:dialog header="MANTENIMIENTO DE INSUMOS" widgetVar="mttoInsumosDlg" modal="true" resizable="false" closable="false" 
+                          style="width: 600px;" >
+                    <p:messages id="msgEditar" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:panelGrid id="mttoInsumos" styleClass="sinBorde" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="txtCodigo" value="CODIGO :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:inputText id="txtCodigo" value="#{mbFormulas.insumo.cod_pro}" readonly="true" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="txtEmpaque" value="PRODUCTO :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:inputText id="txtEmpaque" value="#{mbFormulas.insumo.empaque}" readonly="true" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="txtCantidad" value="CANTIDAD :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <pe:inputNumber id="txtCantidad" value="#{mbFormulas.insumo.cantidad}" style="width: 100px;"
+                                                decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
+                                    <p:ajax event="change" process="@this" />
+                                </pe:inputNumber>
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="txtVariacion" value="VARIACION :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <pe:inputNumber id="txtVariacion" value="#{mbFormulas.insumo.variacion}" style="width: 100px;"
+                                                decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
+                                    <p:ajax event="change" process="@this" />
+                                </pe:inputNumber>
+                            </p:column>
+                        </p:row>
+                        <f:facet name="footer" >
                             <p:row >
-                                <p:column style="width: 90px;" >
-                                    <h:outputLabel for="txtMerma" value="MERMA (%):" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="width: 90px;" >
-                                    <p:inputText id="txtMerma" value="#{mbFormulas.formula.merma}" style="width: 80px;" 
-                                                 disabled="#{mbFormulas.formula.idFormula==0}" >
-                                        <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
-                                        <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
-                                        <p:ajax event="change" process="@this" 
-                                                listener="#{mbFormulas.calculaSumas()}" update=":main:mttoFormulasTotales" />
-                                    </p:inputText>
-                                </p:column>
-                                <p:column style="width: 185px; text-align: right;" >
-                                    <h:outputLabel value="COSTO MANO OBRA UNIT:" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="width: 90px;" >
-                                    <p:inputText id="txtCostoManoObra" value="#{mbFormulas.formula.manoDeObra}" style="width: 80px;" 
-                                                 disabled="#{mbFormulas.formula.idFormula==0}" >
-                                        <f:convertNumber maxIntegerDigits="6" maxFractionDigits="6" pattern="###,##0.000000" />
-                                        <f:validateDoubleRange minimum="0.0" maximum="999999.999999" />
-                                        <p:ajax event="change" process="@this" />
-                                    </p:inputText>
-                                </p:column>
-                                <p:column style="text-align: right; width: 135px;" >
-                                    <h:outputLabel value="OBSERVACIONES :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="text-align: left; width: 30px;" >
-                                    <p:commandButton id="btnMttoObservaciones" icon="ui-icon-pencil" title="Editar Observaciones" 
-                                                     disabled="#{mbFormulas.formula.idFormula==0}" 
-                                                     process="@this" update="mttoObservaciones" oncomplete="PF('mttoObservacionesDlg').show()" />
-                                </p:column>
-                                <p:column style="text-align: right; width: 85px;" >
-                                    <p:commandButton id="btnGrabarFormula" icon="ui-icon-disk" title="Grabar"
-                                                     disabled="#{mbFormulas.formula.idFormula==0}"
-                                                     process="@this" actionListener="#{mbFormulas.grabarFormula()}" update="messages" />
-                                    <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Generar Excel"
-                                                     disabled="#{mbFormulas.formula.idFormula==0}"
-                                                     process="@this" actionListener="#{mbFormulas.generaExcel()}" update="messages" />
+                                <p:column colspan="2" style="text-align: right;" >
+                                    <p:commandButton icon="ui-icon-disk" title="Grabar"
+                                                     actionListener="#{mbFormulas.grabarInsumo()}" 
+                                                     update="msgEditar :main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar"
+                                                     actionListener="#{mbFormulas.cancelarInsumo()}" 
+                                                     update=":main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales" 
+                                                     oncomplete="PF('mttoInsumosDlg').hide();" />
+                                    <p:commandButton icon="ui-icon-trash" title="Eliminar Insumo" 
+                                                     actionListener="#{mbFormulas.eliminarInsumo()}" 
+                                                     update=":main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales msgEditar" 
+                                                     oncomplete="handleInsumo(xhr, status, args);" />
                                 </p:column>
                             </p:row>
-                        </p:panelGrid>
-                        <p:dataTable id="formulaInsumos" var="ins" value="#{mbFormulas.formula.insumos}" 
-                                     selectionMode="single" rowKey="#{ins.idEmpaque}"                                     
-                                     scrollable="true" scrollHeight="120" style="width: 860px;" >
-                            <p:ajax event="rowSelect" listener="#{mbFormulas.insumoSeleccionado}" 
-                                    update=":main:mttoInsumos" oncomplete="PF('mttoInsumosDlg').show();" />
-
-                            <p:column headerText="SKU" style="width: 50px;" >
-                                <h:outputText value="#{ins.cod_pro}"  />
+                        </f:facet>
+                    </p:panelGrid>
+                </p:dialog>
+                <p:dialog header="MANTENIMIENTO DE OBSERVACIONES" widgetVar="mttoObservacionesDlg" resizable="false" style="width: 600px;" modal="true" >
+                    <p:messages id="msgObservaciones" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:panelGrid id="mttoObservaciones" styleClass="sinBorde" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="txtObservaciones" value="OBSERVACIONES" style="font-weight: bold; color: black;" />
                             </p:column>
-
-                            <p:column headerText="Insumo" style="width: 410px;" >
-                                <h:outputText value="#{ins.empaque}" />
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <p:inputTextarea id="txtObservaciones" value="#{mbFormulas.formula.observaciones}" rows="20" cols="120" />
                             </p:column>
-
-                            <p:column headerText="Cantidad" style="width: 80px; text-align: right;" >
-                                <h:outputText value="#{ins.cantidad}" >
-                                    <f:convertNumber pattern="###,##0.000000" />
-                                </h:outputText>
+                        </p:row>
+                    </p:panelGrid>
+                </p:dialog>
+                <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                    <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
                             </p:column>
-
-                            <p:column headerText="Costo Promedio" style="width: 80px; text-align: right;" >
-                                <h:outputText value="#{ins.costoPromedio}" >
-                                    <f:convertNumber pattern="$ ###,##0.000000" />
-                                </h:outputText>
+                            <p:column >
+                                <p:selectOneRadio id="opciones" value="#{mbFormulas.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                    <f:selectItem itemLabel="SKU" itemValue="1" />
+                                    <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                    <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                    <p:ajax listener="#{mbFormulas.mbBuscar.verCambio()}" 
+                                            update="buscarProductos listaBuscarProductos" />
+                                </p:selectOneRadio>
                             </p:column>
-
-                            <p:column headerText="Importe" style="width: 90px; text-align: right;" >
-                                <h:outputText value="#{ins.costoPromedio*ins.cantidad}" >
-                                    <f:convertNumber pattern="$ ###,##0.000000" />
-                                </h:outputText>
-                            </p:column>
-
-                            <p:column headerText="% Importe Participacion" style="width: 70px; text-align: right;" >
-                                <h:outputText value="#{ins.ptjeCtoParticipacion*100}" >
-                                    <f:convertNumber pattern="##0.000000" />
-                                </h:outputText>
-                            </p:column>
-
-                            <p:column headerText="% Cantidad Paticipacion" style="width: 70px; text-align: right;" >
-                                <h:outputText value="#{ins.ptjeCantParticipacion*100}" >
-                                    <f:convertNumber pattern="##0.000000" />
-                                </h:outputText>
-                            </p:column>
-                        </p:dataTable>
-                        <p:panelGrid id="mttoFormulasTotales" >
-                            <p:row >
-                                <p:column style="width: 125px; text-align: right;" >
-                                    <h:outputLabel value="COSTO UNIT MP :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="width: 90px;" >
-                                    <p:inputText id="txtCostoFormula" value="#{mbFormulas.formula.costoPromedio}" 
-                                                 style="width: 80px; text-align: left;" readonly="true" >
-                                        <f:convertNumber pattern="###,##0.000000" />
-                                    </p:inputText>
-                                </p:column>
-                                <p:column style="width: 110px; text-align: right;" >
-                                    <h:outputLabel value="COSTO PRIMO :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column style="width: 90px;" >
-                                    <p:inputText id="txtCostoPrimo" value="#{mbFormulas.formula.costoPrimo}" 
-                                                 style="width: 80px; text-align: left;" readonly="true" >
-                                        <f:convertNumber pattern="###,##0.000000" />
-                                    </p:inputText>
-                                </p:column>
-                                <p:column style="width: 45px; text-align: right;" >
-                                    <h:outputText value="Total :" style="font-size: 14px; font-weight: bold;" />
-                                </p:column>
-                                <p:column style="width: 80px; text-align: right;" >
-                                    <h:outputText value="#{mbFormulas.totalSumaCantidad}" style="font-size: 14px;" />
-                                </p:column>
-                                <p:column style="width: 80px;" >
-                                    <h:outputText value="Costo Total" style="font-size: 14px; font-weight: bold;" />
-                                </p:column>
-                                <p:column style="width: 90px; text-align: right;" >
-                                    <h:outputText value="#{mbFormulas.totalSumaCostoPromedio}" style="font-size: 14px;" >
-                                        <f:convertNumber pattern="$ ###,##0.000000" />
-                                    </h:outputText>
-                                </p:column>
-                            </p:row>
-                            <f:facet name="footer" >
-                                <p:row >
-                                    <p:column colspan="8" style="text-align: right;" >
-                                        <p:commandButton id="btnAgregarInsumo" icon="ui-icon-document" title="Agregar Insumo" 
-                                                         disabled="#{mbFormulas.formula.idFormula==0}"
-                                                         process="@this" actionListener="#{mbFormulas.buscarEmpaqueInsumo()}" 
-                                                         update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
-                                    </p:column>
-                                </p:row>
-                            </f:facet>
-                        </p:panelGrid>
-                    </p:panel>
-                    <p:dialog header="MANTENIMIENTO DE INSUMOS" widgetVar="mttoInsumosDlg" modal="true" resizable="false" closable="false" 
-                              style="width: 600px;" >
-                        <p:messages id="msgEditar" showDetail="true" autoUpdate="true" closable="true" />
-                        <p:panelGrid id="mttoInsumos" styleClass="sinBorde" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtCodigo" value="CODIGO :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtCodigo" value="#{mbFormulas.insumo.cod_pro}" readonly="true" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtEmpaque" value="PRODUCTO :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText id="txtEmpaque" value="#{mbFormulas.insumo.empaque}" readonly="true" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtCantidad" value="CANTIDAD :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column >
-                                    <pe:inputNumber id="txtCantidad" value="#{mbFormulas.insumo.cantidad}" style="width: 100px;"
-                                                    decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
-                                        <p:ajax event="change" process="@this" />
-                                    </pe:inputNumber>
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtVariacion" value="VARIACION :" style="font-weight: bold; color: black;" />
-                                </p:column>
-                                <p:column >
-                                    <pe:inputNumber id="txtVariacion" value="#{mbFormulas.insumo.variacion}" style="width: 100px;"
-                                                    decimalPlaces="6" minValue="0" maxlength="13" emptyValue="zero" >
-                                        <p:ajax event="change" process="@this" />
-                                    </pe:inputNumber>
-                                </p:column>
-                            </p:row>
-                            <f:facet name="footer" >
-                                <p:row >
-                                    <p:column colspan="2" style="text-align: right;" >
-                                        <p:commandButton icon="ui-icon-disk" title="Grabar"
-                                                         actionListener="#{mbFormulas.grabarInsumo()}" 
-                                                         update="msgEditar :main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales" />
-                                        <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar"
-                                                         actionListener="#{mbFormulas.cancelarInsumo()}" 
-                                                         update=":main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales" 
-                                                         oncomplete="PF('mttoInsumosDlg').hide();" />
-                                        <p:commandButton icon="ui-icon-trash" title="Eliminar Insumo" 
-                                                         actionListener="#{mbFormulas.eliminarInsumo()}" 
-                                                         update=":main:mttoFormulas :main:formulaInsumos :main:mttoFormulasTotales msgEditar" 
-                                                         oncomplete="handleInsumo(xhr, status, args);" />
-                                    </p:column>
-                                </p:row>
-                            </f:facet>
-                        </p:panelGrid>
-                    </p:dialog>
-                    <p:dialog header="MANTENIMIENTO DE OBSERVACIONES" widgetVar="mttoObservacionesDlg" resizable="false" style="width: 600px;" modal="true" >
-                        <p:messages id="msgObservaciones" showDetail="true" autoUpdate="true" closable="true" />
-                        <p:panelGrid id="mttoObservaciones" styleClass="sinBorde" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtObservaciones" value="OBSERVACIONES" style="font-weight: bold; color: black;" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <p:inputTextarea id="txtObservaciones" value="#{mbFormulas.formula.observaciones}" rows="20" cols="120" />
-                                </p:column>
-                            </p:row>
-                        </p:panelGrid>
-                    </p:dialog>
-                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
-                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
-                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column >
-                                    <p:selectOneRadio id="opciones" value="#{mbFormulas.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
-                                        <f:selectItem itemLabel="SKU" itemValue="1" />
-                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
-                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
-                                        <p:ajax listener="#{mbFormulas.mbBuscar.verCambio()}" 
-                                                update="buscarProductos listaBuscarProductos" />
-                                    </p:selectOneRadio>
-                                </p:column>
-                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='1'}" >
-                                    <p:inputText id="opcionSKU" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="8" size="10" />
-                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionSKU" actionListener="#{mbFormulas.buscar()}" 
-                                                     update="#{mbFormulas.mbBuscar.update}" 
-                                                     oncomplete="handleBuscar(xhr, status, args)" />
-                                </p:column>
-                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='2'}" >
-                                    <p:autoComplete id="opcionParte" value="#{mbFormulas.mbBuscar.mbParte.parte}" maxlength="24" size="24"
-                                                    completeMethod="#{mbFormulas.mbBuscar.mbParte.completePartes}" 
-                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
-                                                    forceSelection="true" />
-                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionParte" actionListener="#{mbFormulas.buscar()}" 
-                                                     update="listaBuscarProductos"  />
-                                </p:column>
-                                <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='3'}" >
-                                    <p:inputText id="opcionDescripcion" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="24" size="24" />
-                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionDescripcion" actionListener="#{mbFormulas.buscar()}" 
-                                                     update="listaBuscarProductos" />
-                                </p:column>
-                            </p:row>
-                        </p:panelGrid>
-                        <p:dataTable id="listaBuscarProductos" value="#{mbFormulas.mbBuscar.productos}" 
-                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
-                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbFormulas.mbBuscar.producto}" >
-                            <p:ajax event = "rowSelect" update="seleccion" />
-
-                            <f:facet name="header">
-                                Seleccione un producto  
-                            </f:facet>
-
-                            <p:column headerText="SKU" style="width: 250px;" >
-                                <h:outputText value="#{prod.cod_pro}" />
-                            </p:column>
-
-                            <p:column headerText="Producto" style="width: 250px;" >
-                                <h:outputText value="#{prod.toString()}" />
-                            </p:column>
-
-                            <f:facet name="footer">
-                                <p:commandButton id="seleccion" value="Seleccionar" 
-                                                 disabled="#{mbFormulas.mbBuscar.producto==null}"
-                                                 actionListener="#{mbFormulas.actualizaProductoSeleccionado()}"
+                            <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='1'}" >
+                                <p:inputText id="opcionSKU" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionSKU" actionListener="#{mbFormulas.buscar()}" 
                                                  update="#{mbFormulas.mbBuscar.update}" 
-                                                 oncomplete="PF('buscarProductoDlg').hide()" />
-                            </f:facet>
-                        </p:dataTable>
-                    </p:dialog>
-                </h:form>
-                <script type="text/javascript">
-                    function handleInsumo(xhr, status, args) {
-                        if (!(args.validationFailed || !args.okInsumo)) {
-                            PF('mttoInsumosDlg').hide();
-                        }
+                                                 oncomplete="handleBuscar(xhr, status, args)" />
+                            </p:column>
+                            <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='2'}" >
+                                <p:autoComplete id="opcionParte" value="#{mbFormulas.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                completeMethod="#{mbFormulas.mbBuscar.mbParte.completePartes}" 
+                                                var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                forceSelection="true" />
+                                <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionParte" actionListener="#{mbFormulas.buscar()}" 
+                                                 update="listaBuscarProductos"  />
+                            </p:column>
+                            <p:column rendered="#{mbFormulas.mbBuscar.tipoBuscar=='3'}" >
+                                <p:inputText id="opcionDescripcion" value="#{mbFormulas.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionDescripcion" actionListener="#{mbFormulas.buscar()}" 
+                                                 update="listaBuscarProductos" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:dataTable id="listaBuscarProductos" value="#{mbFormulas.mbBuscar.productos}" 
+                                 var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                 rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbFormulas.mbBuscar.producto}" >
+                        <p:ajax event = "rowSelect" update="seleccion" />
+
+                        <f:facet name="header">
+                            Seleccione un producto  
+                        </f:facet>
+
+                        <p:column headerText="SKU" style="width: 250px;" >
+                            <h:outputText value="#{prod.cod_pro}" />
+                        </p:column>
+
+                        <p:column headerText="Producto" style="width: 250px;" >
+                            <h:outputText value="#{prod.toString()}" />
+                        </p:column>
+
+                        <f:facet name="footer">
+                            <p:commandButton id="seleccion" value="Seleccionar" 
+                                             disabled="#{mbFormulas.mbBuscar.producto==null}"
+                                             actionListener="#{mbFormulas.actualizaProductoSeleccionado()}"
+                                             update="#{mbFormulas.mbBuscar.update}" 
+                                             oncomplete="PF('buscarProductoDlg').hide()" />
+                        </f:facet>
+                    </p:dataTable>
+                </p:dialog>
+            </h:form>
+            <script type="text/javascript">
+                function handleInsumo(xhr, status, args) {
+                    if (!(args.validationFailed || !args.okInsumo)) {
+                        PF('mttoInsumosDlg').hide();
                     }
-                    function handleBuscar(xhr, status, args) {
-                        if (!(args.validationFailed || !args.okBuscar)) {
-                            PF('buscarProductoDlg').hide();
-                        }
+                }
+                function handleBuscar(xhr, status, args) {
+                    if (!(args.validationFailed || !args.okBuscar)) {
+                        PF('buscarProductoDlg').hide();
                     }
-                </script>
-            </div>
+                }
+            </script>
         </div>
-    </body>
+
+    </body>  
 </html>

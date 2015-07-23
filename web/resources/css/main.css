@@ -17,7 +17,7 @@ body {
     float: left;
     padding-top: 0px;
     border: 0px solid #ccc;
-    height: 130px;
+    height: 55px;
     background-color: #999999;
     margin-top: 0px;
     margin-right: 0px;
@@ -30,16 +30,16 @@ body {
 }
 
 #main {
-    float: left;
+/*    float: left;
     color: #333;
     border: 1px solid #ccc;
     background: #FFFFFF;
     margin: 0px;
     height: 450px;
-    width: 937px;
+    width: 950px;
     display: inline;
     overflow: auto;
-    font-size: 11px;
+    font-size: 11px;*/
 }
 
 #content {
@@ -48,7 +48,7 @@ body {
     border: 1px solid #ccc;
     background: #FFFFFF;
     margin: 0px;
-    height: 450px;
+    /*height: 450px;*/
     width: 950px;
     display: inline;
     overflow: auto;

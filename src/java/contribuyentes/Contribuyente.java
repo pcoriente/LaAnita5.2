@@ -14,6 +14,14 @@ public class Contribuyente implements Serializable {
     private String rfc;
     private Direccion direccion = new Direccion();
     private String curp;
+    
+    public Contribuyente(int idRfc, String rfc) {
+        this.contribuyente="";
+        this.idRfc=idRfc;
+        this.rfc=rfc;
+        this.curp="";
+        this.direccion=new Direccion();
+    }
 
     public Contribuyente() {
         this.idContribuyente = 0;

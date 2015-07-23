@@ -48,15 +48,15 @@ public class OrdenCompraReporte {
 //        parametros.put("prontoPago", ordenEncabezado.getDesctoProntoPago());
         parametros.put("ordenEncabezado", ordenEncabezado);
         //PARAMETROS AÑADIDOS PARA REPORTE 3/JULIO/2015
-       // parametros.put("direccionProveedor", ordenEncabezado.getProveedor().getDireccionFiscal().toString2().toUpperCase());
-     //   parametros.put("direccionEntregaProveedor", ordenEncabezado.getProveedor().getDireccionEntrega().toString2().toUpperCase());
-       // parametros.put("proveedorRFC", ordenEncabezado.getProveedor().getContribuyente().getRfc());
-    //    parametros.put("limiteCredito",ordenEncabezado.getProveedor().getLimiteCredito());
-       // parametros.put("codigoProveedor",ordenEncabezado.getProveedor().getCodigoProveedor());
-       // parametros.put("proveedorMunicipio",ordenEncabezado.getProveedor().getDireccionFiscal().getMunicipio());
-       // parametros.put("proveedorEstado",ordenEncabezado.getProveedor().getDireccionFiscal().getEstado());
-        
-        
+        // parametros.put("direccionProveedor", ordenEncabezado.getProveedor().getDireccionFiscal().toString2().toUpperCase());
+        //   parametros.put("direccionEntregaProveedor", ordenEncabezado.getProveedor().getDireccionEntrega().toString2().toUpperCase());
+        // parametros.put("proveedorRFC", ordenEncabezado.getProveedor().getContribuyente().getRfc());
+        //    parametros.put("limiteCredito",ordenEncabezado.getProveedor().getLimiteCredito());
+        // parametros.put("codigoProveedor",ordenEncabezado.getProveedor().getCodigoProveedor());
+        // parametros.put("proveedorMunicipio",ordenEncabezado.getProveedor().getDireccionFiscal().getMunicipio());
+        // parametros.put("proveedorEstado",ordenEncabezado.getProveedor().getDireccionFiscal().getEstado());
+
+
 //        ------------------------------Totales---------------------------------;
 //        parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
 //        parametros.put("sumaDescuentosGeneralesF", totalesOrdenesCompra.getSumaDescuentosGeneralesF());
@@ -65,14 +65,14 @@ public class OrdenCompraReporte {
 //        parametros.put("subTotalBrutoF", totalesOrdenesCompra.getSubTotalBrutoF());
 //        parametros.put("impF", totalesOrdenesCompra.getImpF());
 //        parametros.put("totalF", totalesOrdenesCompra.getTotalF());
-         parametros.put("totalesOrdenesCompra", totalesOrdenesCompra);
+        parametros.put("totalesOrdenesCompra", totalesOrdenesCompra);
         Numero_a_Letra numeroALetra = new Numero_a_Letra();
         Utilerias utilerias = new Utilerias();
         String letras = utilerias.quitarSigno$(totalesOrdenesCompra.getTotalF());
         letras = utilerias.quitarComas(letras);
         letras = Double.toString(Double.parseDouble(letras));
         letras = numeroALetra.Convertir(letras.trim(), true);
-        
+
         parametros.put("letras", letras);
         report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
         jasperprint = JasperFillManager.fillReport(report, parametros, new JRBeanCollectionDataSource(orden));
@@ -91,6 +91,7 @@ public class OrdenCompraReporte {
             }
             FacesContext.getCurrentInstance().responseComplete();
         } catch (Exception e) {
+
             System.out.println(e);
 
         }

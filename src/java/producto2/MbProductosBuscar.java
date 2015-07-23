@@ -65,7 +65,7 @@ public class MbProductosBuscar implements Serializable {
 
     private void inicializaLocales() {
         this.strBuscar = "";
-        this.tipoBuscar = "2";
+        this.tipoBuscar = "1";
         this.tipoSeleccion = "single";
 //        this.update="";
         this.producto = null;
@@ -175,6 +175,9 @@ public class MbProductosBuscar implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerProducto");
         Producto p = new Producto();
         try {
+//            if(idProducto==14) {
+//                ok=false;
+//            }
             this.dao = new DAOProductosBuscar();
             this.daoSubProductos = new DAOSubProductos();
             TOProducto to = this.dao.obtenerProducto(idProducto);

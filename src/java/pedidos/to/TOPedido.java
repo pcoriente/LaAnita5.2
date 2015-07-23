@@ -8,11 +8,14 @@ import java.util.Date;
  */
 public class TOPedido {
     private int idPedido;
+    private int idMovto;
+    private int idMovtoAlmacen;
     private int idPedidoOC;
     private int idEmpresa;
     private int idAlmacen;
-    private int idCliente;
     private int idTienda;
+    private double desctoComercial;
+    private double desctoProntoPago;
     private int idImpuestoZona;
     private Date fecha;
     private int estatus;
@@ -37,6 +40,22 @@ public class TOPedido {
     public void setIdPedido(int idPedido) {
         this.idPedido = idPedido;
     }
+
+    public int getIdMovto() {
+        return idMovto;
+    }
+
+    public void setIdMovto(int idMovto) {
+        this.idMovto = idMovto;
+    }
+
+    public int getIdMovtoAlmacen() {
+        return idMovtoAlmacen;
+    }
+
+    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
+        this.idMovtoAlmacen = idMovtoAlmacen;
+    }
     
     public int getIdPedidoOC() {
         return idPedidoOC;
@@ -52,6 +71,22 @@ public class TOPedido {
 
     public void setIdTienda(int idTienda) {
         this.idTienda = idTienda;
+    }
+
+    public double getDesctoComercial() {
+        return desctoComercial;
+    }
+
+    public void setDesctoComercial(double desctoComercial) {
+        this.desctoComercial = desctoComercial;
+    }
+
+    public double getDesctoProntoPago() {
+        return desctoProntoPago;
+    }
+
+    public void setDesctoProntoPago(double desctoProntoPago) {
+        this.desctoProntoPago = desctoProntoPago;
     }
 
     public int getIdImpuestoZona() {
@@ -76,14 +111,6 @@ public class TOPedido {
 
     public void setIdAlmacen(int idAlmacen) {
         this.idAlmacen = idAlmacen;
-    }
-
-    public int getIdCliente() {
-        return idCliente;
-    }
-
-    public void setIdCliente(int idCliente) {
-        this.idCliente = idCliente;
     }
 
     public String getOrdenDeCompra() {

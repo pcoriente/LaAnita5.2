@@ -228,7 +228,7 @@
                         <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbComprasOficina.detalle}"
                                      style="border:solid 1px; width: 850px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" selection="#{mbComprasOficina.producto}" selectionMode="single" 
-                                     scrollable="true" scrollHeight="150"
+                                     scrollable="true" scrollHeight="100"
                                      emptyMessage="No hay elementos que desplegar" >
                             <p:ajax event="rowSelect" listener="#{mbComprasOficina.respaldaFila()}" 
                                     update=":main:editDetalle" oncomplete="PF('editDlg').show();" />
@@ -239,57 +239,57 @@
                             <p:column headerText="Producto" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
-                            <p:column headerText="Facturada" style="text-align: right; width: 65px;" >
+                            <p:column headerText="Facturada" style="text-align: right; width: 75px;" >
                                 <h:outputText value="#{prod.cantFacturada}" >
                                     <f:convertNumber type="number" pattern="##,###,##0.000" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="Sin Cargo" style="text-align: right; width: 65px;" >
+                            <p:column headerText="Sin Cargo" style="text-align: right; width: 60px;" >
                                 <h:outputText value="#{prod.cantSinCargo}" >
-                                    <f:convertNumber type="number" pattern="##,###,##0.000" />
+                                    <f:convertNumber type="number" pattern="##,###,##0" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="P.Unitario" style="text-align: right;width: 65px;" >
+                            <p:column headerText="P.Unitario" style="text-align: right;width: 80px;" >
                                 <h:outputText value="#{prod.unitario}" >
-                                    <f:convertNumber type="currency" locale="en-US" pattern="###,##0.000000" />
+                                    <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="SubTotal" style="text-align: right; width: 65px;" >
+                            <p:column headerText="SubTotal" style="text-align: right; width: 80px;" >
                                 <h:outputText value="#{prod.importe}" >
-                                    <f:convertNumber type="currency" locale="en-US" pattern="###,##0.000000" />
+                                    <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                 </h:outputText>
                             </p:column>
                         </p:dataTable>
                         <p:panelGrid id="mttoEntradasTotales" >
                             <p:row >
-                                <p:column style="font-weight: bold; color: red; text-align: right; width: 725px;" >Subtotal :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold; width: 80px;" >
+                                <p:column style="font-weight: bold; color: red; text-align: right; width: 730px;" >Subtotal :</p:column>
+                                <p:column style="font-weight: bold; width: 80px; text-align: right;" >
                                     <h:outputText value="#{mbComprasOficina.compra.subTotal}" style="color: black;" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column style="font-weight: bold; color: red; text-align: right;" >Descuento :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold;" >
+                                <p:column style="font-weight: bold; width: 80px; text-align: right;" >
                                     <h:outputText value="#{mbComprasOficina.compra.descuento}" style="color: black;" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column style="font-weight: bold; color: red; text-align: right;" >Impuestos :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold;" >
+                                <p:column style="font-weight: bold; width: 80px; text-align: right;" >
                                     <h:outputText value="#{mbComprasOficina.compra.impuesto}" style="color: black;" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column style="font-weight: bold; color: red; text-align: right;" >Total :</p:column>
-                                <p:column styleClass="alineacionD" style="font-weight: bold;" >
+                                <p:column style="font-weight: bold; width: 80px; text-align: right;" >
                                     <h:outputText value="#{mbComprasOficina.compra.total}" style="color: black;" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
@@ -319,7 +319,7 @@
                                 </p:column>
                                 <p:column >
                                     <h:outputText id="txtOrdenada" value="#{mbComprasOficina.producto.cantOrdenadaTotal}" >
-                                        <f:convertNumber type="number" pattern="##,###,##0.000" maxIntegerDigits="6" maxFractionDigits="3" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
@@ -329,7 +329,7 @@
                                 </p:column>
                                 <p:column >
                                     <h:outputText id="txtRecibida" value="#{mbComprasOficina.producto.cantRecibida}" >
-                                        <f:convertNumber type="number" pattern="##,###,##0.000" maxIntegerDigits="6" maxFractionDigits="3" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
@@ -363,7 +363,7 @@
                                 </p:column>
                                 <p:column >
                                     <pe:inputNumber id="txtCosto" value="#{mbComprasOficina.producto.costo}" 
-                                                    maxlength="10" decimalPlaces="3"  minValue="0" emptyValue="zero" style="width: 75px;" >
+                                                    maxlength="10" decimalPlaces="6"  minValue="0" emptyValue="zero" style="width: 75px;" >
                                         <p:ajax event="change" process="@this" 
                                                 listener="#{mbComprasOficina.cambiaPrecio()}" update="lblUnitario lblSubTotal" />
                                     </pe:inputNumber>
@@ -431,7 +431,7 @@
                                 </p:column>
                                 <p:column >
                                     <h:outputText id="lblUnitario" value="#{mbComprasOficina.producto.unitario}" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" maxIntegerDigits="8" maxFractionDigits="6" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
@@ -441,7 +441,7 @@
                                 </p:column>
                                 <p:column >
                                     <h:outputText id="lblSubTotal" value="#{mbComprasOficina.producto.importe}" >
-                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.000000" maxIntegerDigits="8" maxFractionDigits="6" />
+                                        <f:convertNumber type="currency" locale="en-US" pattern="##,###,##0.00" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>

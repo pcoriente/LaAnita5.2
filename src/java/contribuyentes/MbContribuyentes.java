@@ -35,7 +35,7 @@ public class MbContribuyentes implements Serializable {
 
     public MbContribuyentes() {
         this.contribuyente = new Contribuyente();
-        this.contribuyentes = new ArrayList<Contribuyente>();
+        this.contribuyentes = new ArrayList<>();
     }
 
     public void cancelar() {
@@ -58,6 +58,9 @@ public class MbContribuyentes implements Serializable {
     }
 
     private void actualizaContribuyente() {
+        if(this.respaldo==null) {
+            this.respaldo=new Contribuyente();
+        }
         this.respaldo.setIdContribuyente(this.contribuyente.getIdContribuyente());
         this.respaldo.setContribuyente(this.contribuyente.getContribuyente());
         this.respaldo.setIdRfc(this.contribuyente.getIdRfc());
@@ -73,9 +76,6 @@ public class MbContribuyentes implements Serializable {
                 this.dao = new DAOContribuyentes();
                 if (this.contribuyente.getIdContribuyente() == 0) {
                     this.contribuyente.setIdContribuyente(this.dao.agregar(this.contribuyente));
-                    Contribuyente tmp = this.dao.obtenerContribuyente(this.contribuyente.getIdContribuyente());
-                    this.contribuyente.setIdRfc(tmp.getIdRfc());
-                    this.contribuyente.getDireccion().setIdDireccion(tmp.getDireccion().getIdDireccion());
                 } else {
                     this.dao.modificar(this.contribuyente);
                 }
@@ -88,44 +88,37 @@ public class MbContribuyentes implements Serializable {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             }
         }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okContribuyente", ok);
         return ok;
     }
 
     public boolean valida(Contribuyente c) {
-        this.contribuyente = c;
-        return valida();
+        return validar(c);
+    }
+    
+    public boolean valida() {
+        return validar(this.contribuyente);
     }
 
-    public boolean valida() {
+    private boolean validar(Contribuyente c) {
         boolean ok = false;
-//        RequestContext context = RequestContext.getCurrentInstance();
-//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
-        if (this.contribuyente.getContribuyente().equals("")) {
+        if (c.getContribuyente().equals("")) {
             Mensajes.mensajeAlert("Se requiere un contribuyente");
-//            fMsg.setDetail("Se requiere un contribuyente !!");
-        } else if (this.contribuyente.getRfc().isEmpty()) {
+        } else if (c.getRfc().isEmpty()) {
             Mensajes.mensajeAlert("Se requiere el RFC !!");
-//            fMsg.setDetail("Se requiere el RFC !!");
-        } else if (this.contribuyente.getDireccion().getCalle().equals("")) {
-            Mensajes.mensajeAlert("Direccion no valida !!");
-//            fMsg.setDetail("");
         } else {
-            this.contribuyente.setRfc(this.contribuyente.getRfc().trim().toUpperCase());
-            this.contribuyente.setCurp(this.contribuyente.getCurp().trim().toUpperCase());
+            c.setRfc(c.getRfc().trim().toUpperCase());
+            c.setCurp(c.getCurp().trim().toUpperCase());
             Utilerias utilerias = new Utilerias();
-            String mensaje = utilerias.verificarRfc(this.contribuyente.getRfc());
+            String mensaje = utilerias.verificarRfc(c.getRfc());
             if (!mensaje.equals("")) {
                 Mensajes.mensajeAlert(mensaje);
-//                fMsg.setDetail(mensaje);
-            } else if (this.contribuyente.getRfc().length() == 12 || this.contribuyente.getCurp().equals("") || utilerias.validarCurp(this.contribuyente.getCurp())) {
+            } else if (c.getRfc().length() == 12 || c.getCurp().equals("") || utilerias.validarCurp(c.getCurp())) {
                 ok = true;
             } else {
                 Mensajes.mensajeAlert("Error! Curp no valido");
-//                fMsg.setDetail("Error! Curp no valido");
             }
-        }
-        if (!ok) {
-//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
 //        context.addCallbackParam("okContribuyente", ok);
         return ok;
@@ -153,7 +146,7 @@ public class MbContribuyentes implements Serializable {
         this.respaldo = contribuyente;
         this.dameStatusRfc();
     }
-
+    
     public Contribuyente copia(Contribuyente contribuyente) {
         Contribuyente c = new Contribuyente();
         c.setIdContribuyente(contribuyente.getIdContribuyente());
@@ -164,9 +157,22 @@ public class MbContribuyentes implements Serializable {
         c.setDireccion(contribuyente.getDireccion());
         return c;
     }
+    
+    public ArrayList<Contribuyente> obtenerContribuyentesRfc(String rfc) {
+        ArrayList<Contribuyente> lst = new ArrayList<>();
+        try {
+            this.dao = new DAOContribuyentes();
+            lst=this.dao.obtenerContribuyentesRFC(rfc);
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        return lst;
+    }
 
     public ArrayList<Contribuyente> obtenerContribuyentesCliente() {
-        ArrayList<Contribuyente> lstContribuyentes = new ArrayList<Contribuyente>();
+        ArrayList<Contribuyente> lstContribuyentes = new ArrayList<>();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         try {
             this.dao = new DAOContribuyentes();
@@ -219,27 +225,44 @@ public class MbContribuyentes implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
         return c;
     }
-
-    public void obtenerContribuyentesRFC() {
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
+    
+    public void obtenerIdRfc() {
         try {
-            this.dao = new DAOContribuyentes();
-            int idRfc = this.dao.obtenerRfc(this.contribuyente.getRfc());
-            if (idRfc == 0) {
-                idRfc = this.dao.grabarRFC(this.contribuyente.getRfc());
-                this.contribuyente.setIdRfc(idRfc);
-                this.contribuyentes = new ArrayList<Contribuyente>();
-            } else {
-                this.contribuyentes = this.dao.obtenerContribuyentesRFC(this.contribuyente.getRfc());
+            if(this.contribuyente.getIdRfc()==0) {
+                this.dao = new DAOContribuyentes();
+                this.contribuyente.setIdRfc(this.dao.obtenerRfc(this.contribuyente.getRfc()));
             }
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         }
     }
+
+    public void limpiarContribuyente() {
+        contribuyente = new Contribuyente();
+    }
+
+//    public void obtenerContribuyentesRFC() {
+//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
+//        try {
+//            this.dao = new DAOContribuyentes();
+//            int idRfc = this.dao.obtenerRfc(this.contribuyente.getRfc());
+//            if (idRfc == 0) {
+//                idRfc = this.dao.grabarRFC(this.contribuyente.getRfc());
+//                this.contribuyente.setIdRfc(idRfc);
+////                this.contribuyentes = new ArrayList<>();
+//            } else {
+////                this.contribuyentes = this.dao.obtenerContribuyentesRFC(this.contribuyente.getRfc());
+//            }
+//        } catch (SQLException ex) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (NamingException ex) {
+//            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            fMsg.setDetail(ex.getMessage());
+//        }
+//    }
 
     public String buscarContribuyente(String rfc) {
         String mensaje = "";
@@ -255,14 +278,14 @@ public class MbContribuyentes implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
             Logger.getLogger(MbContribuyentes.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
             Logger.getLogger(MbContribuyentes.class.getName()).log(Level.SEVERE, null, ex);
         }
         return mensaje;
     }
 
     public List<String> completarClientes(String rfc) {
-        List<String> lst = new ArrayList<String>();
+        List<String> lst = new ArrayList<>();
         try {
             DAOContribuyentes dao1 = new DAOContribuyentes();
             for (Contribuyente con : dao1.dameRfcContribuyente(rfc)) {
@@ -272,7 +295,7 @@ public class MbContribuyentes implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
             Logger.getLogger(MbClientes.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
             Logger.getLogger(MbClientes.class.getName()).log(Level.SEVERE, null, ex);
         }
         return lst;
@@ -299,14 +322,10 @@ public class MbContribuyentes implements Serializable {
         this.contribuyentes = contribuyentes;
     }
 
-    public void limpiarContribuyente() {
-        contribuyente = new Contribuyente();
-    }
-
     public ArrayList<SelectItem> getListaContribuyentes() {
         if (listaContribuyentes == null) {
             try {
-                listaContribuyentes = new ArrayList<SelectItem>();
+                listaContribuyentes = new ArrayList<>();
                 DAOContribuyentes dao1 = new DAOContribuyentes();
                 Contribuyente c = new Contribuyente();
                 c.setIdContribuyente(0);
@@ -319,7 +338,7 @@ public class MbContribuyentes implements Serializable {
                 Message.Mensajes.mensajeError(ex.getMessage());
                 Logger.getLogger(MbContribuyentes.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {
-                Message.Mensajes.mensajeError(ex.getMessage());
+                Message.Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
                 Logger.getLogger(MbContribuyentes.class.getName()).log(Level.SEVERE, null, ex);
             }
         }

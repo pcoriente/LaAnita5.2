@@ -1646,7 +1646,7 @@ public class DAOMovimientos1 {
         return liberados;
     }
 
-    public boolean grabarPedidoDetalle(TOPedido ped, int idImpuestoZona, TOPedidoProducto prod, double cantFacturadaOld) throws SQLException {
+    public boolean grabarPedidoDetalle(int idEmpresa, TOPedido ped, int idImpuestoZona, TOPedidoProducto prod, double cantFacturadaOld) throws SQLException {
         double cantSolicitada, cantSeparada, cantLiberar, cantLiberada;
         double cantSinCargo, boletinConCargo, boletinSinCargo;
         int idProducto = prod.getIdProducto();
@@ -1676,7 +1676,7 @@ public class DAOMovimientos1 {
             }
             st.executeUpdate(strSQL);
 
-            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(ped.getIdEmpresa(), prod.getIdProducto(), ped.getIdTienda());
+            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(idEmpresa, prod.getIdProducto(), ped.getIdTienda());
             boletinConCargo = boletin.get(0);
             boletinSinCargo = boletin.get(1);
             if (boletinConCargo > 0 && boletinSinCargo > 0) {
