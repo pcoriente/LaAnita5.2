@@ -14,7 +14,7 @@
     </h:head>
     <body>
         <ui:include src="wrapper.xhtml" />
-        <div id="content" style="width: 1250px"  align="center" >
+        <div id="content" >
             <h:form id="main" onkeypress="return event.keyCode !== 13;">
                 <p:panel id="panelCapturaFormulas" header="Mantenimiento de Formulas" style="float: left;" >
                     <p:messages id="messages" showDetail="true" closable="true" />
@@ -100,79 +100,77 @@
                         <p:ajax event="rowSelect" listener="#{mbFormulas.insumoSeleccionado}" 
                                 update=":main:mttoInsumos" oncomplete="PF('mttoInsumosDlg').show();" />
 
-                        <p:column headerText="SKU" style="width: 50px;" >
+                        <p:column headerText="SKU" style="width: 8%;" >
                             <h:outputText value="#{ins.cod_pro}"  />
                         </p:column>
 
-                        <p:column headerText="Insumo" style="width: 200px;" >
+                        <p:column headerText="Insumo" style="width: 42%;" >
                             <h:outputText value="#{ins.empaque}" />
                         </p:column>
 
-                        <p:column headerText="Cantidad" style="width: 50px; text-align: right;" >
+                        <p:column headerText="Cantidad" style="width: 11%; text-align: right;" >
                             <h:outputText value="#{ins.cantidad}" >
                                 <f:convertNumber pattern="###,##0.000000" />
                             </h:outputText>
                         </p:column>
 
-                        <p:column headerText="Costo Unitario" style="width: 50px; text-align: right;" >
+                        <p:column headerText="Costo Unitario" style="width: 10%; text-align: right;" >
                             <h:outputText value="#{ins.costoPromedio}" >
-                                <f:convertNumber pattern="$ ###,##0.000000" />
+                                <f:convertNumber pattern="###,##0.000000" />
                             </h:outputText>
                         </p:column>
 
-                        <p:column headerText="Importe" style="width: 50px; text-align: right;" >
+                        <p:column headerText="Importe" style="width: 11%; text-align: right;" >
                             <h:outputText value="#{ins.costoPromedio*ins.cantidad}" >
-                                <f:convertNumber pattern="$ ###,##0.000000" />
+                                <f:convertNumber pattern="###,##0.000000" />
                             </h:outputText>
                         </p:column>
 
-                        <p:column headerText="% Importe Participacion" style="width: 30px; text-align: right;" >
+                        <p:column headerText="% Importe Participa" style="width: 9%; text-align: right;" >
                             <h:outputText value="#{ins.ptjeCtoParticipacion*100}" >
                                 <f:convertNumber pattern="##0.000000" />
                             </h:outputText>
                         </p:column>
 
-                        <p:column headerText="% Cantidad Paticipacion" style="width: 30px; text-align: right;" >
+                        <p:column headerText="% Cantid Paticipa" style="width: 9%; text-align: right;" >
                             <h:outputText value="#{ins.ptjeCantParticipacion*100}" >
                                 <f:convertNumber pattern="##0.000000" />
                             </h:outputText>
                         </p:column>
 
                     </p:dataTable>
-                    <p:panelGrid id="mttoFormulasTotales" >
+                    <p:panelGrid id="mttoFormulasTotales" style="width: 910px;" >
                         <p:row >
-                            <p:column style="width: 125px; text-align: right;" >
-                                <h:outputLabel value="COSTO UNIT MP :" style="font-weight: bold; color: black;" />
+                            <p:column style="width: 15%; text-align: right;" >
+                                <h:outputLabel value="CTO UNIT MP:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column style="width: 90px;" >
+                            <p:column style="width: 13%;" >
                                 <p:inputText id="txtCostoFormula" value="#{mbFormulas.formula.costoPromedio}" 
                                              style="width: 80px; text-align: left;" readonly="true" >
                                     <f:convertNumber pattern="###,##0.000000" />
                                 </p:inputText>
                             </p:column>
-                            <p:column style="width: 110px; text-align: right;" >
-                                <h:outputLabel value="COSTO PRIMO :" style="font-weight: bold; color: black;" />
+                            <p:column style="width: 9%; text-align: right;" >
+                                <h:outputLabel value="PRIMO:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column style="width: 90px;" >
+                            <p:column style="width: 13%;" >
                                 <p:inputText id="txtCostoPrimo" value="#{mbFormulas.formula.costoPrimo}" 
                                              style="width: 80px; text-align: left;" readonly="true" >
                                     <f:convertNumber pattern="###,##0.000000" />
                                 </p:inputText>
                             </p:column>
-                            <p:column style="width: 85px; text-align: right;" >
-                                <h:outputText value="Total :" style="font-size: 14px; font-weight: bold;" />
-                            </p:column>
-                            <p:column style="width: 93px; text-align: right;" >
-                                <h:outputText value="#{mbFormulas.totalSumaCantidad}" style="font-size: 14px;" />
-                            </p:column>
-                            <p:column style="width: 92px;" >
-                                <h:outputText value="Costo Total :" style="font-size: 14px; font-weight: bold;" />
-                            </p:column>
-                            <p:column style="width: 102px; text-align: right;" >
-                                <h:outputText value="#{mbFormulas.totalSumaCostoPromedio}" style="font-size: 14px;" >
-                                    <f:convertNumber pattern="$ ###,##0.000000" />
+                            <p:column style="width: 11%; text-align: right;" >
+                                <h:outputText value="#{mbFormulas.totalSumaCantidad}" >
+                                    <f:convertNumber pattern="###,##0.000000" />
                                 </h:outputText>
                             </p:column>
+                            <p:column style="width: 10%;" ></p:column>
+                            <p:column style="width: 11%; text-align: right;" >
+                                <h:outputText value="#{mbFormulas.totalSumaCostoPromedio}" >
+                                    <f:convertNumber pattern="###,##0.000000" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column style="width: 19%" ></p:column>
                         </p:row>
                         <f:facet name="footer" >
                             <p:row >

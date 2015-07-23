@@ -11,36 +11,38 @@
     </h:head>
 
     <body>
-        <h:form >
-            <div id="wrapper" align="center">
-                <ui:include src="wrapperMenu.xhtml" />
-                <div id="content" 
-                     style="width: 950px" align="center"  >
-                    <br></br>
-                    <br></br>
-                    <div align="right">
-                        |<p:commandLink styleClass="nueva" action="#{mbMain.logout()}" value="Logout" ajax="false" immediate="true" />|
-                    </div>
-                    <br></br>
-                    <p:messages id="msgs" showDetail="true" showSummary="false"  />
-                    <p:panel header="A V I S O S" styleClass="quitaCuadro" style="width: 300px">
 
-                        <p:notificationBar position="bottom" effect="slide" widgetVar="bar"     >
-                            <h:outputText value="Esto es solamente el inicio..." style="color: blue;font-size:18px;" />
-                        </p:notificationBar>
 
-                        <p:commandButton value="Ver" onclick="bar.show();" type="button" />
-                        <p:commandButton value="Ocultar" onclick="bar.hide();" type="button" /> 
-                    </p:panel>
-                    <p:panel header="F E C H A" styleClass="quitaCuadro" style="width: 300px">
-                        <h:outputScript library="js" name="lenguaje.js" />
-                        <p:calendar value="#{mbMain.date}" mode="inline" locale="es" navigator="true" />
-                    </p:panel> 
-
+        <ui:include src="wrapperMenu.xhtml" />
+        <div id="content" align="center"  >
+            <h:form id="main">
+                <br></br>
+                <br></br>
+                <br></br>
+                <br></br>
+                <div align="right">
+                    |<p:commandLink  action="#{mbMain.logout()}" value="Logout" ajax="false" immediate="true" />|
                 </div>
-                <ui:include src="footer.xhtml" />
-            </div>
-        </h:form>
+                <br></br>
+                <p:messages id="msgs" showDetail="true" showSummary="false"  />
+                <p:panel header="A V I S O S" styleClass="quitaCuadro" style="width: 300px">
+
+                    <p:notificationBar position="bottom" effect="slide" widgetVar="bar"     >
+                        <h:outputText value="Esto es solamente el inicio..." style="color: blue;font-size:18px;" />
+                    </p:notificationBar>
+
+                    <p:commandButton value="Ver" onclick="bar.show();" type="button" />
+                    <p:commandButton value="Ocultar" onclick="bar.hide();" type="button" /> 
+                </p:panel>
+                <p:panel header="F E C H A" styleClass="quitaCuadro" style="width: 300px">
+                    <h:outputScript library="js" name="lenguaje.js" />
+                    <p:calendar value="#{mbMain.date}" mode="inline" locale="es" navigator="true" />
+                </p:panel> 
+            </h:form>
+        </div>
+        <ui:include src="footer.xhtml" />
+
+
     </body>
 </html>
 

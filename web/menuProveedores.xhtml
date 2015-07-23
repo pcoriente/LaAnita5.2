@@ -40,8 +40,9 @@
                         </p:column>
                     </p:row>
                 </p:panelGrid>
-                <p:dataTable id="listaProvs" value="#{mbProveedores.listaProveedores}" style="border:solid 1px"
+                <p:dataTable id="listaProvs" value="#{mbProveedores.listaProveedores}" 
                              var="proveedor" rowKey="#{proveedor.idProveedor}" selectionMode="single" 
+                             style="width: 910px"
                              emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="300" >
                     <p:column filterBy="#{proveedor.contribuyente.rfc}" filterMatchMode="contains" style="width: 100px;" >
                         <f:facet name="header" >
