@@ -902,7 +902,7 @@
                               styleClass="darias">
                         <p:toolbar  id="tbDV" style="width: 900px; height: auto; margin:0 auto; " >  
                             <p:toolbarGroup id="toolbarDV" align="right">  
-                                <p:separator />
+                                <!--<p:separator />-->
                                 <!--                                <p:commandButton
                                                                     icon="ui-icon-mail-closed"
                                                                     title="Enviar orden de compra"
@@ -937,7 +937,7 @@
                                 </p:confirmDialog>
                             </p:toolbarGroup>  
                         </p:toolbar>
-                        <p:separator style="width:900px;height:0.5px" />
+                        <!--<p:separator style="width:900px;height:0.5px" />-->
                         <p:panelGrid id="OCEncabezadoDV" 
                                      style="width: 900px; height: auto; margin:0 auto; "  >
                             <p:row>
@@ -1018,7 +1018,7 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:separator style="width:900px;height:0.5px" />
+                        <!--<p:separator style="width:900px;height:0.5px" />-->
                         <p:dataTable id="OCDetalleDV"
                                      scrollable="true" scrollHeight="170" 
                                      style="width: 900px; margin:0 auto; font-size: 12px;" styleClass="sinBorde"
@@ -1026,10 +1026,9 @@
                                      var="v"
                                      >
                             <p:columnGroup type="footer" 
-                                           rendered="#{mbOrdenCompra.ordenElegidaD.estado ==0}">
-                                <p:row>
-                                    <h2 style="color: red">¡CANCELADO!</h2>
-                                </p:row>
+                                           rendered="#{mbOrdenCompra.ordenElegidaD.estado ==0}"
+                                           >
+                                    <h3 style="color: red">¡CANCELADO!</h3>
                             </p:columnGroup>
                             <p:column headerText="SKU" width="50" >
                                 #{v.producto.cod_pro}

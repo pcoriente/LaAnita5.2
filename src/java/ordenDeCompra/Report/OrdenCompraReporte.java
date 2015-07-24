@@ -34,7 +34,12 @@ public class OrdenCompraReporte {
 
     public String generarReporte(ArrayList<OrdenCompraDetalle> orden, OrdenCompraEncabezado ordenEncabezado, TotalesOrdenCompra totalesOrdenesCompra, int control) throws JRException {
         String ruta = "C:\\Carlos Pat\\Reportes\\rOrdenCompra" + ordenEncabezado.getIdOrdenCompra() + ".pdf";
-        String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\ordenCompra.jasper";
+        String ubicacionCompilado = "";
+        if (ordenEncabezado.getEstado() == 0) {
+            ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\ordenCompraCancelado.jasper";
+        } else {
+            ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\ordenCompra.jasper";
+        }
         JasperPrint jasperprint;
         JasperReport report;
         Map<String, Object> parametros = new HashMap<>();
@@ -55,7 +60,6 @@ public class OrdenCompraReporte {
         // parametros.put("codigoProveedor",ordenEncabezado.getProveedor().getCodigoProveedor());
         // parametros.put("proveedorMunicipio",ordenEncabezado.getProveedor().getDireccionFiscal().getMunicipio());
         // parametros.put("proveedorEstado",ordenEncabezado.getProveedor().getDireccionFiscal().getEstado());
-
 
 //        ------------------------------Totales---------------------------------;
 //        parametros.put("subtoF", totalesOrdenesCompra.getSubtoF());
