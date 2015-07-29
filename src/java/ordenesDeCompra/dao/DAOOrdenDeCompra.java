@@ -476,7 +476,10 @@ public class DAOOrdenDeCompra {
         oced.setEstado(rs.getInt("estado"));
         switch (rs.getInt("estado")) {
             case 0:
-                oced.setStatus("Rechazado");
+//                SE CAMBIO EL NOMBRE DE RECHAZADO A CANCELADO POR LOS TERMINOS 
+//                QUE NO USAN EN LA ANITA
+//                oced.setStatus("Rechazado");
+                oced.setStatus("Cancelado");
                 break;
             case 1:
                 oced.setStatus("Activado");

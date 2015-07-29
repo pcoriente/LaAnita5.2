@@ -703,8 +703,7 @@ public class MbOrdenCompra implements Serializable {
                 this.cargaOrdenesEncabezadoD();
             }
         } catch (SQLException ex) {
-            Logger.getLogger(MbOrdenCompra.class
-                    .getName()).log(Level.SEVERE, null, ex);
+           Mensajes.MensajeAlertP(ex.getMessage());
         }
         return listaOrdenesEncabezadoD;
     }

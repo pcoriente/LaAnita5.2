@@ -13,6 +13,8 @@ import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import org.primefaces.context.RequestContext;
+import formatos.dao.DAOFormatos;
+import formatos.dominio.ClienteFormato;
 
 /**
  *
@@ -21,37 +23,39 @@ import org.primefaces.context.RequestContext;
 @Named(value = "mbTiendasFormatos")
 @SessionScoped
 public class MbTiendasFormatos implements Serializable {
-    private TiendaFormato formato;
+
+    private ClienteFormato formato;
     private ArrayList<SelectItem> listaFormatos;
-    
+
     public MbTiendasFormatos() {
-        this.formato=new TiendaFormato();
+        this.formato = new ClienteFormato();
     }
-    
+
     public boolean validar() {
         boolean ok = true;
         if (this.formato.getFormato().equals("")) {
             Mensajes.mensajeAlert("Formato Requerido");
-            ok=false;
+            ok = false;
         }
         return ok;
     }
-    
+
     public void guardarFormato() {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_INFO, "Aviso:", "");
         RequestContext context = RequestContext.getCurrentInstance();
         if (validar()) {
             try {
-                DAOTiendasFormatos dao = new DAOTiendasFormatos();
-                if (this.formato.getIdFormato()==0) {
-                    this.formato.setIdFormato(dao.agregar(formato));
+                DAOFormatos dao = new DAOFormatos();
+                if (this.formato.getIdFormato() == 0) {
+//                    this.formato.setIdFormato(dao.agregar(formato));
+                    dao.agregar(formato);
                 } else {
-                    dao.modificar(formato);
+//                    dao.modificar(formato);
                 }
                 this.setListaFormatos(null);
                 fMsg.setDetail("El formato se grabo correctamente");
-                ok=true;
+                ok = true;
             } catch (NamingException ex) {
                 fMsg.setDetail(ex.getMessage());
             } catch (SQLException ex) {
@@ -61,26 +65,29 @@ public class MbTiendasFormatos implements Serializable {
             context.addCallbackParam("ok", ok);
         }
     }
-    
+
     public void inicializaFormato(int idGrupoCte) {
         this.formato.setIdFormato(0);
         this.formato.setFormato("");
         this.formato.setIdGrupoCte(idGrupoCte);
     }
-    
+
     public void nuevoFormato(int idGrupoCte) {
-        this.formato=new TiendaFormato(idGrupoCte);
+        this.formato = new ClienteFormato();
+        formato.setIdGrupoCte(idGrupoCte);
     }
-    
+
     public void cargarListaCombo(int idGrupoClte) {
         try {
             listaFormatos = new ArrayList<SelectItem>();
-            DAOTiendasFormatos dao = new DAOTiendasFormatos();
-            TiendaFormato fmto0 = new TiendaFormato();
+//            DAOTiendasFormatos dao = new DAOTiendasFormatos();
+//            DAOFormatos dao = DAOFormatos();
+            DAOFormatos dao = new DAOFormatos();
+            ClienteFormato fmto0 = new ClienteFormato();
             fmto0.setIdFormato(0);
             fmto0.setFormato("Nuevo Formato");
             listaFormatos.add(new SelectItem(fmto0, fmto0.getFormato()));
-            for (TiendaFormato fmto : dao.obtenerFormatos(idGrupoClte)) {
+            for (ClienteFormato fmto : dao.dameFormatos(idGrupoClte)) {
                 listaFormatos.add(new SelectItem(fmto, fmto.getFormato()));
             }
         } catch (NamingException ex) {
@@ -89,14 +96,7 @@ public class MbTiendasFormatos implements Serializable {
             Mensajes.mensajeError(e.getMessage());
         }
     }
-    
-    public TiendaFormato getFormato() {
-        return formato;
-    }
 
-    public void setFormato(TiendaFormato formato) {
-        this.formato = formato;
-    }
 
     public ArrayList<SelectItem> getListaFormatos() {
         return listaFormatos;
