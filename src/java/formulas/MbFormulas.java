@@ -169,9 +169,12 @@ public class MbFormulas implements Serializable {
 
     public void generarPdf(String buscarPor) {
 //        if(this.generar(buscarPor, idTipo, idGrupo, idSubGrupo)) {
+        System.out.println("buscarPor="+buscarPor);
         if (buscarPor == null || buscarPor.equals("BUSCAR") || buscarPor.equals("INSUMO")) {
+            System.out.println("Entro a generarDocs, muchas");
             this.generarDocs();
         } else {
+            System.out.println("Entro a generarDoc, solo una");
 //                this.setFormulas(new ArrayList<Formula>());
 //                this.getFormulas().add(this.formula);
             this.generarDoc();
