@@ -40,7 +40,13 @@ public class DAOSubGrupos {
         Connection cn=ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            st.executeUpdate("DELETE FROM productosSubGrupos WHERE idSubGrupo=" + idSubGrupo);
+            ResultSet rs=st.executeQuery("SELECT count(*) AS total FROM productos WHERE idSubGrupo="+idSubGrupo);
+            if(rs.next()) {
+                if(rs.getInt("total")!=0) {
+                    throw new SQLException("Hay productos en el subGrupo, reclasifique los productos para poder eliminar !!!");
+                }
+                st.executeUpdate("DELETE FROM productosSubGrupos WHERE idSubGrupo=" + idSubGrupo);
+            }
         } finally {
             cn.close();
         }

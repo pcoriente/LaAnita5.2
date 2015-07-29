@@ -130,6 +130,7 @@ public class MbEntradasOficina implements Serializable {
         Object newValue = event.getNewValue();
         if (newValue != null && newValue != oldValue) {
             oldValue=newValue;
+            this.entradaProducto=this.entradaDetalle.get(event.getRowIndex());
         } else {
             newValue=oldValue;
             Mensajes.mensajeAlert("Checar que pasa !!!");

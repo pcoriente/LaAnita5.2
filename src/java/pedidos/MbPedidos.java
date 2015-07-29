@@ -12,8 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
@@ -215,7 +213,7 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
 //        boolean okSimilares;
 //        PedidoProducto prod;
-        double cantOrdenadaOld = this.producto.getSeparados() - this.producto.getCantOrdenadaSinCargo();
+        double cantOrdenadaOld = this.producto.getCantOrdenadaTotal() - this.producto.getCantOrdenadaSinCargo();
         try {
             if (this.producto.getCantOrdenada() != cantOrdenadaOld) {
                 TOPedido toPed = this.convertir(this.pedido);
@@ -224,11 +222,11 @@ public class MbPedidos implements Serializable {
                 
                 this.daoMv = new DAOMovimientos();
                 daoMv.grabarPedidoDetalle(toPed, toProd);
-                this.pedido.setCantArticulos(this.pedido.getCantArticulos()-this.producto.getSeparados());
+                this.pedido.setCantArticulos(this.pedido.getCantArticulos()-this.producto.getCantOrdenadaTotal());
                 this.producto.setCantOrdenada(toProd.getCantOrdenada());
                 this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setSeparados(toProd.getCantOrdenada()+toProd.getCantOrdenadaSinCargo());
-                this.pedido.setCantArticulos(this.pedido.getCantArticulos()+this.producto.getSeparados());
+                this.producto.setCantOrdenadaTotal(toProd.getCantOrdenada()+toProd.getCantOrdenadaSinCargo());
+                this.pedido.setCantArticulos(this.pedido.getCantArticulos()+this.producto.getCantOrdenadaTotal());
 //                okSimilares = daoMv.grabarPedidoDetalle(toPed, toProd, cantFacturadaOld);
 //                if (okSimilares) {
 //                    for (TOProductoPedido to : this.daoMv.obtenerPedidoSimilares(toPed.getIdPedido(), toProd.getIdProducto())) {
@@ -344,7 +342,7 @@ public class MbPedidos implements Serializable {
         p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
         p.setCantOrdenada(to.getCantOrdenada());
         p.setCantOrdenadaSinCargo(to.getCantOrdenadaSinCargo());
-        p.setSeparados(to.getCantOrdenada() + to.getCantOrdenadaSinCargo());
+        p.setCantOrdenadaTotal(to.getCantOrdenada() + to.getCantOrdenadaSinCargo());
         p.setCantFacturada(to.getCantFacturada());
         p.setCantSinCargo(to.getCantSinCargo());
         p.setPrecio(to.getCosto());

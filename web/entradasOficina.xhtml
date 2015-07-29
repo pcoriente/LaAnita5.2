@@ -43,9 +43,9 @@
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
-                                    <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
+                                    <p:commandButton id="btnEditar" icon="ui-icon-document" title="Nueva entrada" 
                                                      process="@this" actionListener="#{mbEntradasOficina.capturar()}" update="main" />
-                                    <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
+                                    <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar entradas pendientes" 
                                                      process="@this" actionListener="#{mbEntradasOficina.pendientes()}" 
                                                      update=":main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
                                     <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 

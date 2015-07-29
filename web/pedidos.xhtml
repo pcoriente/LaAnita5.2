@@ -63,29 +63,29 @@
                 </p:panelGrid>
                 <p:dataTable id="listaDePedidos" value="#{mbPedidos.pedidos}" 
                              var="pedido" rowKey="#{pedido.idPedido}" selectionMode="single" 
-                             style="border:solid 1px" emptyMessage="No existen pedidos" >
+                             style="border:solid 1px; width: 920px;" emptyMessage="No existen pedidos" >
                     <p:ajax event="rowSelect" listener="#{mbPedidos.obtenerDetalle}" 
                             update=":main:msgsPedidos :main:pedido :main:detallePedido :main:totales" 
                             oncomplete="abrirPedido(xhr, status, args);" />
 
-                    <p:column headerText="Formato" style="width: 200px;" >
+                    <p:column headerText="Formato" style="width: 170px;" >
                         <h:outputText value="#{pedido.formato.formato}" />
                     </p:column>
-                    <p:column headerText="Tienda" >
+                    <p:column headerText="Tienda" style="width: 270px;" >
                         <h:outputText value="#{pedido.tienda.tienda}" />
                     </p:column>
-                    <p:column headerText="Pedido" style="width: 60px;" >
+                    <p:column headerText="Pedido" style="width: 50px;" >
                         <h:outputText value="#{pedido.idPedido}" />
                     </p:column>
-                    <p:column headerText="Fecha" style="width: 70px;" >
+                    <p:column headerText="Fecha" style="width: 60px;" >
                         <h:outputText value="#{pedido.fecha}" >
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Orden De Compra" style="width: 60px;" >
+                    <p:column headerText="Orden De Compra" style="width: 110px;" >
                         <h:outputText value="#{pedido.ordenDeCompra}" />
                     </p:column>
-                    <p:column headerText="OC Fecha" style="width: 70px;" >
+                    <p:column headerText="OC Fecha" style="width: 60px;" >
                         <h:outputText value="#{pedido.ordenDeCompraFecha}" >
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                         </h:outputText>
@@ -201,10 +201,10 @@
                         <p:column colspan="4" >
                             <p:inputText id="txtFormato" value="#{mbPedidos.pedido.formato.formato}" readonly="true" size="35" />
                         </p:column>
-                        <p:column >
+                        <p:column style="width: 40px;" >
                             <h:outputLabel for="txtTienda" value="TIENDA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="4" >
+                        <p:column colspan="2" >
                             <p:inputText id="txtTienda" value="#{mbPedidos.pedido.tienda.tienda}" readonly="true" size="50" />
                         </p:column>
                     </p:row>
@@ -220,10 +220,15 @@
                         </p:column>
                         <p:column >
                             <p:inputText id="txtFecha" value="#{mbPedidos.pedido.fecha}" readonly="true" size="11" >
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </p:inputText>
                         </p:column>
-                        <p:column colspan="3" ></p:column>
+                        <p:column colspan="2" >
+                            <h:outputLabel for="txtDesctoComercial" value="DESCUENTO COMERCIAL :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtDesctoComercial" value="#{mbPedidos.pedido.desctoComercial}" readonly="true" size="6" />
+                        </p:column>
                     </p:row>
                     <p:row >
                         <p:column style="width: 140px;" colspan="2" >
@@ -235,7 +240,7 @@
                         <p:column >
                             <h:outputLabel for="ordenDeCompraFecha" value="FECHA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column >
+                        <p:column style="width: 110px;" >
                             <p:inputText id="ordenDeCompraFecha" value="#{mbPedidos.pedido.ordenDeCompraFecha}" readonly="true" size="11" >
                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </p:inputText>

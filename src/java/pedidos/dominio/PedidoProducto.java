@@ -9,23 +9,25 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class PedidoProducto {
+
     private int idPedido;
     private int idMovto;
     private Producto producto;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
+    private double cantOrdenadaTotal;
     private double cantFacturada;
     private double cantSinCargo;
-    private double separados;
+//    private double separados;
     private double precio;
     private double descuento;
     private double unitario;
     private double neto;
     private ArrayList<ImpuestosProducto> impuestos;
-    
+
     public PedidoProducto() {
-        this.producto=new Producto();
-        this.impuestos=new ArrayList<>();
+        this.producto = new Producto();
+        this.impuestos = new ArrayList<>();
     }
 
     public PedidoProducto(Producto producto) {
@@ -155,11 +157,19 @@ public class PedidoProducto {
         this.impuestos = impuestos;
     }
 
-    public double getSeparados() {
-        return separados;
+//    public double getSeparados() {
+//        return separados;
+//    }
+//
+//    public void setSeparados(double separados) {
+//        this.separados = separados;
+//    }
+//
+    public double getCantOrdenadaTotal() {
+        return cantOrdenadaTotal;
     }
 
-    public void setSeparados(double separados) {
-        this.separados = separados;
+    public void setCantOrdenadaTotal(double cantOrdenadaTotal) {
+        this.cantOrdenadaTotal = cantOrdenadaTotal;
     }
 }

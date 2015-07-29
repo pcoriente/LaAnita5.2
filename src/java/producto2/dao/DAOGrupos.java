@@ -59,10 +59,12 @@ public class DAOGrupos {
             
             ResultSet rs=st.executeQuery("SELECT COUNT(*) AS total FROM productos WHERE idGrupo="+idGrupo);
             if(rs.next()) {
-                throw new SQLException("Hay productos clasificados en el grupo, no se puede eliminar");
+                if(rs.getInt("total")!=0) {
+                    throw new SQLException("Hay productos clasificados en el grupo, no se puede eliminar");
+                }
             }
-            st.executeUpdate("DELETE FROM productosGrupos WHERE idGrupo=" + idGrupo);
             st.executeUpdate("DELETE FROM productosSubGrupos WHERE idGrupo="+idGrupo);
+            st.executeUpdate("DELETE FROM productosGrupos WHERE idGrupo=" + idGrupo);
             
             st.executeUpdate("COMMIT TRANSACTION");
         } catch(SQLException ex) {
