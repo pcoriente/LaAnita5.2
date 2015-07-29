@@ -110,6 +110,8 @@ public class MbProductosBuscar implements Serializable {
             this.dao = new DAOProductosBuscar();
             this.daoSubProductos = new DAOSubProductos();
             if (this.getTipoBuscar().equals("1")) {
+                String sinFormato=this.strBuscar;
+                this.strBuscar="0000000".substring(sinFormato.length()) + sinFormato;
                 TOProducto to = this.dao.obtenerProductoSku(this.strBuscar);
                 if (to == null) {
                     fMsg.setSeverity(FacesMessage.SEVERITY_WARN);

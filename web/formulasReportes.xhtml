@@ -11,169 +11,172 @@
         <title>Reportes de formulas</title>
     </h:head>
     <body>
-        <ui:include src="wrapper.xhtml" />
-        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
-            <p:messages id="msgsReportes" autoUpdate="false" closable="true" showDetail="true" />
-            <p:panel id="panelReportes" header="Reportes de formulas" style="float: left" >
-                <p:panelGrid id="reportes" >
-                    <p:row >
-                        <p:column style="width: 80px;" >
-                            <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: black;" />
+        <div id="wrapper" align="center"  >
+            <ui:include src="wrapper.xhtml" />
+            <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+                <p:messages id="msgsReportes" autoUpdate="false" closable="true" showDetail="true" />
+                <p:panel id="panelReportes" header="Reportes de formulas" style="float: left" >
+                    <p:panelGrid id="reportes" >
+                        <p:row >
+                            <p:column style="width: 80px;" >
+                                <h:outputLabel for="empresa" value="EMPRESA :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="empresa" value="#{mbReportesFormulas.mbFormulas.mbEmpresas.empresa}" >
+                                    <f:converter converterId="converters.MiniEmpresa" />
+                                    <f:selectItems value="#{mbReportesFormulas.mbFormulas.mbEmpresas.listaEmpresas}" />
+                                    <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                            update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="tipo" value="TIPO :"  style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column colspan="2" >
+                                <p:selectOneMenu id="tipo" value="#{mbReportesFormulas.mbTipo.tipo}" >
+                                    <f:converter converterId="converters.TipoProducto" />
+                                    <f:selectItems value="#{mbReportesFormulas.mbTipo.listaTipos}" />
+                                    <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                            update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column style="text-align: right;" >
+                                <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Terminar" 
+                                                 immediate="true" ajax="false" action="#{mbReportesFormulas.terminar()}" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="grupo" value="GRUPO :"  style="font-weight: bold; color: black" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="grupo" value="#{mbReportesFormulas.mbGrupo.grupo}" >
+                                    <f:converter converterId="converters.Grupos" />
+                                    <f:selectItems value="#{mbReportesFormulas.mbGrupo.listaGrupos}" />
+                                    <p:ajax event="change" listener="#{mbReportesFormulas.cargaSubGrupos()}" 
+                                            update="msgsReportes lblBuscarPor txtCod_pro txtProducto subGrupo btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" /> 
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="subGrupo" value="SUBGRUPO :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="subGrupo" value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.subGrupo}" >
+                                    <f:converter converterId="converters.SubGrupos" />
+                                    <f:selectItems value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.listaSubGrupos}" />
+                                    <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
+                                            update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="buscarPor" value="BUSCAR :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneRadio id="buscarPor" value="#{mbReportesFormulas.buscarPor}" style="background-color: gainsboro;" >
+                                    <f:selectItem itemLabel="Insumo" itemValue="INSUMO" />
+                                    <f:selectItem itemLabel="Formula" itemValue="FORMULA" />
+                                    <p:ajax event="change" listener="#{mbReportesFormulas.cambioDeBuscar()}" 
+                                            update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda btnAceptar btnImprimirXls btnImprimirPdf" />
+                                </p:selectOneRadio>
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column style="width: 80px;" >
+                                <h:outputLabel id="lblBuscarPor" value="#{mbReportesFormulas.buscarPor} :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column colspan="3" >
+                                <p:inputText id="txtCod_pro" value="#{mbReportesFormulas.mbFormulas.mbBuscar.producto.cod_pro}" style="width: 60px;" readonly="true" />
+                                <p:inputText id="txtProducto" value="#{mbReportesFormulas.mbFormulas.mbBuscar.producto.toString()}" style="width: 410px;" readonly="true" />
+                            </p:column>
+                            <p:column colspan="2" >
+                                <p:commandButton id="btnBuscar" 
+                                                 icon="ui-icon-search" title="buscar un nuevo #{mbReportesFormulas.buscarPor}" 
+                                                 disabled="#{mbReportesFormulas.buscarPor == 'BUSCAR'}"
+                                                 process="@this" actionListener="#{mbReportesFormulas.configurarReporte()}" 
+                                                 update=":main:buscarProductos :main:listaBuscarProductos msgsReportes btnAceptar btnImprimirXls btnImprimirPdf"
+                                                 oncomplete="PF('buscarProductoDlg').show();" />
+                                <p:commandButton id="btnNuevaBusqueda" icon="ui-icon-document" title="Nueva Busqueda" 
+                                                 disabled="#{mbReportesFormulas.buscarPor == 'BUSCAR'}"
+                                                 process="@this" actionListener="#{mbReportesFormulas.limpiar()}" 
+                                                 update="msgsReportes buscarPor lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda btnAceptar btnImprimirXls btnImprimirPdf" />
+                                <p:commandButton id="btnAceptar" value="ACEPTAR" title="Obtener formulas" disabled="#{mbReportesFormulas.ok}"
+                                                 process="@this" actionListener="#{mbReportesFormulas.generarFormulas()}"
+                                                 update="@this :main:msgsReportes btnImprimirXls btnImprimirPdf" />
+                                <p:commandButton id="btnImprimirXls" value="Xls" title="Exportar a Excel" disabled="#{!mbReportesFormulas.ok}"
+                                                 actionListener="#{mbReportesFormulas.generarFormulasXls()}" />
+                                <p:commandButton id="btnImprimirPdf" value="Pdf" title="Exportar a Pdf" disabled="#{!mbReportesFormulas.ok}"
+                                                 action="#{mbReportesFormulas.generarFormulasPdf()}" ajax="false" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                </p:panel>
+                <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                    <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneRadio id="opciones" value="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                    <f:selectItem itemLabel="SKU" itemValue="1" />
+                                    <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                    <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                    <p:ajax listener="#{mbReportesFormulas.mbFormulas.mbBuscar.verCambio()}" 
+                                            update="buscarProductos listaBuscarProductos" />
+                                </p:selectOneRadio>
+                            </p:column>
+                            <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='1'}" >
+                                <p:inputText id="opcionSKU" value="#{mbReportesFormulas.mbFormulas.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionSKU" actionListener="#{mbReportesFormulas.buscar()}" 
+                                                 update=":main:msgBuscar #{mbReportesFormulas.mbFormulas.mbBuscar.update}" 
+                                                 oncomplete="handleBuscar(xhr, status, args)" />
+                            </p:column>
+                            <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='2'}" >
+                                <p:autoComplete id="opcionParte" value="#{mbReportesFormulas.mbFormulas.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                completeMethod="#{mbReportesFormulas.mbFormulas.mbBuscar.mbParte.completePartes}" 
+                                                var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                forceSelection="true" />
+                                <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionParte" actionListener="#{mbReportesFormulas.buscar()}" 
+                                                 update="listaBuscarProductos"  />
+                            </p:column>
+                            <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='3'}" >
+                                <p:inputText id="opcionDescripcion" value="#{mbReportesFormulas.mbFormulas.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionDescripcion" actionListener="#{mbReportesFormulas.buscar()}" 
+                                                 update="listaBuscarProductos" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:dataTable id="listaBuscarProductos" value="#{mbReportesFormulas.mbFormulas.mbBuscar.productos}" 
+                                 var="prod" scrollable="true" scrollHeight="200" style="width: 800px;" rowKey="#{prod.idProducto}" 
+                                 selectionMode="single" selection="#{mbReportesFormulas.mbFormulas.mbBuscar.producto}" >
+                        <p:ajax event = "rowSelect" update="seleccion" />
+
+                        <f:facet name="header">Seleccione un producto</f:facet>
+
+                        <p:column headerText="SKU" style="width: 250px;" >
+                            <h:outputText value="#{prod.cod_pro}" />
                         </p:column>
-                        <p:column >
-                            <p:selectOneMenu id="empresa" value="#{mbReportesFormulas.mbFormulas.mbEmpresas.empresa}" >
-                                <f:converter converterId="converters.MiniEmpresa" />
-                                <f:selectItems value="#{mbReportesFormulas.mbFormulas.mbEmpresas.listaEmpresas}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
-                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
-                            </p:selectOneMenu>
+
+                        <p:column headerText="Producto" style="width: 250px;" >
+                            <h:outputText value="#{prod.toString()}" />
                         </p:column>
-                        <p:column >
-                            <h:outputLabel for="tipo" value="TIPO :"  style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column colspan="2" >
-                            <p:selectOneMenu id="tipo" value="#{mbReportesFormulas.mbTipo.tipo}" >
-                                <f:converter converterId="converters.TipoProducto" />
-                                <f:selectItems value="#{mbReportesFormulas.mbTipo.listaTipos}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
-                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
-                            </p:selectOneMenu>
-                        </p:column>
-                        <p:column style="text-align: right;" >
-                            <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Terminar" 
-                                             immediate="true" ajax="false" action="#{mbReportesFormulas.terminar()}" />
-                        </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel for="grupo" value="GRUPO :"  style="font-weight: bold; color: black" />
-                        </p:column>
-                        <p:column >
-                            <p:selectOneMenu id="grupo" value="#{mbReportesFormulas.mbGrupo.grupo}" >
-                                <f:converter converterId="converters.Grupos" />
-                                <f:selectItems value="#{mbReportesFormulas.mbGrupo.listaGrupos}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.cargaSubGrupos()}" 
-                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto subGrupo btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" /> 
-                            </p:selectOneMenu>
-                        </p:column>
-                        <p:column >
-                            <h:outputLabel for="subGrupo" value="SUBGRUPO :" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:selectOneMenu id="subGrupo" value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.subGrupo}" >
-                                <f:converter converterId="converters.SubGrupos" />
-                                <f:selectItems value="#{mbReportesFormulas.mbGrupo.mbSubGrupo.listaSubGrupos}" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.limpiar()}" 
-                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda buscarPor btnAceptar btnImprimirXls btnImprimirPdf" />
-                            </p:selectOneMenu>
-                        </p:column>
-                        <p:column >
-                            <h:outputLabel for="buscarPor" value="BUSCAR :" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:selectOneRadio id="buscarPor" value="#{mbReportesFormulas.buscarPor}" style="background-color: gainsboro;" >
-                                <f:selectItem itemLabel="Insumo" itemValue="INSUMO" />
-                                <f:selectItem itemLabel="Formula" itemValue="FORMULA" />
-                                <p:ajax event="change" listener="#{mbReportesFormulas.cambioDeBuscar()}" 
-                                        update="msgsReportes lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda btnAceptar btnImprimirXls btnImprimirPdf" />
-                            </p:selectOneRadio>
-                        </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column style="width: 80px;" >
-                            <h:outputLabel id="lblBuscarPor" value="#{mbReportesFormulas.buscarPor} :" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column colspan="3" >
-                            <p:inputText id="txtCod_pro" value="#{mbReportesFormulas.mbFormulas.mbBuscar.producto.cod_pro}" style="width: 60px;" readonly="true" />
-                            <p:inputText id="txtProducto" value="#{mbReportesFormulas.mbFormulas.mbBuscar.producto.toString()}" style="width: 410px;" readonly="true" />
-                        </p:column>
-                        <p:column colspan="2" >
-                            <p:commandButton id="btnBuscar" 
-                                             icon="ui-icon-search" title="buscar un nuevo #{mbReportesFormulas.buscarPor}" 
-                                             disabled="#{mbReportesFormulas.buscarPor == 'BUSCAR'}"
-                                             process="@this" actionListener="#{mbReportesFormulas.configurarReporte()}" 
-                                             update=":main:buscarProductos :main:listaBuscarProductos msgsReportes btnAceptar btnImprimirXls btnImprimirPdf"
-                                             oncomplete="PF('buscarProductoDlg').show();" />
-                            <p:commandButton id="btnNuevaBusqueda" icon="ui-icon-document" title="Nueva Busqueda" 
-                                             disabled="#{mbReportesFormulas.buscarPor == 'BUSCAR'}"
-                                             process="@this" actionListener="#{mbReportesFormulas.limpiar()}" 
-                                             update="msgsReportes buscarPor lblBuscarPor txtCod_pro txtProducto btnBuscar btnNuevaBusqueda btnAceptar btnImprimirXls btnImprimirPdf" />
-                            <p:commandButton id="btnAceptar" value="ACEPTAR" title="Obtener formulas" disabled="#{mbReportesFormulas.ok}"
-                                             process="@this" actionListener="#{mbReportesFormulas.generarFormulas()}"
-                                             update="@this :main:msgsReportes btnImprimirXls btnImprimirPdf" />
-                            <p:commandButton id="btnImprimirXls" value="Xls" title="Exportar a Excel" disabled="#{!mbReportesFormulas.ok}"
-                                             actionListener="#{mbReportesFormulas.generarFormulasXls()}" />
-                            <p:commandButton id="btnImprimirPdf" value="Pdf" title="Exportar a Pdf" disabled="#{!mbReportesFormulas.ok}"
-                                             action="#{mbReportesFormulas.generarFormulasPdf()}" ajax="false" />
-                        </p:column>
-                    </p:row>
-                </p:panelGrid>
-            </p:panel>
-            <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
-                <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
-                <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
-                        </p:column>
-                        <p:column >
-                            <p:selectOneRadio id="opciones" value="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
-                                <f:selectItem itemLabel="SKU" itemValue="1" />
-                                <f:selectItem itemLabel="Genérico" itemValue="2" />
-                                <f:selectItem itemLabel="Descripcion" itemValue="3" />
-                                <p:ajax listener="#{mbReportesFormulas.mbFormulas.mbBuscar.verCambio()}" 
-                                        update="buscarProductos listaBuscarProductos" />
-                            </p:selectOneRadio>
-                        </p:column>
-                        <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='1'}" >
-                            <p:inputText id="opcionSKU" value="#{mbReportesFormulas.mbFormulas.mbBuscar.strBuscar}" maxlength="8" size="10" />
-                            <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
-                                             process="@this opcionSKU" actionListener="#{mbReportesFormulas.buscar()}" 
+
+                        <f:facet name="footer">
+                            <p:commandButton id="seleccion" value="Seleccionar" 
+                                             disabled="#{mbReportesFormulas.mbFormulas.mbBuscar.producto==null}"
+                                             process="@this" actionListener="#{mbReportesFormulas.verVariables()}"
                                              update=":main:msgBuscar #{mbReportesFormulas.mbFormulas.mbBuscar.update}" 
-                                             oncomplete="handleBuscar(xhr, status, args)" />
-                        </p:column>
-                        <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='2'}" >
-                            <p:autoComplete id="opcionParte" value="#{mbReportesFormulas.mbFormulas.mbBuscar.mbParte.parte}" maxlength="24" size="24"
-                                            completeMethod="#{mbReportesFormulas.mbFormulas.mbBuscar.mbParte.completePartes}" 
-                                            var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
-                                            forceSelection="true" />
-                            <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
-                                             process="@this opcionParte" actionListener="#{mbReportesFormulas.buscar()}" 
-                                             update="listaBuscarProductos"  />
-                        </p:column>
-                        <p:column rendered="#{mbReportesFormulas.mbFormulas.mbBuscar.tipoBuscar=='3'}" >
-                            <p:inputText id="opcionDescripcion" value="#{mbReportesFormulas.mbFormulas.mbBuscar.strBuscar}" maxlength="24" size="24" />
-                            <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
-                                             process="@this opcionDescripcion" actionListener="#{mbReportesFormulas.buscar()}" 
-                                             update="listaBuscarProductos" />
-                        </p:column>
-                    </p:row>
-                </p:panelGrid>
-                <p:dataTable id="listaBuscarProductos" value="#{mbReportesFormulas.mbFormulas.mbBuscar.productos}" 
-                             var="prod" scrollable="true" scrollHeight="200" style="width: 800px;" rowKey="#{prod.idProducto}" 
-                             selectionMode="single" selection="#{mbReportesFormulas.mbFormulas.mbBuscar.producto}" >
-                    <p:ajax event = "rowSelect" update="seleccion" />
-
-                    <f:facet name="header">Seleccione un producto</f:facet>
-
-                    <p:column headerText="SKU" style="width: 250px;" >
-                        <h:outputText value="#{prod.cod_pro}" />
-                    </p:column>
-
-                    <p:column headerText="Producto" style="width: 250px;" >
-                        <h:outputText value="#{prod.toString()}" />
-                    </p:column>
-
-                    <f:facet name="footer">
-                        <p:commandButton id="seleccion" value="Seleccionar" 
-                                         disabled="#{mbReportesFormulas.mbFormulas.mbBuscar.producto==null}"
-                                         process="@this" actionListener="#{mbReportesFormulas.verVariables()}"
-                                         update=":main:msgBuscar #{mbReportesFormulas.mbFormulas.mbBuscar.update}" 
-                                         oncomplete="PF('buscarProductoDlg').hide()" />
-                    </f:facet>
-                </p:dataTable>
-            </p:dialog>
-        </h:form>
+                                             oncomplete="PF('buscarProductoDlg').hide()" />
+                        </f:facet>
+                    </p:dataTable>
+                </p:dialog>
+            </h:form>
+            <ui:include src="footer.xhtml" />
+        </div>
         <script type="text/javascript">
             function handleBuscar(xhr, status, args) {
                 if (!(args.validationFailed || !args.okBuscar)) {
@@ -181,6 +184,6 @@
                 }
             }
         </script>
-        <ui:include src="footer.xhtml" />
+        
     </body>
 </html>
