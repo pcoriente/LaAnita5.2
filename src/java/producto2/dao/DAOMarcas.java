@@ -41,7 +41,20 @@ public class DAOMarcas {
         Connection cn=ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            st.executeUpdate("DELETE FROM "+this.tabla+" WHERE idMarca="+idMarca);
+            st.executeUpdate("begin Transaction");
+            
+            ResultSet rs=st.executeQuery("SELECT count(*) AS total FROM productos WHERE idMarca="+idMarca);
+            if(rs.next()) {
+                if(rs.getInt("total")!=0) {
+                    throw new SQLException("Hay productos de esta marca, no se puede eliminar !!!");
+                } else {
+                    st.executeUpdate("DELETE FROM "+this.tabla+" WHERE idMarca="+idMarca);
+                }
+            }
+            st.executeUpdate("commit Transaction");
+        } catch(SQLException ex) {
+            st.executeUpdate("rollback Transaction");
+            throw(ex);
         } finally {
             cn.close();
         }

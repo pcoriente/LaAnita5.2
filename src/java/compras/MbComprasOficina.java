@@ -120,19 +120,37 @@ public class MbComprasOficina implements Serializable {
     private void restaTotales() {
         double resta;
         resta = this.resProducto.getCosto() * this.resProducto.getCantFacturada();
-        this.compra.setSubTotal(this.compra.getSubTotal() - Math.round(resta * 100.00) / 100.00);
+        this.compra.setSubTotal(this.compra.getSubTotal() - Math.round(resta * 1000000.00) / 1000000.00);
 
         resta = this.resProducto.getCosto() - this.resProducto.getUnitario();
         resta = resta * this.resProducto.getCantFacturada();
-        this.compra.setDescuento(this.compra.getDescuento() - Math.round(resta * 100.00) / 100.00);
+        this.compra.setDescuento(this.compra.getDescuento() - Math.round(resta * 1000000.00) / 1000000.00);
 
         resta = this.resProducto.getNeto() - this.resProducto.getUnitario();
         resta = resta * this.resProducto.getCantFacturada();
-        this.compra.setImpuesto(this.compra.getImpuesto() - Math.round(resta * 100.00) / 100.00);
+        this.compra.setImpuesto(this.compra.getImpuesto() - Math.round(resta * 1000000.00) / 1000000.00);
 
         resta = this.resProducto.getNeto() * this.resProducto.getCantFacturada();
-        this.compra.setTotal(this.compra.getTotal() - Math.round(resta * 100.00) / 100.00);
+        this.compra.setTotal(this.compra.getTotal() - Math.round(resta * 1000000.00) / 1000000.00);
     }
+    
+//    Original con redondeo a 2 decimales
+//    private void restaTotales() {
+//        double resta;
+//        resta = this.resProducto.getCosto() * this.resProducto.getCantFacturada();
+//        this.compra.setSubTotal(this.compra.getSubTotal() - Math.round(resta * 100.00) / 100.00);
+//
+//        resta = this.resProducto.getCosto() - this.resProducto.getUnitario();
+//        resta = resta * this.resProducto.getCantFacturada();
+//        this.compra.setDescuento(this.compra.getDescuento() - Math.round(resta * 100.00) / 100.00);
+//
+//        resta = this.resProducto.getNeto() - this.resProducto.getUnitario();
+//        resta = resta * this.resProducto.getCantFacturada();
+//        this.compra.setImpuesto(this.compra.getImpuesto() - Math.round(resta * 100.00) / 100.00);
+//
+//        resta = this.resProducto.getNeto() * this.resProducto.getCantFacturada();
+//        this.compra.setTotal(this.compra.getTotal() - Math.round(resta * 100.00) / 100.00);
+//    }
     
     public void eliminarProducto() {
         if (this.producto != null) {
@@ -451,19 +469,37 @@ public class MbComprasOficina implements Serializable {
     private void sumaTotales() {
         double suma;
         suma = this.producto.getCosto() * this.producto.getCantFacturada();   // Calcula el subTotal
-        this.compra.setSubTotal(this.compra.getSubTotal() + Math.round(suma * 100.00) / 100.00);    // Suma el importe el subtotal
+        this.compra.setSubTotal(this.compra.getSubTotal() + Math.round(suma * 1000000.00) / 1000000.00);    // Suma el importe el subtotal
 
         suma = this.producto.getCosto() - this.producto.getUnitario();   // Obtiene el descuento por diferencia.
         suma = suma * this.producto.getCantFacturada();                           // Calcula el importe de descuento
-        this.compra.setDescuento(this.compra.getDescuento() + Math.round(suma * 100.00) / 100.00);  // Suma el descuento
+        this.compra.setDescuento(this.compra.getDescuento() + Math.round(suma * 1000000.00) / 1000000.00);  // Suma el descuento
 
         suma = this.producto.getNeto() - this.producto.getUnitario();     // Obtiene el impuesto por diferencia
         suma = suma * this.producto.getCantFacturada();                           // Calcula el importe de impuestos
-        this.compra.setImpuesto(this.compra.getImpuesto() + Math.round(suma * 100.00) / 100.00);    // Suma los impuestos
+        this.compra.setImpuesto(this.compra.getImpuesto() + Math.round(suma * 1000000.00) / 1000000.00);    // Suma los impuestos
 
         suma = this.producto.getNeto() * this.producto.getCantFacturada(); // Calcula el importe total
-        this.compra.setTotal(this.compra.getTotal() + Math.round(suma * 100.00) / 100.00);          // Suma el importe al total
+        this.compra.setTotal(this.compra.getTotal() + Math.round(suma * 1000000.00) / 1000000.00);          // Suma el importe al total
     }
+    
+//    Original: redondeo a 2 decimales
+//    private void sumaTotales() {
+//        double suma;
+//        suma = this.producto.getCosto() * this.producto.getCantFacturada();   // Calcula el subTotal
+//        this.compra.setSubTotal(this.compra.getSubTotal() + Math.round(suma * 100.00) / 100.00);    // Suma el importe el subtotal
+//
+//        suma = this.producto.getCosto() - this.producto.getUnitario();   // Obtiene el descuento por diferencia.
+//        suma = suma * this.producto.getCantFacturada();                           // Calcula el importe de descuento
+//        this.compra.setDescuento(this.compra.getDescuento() + Math.round(suma * 100.00) / 100.00);  // Suma el descuento
+//
+//        suma = this.producto.getNeto() - this.producto.getUnitario();     // Obtiene el impuesto por diferencia
+//        suma = suma * this.producto.getCantFacturada();                           // Calcula el importe de impuestos
+//        this.compra.setImpuesto(this.compra.getImpuesto() + Math.round(suma * 100.00) / 100.00);    // Suma los impuestos
+//
+//        suma = this.producto.getNeto() * this.producto.getCantFacturada(); // Calcula el importe total
+//        this.compra.setTotal(this.compra.getTotal() + Math.round(suma * 100.00) / 100.00);          // Suma el importe al total
+//    }
 
     public double calculaImpuestos() {
         double impuestos = 0.00;

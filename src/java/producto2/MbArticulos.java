@@ -123,7 +123,7 @@ public class MbArticulos implements Serializable {
     }
     
     public void eliminarMarca() {
-        if (this.mbGrupo.eliminar()) {
+        if (this.mbMarca.eliminar()) {
             this.articulo.getMarca().setIdMarca(0);
 //            this.articulo.getMarca().setMarca("");
 //            this.articulo.getMarca().setProduccion(true);

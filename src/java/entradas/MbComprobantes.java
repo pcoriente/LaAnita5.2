@@ -154,7 +154,7 @@ public class MbComprobantes implements Serializable {
     public void mttoComprobante() {
         boolean ok = true;
         if (this.comprobante==null) {
-            this.tipo="2";
+            this.tipo="3";
             this.edicion = new TOComprobante(this.idProveedor);
         } else if (this.aseguraComprobante(this.comprobante.getIdComprobante())) {
             this.respalda();
