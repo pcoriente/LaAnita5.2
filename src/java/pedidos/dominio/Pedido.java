@@ -29,6 +29,10 @@ public class Pedido {
     private Date cancelacionFecha;
     private String cancelacionMotivo;
     private double cantArticulos;
+    private double subTotal;
+    private double descuento;
+    private double impuesto;
+    private double total;
 
     public Pedido() {
         this.tienda=new TOTienda();
@@ -215,5 +219,37 @@ public class Pedido {
 
     public void setGrupo(ClienteGrupo grupo) {
         this.grupo = grupo;
+    }
+
+    public double getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(double subTotal) {
+        this.subTotal = subTotal;
+    }
+
+    public double getDescuento() {
+        return descuento;
+    }
+
+    public void setDescuento(double descuento) {
+        this.descuento = descuento;
+    }
+
+    public double getImpuesto() {
+        return impuesto;
+    }
+
+    public void setImpuesto(double impuesto) {
+        this.impuesto = impuesto;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
     }
 }

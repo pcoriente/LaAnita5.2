@@ -229,7 +229,7 @@ public class MbRecepcion implements Serializable {
         to.setIdReferencia(this.recepcion.getAlmacenOrigen().getIdAlmacen());
         to.setReferencia(this.recepcion.getReferencia());
         to.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
-        to.setFolioAlmacen(this.recepcion.getFolioAlmacen());
+//        to.setFolioAlmacen(this.recepcion.getFolioAlmacen());
         return to;
     }
 
@@ -370,7 +370,7 @@ public class MbRecepcion implements Serializable {
         e.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
         e.setReferencia(to.getReferencia());
         e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        e.setFolioAlmacen(to.getFolioAlmacen());
+//        e.setFolioAlmacen(to.getFolioAlmacen());
         return e;
     }
 

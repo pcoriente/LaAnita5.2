@@ -1665,25 +1665,25 @@ public class DAOMovimientos1 {
                 cantSeparada = cantSolicitada;
                 strSQL = "UPDATE pedidosOCTiendaDetalle "
                         + "SET cantFacturada=cantFacturada+" + cantSeparada + " "
-                        + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + idProducto;
+                        + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + idProducto;
             } else {
                 cantLiberar = cantFacturadaOld - prod.getCantFacturada();
 
                 cantLiberada = cantLiberar;
                 strSQL = "UPDATE pedidosOCTiendaDetalle "
                         + "SET cantFacturada=cantFacturada-" + cantLiberada + " "
-                        + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + idProducto;
+                        + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + idProducto;
             }
             st.executeUpdate(strSQL);
 
-            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(idEmpresa, prod.getIdProducto(), ped.getIdTienda());
+            ArrayList<Double> boletin = this.obtenerBoletinSinCargo(idEmpresa, prod.getIdProducto(), ped.getIdReferencia());
             boletinConCargo = boletin.get(0);
             boletinSinCargo = boletin.get(1);
             if (boletinConCargo > 0 && boletinSinCargo > 0) {
                 strSQL = "SELECT ISNULL(SUM(D.cantFacturada),0) AS cantFacturada, ISNULL(SUM(D.cantSinCargo),0) AS cantSinCargo\n"
                         + "FROM pedidosOCTiendaDetalle D\n"
                         + "INNER JOIN empaquesSimilares S ON S.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idPedido=" + ped.getIdPedido() + " AND S.idSimilar=" + prod.getIdProducto();
+                        + "WHERE D.idPedido=" + ped.getReferencia() + " AND S.idSimilar=" + prod.getIdProducto();
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     similares = true;
@@ -1695,7 +1695,7 @@ public class DAOMovimientos1 {
                         cantSeparada = cantSolicitada;
                         strSQL = "UPDATE pedidosOCTiendaDetalle "
                                 + "SET cantSinCargo=cantSinCargo+" + cantSeparada + " "
-                                + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + idProducto;
+                                + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + idProducto;
                         st.executeUpdate(strSQL);
                     } else if (cantSinCargo < cantSinCargoHay) {
                         double disponibles;
@@ -1706,7 +1706,7 @@ public class DAOMovimientos1 {
                                 + "           , ISNULL(D.idEmpaque,S.idEmpaque) AS idEmpaque\n"
                                 + "           , ISNULL(D.cantFacturada, 0) AS cantFacturada, ISNULL(D.cantSinCargo, 0) AS cantSinCargo\n"
                                 + "           , ISNULL(D.unitario, 0) AS unitario, P.idImpuesto\n"
-                                + "       FROM (SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido=" + ped.getIdPedido() + ") D\n"
+                                + "       FROM (SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido=" + ped.getReferencia() + ") D\n"
                                 + "	RIGHT JOIN empaquesSimilares S ON S.idEmpaque=D.idEmpaque\n"
                                 + "	INNER JOIN empaques E ON E.idEmpaque=S.idEmpaque\n"
                                 + "	INNER JOIN productos P ON P.idProducto=E.idProducto\n"
@@ -1725,7 +1725,7 @@ public class DAOMovimientos1 {
                                 }
                                 strSQL = "UPDATE pedidosOCTiendaDetalle "
                                         + "SET cantSinCargo=cantSinCargo-" + cantLiberada + " "
-                                        + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + rs.getInt("idEmpaque");
+                                        + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + rs.getInt("idEmpaque");
                                 st.executeUpdate(strSQL);
 
                                 cantLiberar -= cantLiberada;
@@ -1743,7 +1743,7 @@ public class DAOMovimientos1 {
                         cantSeparada = cantSolicitada;
                         strSQL = "UPDATE pedidosOCTiendaDetalle "
                                 + "SET cantSinCargo=cantSinCargo+" + cantSeparada + " "
-                                + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + idProducto;
+                                + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + idProducto;
                         st.executeUpdate(strSQL);
 
                         prod.setCantSinCargo(prod.getCantSinCargo() + cantSeparada);
@@ -1753,7 +1753,7 @@ public class DAOMovimientos1 {
                         cantLiberada = cantLiberar;
                         strSQL = "UPDATE pedidosOCTiendaDetalle "
                                 + "SET cantSinCargo=cantSinCargo-" + cantLiberada + " "
-                                + "WHERE idPedido=" + ped.getIdPedido() + " AND idEmpaque=" + rs.getInt("idEmpaque");
+                                + "WHERE idPedido=" + ped.getReferencia() + " AND idEmpaque=" + rs.getInt("idEmpaque");
                         st.executeUpdate(strSQL);
 
                         prod.setCantSinCargo(prod.getCantSinCargo() - cantLiberada);

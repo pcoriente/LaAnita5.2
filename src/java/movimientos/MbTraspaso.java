@@ -197,7 +197,7 @@ public class MbTraspaso implements Serializable {
                     ArrayList<TOMovimientoProducto> detalle=this.convertirDetalle();
                     this.dao.grabarTraspasoEnvio(to, detalle);
                     this.envio.setIdUsuario(to.getIdUsuario());
-                    this.envio.setFolioAlmacen(to.getFolioAlmacen());
+//                    this.envio.setFolioAlmacen(to.getFolioAlmacen());
                     this.envio.setFolio(to.getFolio());
                     this.envio.setEstatus(1);
                     Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
@@ -250,7 +250,7 @@ public class MbTraspaso implements Serializable {
         to.setIdUsuario(this.envio.getIdUsuario());
         to.setIdReferencia(this.envio.getAlmacenDestino().getIdAlmacen());
         to.setIdMovtoAlmacen(this.envio.getIdMovtoAlmacen());
-        to.setFolioAlmacen(this.envio.getFolioAlmacen());
+//        to.setFolioAlmacen(this.envio.getFolioAlmacen());
         return to;
     }
 
@@ -400,7 +400,7 @@ public class MbTraspaso implements Serializable {
         e.setFecha(to.getFecha());
         e.setIdUsuario(to.getIdUsuario());
         e.setAlmacenDestino(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
-        e.setFolioAlmacen(to.getFolioAlmacen());
+//        e.setFolioAlmacen(to.getFolioAlmacen());
         return e;
     }
 

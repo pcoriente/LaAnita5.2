@@ -210,7 +210,7 @@ public class MbRechazo implements Serializable {
         movimiento.setFecha(toMovimiento.getFecha());
         movimiento.setIdUsuario(toMovimiento.getIdUsuario());
         movimiento.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(toMovimiento.getIdReferencia()));
-        movimiento.setFolioAlmacen(toMovimiento.getFolioAlmacen());
+//        movimiento.setFolioAlmacen(toMovimiento.getFolioAlmacen());
         return movimiento;
     }
 

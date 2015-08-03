@@ -283,7 +283,7 @@
                         </p:dataTable>
                     </p:dialog>
                     <p:dialog id="listaOrdenesDlg" widgetVar="listaOrdenesDlg" header="LISTA DE ORDENES DE COMPRA" resizable="false" modal="true" closable="true" >
-                        <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbComprasAlmacen.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 800px;"
+                        <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbComprasAlmacen.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 320px;"
                                      var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" selection="#{mbComprasAlmacen.mbOrdenCompra.ordenElegida}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" update="btnSeleccionaOC btnCerrarOC" />
@@ -291,14 +291,8 @@
                             <p:column headerText="OC" style="width: 60px;" >
                                 <h:outputText value="#{orden.idOrdenCompra}" style="width: 60px;" />
                             </p:column>
-                            <p:column headerText="F. Creacion" style="width: 80px;" >
+                            <p:column headerText="F. Orden" style="width: 80px;" >
                                 <h:outputText value="#{orden.fechaCreacion}" />
-                            </p:column>
-                            <p:column headerText="F. Finalizacion" style="width: 80px;" >
-                                <h:outputText value="#{orden.fechaFinalizacion}" />
-                            </p:column>
-                            <p:column headerText="F. Puesta" style="width: 80px;" >
-                                <h:outputText value="#{orden.fechaPuesta}" />
                             </p:column>
                             <p:column headerText="F. Entrega" style="width: 85px;" >
                                 <h:outputText value="#{orden.fechaEntrega}" />
