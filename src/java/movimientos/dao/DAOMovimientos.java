@@ -2005,11 +2005,15 @@ public class DAOMovimientos {
         return solicitudes;
     }
 
-    public ArrayList<TOMovimiento> obtenerMovimientos(int idAlmacen, int idTipo, int estatus) throws SQLException {
-        String condicion = " = 0 ";
-        if (estatus != 0) {
-            condicion = " > 1 ";
+    public ArrayList<TOMovimiento> obtenerMovimientos(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
+        String condicion = " = 2 ";
+        if (estatus != 2) {
+            condicion = " <= 1 ";
         }
+        if (fechaInicial == null) {
+            fechaInicial = new Date();
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOMovimiento> movimientos = new ArrayList<>();
 //        String strSQL = "SELECT M.*"
 //                + "     , ISNULL(MA.idMovtoAlmacen, 0) AS idMovtoAlmacen, MA.folio AS folioAlmacen, ISNULL(MA.fecha, GETDATE()) AS fechaAlmacen"
@@ -2022,7 +2026,8 @@ public class DAOMovimientos {
         String strSQL = "SELECT M.*, ISNULL(MR.idMovtoAlmacen, 0) AS idMovtoAlmacen\n"
                 + "FROM movimientos M\n"
                 + "LEFT JOIN movimientosRelacionados MR ON MR.idMovto=M.idMovto\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus" + condicion + "\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + "\n"
+                + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "' AND M.estatus" + condicion + "\n"
                 + "ORDER BY M.fecha DESC";
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {

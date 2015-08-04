@@ -23,6 +23,7 @@ import entradas.to.TOEntradaProducto;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.faces.context.FacesContext;
@@ -349,7 +350,7 @@ public class MbRecepcion implements Serializable {
         this.recepciones = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0)) {
+            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0, new Date())) {
                 this.recepciones.add(this.convertir(m));
             }
         } catch (SQLException ex) {

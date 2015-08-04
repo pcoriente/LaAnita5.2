@@ -240,13 +240,14 @@ public class MbFormulas implements Serializable {
     }
 
     public void generarXls(String buscarPor) {
-//        if(this.generar(buscarPor, idTipo, idGrupo, idSubGrupo)) {
-        if (buscarPor == null || buscarPor.equals("INSUMO")) {
+        System.out.println("buscarPor="+buscarPor);
+        if (buscarPor == null || buscarPor.equals("") || buscarPor.equals("BUSCAR") || buscarPor.equals("INSUMO")) {
+            System.out.println("Entro a generarDocs, muchas formulas.");
             this.generaExcels();
         } else {
+            System.out.println("Entro a generarDoc, solo una formula.");
             this.generaExcel();
         }
-//        }
     }
 
     private boolean generarFormulas() {

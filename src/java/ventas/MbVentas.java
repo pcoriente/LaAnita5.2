@@ -58,6 +58,7 @@ public class MbVentas implements Serializable {
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
     private DAOMovimientos1 dao;
+    private DAOMovimientos daoMv;
     private ArrayList<Venta> pedidos;
     private Venta venta;
     private boolean ventaAsegurada;
@@ -68,9 +69,8 @@ public class MbVentas implements Serializable {
     private VentaAlmacenProducto loteOrigen, loteDestino;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
-    private boolean todos;
+    private boolean pendientes;
     private Date fechaInicial;
-//    private boolean modoEdicion;
     private TimeZone zonaHoraria = TimeZone.getDefault();
     private double cantTraspasar;
 
@@ -110,9 +110,9 @@ public class MbVentas implements Serializable {
         try {
             this.dao=new DAOMovimientos1();
             int remision=this.dao.cerrarMovtoAlmacenSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen());
-            this.venta.setRemision(Integer.toString(remision));
+//            this.venta.setRemision(Integer.toString(remision));
             this.venta.setStatus(2);
-            this.venta.setStatusAlmacen(2);
+//            this.venta.setStatusAlmacen(2);
             Mensajes.mensajeSucces("El pedido se remisiono correctamente !!!");
             ok=true;
         } catch (NamingException ex) {
@@ -181,7 +181,6 @@ public class MbVentas implements Serializable {
         TOMovimientoAlmacenProducto to=new TOMovimientoAlmacenProducto();
         to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
         to.setIdProducto(prod.getProducto().getIdProducto());
-//        to.setLote(prod.getLotes());
         to.setCantidad(prod.getCantidad());
         return to;
     }
@@ -190,7 +189,6 @@ public class MbVentas implements Serializable {
         VentaAlmacenProducto prod=new VentaAlmacenProducto();
         prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-//        prod.setLote(to.getLote());
         prod.setCantidad(to.getCantidad());
         return prod;
     }
@@ -268,7 +266,7 @@ public class MbVentas implements Serializable {
             int folio=this.dao.cerrarMovtoSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), 28);
             this.venta.setFolio(folio);
             this.venta.setStatus(1);
-            this.venta.setStatusAlmacen(1);
+//            this.venta.setStatusAlmacen(1);
             Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
             ok=true;
         } catch (NamingException ex) {
@@ -376,7 +374,6 @@ public class MbVentas implements Serializable {
         vta.setIdTipo(to.getIdTipo());
         vta.setAlmacen(this.mbAlmacenes.obtenerAlmacen(to.getIdAlmacen()));
         vta.setFolio(to.getFolio());
-//        vta.setIdImpuestoZona(to.getIdImpuestoZona());
         vta.setDesctoComercial(to.getDesctoComercial());
         vta.setFecha(to.getFecha());
         vta.setIdUsuario(to.getIdUsuario());
@@ -384,16 +381,10 @@ public class MbVentas implements Serializable {
         vta.setTipoCambio(to.getTipoDeCambio());
         vta.setTienda(this.mbTiendas.obtenerTienda(to.getIdReferencia()));
         vta.setFormato(this.mbFormatos.obtenerFormato(vta.getTienda().getIdFormato()));
-        vta.setCliente(this.mbClientes.obtenerCliente(vta.getFormato().getIdCliente()));
-        vta.setIdOrdenCompra(to.getReferencia());
+        vta.setCliente(this.mbClientes.obtenerCliente(vta.getTienda().getIdCliente()));
+        vta.setIdPedido(to.getReferencia());
         vta.setStatus(to.getEstatus());
-        //////////////////////////////////////////////////
-//        vta.setFechaComprobante(to.getFechaComprobante());
-        //////////////////////////////////////////////////
         vta.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-//        vta.setFechaAlmacen(to.getFechaAlmacen());
-//        vta.setIdUsuarioAlmacen(to.getIdUsuarioAlmacen());
-//        vta.setStatusAlmacen(to.getStatusAlmacen());
         return vta;
     }
 
@@ -411,16 +402,9 @@ public class MbVentas implements Serializable {
         to.setIdMoneda(this.venta.getMoneda().getIdMoneda());
         to.setTipoDeCambio(this.venta.getTipoCambio());
         to.setIdReferencia(this.venta.getTienda().getIdTienda());
-        to.setReferencia(this.venta.getIdOrdenCompra());
+        to.setReferencia(this.venta.getIdPedido());
         to.setEstatus(this.venta.getStatus());
-        ////////////////////////////////////////////////////////////
-
-//        to.setFechaComprobante(this.venta.getFechaComprobante());
-        ////////////////////////////////////////////////////////////
         to.setIdMovtoAlmacen(this.venta.getIdMovtoAlmacen());
-//        to.setFechaAlmacen(this.venta.getFechaAlmacen());
-//        to.setIdUsuarioAlmacen(this.venta.getIdUsuarioAlmacen());
-//        to.setStatusAlmacen(this.venta.getStatusAlmacen());
         return to;
     }
 
@@ -444,12 +428,11 @@ public class MbVentas implements Serializable {
         this.mbFormatos.inicializar();
         this.mbBuscar.inicializar();
 
-        this.todos = false;
+        this.pendientes = true;
         this.fechaInicial = new Date();
         this.pedidos = new ArrayList<>();
         this.venta = new Venta();
         this.detalle = new ArrayList<>();
-//        this.modoEdicion=false;
     }
     
     public void actualizaProducto() {
@@ -613,7 +596,6 @@ public class MbVentas implements Serializable {
         to.setDesctoConfidencial(0);
         to.setUnitario(producto.getUnitario());
         to.setIdImpuestoGrupo(producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
-//        to.setNeto(producto.getNeto());
         return to;
     }
 
@@ -675,7 +657,6 @@ public class MbVentas implements Serializable {
     public void crearPedido() {
         boolean ok=false;
         this.venta = new Venta(this.mbAlmacenes.getAlmacen(), this.mbTiendas.getTienda(), this.mbFormatos.getFormatoSeleccion(), this.mbClientes.getCliente());
-//        this.venta.setIdImpuestoZona(this.mbTiendas.getTienda().getIdImpuestoZona());
         TOMovimiento to=this.convertirTO();
         try {
             this.dao=new DAOMovimientos1();
@@ -695,30 +676,25 @@ public class MbVentas implements Serializable {
     }
 
     public void nuevoPedido() {
-//        this.modoEdicion=true;
         this.mbGrupos.inicializar();
         this.cambioDeGrupo();
     }
     
     public void regresarAlmacenFechaActual() {
         this.fechaInicial = new Date();
-//        if (!this.todos) {
-            this.obtenerPedidosAlmacen();
-//        }
+            this.obtenerPedidosAlmacen1();
     }
 
     public void regresarFechaActual() {
         this.fechaInicial = new Date();
-//        if (!this.todos) {
             this.obtenerPedidos();
-//        }
     }
     
-    public void obtenerPedidosAlmacen() {
+    public void obtenerPedidosAlmacen1() {
         try {   // Segun fecha y status
             this.pedidos=new ArrayList<>();
             this.dao=new DAOMovimientos1();
-            for(TOMovimiento to: this.dao.obtenerMovimientosAlmacenRelacionados(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.todos?9999:1), this.fechaInicial)) {
+            for(TOMovimiento to: this.dao.obtenerMovimientosAlmacenRelacionados(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.pendientes?9999:1), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -731,8 +707,8 @@ public class MbVentas implements Serializable {
     public void obtenerPedidos() {
         try {   // Segun fecha y status
             this.pedidos=new ArrayList<>();
-            this.dao=new DAOMovimientos1();
-            for(TOMovimiento to: this.dao.obtenerMovimientosRelacionados(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.todos?9999:1), this.fechaInicial)) {
+            this.daoMv=new DAOMovimientos();
+            for(TOMovimiento to: this.daoMv.obtenerMovimientos(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.pendientes?0:2), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -747,33 +723,10 @@ public class MbVentas implements Serializable {
         this.mbTiendas.nuevaTienda();
     }
 
-//    public void cambioDeCliente() {
-//        this.mbFormatos.cargarFormatosCliente(this.mbClientes.getCliente().getIdCliente());
-//        this.mbFormatos.nuevoFormato();
-////        this.mbTiendas.cargaTiendasFormato(this.mbFormatos.getFormatoSeleccion().getIdFormato());
-////        this.mbTiendas.nuevaTienda();
-//        this.cambioDeFormato();
-//    }
-
     public void cambioDeGrupo() {
-//        this.mbClientes.cargarClientesGrupo(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
-//        this.mbClientes.nuevoCliente();
-////        this.mbFormatos.cargarFormatosCliente(0);
-////        this.mbFormatos.nuevoFormato();
-////        this.mbTiendas.cargaTiendasFormato(0);
-////        this.mbTiendas.nuevaTienda();
-//        this.cambioDeCliente();
         this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
         this.mbTiendas.inicializar();
     }
-
-    //    public boolean isModoEdicion() {
-    //        return modoEdicion;
-    //    }
-    //
-    //    public void setModoEdicion(boolean modoEdicion) {
-    //        this.modoEdicion = modoEdicion;
-    //    }
     
     public String getOrdenDeCompra() {
         return ordenDeCompra;
@@ -799,12 +752,12 @@ public class MbVentas implements Serializable {
         this.impuestosTotales = impuestosTotales;
     }
 
-    public boolean isTodos() {
-        return todos;
+    public boolean isPendientes() {
+        return pendientes;
     }
 
-    public void setTodos(boolean todos) {
-        this.todos = todos;
+    public void setPendientes(boolean pendientes) {
+        this.pendientes = pendientes;
     }
 
     public TimeZone getZonaHoraria() {
