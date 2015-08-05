@@ -424,7 +424,7 @@ public class MbPedidos implements Serializable {
             } catch (Exception ex) {
                 Mensajes.mensajeAlert(ex.getMessage());
             }
-            ArrayList<TOProductoPedido> tos = this.daoMv.obtenerPedidoDetalle(this.pedido.getIdPedido());
+            ArrayList<TOProductoPedido> tos = this.daoMv.obtenerPedidoDetalle(this.pedido.getIdMovto());
             if (this.pedido.getEstatus() == 0) {
                 TOPedido toPed = this.convertir(this.pedido);
                 this.daoMv.actualizarPedido(toPed, tos);

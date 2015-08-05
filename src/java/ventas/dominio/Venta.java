@@ -35,6 +35,7 @@ public class Venta {
 //    private int idUsuarioAlmacen;
 //    private int statusAlmacen;
     /////////////////////////////////
+    private double cantArticulos;
     private double subTotal;
     private double descuento;
     private double impuesto;
@@ -45,6 +46,7 @@ public class Venta {
         this.almacen=new MiniAlmacen();
         this.fecha=new Date();
         this.moneda=new Moneda();
+        this.tipoCambio=1;
         this.tienda=new TOTienda();
         this.formato=new ClienteFormato();
         this.cliente=new TOCliente();
@@ -59,6 +61,7 @@ public class Venta {
         this.desctoComercial=cliente.getDesctoComercial();
         this.fecha=new Date();
         this.moneda=new Moneda();
+        this.tipoCambio=1;
         this.tienda=tienda;
         this.formato=formato;
         this.cliente=cliente;
@@ -279,5 +282,13 @@ public class Venta {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    public double getCantArticulos() {
+        return cantArticulos;
+    }
+
+    public void setCantArticulos(double cantArticulos) {
+        this.cantArticulos = cantArticulos;
     }
 }

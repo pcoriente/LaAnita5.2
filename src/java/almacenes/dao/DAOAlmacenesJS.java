@@ -20,6 +20,7 @@ import usuarios.dominio.UsuarioSesion;
  * @author jesc
  */
 public class DAOAlmacenesJS {
+
     private DataSource ds = null;
     private int idCedis;
 
@@ -37,70 +38,71 @@ public class DAOAlmacenesJS {
             throw (ex);
         }
     }
-    
+
     public void modificar(TOAlmacenJS almacen) throws SQLException {
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
-            String strSQL="UPDATE almacenes "
-                    + "SET almacen='"+almacen.getAlmacen()+"', idDireccion="+almacen.getIdDireccion()+" "
-                    + "WHERE idAlmacen="+almacen.getIdAlmacen();
+        String strSQL = "UPDATE almacenes "
+                + "SET almacen='" + almacen.getAlmacen() + "', idDireccion=" + almacen.getIdDireccion() + " "
+                + "WHERE idAlmacen=" + almacen.getIdAlmacen();
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
             st.executeUpdate(strSQL);
         } finally {
             cn.close();
-        } 
+        }
     }
-    
+
     public int agregar(TOAlmacenJS almacen) throws SQLException {
-        int idAlmacen=0;
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
-        try {
-            String strSQL="INSERT INTO almacenes (almacen, idDireccion, idEmpresa, idCedis) "
-                    + "VALUES ('"+almacen.getAlmacen()+"', "+almacen.getIdDireccion()+", "+almacen.getIdEmpresa()+", "+almacen.getIdCedis()+")";
-            st.executeUpdate("begin Transaction");
-            st.executeUpdate(strSQL);
-            ResultSet rs=st.executeQuery("SELECT @@IDENTITY AS idAlmacen");
-            if(rs.next()) {
-                idAlmacen=rs.getInt("idAlmacen");
+        int idAlmacen = 0;
+        String strSQL = "INSERT INTO almacenes (almacen, idDireccion, idEmpresa, idCedis) "
+                + "VALUES ('" + almacen.getAlmacen() + "', " + almacen.getIdDireccion() + ", " + almacen.getIdEmpresa() + ", " + almacen.getIdCedis() + ")";
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idAlmacen");
+                if (rs.next()) {
+                    idAlmacen = rs.getInt("idAlmacen");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw (ex);
+            } finally {
+                cn.setAutoCommit(true);
             }
-            st.executeUpdate("commit Transaction");
-        } catch(SQLException ex) {
-            st.executeUpdate("rollback transaction");
-            throw(ex);
-        } finally {
-            cn.close();
         }
         return idAlmacen;
     }
-    
+
     public TOAlmacenJS obtenerAlmacen(int idAlmacen) throws SQLException {
-        TOAlmacenJS almacen=null;
+        TOAlmacenJS almacen = null;
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
-                    + "FROM almacenes a "
-                    + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
-                    + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
-                    + "WHERE idAlmacen="+idAlmacen;
+                + "FROM almacenes a "
+                + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
+                + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
+                + "WHERE idAlmacen=" + idAlmacen;
         try (Connection cn = this.ds.getConnection()) {
-            Statement st=cn.createStatement();
-            ResultSet rs=st.executeQuery(stringSQL);
-            if(rs.next()) almacen=construir(rs);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(stringSQL);
+                if (rs.next()) {
+                    almacen = construir(rs);
+                }
+            }
         }
         return almacen;
     }
-    
+
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idEmpresa) throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
-                    + "FROM almacenes a "
-                    + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
-                    + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
-                    + "WHERE a.idCedis="+this.idCedis+" AND a.idEmpresa="+idEmpresa+" "
-                    + "ORDER BY e.empresa";
+                + "FROM almacenes a "
+                + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
+                + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
+                + "WHERE a.idCedis=" + this.idCedis + " AND a.idEmpresa=" + idEmpresa + " "
+                + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
-        Statement sentencia = cn.createStatement();
-        try {
-            ResultSet rs = sentencia.executeQuery(stringSQL);
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));
             }
@@ -109,19 +111,18 @@ public class DAOAlmacenesJS {
         }
         return lista;
     }
-    
+
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idCedis, int idEmpresa) throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
-                    + "FROM almacenes a "
-                    + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
-                    + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
-                    + "WHERE a.idCedis="+idCedis+" AND a.idEmpresa="+idEmpresa+" "
-                    + "ORDER BY e.empresa";
+                + "FROM almacenes a "
+                + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
+                + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
+                + "WHERE a.idCedis=" + idCedis + " AND a.idEmpresa=" + idEmpresa + " "
+                + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
-        Statement sentencia = cn.createStatement();
-        try {
-            ResultSet rs = sentencia.executeQuery(stringSQL);
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));
             }
@@ -130,19 +131,18 @@ public class DAOAlmacenesJS {
         }
         return lista;
     }
-    
+
     public ArrayList<TOAlmacenJS> obtenerAlmacenes() throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
         String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
-                    + "FROM almacenes a "
-                    + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
-                    + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
-                    + "WHERE a.idCedis="+this.idCedis+" "
-                    + "ORDER BY e.empresa";
+                + "FROM almacenes a "
+                + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
+                + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
+                + "WHERE a.idCedis=" + this.idCedis + " "
+                + "ORDER BY e.empresa";
         Connection cn = ds.getConnection();
-        Statement sentencia = cn.createStatement();
-        try {
-            ResultSet rs = sentencia.executeQuery(stringSQL);
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(stringSQL);
             while (rs.next()) {
                 lista.add(construir(rs));
             }
@@ -151,7 +151,7 @@ public class DAOAlmacenesJS {
         }
         return lista;
     }
-    
+
     private TOAlmacenJS construir(ResultSet rs) throws SQLException {
         TOAlmacenJS to = new TOAlmacenJS();
         to.setIdAlmacen(rs.getInt("idAlmacen"));

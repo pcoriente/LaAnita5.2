@@ -11,8 +11,9 @@ import producto2.dominio.Producto;
 public class VentaProducto {
     private int idMovto;
     private Producto producto;
-    private double cantidadOrdenada;
-    private double cantidadFacturada;
+    private double cantOrdenada;
+    private double cantOrdenadaSinCargo;
+    private double cantFacturada;
     private double cantSinCargo;
     private double separados;
     private double precio;
@@ -72,20 +73,28 @@ public class VentaProducto {
         this.producto = producto;
     }
 
-    public double getCantidadOrdenada() {
-        return cantidadOrdenada;
+    public double getCantOrdenada() {
+        return cantOrdenada;
     }
 
-    public void setCantidadOrdenada(double cantidadOrdenada) {
-        this.cantidadOrdenada = cantidadOrdenada;
+    public void setCantOrdenada(double cantOrdenada) {
+        this.cantOrdenada = cantOrdenada;
     }
 
-    public double getCantidadFacturada() {
-        return cantidadFacturada;
+    public double getCantOrdenadaSinCargo() {
+        return cantOrdenadaSinCargo;
     }
 
-    public void setCantidadFacturada(double cantidadFacturada) {
-        this.cantidadFacturada = cantidadFacturada;
+    public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
+        this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
+    }
+
+    public double getCantFacturada() {
+        return cantFacturada;
+    }
+
+    public void setCantFacturada(double cantFacturada) {
+        this.cantFacturada = cantFacturada;
     }
 
     public double getCantSinCargo() {
