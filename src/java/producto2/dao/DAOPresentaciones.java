@@ -41,7 +41,19 @@ public class DAOPresentaciones {
         Connection cn=ds.getConnection();
         Statement st=cn.createStatement();
         try {
-            st.executeUpdate("DELETE FROM "+this.tabla+" WHERE idPresentacion="+idPresentacion);
+            st.executeUpdate("begin Transaction");
+            ResultSet rs=st.executeQuery("SELECT count(*) AS total FROM productos WHERE idPresentacion="+idPresentacion);
+            if(rs.next()) {
+                if(rs.getInt("total")!=0) {
+                    throw new SQLException("Hay productos de esta presentacion, no se puede eliminar !!!");
+                } else {
+                    st.executeUpdate("DELETE FROM "+this.tabla+" WHERE idPresentacion="+idPresentacion);
+                }
+            }
+            st.executeUpdate("commit Transaction");
+        } catch(SQLException ex) {
+            st.executeUpdate("rollback Transaction");
+            throw(ex);
         } finally {
             cn.close();
         }

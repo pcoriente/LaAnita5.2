@@ -25,24 +25,11 @@ public class TOMovimiento {
     private int referencia;
     private int propietario;
     private int estatus;
-    //////////////////////////
-//    private int tipoComprobante;
-//    private String serie;
-//    private String numero;
-//    private Date fechaComprobante;
-    //////////////////////////
     private int idMovtoAlmacen;
-    private int folioAlmacen;
-//    private Date fechaAlmacen;
-//    private int idUsuarioAlmacen;
-//    private int statusAlmacen;
-    
+//    private int folioAlmacen;
 
     public TOMovimiento() {
         this.fecha=new Date();
-//        this.serie="";
-//        this.numero="";
-//        this.fechaComprobante=new Date();
     }
 
     public int getIdMovto() {
@@ -189,38 +176,6 @@ public class TOMovimiento {
         this.estatus = estatus;
     }
 
-//    public int getTipoComprobante() {
-//        return tipoComprobante;
-//    }
-//
-//    public void setTipoComprobante(int tipoComprobante) {
-//        this.tipoComprobante = tipoComprobante;
-//    }
-//
-//    public String getSerie() {
-//        return serie;
-//    }
-//
-//    public void setSerie(String serie) {
-//        this.serie = serie;
-//    }
-//
-//    public String getNumero() {
-//        return numero;
-//    }
-//
-//    public void setNumero(String numero) {
-//        this.numero = numero;
-//    }
-//
-//    public Date getFechaComprobante() {
-//        return fechaComprobante;
-//    }
-//
-//    public void setFechaComprobante(Date fechaComprobante) {
-//        this.fechaComprobante = fechaComprobante;
-//    }
-
     public int getIdMovtoAlmacen() {
         return idMovtoAlmacen;
     }
@@ -229,11 +184,11 @@ public class TOMovimiento {
         this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
-    public int getFolioAlmacen() {
-        return folioAlmacen;
-    }
-
-    public void setFolioAlmacen(int folioAlmacen) {
-        this.folioAlmacen = folioAlmacen;
-    }
+//    public int getFolioAlmacen() {
+//        return folioAlmacen;
+//    }
+//
+//    public void setFolioAlmacen(int folioAlmacen) {
+//        this.folioAlmacen = folioAlmacen;
+//    }
 }

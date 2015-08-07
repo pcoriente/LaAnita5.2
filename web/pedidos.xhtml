@@ -13,6 +13,7 @@
         <title>Pedidos de clientes</title>
     </h:head>
     <body>
+        <div id="wrapper" >
         <ui:include src="wrapper.xhtml" />
         <h:form id="main" onkeypress="return event.keyCode !== 13;" >
             <p:messages id="msgsPedidos" autoUpdate="false" showDetail="true" closable="true" />
@@ -63,29 +64,29 @@
                 </p:panelGrid>
                 <p:dataTable id="listaDePedidos" value="#{mbPedidos.pedidos}" 
                              var="pedido" rowKey="#{pedido.idPedido}" selectionMode="single" 
-                             style="border:solid 1px" emptyMessage="No existen pedidos" >
+                             style="border:solid 1px; width: 920px;" emptyMessage="No existen pedidos" >
                     <p:ajax event="rowSelect" listener="#{mbPedidos.obtenerDetalle}" 
                             update=":main:msgsPedidos :main:pedido :main:detallePedido :main:totales" 
                             oncomplete="abrirPedido(xhr, status, args);" />
 
-                    <p:column headerText="Formato" style="width: 200px;" >
+                    <p:column headerText="Formato" style="width: 170px;" >
                         <h:outputText value="#{pedido.formato.formato}" />
                     </p:column>
-                    <p:column headerText="Tienda" >
+                    <p:column headerText="Tienda" style="width: 270px;" >
                         <h:outputText value="#{pedido.tienda.tienda}" />
                     </p:column>
-                    <p:column headerText="Pedido" style="width: 60px;" >
+                    <p:column headerText="Pedido" style="width: 50px;" >
                         <h:outputText value="#{pedido.idPedido}" />
                     </p:column>
-                    <p:column headerText="Fecha" style="width: 70px;" >
+                    <p:column headerText="Fecha" style="width: 60px;" >
                         <h:outputText value="#{pedido.fecha}" >
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Orden De Compra" style="width: 60px;" >
+                    <p:column headerText="Orden De Compra" style="width: 110px;" >
                         <h:outputText value="#{pedido.ordenDeCompra}" />
                     </p:column>
-                    <p:column headerText="OC Fecha" style="width: 70px;" >
+                    <p:column headerText="OC Fecha" style="width: 60px;" >
                         <h:outputText value="#{pedido.ordenDeCompraFecha}" >
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                         </h:outputText>
@@ -167,7 +168,7 @@
                                          converterMessage="El valor proporcionado no es un numero" >
                                 <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
                                 <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
-                                        update=":main:msgsEdicion :main:btnPedidoCerrar :main:btnPedidoEliminar" 
+                                        update=":main:msgsEdicion :main:totales" 
                                         oncomplete="handleEdicion(xhr, status, args);" />
                             </p:inputText>
                         </p:column>
@@ -175,7 +176,7 @@
                             <h:outputLabel value="CANT.SIN CARGO :" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column >
-                            <h:outputText value="#{mbPedidos.producto.cantSinCargo}" >
+                            <h:outputText value="#{mbPedidos.producto.cantOrdenadaSinCargo}" >
                                 <f:convertNumber pattern="###,##0.0000" />
                             </h:outputText>
                         </p:column>
@@ -201,10 +202,10 @@
                         <p:column colspan="4" >
                             <p:inputText id="txtFormato" value="#{mbPedidos.pedido.formato.formato}" readonly="true" size="35" />
                         </p:column>
-                        <p:column >
+                        <p:column style="width: 40px;" >
                             <h:outputLabel for="txtTienda" value="TIENDA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="4" >
+                        <p:column colspan="2" >
                             <p:inputText id="txtTienda" value="#{mbPedidos.pedido.tienda.tienda}" readonly="true" size="50" />
                         </p:column>
                     </p:row>
@@ -220,10 +221,15 @@
                         </p:column>
                         <p:column >
                             <p:inputText id="txtFecha" value="#{mbPedidos.pedido.fecha}" readonly="true" size="11" >
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </p:inputText>
                         </p:column>
-                        <p:column colspan="3" ></p:column>
+                        <p:column colspan="2" >
+                            <h:outputLabel for="txtDesctoComercial" value="DESCUENTO COMERCIAL :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtDesctoComercial" value="#{mbPedidos.pedido.desctoComercial}" readonly="true" size="6" />
+                        </p:column>
                     </p:row>
                     <p:row >
                         <p:column style="width: 140px;" colspan="2" >
@@ -235,7 +241,7 @@
                         <p:column >
                             <h:outputLabel for="ordenDeCompraFecha" value="FECHA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column >
+                        <p:column style="width: 110px;" >
                             <p:inputText id="ordenDeCompraFecha" value="#{mbPedidos.pedido.ordenDeCompraFecha}" readonly="true" size="11" >
                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </p:inputText>
@@ -294,7 +300,53 @@
                 </p:dataTable>
                 <p:panelGrid id="totales" styleClass="filaSinBorde colSinBorde" >
                     <p:row >
+                        <p:column style="width: 300px;" ></p:column>
+                        <p:column style="width: 300px;" ></p:column>
+                        <p:column style="text-align: right;" >
+                            <h:outputLabel for="txtSubTotal" value="SUBTOTAL :" style="font-weight: bold; color: black;" />
+                        </p:column>
                         <p:column >
+                            <p:inputText id="txtSubTotal" value="#{mbPedidos.pedido.subTotal}" size="14" readonly="true" style="text-align: right;" >
+                                <f:convertNumber pattern="##,###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row rendered="#{mbPedidos.pedido.descuento!=0}" >
+                        <p:column colspan="2"  ></p:column>
+                        <p:column style="text-align: right;" >
+                            <h:outputLabel for="txtDescuento" value="DESCUENTO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtDescuento" value="#{mbPedidos.pedido.descuento}" size="14" readonly="true" style="text-align: right;" >
+                                <f:convertNumber pattern="##,###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column colspan="2" ></p:column>
+                        <p:column colspan="2" >
+                            <p:dataGrid id="impuestos" var="xx_imp" value="#{mbPedidos.impuestosTotales}" columns="1" 
+                                        styleClass="dataGridSinBorde columnaSinPadding"
+                                        rendered="#{mbPedidos.impuestosTotales.size()!=0}" >
+                                <p:column >
+                                    <p:panelGrid styleClass="filaSinBorde colSinBorde" >
+                                        <p:row >
+                                            <p:column style="text-align: right; width: 85px;" >
+                                                <h:outputText value="#{xx_imp.impuesto} :" style="font-weight: bold; color: black; font-size: 14px;" />
+                                            </p:column>
+                                            <p:column style="text-align: right; width: 134px;" >
+                                                <p:inputText value="#{xx_imp.importe}" size="14" readonly="true" style="text-align: right;" >
+                                                    <f:convertNumber pattern="##,###,##0.000000" />
+                                                </p:inputText>
+                                            </p:column>
+                                        </p:row>
+                                    </p:panelGrid>
+                                </p:column>
+                            </p:dataGrid>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column style="text-align: left;" colspan="2" >
                             <p:commandButton id="btnPedidoEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar el pedido" 
                                              disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.estatus!=0}"
                                              process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
@@ -309,6 +361,14 @@
                                              disabled="#{mbPedidos.pedido.estatus==0}"
                                              process="@this" update=":main:cancelarPedido" 
                                              oncomplete="PF('cancelarPedidoDlg').show();" />
+                        </p:column>
+                        <p:column style="text-align: right;" >
+                            <h:outputLabel for="txtTotales" value="TOTAL :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtTotales" value="#{mbPedidos.pedido.total}" size="14" readonly="true" style="text-align: right;" >
+                                <f:convertNumber pattern="##,###,##0.000000" />
+                            </p:inputText>
                         </p:column>
                     </p:row>
                 </p:panelGrid>
@@ -472,6 +532,8 @@
                 </p:panelGrid>
             </p:dialog>
         </h:form>
+        <ui:include src="footer.xhtml" />
+        </div>
         <script type="text/javascript" >
             function handleSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
@@ -522,6 +584,5 @@
                 }
             }
         </script>
-        <ui:include src="footer.xhtml" />
     </body>
 </html>

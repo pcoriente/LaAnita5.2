@@ -23,6 +23,7 @@ import entradas.to.TOEntradaProducto;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.faces.context.FacesContext;
@@ -229,7 +230,7 @@ public class MbRecepcion implements Serializable {
         to.setIdReferencia(this.recepcion.getAlmacenOrigen().getIdAlmacen());
         to.setReferencia(this.recepcion.getReferencia());
         to.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
-        to.setFolioAlmacen(this.recepcion.getFolioAlmacen());
+//        to.setFolioAlmacen(this.recepcion.getFolioAlmacen());
         return to;
     }
 
@@ -349,7 +350,7 @@ public class MbRecepcion implements Serializable {
         this.recepciones = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0)) {
+            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0, new Date())) {
                 this.recepciones.add(this.convertir(m));
             }
         } catch (SQLException ex) {
@@ -370,7 +371,7 @@ public class MbRecepcion implements Serializable {
         e.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
         e.setReferencia(to.getReferencia());
         e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        e.setFolioAlmacen(to.getFolioAlmacen());
+//        e.setFolioAlmacen(to.getFolioAlmacen());
         return e;
     }
 

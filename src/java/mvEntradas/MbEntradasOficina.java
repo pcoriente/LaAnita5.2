@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 //import javax.faces.application.FacesMessage;
@@ -130,6 +131,7 @@ public class MbEntradasOficina implements Serializable {
         Object newValue = event.getNewValue();
         if (newValue != null && newValue != oldValue) {
             oldValue=newValue;
+            this.entradaProducto=this.entradaDetalle.get(event.getRowIndex());
         } else {
             newValue=oldValue;
             Mensajes.mensajeAlert("Checar que pasa !!!");
@@ -172,7 +174,7 @@ public class MbEntradasOficina implements Serializable {
         this.entradasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0)) {
+            for (TOMovimiento to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0, new Date())) {
                 this.entradasPendientes.add(this.convertir(to));
             }
             ok = true;

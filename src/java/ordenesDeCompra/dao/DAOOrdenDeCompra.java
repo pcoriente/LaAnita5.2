@@ -125,7 +125,7 @@ public class DAOOrdenDeCompra {
                 + "                                           inner join empresasGrupo eg on eg.idEmpresa = r.idEmpresa\n"
                 + "                                           inner join direcciones d on d.idDireccion = co.idDireccion) c on c.idCotizacion=oc.idCotizacion\n"
                 + "                               where oc.idProveedor=" + idProveedor + " and oc.estadoAlmacen=" + status + "\n"
-                + "                               order by oc.fechaCreacion desc";
+                + "                               order by oc.idOrdenCompra";
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
         try {
@@ -158,7 +158,7 @@ public class DAOOrdenDeCompra {
                 + "                                           inner join empresasGrupo eg on eg.idEmpresa = r.idEmpresa\n"
                 + "                                           inner join direcciones d on d.idDireccion = co.idDireccion) c on c.idCotizacion=oc.idCotizacion\n"
                 + "                               where oc.idProveedor=" + idProveedor + " and oc.estado=" + status + "\n"
-                + "                               order by oc.fechaCreacion desc";
+                + "                               order by oc.idOrdenCompra";
         Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
         try {

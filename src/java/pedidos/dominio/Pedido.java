@@ -11,10 +11,15 @@ import tiendas.to.TOTienda;
  * @author jesc
  */
 public class Pedido {
-    private int idPedido;
-    private int idMovto;
-    private int idMovtoAlmacen;
     private int idPedidoOC;
+    private String ordenDeCompra;
+    private Date ordenDeCompraFecha;
+    
+    private int idPedido;
+    private String cancelacionMotivo;
+    private Date cancelacionFecha;
+    
+    private int idMovto;
     private int idEmpresa;
     private TOTienda tienda;
     private ClienteGrupo grupo;
@@ -22,13 +27,15 @@ public class Pedido {
     private TOCliente cliente;
     private double desctoComercial;
     private double desctoProntoPago;
-    private String ordenDeCompra;
-    private Date ordenDeCompraFecha;
     private Date fecha;
     private int estatus;
-    private Date cancelacionFecha;
-    private String cancelacionMotivo;
+    private int idMovtoAlmacen;
+    
     private double cantArticulos;
+    private double subTotal;
+    private double descuento;
+    private double impuesto;
+    private double total;
 
     public Pedido() {
         this.tienda=new TOTienda();
@@ -215,5 +222,37 @@ public class Pedido {
 
     public void setGrupo(ClienteGrupo grupo) {
         this.grupo = grupo;
+    }
+
+    public double getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(double subTotal) {
+        this.subTotal = subTotal;
+    }
+
+    public double getDescuento() {
+        return descuento;
+    }
+
+    public void setDescuento(double descuento) {
+        this.descuento = descuento;
+    }
+
+    public double getImpuesto() {
+        return impuesto;
+    }
+
+    public void setImpuesto(double impuesto) {
+        this.impuesto = impuesto;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
     }
 }

@@ -97,7 +97,7 @@ public class DAOLotes {
                     + "VALUES (" + idMovtoAlmacen + ", " + l.getIdProducto() + ", '" + l.getLote() + "', " + l.getCantidad() + ", GETDATE(), 0)";
         } else {
             strSQL = "UPDATE movimientosDetalleAlmacen "
-                    + "SET lote='" + l.getLote() + "', cantidad=" + l.getCantidad() + " "
+                    + "SET cantidad=" + l.getCantidad() + " "
                     + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + " AND idEmpaque=" + l.getIdProducto() + " AND lote='" + l.getLote() + "'";
         }
         Connection cn = this.ds.getConnection();

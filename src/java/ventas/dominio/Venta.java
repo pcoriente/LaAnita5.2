@@ -16,7 +16,6 @@ public class Venta {
     private int idTipo;
     private MiniAlmacen almacen;
     private int folio;
-//    private int idImpuestoZona;
     private double desctoComercial;
     private Date fecha;
     private int idUsuario;
@@ -25,17 +24,18 @@ public class Venta {
     private TOTienda tienda;
     private ClienteFormato formato;
     private TOCliente cliente;
-    private int idOrdenCompra;
+    private int idPedido;
     private int status;
-    /////////////////////////////////
-    private String remision;
-    private Date fechaComprobante;
-    /////////////////////////////////
+//    /////////////////////////////////
+//    private String remision;
+//    private Date fechaComprobante;
+//    /////////////////////////////////
     private int idMovtoAlmacen;
-    private Date fechaAlmacen;
-    private int idUsuarioAlmacen;
-    private int statusAlmacen;
+//    private Date fechaAlmacen;
+//    private int idUsuarioAlmacen;
+//    private int statusAlmacen;
     /////////////////////////////////
+    private double cantArticulos;
     private double subTotal;
     private double descuento;
     private double impuesto;
@@ -46,12 +46,13 @@ public class Venta {
         this.almacen=new MiniAlmacen();
         this.fecha=new Date();
         this.moneda=new Moneda();
+        this.tipoCambio=1;
         this.tienda=new TOTienda();
         this.formato=new ClienteFormato();
         this.cliente=new TOCliente();
-        this.remision="";
-        this.fechaComprobante=new Date();
-        this.fechaAlmacen=new Date();
+//        this.remision="";
+//        this.fechaComprobante=new Date();
+//        this.fechaAlmacen=new Date();
     }
     
     public Venta(MiniAlmacen almacen, TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
@@ -60,12 +61,13 @@ public class Venta {
         this.desctoComercial=cliente.getDesctoComercial();
         this.fecha=new Date();
         this.moneda=new Moneda();
+        this.tipoCambio=1;
         this.tienda=tienda;
         this.formato=formato;
         this.cliente=cliente;
-        this.remision="";
-        this.fechaComprobante=new Date();
-        this.fechaAlmacen=new Date();
+//        this.remision="";
+//        this.fechaComprobante=new Date();
+//        this.fechaAlmacen=new Date();
     }
 
     @Override
@@ -121,14 +123,6 @@ public class Venta {
     public void setFolio(int folio) {
         this.folio = folio;
     }
-
-//    public int getIdImpuestoZona() {
-//        return idImpuestoZona;
-//    }
-//
-//    public void setIdImpuestoZona(int idImpuestoZona) {
-//        this.idImpuestoZona = idImpuestoZona;
-//    }
 
     public double getDesctoComercial() {
         return desctoComercial;
@@ -194,12 +188,12 @@ public class Venta {
         this.cliente = cliente;
     }
 
-    public int getIdOrdenCompra() {
-        return idOrdenCompra;
+    public int getIdPedido() {
+        return idPedido;
     }
 
-    public void setIdOrdenCompra(int idOrdenCompra) {
-        this.idOrdenCompra = idOrdenCompra;
+    public void setIdPedido(int idPedido) {
+        this.idPedido = idPedido;
     }
 
     public int getStatus() {
@@ -210,21 +204,21 @@ public class Venta {
         this.status = status;
     }
 
-    public String getRemision() {
-        return remision;
-    }
-
-    public void setRemision(String remision) {
-        this.remision = remision;
-    }
-
-    public Date getFechaComprobante() {
-        return fechaComprobante;
-    }
-
-    public void setFechaComprobante(Date fechaComprobante) {
-        this.fechaComprobante = fechaComprobante;
-    }
+//    public String getRemision() {
+//        return remision;
+//    }
+//
+//    public void setRemision(String remision) {
+//        this.remision = remision;
+//    }
+//
+//    public Date getFechaComprobante() {
+//        return fechaComprobante;
+//    }
+//
+//    public void setFechaComprobante(Date fechaComprobante) {
+//        this.fechaComprobante = fechaComprobante;
+//    }
 
     public int getIdMovtoAlmacen() {
         return idMovtoAlmacen;
@@ -234,29 +228,29 @@ public class Venta {
         this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
-    public Date getFechaAlmacen() {
-        return fechaAlmacen;
-    }
-
-    public void setFechaAlmacen(Date fechaAlmacen) {
-        this.fechaAlmacen = fechaAlmacen;
-    }
-
-    public int getIdUsuarioAlmacen() {
-        return idUsuarioAlmacen;
-    }
-
-    public void setIdUsuarioAlmacen(int idUsuarioAlmacen) {
-        this.idUsuarioAlmacen = idUsuarioAlmacen;
-    }
-
-    public int getStatusAlmacen() {
-        return statusAlmacen;
-    }
-
-    public void setStatusAlmacen(int statusAlmacen) {
-        this.statusAlmacen = statusAlmacen;
-    }
+//    public Date getFechaAlmacen() {
+//        return fechaAlmacen;
+//    }
+//
+//    public void setFechaAlmacen(Date fechaAlmacen) {
+//        this.fechaAlmacen = fechaAlmacen;
+//    }
+//
+//    public int getIdUsuarioAlmacen() {
+//        return idUsuarioAlmacen;
+//    }
+//
+//    public void setIdUsuarioAlmacen(int idUsuarioAlmacen) {
+//        this.idUsuarioAlmacen = idUsuarioAlmacen;
+//    }
+//
+//    public int getStatusAlmacen() {
+//        return statusAlmacen;
+//    }
+//
+//    public void setStatusAlmacen(int statusAlmacen) {
+//        this.statusAlmacen = statusAlmacen;
+//    }
 
     public double getSubTotal() {
         return subTotal;
@@ -288,5 +282,13 @@ public class Venta {
 
     public void setTotal(double total) {
         this.total = total;
+    }
+
+    public double getCantArticulos() {
+        return cantArticulos;
+    }
+
+    public void setCantArticulos(double cantArticulos) {
+        this.cantArticulos = cantArticulos;
     }
 }
