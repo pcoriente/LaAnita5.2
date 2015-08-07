@@ -939,25 +939,29 @@
                         </p:toolbar>
                         <!--<p:separator style="width:900px;height:0.5px" />-->
                         <p:panelGrid id="OCEncabezadoDV" 
-                                     style="width: 900px; height: auto; margin:0 auto; "  >
+                                     style="width: 880px; height: auto; margin:0 auto; "  >
                             <p:row>
-                                <p:column      >
+                                <p:column>
                                     <h:outputLabel value="Orden de Compra: " style=" color: red; text-align: right;"/> 
                                 </p:column>
-                                <p:column     >
+                                <p:column>
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.idOrdenCompra}" style="color: black; " />
                                 </p:column>
-                                <p:column   >
-                                    <h:outputLabel value="Fechas: " styleClass="textoEtiquetas" /> 
+                                <p:column style="width: 10px" >
+                                    <h:outputLabel value="Moneda:" styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column    >
+                                <p:column>
+                                    <h:outputLabel value="#{mbOrdenCompra.ordenElegidaD.moneda.moneda}" 
+                                                   style="color: black; font-size: 10px;"/> 
+                                </p:column>
+                                <p:column>
                                     <h:outputLabel value="Emision: " styleClass="textoEtiquetas"/> 
                                 </p:column>
-                                <p:column    >
+                                <p:column>
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.fechaCreacion}" style="color: black; font-size: 10px;" />
                                 </p:column>
 
-                                <p:column    >
+                                <p:column style="width: 100px"   >
                                     <h:outputLabel value="Entrega: " styleClass="textoEtiquetas"/> 
                                 </p:column>
                                 <p:column    >
@@ -969,7 +973,7 @@
                                 <p:column    >
                                     <h:outputLabel value="Empresa: " styleClass="textoEtiquetas"/> 
                                 </p:column>
-                                <p:column colspan="2"   >
+                                <p:column colspan="3"   >
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.empresa.empresa}" style="color: black; font-size: 10px;" /> 
                                 </p:column>
                                 <p:column     >
@@ -979,12 +983,13 @@
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.empresa.direccion.toString()}" 
                                                     style="color: black; font-size: 10px;"/> 
                                 </p:column>
+                               
                             </p:row>
                             <p:row>
                                 <p:column    >
                                     <h:outputLabel value="Proveedor: " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column colspan="2"   >
+                                <p:column colspan="3"   >
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.contribuyente.contribuyente}" style="color: black; font-size: 10px; "  />
                                 </p:column>
                                 <p:column     >
@@ -994,28 +999,30 @@
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.direccionFiscal.referencia}"
                                                     style="color: black; font-size: 10px;" /> 
                                 </p:column>
+                               
                             </p:row>
 
 
                             <p:row>
-                                <p:column  colspan="2" >
+                                <p:column  >
                                     <h:outputLabel value="Descuentos: " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column     >
+                                <p:column   colspan="2"  >
                                     <h:outputLabel value="Comercial (%): " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column colspan="1">
+                                <p:column>
                                     <center>
                                         <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.desctoComercial}" style="color: black; font-size: 10px;"  />
                                     </center>
                                 </p:column>
                                 <!--<p:column></p:column>-->
-                                <p:column colspan="2"  >
+                                <p:column colspan="1"  >
                                     <h:outputLabel value="Pronto Pago (%): " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column>
+                                <p:column colspan="3">
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.desctoProntoPago}" style="color: black; font-size: 10px;"  />
                                 </p:column>
+                               
                             </p:row>
                         </p:panelGrid>
                         <!--<p:separator style="width:900px;height:0.5px" />-->
@@ -1028,7 +1035,7 @@
                             <p:columnGroup type="footer" 
                                            rendered="#{mbOrdenCompra.ordenElegidaD.estado ==0}"
                                            >
-                                    <h3 style="color: red">¡CANCELADO!</h3>
+                                <h3 style="color: red">¡CANCELADO!</h3>
                             </p:columnGroup>
                             <p:column headerText="SKU" width="50" >
                                 #{v.producto.cod_pro}
@@ -1036,18 +1043,17 @@
                             <p:column headerText="Producto" width="300" >
                                 #{v.producto.toString()}
                             </p:column>
-
-
                             <p:column headerText="Cant. Ord" width="60" styleClass="alineacionD">  
                                 <h:outputText value="#{v.cantOrdenada}" >
                                     <f:convertNumber pattern="#,##0.000"    />
                                 </h:outputText>
                             </p:column>
-
                             <p:column headerText="Costo Cot." width="60" styleClass="alineacionD">  
-                                <h:outputText value="#{v.costoOrdenado}" >
-                                    <f:convertNumber type="currency" locale="es_MX" maxFractionDigits="5"    />
-                                </h:outputText>
+                                <center>
+                                    <h:outputText value="#{v.costoOrdenado}" >
+                                        <f:convertNumber pattern="#,##0.000"    />
+                                    </h:outputText>
+                                </center>
                             </p:column> 
                             <p:column headerText="1 Desc.(%)" width="50" styleClass="alineacionD">  
                                 #{v.descuentoProducto}  

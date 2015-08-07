@@ -30,7 +30,7 @@ public class OrdenCompraDetalle implements Serializable {
     private double subtotal;
     private String netoF;
     private String subtotalF;
-    private String costoOrdenadoF;
+    private Double costoOrdenadoF;
     private String nombreProducto;
    
 
@@ -216,16 +216,24 @@ public class OrdenCompraDetalle implements Serializable {
         this.subtotal = subtotal;
     }
 
-   
-    
-    public String getCostoOrdenadoF() {
-        costoOrdenadoF=   utilerias.Utilerias.formatoMonedas(this.getCostoOrdenado());
+    public Double getCostoOrdenadoF() {
         return costoOrdenadoF;
     }
 
-    public void setCostoOrdenadoF(String costoOrdenadoF) {
+    public void setCostoOrdenadoF(Double costoOrdenadoF) {
         this.costoOrdenadoF = costoOrdenadoF;
     }
+
+   
+    
+//    public String getCostoOrdenadoF() {
+//        costoOrdenadoF=   utilerias.Utilerias.formatoMonedas(this.getCostoOrdenado());
+//        return costoOrdenadoF;
+//    }
+//
+//    public void setCostoOrdenadoF(String costoOrdenadoF) {
+//        this.costoOrdenadoF = costoOrdenadoF;
+//    }
 
     public String getNetoF() {
         netoF = utilerias.Utilerias.formatoMonedas(this.getNeto());

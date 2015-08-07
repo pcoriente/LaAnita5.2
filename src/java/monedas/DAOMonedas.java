@@ -56,13 +56,16 @@ public class DAOMonedas {
         }
         return mon;
     }
-    
+
     private Moneda construirMonedaDaap(ResultSet rs) throws SQLException {
         Moneda mone = new Moneda();
         mone.setIdMoneda(rs.getInt("idMoneda"));
         mone.setMoneda(rs.getString("moneda"));
         mone.setCodigoIso(rs.getString("codigoIso"));
-       
+        mone.setPrefijoUnidad(rs.getString("prefijoUnidad"));
+        mone.setPrefijo(rs.getString("prefijo"));
+        mone.setSufijo(rs.getString("sufijo"));
+
         return mone;
     }
 

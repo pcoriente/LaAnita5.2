@@ -24,6 +24,7 @@ public class Empresa implements Serializable{
     private String correo;
     private String representanteLegal;
     private Direccion direccion = new Direccion();
+    private String comprador;
 
     public Empresa() {
     }
@@ -143,4 +144,15 @@ public class Empresa implements Serializable{
     public void setDireccion(Direccion direccion) {
         this.direccion = direccion;
     }
+
+    public String getComprador() {
+        return comprador;
+    }
+
+    public void setComprador(String comprador) {
+        this.comprador = comprador;
+    }
+    
+    
+    
 }

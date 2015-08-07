@@ -417,13 +417,13 @@ public class DAOOrdenDeCompra {
         try {
 
             String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaCreacion, oc.fechaEntrega,\n"
-                    + "		oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
+                    + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
                     + "    from ordenCompra oc\n"
-                    + "		inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
-                    + "		inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
-                    + "		inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
-                    + "	where oc.idCotizacion=0 \n"
-                    + "	order by oc.idOrdenCompra desc";
+                    + "	   inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
+                    + "	   inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
+                    + "	   inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
+                    + "	   where oc.idCotizacion=0 \n"
+                    + "	   order by oc.idOrdenCompra desc";
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 listaD.add(construirOCEncabezadoD(rs));

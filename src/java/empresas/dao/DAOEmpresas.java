@@ -113,6 +113,7 @@ public class DAOEmpresas {
         to.setFax(rs.getString("fax"));
         to.setCorreo(rs.getString("eMail"));
         to.setRepresentanteLegal(rs.getString("representanteLegal"));
+        to.setComprador(rs.getString("comprador"));
       //  to.setIdDireccion(rs.getInt("idDireccion"));
         to.setDireccion(daoD.obtener(rs.getInt("idDireccion")));
         return to;
