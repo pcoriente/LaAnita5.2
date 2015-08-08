@@ -79,7 +79,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaFinalizacion, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                     + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -109,7 +109,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenesAlmacen(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCancelacion, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -142,7 +142,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaCreacion, oc.fechaFinalizacion, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -206,9 +206,9 @@ public class DAOOrdenDeCompra {
         if (idDireccionEntrega != 0) {
             oce.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
-        oce.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaCreacion")));
-        oce.setFechaFinalizacion(utilerias.Utilerias.date2String(rs.getDate("fechaFinalizacion")));
-        oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaPuesta")));
+        oce.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
+        oce.setFechaFinalizacion(utilerias.Utilerias.date2String(rs.getDate("fechaCierreOficina")));
+        oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaCancelacion")));
         oce.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
         oce.setEstado(rs.getInt("estado"));
         switch (rs.getInt("estado")) {
@@ -373,7 +373,7 @@ public class DAOOrdenDeCompra {
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
-            String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial,"
+            String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
                     + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
                     + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
@@ -416,7 +416,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaCreacion, oc.fechaEntrega,\n"
+            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaServidor, oc.fechaEntrega,\n"
                     + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
                     + "    from ordenCompra oc\n"
                     + "	   inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
@@ -454,7 +454,7 @@ public class DAOOrdenDeCompra {
             oced.setProveedor(daoP.obtenerProveedor(idProveedor));
         }
 
-        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaCreacion")));
+        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oced.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
 
         oced.setDesctoComercial(rs.getDouble("desctoComercial"));
