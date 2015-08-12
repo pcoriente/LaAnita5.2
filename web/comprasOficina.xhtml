@@ -555,7 +555,9 @@
                         <p:dataTable id="listaOrdenes" widgetVar="listaOrdenes" value="#{mbComprasOficina.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 300px;"
                                      var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" selection="#{mbComprasOficina.mbOrdenCompra.ordenElegida}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" update="btnSeleccionaOC btnCerrarOC" />
+                            <p:ajax process="@this" 
+                                    event="rowSelect" 
+                                    update="btnSeleccionaOC btnCerrarOC" />
                             
                             <p:column headerText="OC" style="width: 60px;" >
                                 <h:outputText value="#{orden.idOrdenCompra}" style="width: 60px;" />

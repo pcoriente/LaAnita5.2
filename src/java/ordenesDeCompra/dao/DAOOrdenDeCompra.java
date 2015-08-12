@@ -4,6 +4,7 @@ import contactos.dominio.Contacto;
 import cotizaciones.dao.DAOCotizaciones;
 import direccion.dao.DAODirecciones;
 import empresas.dao.DAOEmpresas;
+import enumEstatus.DameEstados;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -79,7 +80,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaFinalizacion, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor,  oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                     + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -179,17 +180,14 @@ public class DAOOrdenDeCompra {
         moneda.setIdMoneda(rs.getInt("idMoneda"));
         moneda.setMoneda(rs.getString("moneda"));
         moneda.setCodigoIso(rs.getString("codigoIso"));
-
         oce.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
         oce.setIdCotizacion(rs.getInt("idCotizacion"));
         oce.setIdRequisicion(rs.getInt("idRequisicion"));
-
         DAOEmpresas daoE = new DAOEmpresas();
         oce.setEmpresa(daoE.obtenerEmpresaConverter(rs.getInt("idDireEmpre")));
         oce.setNombreComercial(rs.getString("nombreComercial"));
         oce.setDesctoComercial(rs.getDouble("desctoComercial"));
         oce.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
-
         DAOProveedores daoP = new DAOProveedores();
         int idProveedor = rs.getInt("idProveedor");
         if (idProveedor == 0) {
@@ -207,32 +205,10 @@ public class DAOOrdenDeCompra {
             oce.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
         oce.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
-        oce.setFechaFinalizacion(utilerias.Utilerias.date2String(rs.getDate("fechaCierreOficina")));
         oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaCancelacion")));
         oce.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
         oce.setEstado(rs.getInt("estado"));
-        switch (rs.getInt("estado")) {
-            case 0:
-                oce.setStatus("Rechazado");
-                break;
-            case 1:
-                oce.setStatus("Activado");
-                break;
-            case 2:
-                oce.setStatus("Ordenado");
-                break;
-            case 3:
-                oce.setStatus("No Aprobado");
-                break;
-            case 4:
-                oce.setStatus("Cerrado");
-                break;
-            case 5:
-                oce.setStatus("Recibiendo");
-                break;
-            default:
-                oce.setStatus("Desconocido");
-        }
+        oce.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         oce.setMoneda(moneda);
         return oce;
     }
@@ -328,8 +304,7 @@ public class DAOOrdenDeCompra {
             cn.close();
         }
     }
-    
-    
+
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
         ArrayList<Contacto> lista;
         lista = new ArrayList<>();
@@ -472,34 +447,8 @@ public class DAOOrdenDeCompra {
         if (idDireccionEntrega != 0) {
             oced.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
-
         oced.setEstado(rs.getInt("estado"));
-        switch (rs.getInt("estado")) {
-            case 0:
-//                SE CAMBIO EL NOMBRE DE RECHAZADO A CANCELADO POR LOS TERMINOS 
-//                QUE NO USAN EN LA ANITA
-//                oced.setStatus("Rechazado");
-                oced.setStatus("Cancelado");
-                break;
-            case 1:
-                oced.setStatus("Activado");
-                break;
-            case 2:
-                oced.setStatus("Ordenado");
-                break;
-            case 3:
-                oced.setStatus("No Aprobado");
-                break;
-            case 4:
-                oced.setStatus("Cerrado");
-                break;
-            case 5:
-                oced.setStatus("Recibiendo");
-                break;
-            default:
-                oced.setStatus("Desconocido");
-        }
-
+        oced.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         return oced;
     }
 

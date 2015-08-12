@@ -8,6 +8,7 @@ import cotizaciones.MbCotizaciones;
 import direccion.dao.DAODirecciones;
 import empresas.MbEmpresas;
 import empresas.dominio.Empresa;
+import impuestos.CalculoDeImpuestos;
 import impuestos.dominio.ImpuestosProducto;
 import java.io.File;
 import javax.inject.Named;
@@ -703,7 +704,7 @@ public class MbOrdenCompra implements Serializable {
                 this.cargaOrdenesEncabezadoD();
             }
         } catch (SQLException ex) {
-           Mensajes.MensajeAlertP(ex.getMessage());
+            Mensajes.MensajeAlertP(ex.getMessage());
         }
         return listaOrdenesEncabezadoD;
     }
@@ -798,6 +799,10 @@ public class MbOrdenCompra implements Serializable {
         return Double.parseDouble(df.format(dato));
     }
 
+    public double Redondear(double numero) {
+        return Math.rint(numero * 100) / 100;
+    }
+
     public void buscarSku() {
         try {
             this.mbBuscar.buscarLista();
@@ -890,12 +895,16 @@ public class MbOrdenCompra implements Serializable {
                 sumaCostoCotizado += (e.getCantOrdenada() * e.getNeto());
                 sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
-                for (ImpuestosProducto impuestosProducto : lst) {
-                    if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
-                        impuestos = impuestos + ((e.getCantOrdenada() * e.getNeto()) * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
-//                        impuestos = impuestos + (sumaCostoCotizado * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
-                    }
+                CalculoDeImpuestos calculo = new CalculoDeImpuestos();
+                if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
+                    impuestos += (calculo.calculaImpuestos(e.getCostoOrdenado(), e.getCantOrdenada(), e.getProducto(), lst) * e.getCantOrdenada());
                 }
+//                for (ImpuestosProducto impuestosProducto : lst) {
+//                    
+//                        impuestos = impuestos + ((e.getCantOrdenada() * e.getNeto()) * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
+////                        impuestos = impuestos + (sumaCostoCotizado * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
+//                    }
+//              
             } catch (SQLException ex) {
                 Mensajes.MensajeErrorP(ex.getMessage());
                 Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
@@ -904,13 +913,22 @@ public class MbOrdenCompra implements Serializable {
         descuentoC = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoComercial() / 100);
         sumaCostoCotizado = sumaCostoCotizado - descuentoC;
         descuentoPP = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
-        totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
-        totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
-        totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
-        totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
-        totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-        totales.setImpuesto(truncarNumeros(impuestos));
-        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
+
+        totales.setSubtotalGeneral(Redondear(subtotalGeneral));
+        totales.setDescuentoGeneralAplicado(Redondear(descuentoPP + descuentoC));
+        totales.setSumaDescuentosProductos(Redondear(sumaDescuentosProductos));
+        totales.setSumaDescuentoTotales(Redondear(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+        totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+        totales.setImpuesto(Redondear(impuestos));
+        totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+
+//        totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
+//        totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
+//        totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
+//        totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+//        totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+//        totales.setImpuesto(truncarNumeros(impuestos));
+//        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
     }
 
     public void dameOrdenCompraDirectaV(SelectEvent event) {
@@ -938,13 +956,18 @@ public class MbOrdenCompra implements Serializable {
                 sumaDescuentosProductos += (d.getCantOrdenada() * (d.getCostoOrdenado() - d.getNeto()));
                 sumaCostoCotizado += (d.getCantOrdenada() * d.getNeto());
                 subtotalGeneral += d.getSubtotal();
+                CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(d.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), ordenElegidaD.getProveedor().getImpuestoZona().getIdZona());
-                for (ImpuestosProducto impuestosProducto : lst) {
-//                  impuestosProducto
-                    if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
-                        impuestos = impuestos + ((d.getNeto() * d.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
-                    }
+                if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
+                    impuestos += (calculo.calculaImpuestos(d.getCostoOrdenado(), d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
                 }
+
+//                for (ImpuestosProducto impuestosProducto : lst) {
+////                  impuestosProducto
+//                    if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
+//                        impuestos = impuestos + ((d.getNeto() * d.getCantOrdenada()) * (impuestosProducto.getValor() / 100));
+//                    }
+//                }
                 listaOrdenDetalleD.add(d);
             }
             descuentoC = sumaCostoCotizado * (ordenElegidaD.getDesctoComercial() / 100);
@@ -960,7 +983,6 @@ public class MbOrdenCompra implements Serializable {
 //                impuestos = 0.00;
 //                impuestos = (totales.getSubtotalBruto() * .16);
 //            }
-
             totales.setImpuesto(truncarNumeros(impuestos));
             totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
             //   totales.setImpuesto(impuestos);
@@ -998,9 +1020,9 @@ public class MbOrdenCompra implements Serializable {
 
         return ok;
     }
-    
+
     public void cancelarOrden(int idOrden, int estado) throws NamingException {
-       // int idOrden=this.ordenElegidaD.getIdOrdenCompra();
+        // int idOrden=this.ordenElegidaD.getIdOrdenCompra();
         Boolean correcto = false;
         //    FacesMessage msg = null;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
@@ -1010,7 +1032,6 @@ public class MbOrdenCompra implements Serializable {
                 daoO.cancelarOrdenCompra(idOrden);
                 this.setListaOrdenesEncabezadoD(null);
                 this.cargaOrdenesEncabezadoD();
-               
 
                 fMsg.setDetail("Se ha CANCELADO");
                 correcto = true;
@@ -1024,6 +1045,5 @@ public class MbOrdenCompra implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
-
 
 }
