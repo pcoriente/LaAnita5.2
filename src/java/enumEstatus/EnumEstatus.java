@@ -5,8 +5,6 @@
  */
 package enumEstatus;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Pjgt
