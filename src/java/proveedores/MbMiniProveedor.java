@@ -97,7 +97,7 @@ public class MbMiniProveedor implements Serializable {
             this.dao = new DAOMiniProveedores();
             ArrayList<MiniProveedor> proveedores = this.dao.obtenerProveedores();
             for (MiniProveedor e : proveedores) {
-                listaMiniProveedores.add(new SelectItem(e, e.getNombreComercial()));
+                listaMiniProveedores.add(new SelectItem(e, e.toString()));
             }
         } catch (SQLException ex) {
             Logger.getLogger(MbMiniProveedor.class.getName()).log(Level.SEVERE, null, ex);
