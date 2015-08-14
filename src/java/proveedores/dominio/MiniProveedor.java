@@ -7,6 +7,7 @@ import ordenesDeCompra.dominio.OrdenCompraEncabezado;
  * @author jsolis
  */
 public class MiniProveedor {
+
     private int idProveedor;
     private String proveedor;
     private String rfc;
@@ -14,10 +15,11 @@ public class MiniProveedor {
     private double desctoProntoPago;
     private int idImpuestoZona;
     private OrdenCompraEncabezado ordenCompraEncabezado;
+    private String nombreComercial = "";
 
     public MiniProveedor() {
-        this.proveedor="";
-        this.rfc="";
+        this.proveedor = "";
+        this.rfc = "";
     }
 
     public MiniProveedor(int idProveedor, String proveedor, String rfc) {
@@ -109,5 +111,12 @@ public class MiniProveedor {
         this.ordenCompraEncabezado = ordenCompraEncabezado;
     }
 
-   
+    public String getNombreComercial() {
+        return nombreComercial;
+    }
+
+    public void setNombreComercial(String nombreComercial) {
+        this.nombreComercial = nombreComercial;
+    }
+
 }
