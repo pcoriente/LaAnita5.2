@@ -60,7 +60,7 @@ public class DAOMiniProveedores {
         ArrayList<MiniProveedor> lista = new ArrayList<MiniProveedor>();
 
         Connection cn = ds.getConnection();
-        String strSQL = "select p.idProveedor,p.nombreComercial,  c.contribuyente, p.desctoComercial, p.desctoProntoPago, p.idImpuestoZona "
+        String strSQL = "select p.idProveedor,p.nombreComercial,c.contribuyente, p.desctoComercial, p.desctoProntoPago, p.idImpuestoZona "
                 + "from proveedores p "
                 + "inner join contribuyentes c on c.idContribuyente = p.idContribuyente "
                 + "order by c.contribuyente";
@@ -104,7 +104,7 @@ public class DAOMiniProveedores {
         to.setDesctoComercial(rs.getDouble("desctoComercial"));
         to.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
         to.setIdImpuestoZona(rs.getInt("idImpuestoZona"));
-        to.setNombreComercial(rs.getString("nombreComercial"));
+//        to.setNombreComercial(rs.getString("nombreComercial"));
         //    to.setRfc(rs.getString("rfc"));
         return to;
     }
