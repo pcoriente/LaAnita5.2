@@ -59,7 +59,6 @@ public class DAOContribuyentes {
 //        }
 //        return idRfc;
 //    }
-
     public int obtenerRfc(String rfc) throws SQLException {
         int idRfc = 0;
         String strSQL = "SELECT idRfc FROM contribuyentesRfc WHERE rfc='" + rfc + "'";
@@ -129,6 +128,9 @@ public class DAOContribuyentes {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 to = construir(rs);
+            }
+            if (to == null) {
+                to = new Contribuyente();
             }
         } finally {
             st.close();
@@ -264,20 +266,20 @@ public class DAOContribuyentes {
         Statement st = cn.createStatement();
         try {
             st.executeUpdate("begin transaction");
-            
-            int idRfc=0;
-            strSQL="SELECT idRfc FROM contribuyentesRfc WHERE rfc='"+contribuyente.getRfc()+"'";
-            ResultSet rs=st.executeQuery(strSQL);
-            if(rs.next()) {
-                idRfc=rs.getInt("idRfc");
+
+            int idRfc = 0;
+            strSQL = "SELECT idRfc FROM contribuyentesRfc WHERE rfc='" + contribuyente.getRfc() + "'";
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                idRfc = rs.getInt("idRfc");
             } else {
                 strSQL = "INSERT INTO contribuyentesRfc (rfc, curp) "
                         + "VALUES ('" + contribuyente.getRfc().toUpperCase() + "', '" + contribuyente.getCurp().toUpperCase() + "')";
                 st.executeUpdate(strSQL);
-                
+
                 rs = st.executeQuery("SELECT @@IDENTITY AS idRfc");
                 if (rs.next()) {
-                    idRfc=rs.getInt("idRfc");
+                    idRfc = rs.getInt("idRfc");
                 }
             }
             DAOAgregarDireccion daoAgregarDireccion = new DAOAgregarDireccion();
@@ -286,13 +288,13 @@ public class DAOContribuyentes {
             strSQL = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) "
                     + "VALUES ('" + contribuyente.getContribuyente() + "', '" + idRfc + "', " + idDireccion + ")";
             st.executeUpdate(strSQL);
-            
+
             rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
             if (rs.next()) {
                 idContribuyente = rs.getInt("idContribuyente");
             }
             st.executeUpdate("commit transaction");
-            
+
             contribuyente.setIdRfc(idRfc);
             contribuyente.getDireccion().setIdDireccion(idDireccion);
         } catch (SQLException ex) {

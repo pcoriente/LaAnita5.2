@@ -92,7 +92,7 @@ public class MbMiniProveedor implements Serializable {
             MiniProveedor p0 = new MiniProveedor();
             p0.setIdProveedor(0);
             p0.setProveedor("Proveedor....");
-            listaMiniProveedores.add(new SelectItem(p0, p0.toString()));
+            listaMiniProveedores.add(new SelectItem(p0, p0.getProveedor()));
 
             this.dao = new DAOMiniProveedores();
             ArrayList<MiniProveedor> proveedores = this.dao.obtenerProveedores();

@@ -60,8 +60,10 @@
                                     update=":form:panelNuevoAgente 
                                     :form:actualizar
                                     :form:growl"/>
-                            <p:column headerText="Codigo" style="width: 20px">
-                                #{agentes.idAgente}
+                            <p:column headerText="Codigo" style="width: 30px">
+                                <center>
+                                    #{agentes.idAgente}
+                                </center>
                             </p:column>
                             <p:column headerText="Nivel" 
                                       filterBy="#{agentes.nombreNivel}">
@@ -93,8 +95,8 @@
                                              value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
                                              disabled="true"
                                              style="background-color: white"/>
-                                <p:commandButton icon="ui-icon-note"
-                                                 title="Mas datos"
+                                <p:commandButton icon="ui-icon-plusthick"
+                                                 title="Datos del Contribuyente"
                                                  oncomplete="PF('dlgContribuyente').show();"
                                                  process="@this"
                                                  actionListener="#{mbAgentes.dameContribuyente()}"
@@ -215,7 +217,9 @@
                             <p:outputLabel style="color: black"  value="Rfc:"/>
                             <p:inputText id="rfc" 
                                          value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
-                                         disabled="#{mbAgentes.seleccionListaAgente !=null and mbAgentes.seleccionListaAgente.contribuyente.idContribuyente == 0}"
+                                         disabled="#{mbAgentes.seleccionListaAgente !=null 
+                                                     and 
+                                                     mbAgentes.seleccionListaAgente.contribuyente.idContribuyente != 0 }"
                                          />
                             <p:outputLabel/>
                             <p:outputLabel style="color: black"  value="Direccion:"/>

@@ -9,14 +9,15 @@ package enumEstatus;
  *
  * @author Pjgt
  */
-public  enum EnumEstatus {
+public enum EnumEstatus {
 
     Ninguno(0),
     Rechazado(1),
     Aprobado(2),
     Ordenado(3),
     Cancelado(4),
-    Terminado(5);
+    Terminado(5),
+    Devolucion(6);
     private final int valorEstado;
 
     private EnumEstatus(int valor) {
@@ -26,7 +27,5 @@ public  enum EnumEstatus {
     public int getValorEstado() {
         return valorEstado;
     }
-
-   
 
 }

@@ -351,7 +351,9 @@ public class MbAgentes implements Serializable {
             this.agente.setAgente(seleccionListaAgente.getAgente());
             this.agente.getMiniCedis().setIdCedis(seleccionListaAgente.getMiniCedis().getIdCedis());
             this.agente.setIdAgente(seleccionListaAgente.getIdAgente());
+            this.agente.getContribuyente().setRfc(seleccionListaAgente.getContribuyente().getRfc());
             DAOTelefonos telefonos = new DAOTelefonos();
+
             obtenerDireccion();
             this.agente.getContacto().setCorreo(seleccionListaAgente.getContacto().getCorreo());
             this.agente.getContacto().setIdContacto(seleccionListaAgente.getContacto().getIdContacto());
@@ -359,11 +361,10 @@ public class MbAgentes implements Serializable {
             if (agente.getContribuyente().getIdContribuyente() == 0) {
                 mbContribuyente.getContribuyente().setRfc("");
             } else {
-                DAOContribuyentes dao = new DAOContribuyentes();
-//                dao.buscarContribuyente(agente.getContribuyente().getIdContribuyente());
+                DAOContribuyentes daoC = new DAOContribuyentes();
+                mbContribuyente.setContribuyente(daoC.obtenerContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente()));
+//                agente.setContribuyente();
             }
-
-//            cargarSuperVisor();
             valorSupervisor = seleccionListaAgente.getSuperior();
             try {
                 telefono = telefonos.obtenerTelefonos(seleccionListaAgente.getContacto().getIdContacto());
@@ -380,8 +381,10 @@ public class MbAgentes implements Serializable {
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
         }
-//        this.dameStatusRfc();
         this.getMbContactos().cargaContactos(3, agente.getIdAgente());
         DAOContactos dao = null;
         try {
@@ -729,7 +732,6 @@ public class MbAgentes implements Serializable {
                 mbContribuyente.setContribuyente(daoContribuyente.obtenerContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente()));
                 DAODireccion dao = new DAODireccion();
                 agente.getContribuyente().setDireccion(dao.obtenerDireccion(mbContribuyente.getContribuyente().getDireccion().getIdDireccion()));
-//                mbDireccion.setDireccion();
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {

@@ -739,15 +739,21 @@ public class MbOrdenCompra implements Serializable {
 
     //MENU SEGUNDA TABLA DE ORDENES DIRECTAS
     public void cargaOrdenesEncabezadoD() throws NamingException, SQLException {
-
         listaOrdenesEncabezadoD = new ArrayList<>();
         DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
         ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
         for (OrdenCompraEncabezado oced : listaD) {
             oced.setImporteTotal(dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced));
-//           double total = dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced);
             listaOrdenesEncabezadoD.add(oced);
+            totales = new TotalesOrdenCompra();
+            subtotalGeneral = 0.00;
+            sumaDescuentosProductos = 0.00;
         }
+    }
+
+    public void limpiar() {
+        ordenElegidaD = null;
+//        System.out.println("entro a limpiar");
     }
 
     public void guardarOrdenCompraDirecta() {
@@ -981,11 +987,11 @@ public class MbOrdenCompra implements Serializable {
 
     public double dameImporteOrdenCompra(int idOrdenCompra, int idZona, OrdenCompraEncabezado ordenElegidaD) {
         try {
-            double total = 0.00;
+//            double total = 0.00;
             double sumaCostoCotizado = 0;
             double descuentoC;
             double descuentoPP;
-            double sumaDescuentosProductos = 0;
+//            double sumaDescuentosProductos = 0;
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
             DAOMovimientos dao = new DAOMovimientos();
@@ -1005,7 +1011,6 @@ public class MbOrdenCompra implements Serializable {
                 if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
                     impuestos += (calculo.calculaImpuestos(d.getCostoOrdenado(), d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
                 }
-//                listaOrdenDetalleD.add(d);
             }
             descuentoC = sumaCostoCotizado * (ordenElegidaD.getDesctoComercial() / 100);
             sumaCostoCotizado = sumaCostoCotizado - descuentoC;
@@ -1017,7 +1022,6 @@ public class MbOrdenCompra implements Serializable {
             totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
             totales.setImpuesto(truncarNumeros(impuestos));
             totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
-//            return total;
         } catch (NamingException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         } catch (SQLException ex) {
