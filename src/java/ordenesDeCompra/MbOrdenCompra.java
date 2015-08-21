@@ -818,8 +818,8 @@ public class MbOrdenCompra implements Serializable {
                 DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
                 OrdenCompraDetalle req = new OrdenCompraDetalle();
                 req.setProducto(mbBuscar.getProducto());
-                Double ultimoCosto = dao.ObtenerUltimoCosto(req.getProducto().getEmpaque().getIdEmpaque());
-                req.setCostoOrdenado(ultimoCosto);
+//                Double ultimoCosto = dao.ObtenerUltimoCosto(req.getProducto().getEmpaque().getIdEmpaque());
+//                req.setCostoOrdenado(ultimoCosto);
                 ordenCompraDetallesDirectas.add(req);
                 mbBuscar.setProducto(new Producto());
             }
@@ -828,7 +828,7 @@ public class MbOrdenCompra implements Serializable {
         } catch (NamingException ex) {
             Mensajes.MensajeAlertP(ex.getMessage());
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             Mensajes.MensajeAlertP(ex.getMessage());
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -905,14 +905,15 @@ public class MbOrdenCompra implements Serializable {
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
                 CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
-                    impuestos += (calculo.calculaImpuestos(e.getCostoOrdenado(), e.getCantOrdenada(), e.getProducto(), lst) * e.getCantOrdenada());
+                    double costoReal = 0.00;
+                    double descuento = (e.getCostoOrdenado() * e.getDescuentoProducto()) / 100;
+                    costoReal = e.getCostoOrdenado() - descuento;
+                    double descuento2 = (costoReal * e.getDescuentoProducto2() / 100);
+                    costoReal = costoReal - descuento2;
+
+                    impuestos += (calculo.calculaImpuestos(costoReal, e.getCantOrdenada(), e.getProducto(), lst) * e.getCantOrdenada());
                 }
-//                for (ImpuestosProducto impuestosProducto : lst) {
-//                    
-//                        impuestos = impuestos + ((e.getCantOrdenada() * e.getNeto()) * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
-////                        impuestos = impuestos + (sumaCostoCotizado * (impuestosProducto.getValor() / 100)); //(e.getNeto() * e.getCantOrdenada())
-//                    }
-//              
+
             } catch (SQLException ex) {
                 Mensajes.MensajeErrorP(ex.getMessage());
                 Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
