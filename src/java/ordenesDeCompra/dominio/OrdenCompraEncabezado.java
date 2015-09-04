@@ -32,6 +32,7 @@ public class OrdenCompraEncabezado implements Serializable {
     private Date fechaEntregaDirectas;
     private Empresa empresa = new Empresa();
     private Moneda moneda = new Moneda();
+    private double importeTotal = 0.00;
 
     public OrdenCompraEncabezado() {
         this.idOrdenCompra = 0;
@@ -233,4 +234,15 @@ public class OrdenCompraEncabezado implements Serializable {
     public void setMoneda(Moneda moneda) {
         this.moneda = moneda;
     }
+
+    public double getImporteTotal() {
+        return importeTotal;
+    }
+
+    public void setImporteTotal(double importeTotal) {
+        this.importeTotal = importeTotal;
+    }
+    
+    
+    
 }

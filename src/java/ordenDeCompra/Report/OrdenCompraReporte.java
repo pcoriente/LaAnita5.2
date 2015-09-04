@@ -75,7 +75,7 @@ public class OrdenCompraReporte {
         String letras = utilerias.quitarSigno$(totalesOrdenesCompra.getTotalF());
         letras = utilerias.quitarComas(letras);
         letras = Double.toString(Double.parseDouble(letras));
-        letras = numeroALetra.Convertir(letras.trim(), true);
+        letras = numeroALetra.Convertir(letras.trim(), true, ordenEncabezado.getMoneda());
 
         parametros.put("letras", letras);
         report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);

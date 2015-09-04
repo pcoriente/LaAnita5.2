@@ -108,6 +108,12 @@ public class MbImpuestos implements Serializable {
         this.strModo = mode.toString();
     }
     
+    
+    
+    
+    
+    
+    
     public void cargarImpuestos() {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "");

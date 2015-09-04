@@ -28,24 +28,24 @@ public class MbMiniProveedor implements Serializable {
     public MbMiniProveedor() {
         this.inicializaLocales();
     }
-    
+
     public void inicializar() {
         this.inicializaLocales();
     }
-    
+
     private void inicializaLocales() {
-        this.miniProveedor=new MiniProveedor();
+        this.miniProveedor = new MiniProveedor();
         this.setListaMiniProveedores(null);
     }
-    
+
     public MiniProveedor obtenerProveedor(int idProveedor) {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "obtenerProveedor");
-        MiniProveedor p=null;
+        MiniProveedor p = null;
         try {
-            this.dao=new DAOMiniProveedores();
-            p=this.dao.obtenerProveedor(idProveedor);
-            ok=true;
+            this.dao = new DAOMiniProveedores();
+            p = this.dao.obtenerProveedor(idProveedor);
+            ok = true;
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
@@ -61,18 +61,18 @@ public class MbMiniProveedor implements Serializable {
 
     //////////////////////////////M E T O D O S
     public void inicializaProveedor() {
-        this.miniProveedor=(MiniProveedor)this.listaMiniProveedores.get(0).getValue();
+        this.miniProveedor = (MiniProveedor) this.listaMiniProveedores.get(0).getValue();
     }
-    
+
     public void cargaListaProveedores() {
         try {
-            this.listaMiniProveedores=new ArrayList<SelectItem>();
-            
+            this.listaMiniProveedores = new ArrayList<SelectItem>();
+
             MiniProveedor p0 = new MiniProveedor();
             p0.setIdProveedor(0);
             p0.setProveedor("Proveedor....");
             listaMiniProveedores.add(new SelectItem(p0, p0.toString()));
-            
+
             this.dao = new DAOMiniProveedores();
             ArrayList<MiniProveedor> proveedores = this.dao.obtenerProveedores();
             for (MiniProveedor e : proveedores) {
@@ -84,16 +84,16 @@ public class MbMiniProveedor implements Serializable {
             Logger.getLogger(MbMiniProveedor.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public ArrayList<SelectItem> obtenerListaMiniProveedor() throws NamingException {
         try {
-            this.listaMiniProveedores=new ArrayList<SelectItem>();
-            
+            this.listaMiniProveedores = new ArrayList<SelectItem>();
+
             MiniProveedor p0 = new MiniProveedor();
             p0.setIdProveedor(0);
             p0.setProveedor("Proveedor....");
-            listaMiniProveedores.add(new SelectItem(p0, p0.toString()));
-            
+            listaMiniProveedores.add(new SelectItem(p0, p0.getProveedor()));
+
             this.dao = new DAOMiniProveedores();
             ArrayList<MiniProveedor> proveedores = this.dao.obtenerProveedores();
             for (MiniProveedor e : proveedores) {

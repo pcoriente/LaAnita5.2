@@ -5,6 +5,7 @@ package utilerias;
  * @author comod_000
  */
 import java.util.regex.Pattern;
+import monedas.Moneda;
 
 /**
  * @web http://jc-mouse.blogspot.com/
@@ -20,6 +21,46 @@ public class Numero_a_Letra {
         "setecientos ", "ochocientos ", "novecientos "};
 
     public Numero_a_Letra() {
+    }
+
+    public String Convertir(String numero, boolean mayusculas, Moneda moneda) {
+        String literal = "Son ";
+        String parte_decimal = " " + moneda.getPrefijo()+ " ";
+        //si el numero utiliza (.) en lugar de (,) -> se reemplaza
+        numero = numero.replace(".", ",");
+        //si el numero no tiene parte decimal, se le agrega ,00
+        if (numero.indexOf(",") == -1) {
+            numero = numero + ",00";
+        }
+        //se valida formato de entrada -> 0,00 y 999 999 999,00
+        if (Pattern.matches("\\d{1,9},\\d{1,2}", numero)) {
+            //se divide el numero 0000000,00 -> entero y decimal
+            String Num[] = numero.split(",");
+            //de da formato al numero decimal
+            parte_decimal += Num[1] + "/100 "+ moneda.getSufijo();
+            //se convierte el numero a literal
+            if (Integer.parseInt(Num[0]) == 0) {//si el valor es cero
+                literal += "cero ";
+            } else if (Integer.parseInt(Num[0]) > 999999) {//si es millon
+                literal += getMillones(Num[0]);
+            } else if (Integer.parseInt(Num[0]) > 999) {//si es miles
+                literal += getMiles(Num[0]);
+            } else if (Integer.parseInt(Num[0]) > 99) {//si es centena
+                literal += getCentenas(Num[0]);
+            } else if (Integer.parseInt(Num[0]) > 9) {//si es decena
+                literal += getDecenas(Num[0]);
+            } else {//sino unidades -> 9
+                literal += getUnidades(Num[0]);
+            }
+            //devuelve el resultado en mayusculas o minusculas
+            if (mayusculas) {
+                return (literal + parte_decimal).toUpperCase();
+            } else {
+                return (literal + parte_decimal);
+            }
+        } else {//error, no se puede convertir
+            return literal = null;
+        }
     }
 
     public String Convertir(String numero, boolean mayusculas) {
@@ -61,8 +102,8 @@ public class Numero_a_Letra {
             return literal = null;
         }
     }
-
     /* funciones para convertir los numeros a literales */
+
     private String getUnidades(String numero) {// 1 - 9
         //si tuviera algun 0 antes se lo quita -> 09 = 9 o 009=9
         String num = numero.substring(numero.length() - 1);

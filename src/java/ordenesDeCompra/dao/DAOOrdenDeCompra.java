@@ -4,6 +4,7 @@ import contactos.dominio.Contacto;
 import cotizaciones.dao.DAOCotizaciones;
 import direccion.dao.DAODirecciones;
 import empresas.dao.DAOEmpresas;
+import enumEstatus.DameEstados;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -179,17 +180,14 @@ public class DAOOrdenDeCompra {
         moneda.setIdMoneda(rs.getInt("idMoneda"));
         moneda.setMoneda(rs.getString("moneda"));
         moneda.setCodigoIso(rs.getString("codigoIso"));
-
         oce.setIdOrdenCompra(rs.getInt("idOrdenCompra"));
         oce.setIdCotizacion(rs.getInt("idCotizacion"));
         oce.setIdRequisicion(rs.getInt("idRequisicion"));
-
         DAOEmpresas daoE = new DAOEmpresas();
         oce.setEmpresa(daoE.obtenerEmpresaConverter(rs.getInt("idDireEmpre")));
         oce.setNombreComercial(rs.getString("nombreComercial"));
         oce.setDesctoComercial(rs.getDouble("desctoComercial"));
         oce.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
-
         DAOProveedores daoP = new DAOProveedores();
         int idProveedor = rs.getInt("idProveedor");
         if (idProveedor == 0) {
@@ -212,28 +210,7 @@ public class DAOOrdenDeCompra {
         oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaPuesta")));
         oce.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
         oce.setEstado(rs.getInt("estado"));
-        switch (rs.getInt("estado")) {
-            case 0:
-                oce.setStatus("Rechazado");
-                break;
-            case 1:
-                oce.setStatus("Activado");
-                break;
-            case 2:
-                oce.setStatus("Ordenado");
-                break;
-            case 3:
-                oce.setStatus("No Aprobado");
-                break;
-            case 4:
-                oce.setStatus("Cerrado");
-                break;
-            case 5:
-                oce.setStatus("Recibiendo");
-                break;
-            default:
-                oce.setStatus("Desconocido");
-        }
+        oce.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         oce.setMoneda(moneda);
         return oce;
     }
@@ -329,8 +306,7 @@ public class DAOOrdenDeCompra {
             cn.close();
         }
     }
-    
-    
+
     public ArrayList<Contacto> obtenerContactos(int idOC) throws SQLException {
         ArrayList<Contacto> lista;
         lista = new ArrayList<>();
@@ -374,7 +350,7 @@ public class DAOOrdenDeCompra {
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
-            String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaCreacion, fechaFinalizacion, fechaPuesta, estado, desctoComercial,"
+            String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
                     + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
                     + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
@@ -417,14 +393,14 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaCreacion, oc.fechaEntrega,\n"
-                    + "		oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
+            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaServidor, oc.fechaEntrega,\n"
+                    + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
                     + "    from ordenCompra oc\n"
-                    + "		inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
-                    + "		inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
-                    + "		inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
-                    + "	where oc.idCotizacion=0 \n"
-                    + "	order by oc.idOrdenCompra desc";
+                    + "	   inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
+                    + "	   inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
+                    + "	   inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
+                    + "	   where oc.idCotizacion=0 \n"
+                    + "	   order by oc.idOrdenCompra desc";
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 listaD.add(construirOCEncabezadoD(rs));
@@ -455,7 +431,7 @@ public class DAOOrdenDeCompra {
             oced.setProveedor(daoP.obtenerProveedor(idProveedor));
         }
 
-        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaCreacion")));
+        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oced.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
 
         oced.setDesctoComercial(rs.getDouble("desctoComercial"));
@@ -473,34 +449,8 @@ public class DAOOrdenDeCompra {
         if (idDireccionEntrega != 0) {
             oced.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
-
         oced.setEstado(rs.getInt("estado"));
-        switch (rs.getInt("estado")) {
-            case 0:
-//                SE CAMBIO EL NOMBRE DE RECHAZADO A CANCELADO POR LOS TERMINOS 
-//                QUE NO USAN EN LA ANITA
-//                oced.setStatus("Rechazado");
-                oced.setStatus("Cancelado");
-                break;
-            case 1:
-                oced.setStatus("Activado");
-                break;
-            case 2:
-                oced.setStatus("Ordenado");
-                break;
-            case 3:
-                oced.setStatus("No Aprobado");
-                break;
-            case 4:
-                oced.setStatus("Cerrado");
-                break;
-            case 5:
-                oced.setStatus("Recibiendo");
-                break;
-            default:
-                oced.setStatus("Desconocido");
-        }
-
+        oced.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         return oced;
     }
 

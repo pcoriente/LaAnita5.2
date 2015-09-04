@@ -241,7 +241,7 @@ public class MbEmpresas implements Serializable{
 
             ArrayList<Empresa> empresas = this.dao.obtenerComboEmpresa();
             for (Empresa e : empresas) {
-                listaComboEmpresas.add(new SelectItem(e, e.toString()));
+                listaComboEmpresas.add(new SelectItem(e, e.getNombreComercial()));
             }
         } catch (SQLException e) {
             Logger.getLogger(MbEmpresas.class.getName()).log(Level.SEVERE, null, e);
