@@ -37,19 +37,19 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaSolicitudes" value="#{mbTraspaso.envios}" style="border:solid 1px"
-                                     var="envio" rowKey="#{envio.idMovto}" selectionMode="single" 
+                        <p:dataTable id="listaSolicitudes" value="#{mbTraspaso.traspasos}" style="border:solid 1px"
+                                     var="traspaso" rowKey="#{traspaso.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.cargaDetalleSolicitud}" update="main" />
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.cargarDetalle}" update="main" />
 
                             <p:column headerText="CEDIS" >
-                                <h:outputText value="#{envio.almacenDestino.cedis}" />
+                                <h:outputText value="#{traspaso.almacenDestino.cedis}" />
                             </p:column>
                             <p:column headerText="Almacen" >
-                                <h:outputText value="#{envio.almacenDestino.toString()}" />
+                                <h:outputText value="#{traspaso.almacenDestino.toString()}" />
                             </p:column>
                             <p:column headerText="Fecha" style="width: 120px;" >
-                                <h:outputText value="#{envio.fecha}" >
+                                <h:outputText value="#{traspaso.fecha}" >
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
                             </p:column>
@@ -62,7 +62,7 @@
                                     <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText value="#{mbTraspaso.envio.almacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbTraspaso.traspaso.almacen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -70,7 +70,7 @@
                                     <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText value="#{mbTraspaso.envio.almacenDestino.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbTraspaso.traspaso.almacenDestino.cedis}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -78,15 +78,15 @@
                                     <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbTraspaso.envio.almacenDestino.toString()}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbTraspaso.traspaso.almacenDestino.toString()}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
-                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio" 
-                                                     disabled="#{mbTraspaso.envio.estatus!=0}"
+                                    <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar traspaso" 
+                                                     disabled="#{mbTraspaso.traspaso.estatus!=1}"
                                                      process="@this" actionListener="#{mbTraspaso.grabar()}" 
                                                      update="main" />
                                     <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
-                                                     disabled="#{mbTraspaso.envio.estatus==0}"
+                                                     disabled="#{mbTraspaso.traspaso.estatus==1}"
                                                      ajax="false" immediate="true" action="#{mbTraspaso.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbTraspaso.salir()}" 
@@ -94,12 +94,10 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleEnvio" value="#{mbTraspaso.envioDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" 
-                                     selectionMode="single"  selection="#{mbTraspaso.envioProducto}"
+                        <p:dataTable id="detalleTraspaso" value="#{mbTraspaso.traspasoDetalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}"  editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbTraspaso.editarLotes()}" update=":main:enviando :main:listaLotes"
-                                    oncomplete="PF('editarLotesDlg').show();" />
+                            <p:ajax event="cellEdit" listener="#{mbTraspaso.onCellEdit}" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
@@ -108,75 +106,29 @@
                                 <h:outputText value="#{prod.producto}" style="width: 440px;" />
                             </p:column>
                             <p:column headerText="Solicitada" style="width: 70px;" >
-                                <h:outputText value="#{prod.cantOrdenada}" style="width: 60px;" />
+                                <h:outputText value="#{prod.cantSolicitada}" style="width: 60px;" />
                             </p:column>
-                            <p:column headerText="Enviar" style="width: 70px;" >
-                                <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
-                            </p:column>
-                        </p:dataTable>
-                    </p:panel>
-                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
-                        <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
-                        <p:ajax event="close" listener="#{mbTraspaso.actualizarCantidad()}" update=":main:detalleEnvio" />
-                        <p:panelGrid id="enviando" >
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="Solicitados :" style="font-weight: bold; color: red; width: 90px;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbTraspaso.envioProducto.cantOrdenada}" size="14" readonly="true" />
-                                </p:column>
-                            </p:row>
-                        </p:panelGrid>
-                        <p:dataTable id="listaLotes" widgetVar="listaLotesEdit" 
-                                     value="#{mbTraspaso.envioProducto.lotes}" style="border: solid 1px" 
-                                     var="lote" rowKey="#{lote.lote}"  editable="true" editMode="cell"
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax event="cellEdit" listener="#{mbTraspaso.gestionarLotes}" update=":main:msgs1" />
-
-                            <p:column headerText="LOTE" style="width: 80px;" >
-                                <h:outputText value="#{lote.lote}" />
-                            </p:column>
-                            <p:column headerText="CADUCIDAD" style="width: 80px;" >
-                                <h:outputText value="#{lote.fechaCaducidad}" >
-                                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                                </h:outputText>
-                            </p:column>
-                            <p:column headerText="SALDO" style="width: 80px;" >
-                                <h:outputText value="#{lote.saldo}" />
-                            </p:column>
-                            <p:column headerText="SEPARADOS" style="width: 80px;" >
+                            <p:column headerText="Traspasar" style="width: 70px;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
-                                        <h:outputText value="#{lote.separados}" >
+                                        <h:outputText value="#{prod.cantFacturada}" >
                                             <f:convertNumber pattern="###,##0.000" />
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{lote.separados}" readonly="#{mbTraspaso.envio.estatus!=0}" >
-                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                        <p:inputText value="#{prod.cantFacturada}" style="width:60px;" onblur="" label="CANTIDAD" 
+                                                     readonly="#{mbTraspaso.traspaso.estatus!=1}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
-                                            <p:ajax event="change" listener="#{mbTraspaso.gestionarLotes1()}" 
-                                                    update=":main:msgs1 :main:listaLotes lotesTotales" 
-                                                    oncomplete="handleCerrarEditarLotes(xhr, status, args);" />
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                            <p:ajax event="change" 
+                                                    process="@this" listener="#{mbTraspaso.actualizarProducto()}"
+                                                    update=":main:msgs detalleTraspaso" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>
                             </p:column>
-                            <f:facet name="footer">
-                                <p:panelGrid id="lotesTotales" >
-                                    <p:row >
-                                        <p:column colspan="3" style="text-align: right; text-align: right;" >
-                                            <h:outputText value="Enviar :" />
-                                        </p:column>
-                                        <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbTraspaso.sumaLotes}" />
-                                        </p:column>
-                                    </p:row>
-                                </p:panelGrid>
-                            </f:facet>
                         </p:dataTable>
-                    </p:dialog>
+                    </p:panel>
                 </h:form>
                 <script type="text/javascript">
                     function handleCerrarEditarLotes(xhr, status, args) {

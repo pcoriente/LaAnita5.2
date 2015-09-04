@@ -20,7 +20,8 @@ public class OrdenCompraEncabezado implements Serializable {
     private double descuento;
     private Proveedor proveedor;
     private String fechaCreacion;
-    private String fechaFinalizacion;
+    private String fechaCierreOficina;
+    private String fechaCierreAlmacen;
     private String fechaPuesta;
     private int estado;
     private double desctoComercial;
@@ -41,7 +42,8 @@ public class OrdenCompraEncabezado implements Serializable {
         this.descuento = 0.00;
         this.proveedor = new Proveedor();
         this.fechaCreacion = "";
-        this.fechaFinalizacion = "";
+        this.fechaCierreOficina = "";
+        this.fechaCierreAlmacen = "";
         this.fechaPuesta = "";
         this.estado = 0;
         this.desctoComercial = 0.00;
@@ -136,12 +138,20 @@ public class OrdenCompraEncabezado implements Serializable {
         this.fechaCreacion = fechaCreacion;
     }
 
-    public String getFechaFinalizacion() {
-        return fechaFinalizacion;
+    public String getFechaCierreOficina() {
+        return fechaCierreOficina;
     }
 
-    public void setFechaFinalizacion(String fechaFinalizacion) {
-        this.fechaFinalizacion = fechaFinalizacion;
+    public void setFechaCierreOficina(String fechaCierreOficina) {
+        this.fechaCierreOficina = fechaCierreOficina;
+    }
+
+    public String getFechaCierreAlmacen() {
+        return fechaCierreAlmacen;
+    }
+
+    public void setFechaCierreAlmacen(String fechaCierreAlmacen) {
+        this.fechaCierreAlmacen = fechaCierreAlmacen;
     }
 
     public String getFechaPuesta() {

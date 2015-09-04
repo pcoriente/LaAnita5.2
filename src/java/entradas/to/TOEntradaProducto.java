@@ -2,7 +2,7 @@ package entradas.to;
 
 import java.util.ArrayList;
 import movimientos.dominio.Lote;
-import movimientos.to.TOMovimientoProducto;
+import movimientos.to1.TOMovimientoProducto;
 
 /**
  *

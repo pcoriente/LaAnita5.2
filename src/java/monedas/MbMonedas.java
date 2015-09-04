@@ -4,13 +4,8 @@ import Message.Mensajes;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Named;
-import javax.enterprise.context.Dependent;
 import javax.enterprise.context.SessionScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 
@@ -34,46 +29,37 @@ public class MbMonedas implements Serializable {
     }
 
     public Moneda obtenerMoneda(int idMoneda) {
-        boolean ok = false;
         Moneda m = null;
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cerradaOficina");
         try {
             this.dao = new DAOMonedas();
             m = this.dao.obtenerMoneda(idMoneda);
             if (m == null) {
-                fMsg.setDetail("No se encontro la moneda solicitada");
-            } else {
-                ok = true;
+                Mensajes.mensajeAlert("No se encontro la moneda solicitada");
             }
         } catch (NamingException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getMessage());
+            Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        if (!ok) {
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
         return m;
     }
 
     private ArrayList<SelectItem> obtenerListaMonedas() {
-        listaMonedas = new ArrayList<SelectItem>();
+        listaMonedas = new ArrayList<>();
         try {
             Moneda m0 = new Moneda();
             m0.setIdMoneda(0);
             m0.setMoneda("Moneda: ");
             listaMonedas.add(new SelectItem(m0, m0.toString()));
-            DAOMonedas dao = new DAOMonedas();
+            this.dao = new DAOMonedas();
             ArrayList<Moneda> monedas = dao.obtenerMonedas();
             for (Moneda e : monedas) {
                 listaMonedas.add(new SelectItem(e, e.toString()));
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NamingException ex) {
-            Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
         return listaMonedas;
     }
@@ -106,7 +92,6 @@ public class MbMonedas implements Serializable {
     public void guardarMoneda() {
         boolean ok = validar();
         if (ok == true) {
-            DAOMonedas dao;
             try {
                 dao = new DAOMonedas();
                 if (SeleccionMoneda.getIdMoneda() > 0) {
@@ -120,10 +105,8 @@ public class MbMonedas implements Serializable {
                 SeleccionMoneda = null;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             }
 
         }
@@ -146,15 +129,14 @@ public class MbMonedas implements Serializable {
 
     public ArrayList<Moneda> getLstMoneda() {
         if (lstMoneda == null) {
-            lstMoneda = new ArrayList<Moneda>();
+            lstMoneda = new ArrayList<>();
             try {
                 DAOMonedas dao = new DAOMonedas();
                 lstMoneda = dao.obtenerMonedas();
             } catch (NamingException ex) {
-                Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbMonedas.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
             }
         }
         return lstMoneda;

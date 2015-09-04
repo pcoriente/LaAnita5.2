@@ -89,6 +89,112 @@
                     </p:column>
                 </p:dataTable>
             </p:panel>
+            <p:dialog header="Edicion" widgetVar="EdicionDlg" closable="false" resizable="false" style="width: 600px;" modal="true" >
+                <p:ajax event="close" update=":main:detallePedido :main:totales" />
+                <p:messages id="msgsEdicion" showDetail="true" closable="true" />
+                <p:panelGrid id="panelEdicion" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtProducto" value="PRODUCTO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="4" >
+                            <p:inputText id="txtProducto" value="#{mbVentas.producto.toString()}" size="80" readonly="true" />
+                        </p:column>
+                    </p:row>
+                    <p:row rendered="#{mbVentas.venta.idPedido!=0}" >
+                        <p:column >
+                            <h:outputLabel for="txtOrdenada" value="CANT.ORDENADA :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="4" >
+                            <p:inputText id="txtOrdenada" value="#{mbVentas.producto.cantOrdenada}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row rendered="#{mbVentas.venta.idPedido!=0}" >
+                        <p:column >
+                            <h:outputLabel for="txtOrdenadaSinCargo" value="ORDENADAS SIN CARGO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="4" >
+                            <p:inputText id="txtOrdenadaSinCargo" value="#{mbVentas.producto.cantOrdenadaSinCargo}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="CANT.CON CARGO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <pe:inputNumber value="#{mbVentas.producto.cantFacturada}" style="width: 120px;" 
+                                            maxlength="14" decimalPlaces="4" minValue="0" emptyValue="0" 
+                                            disabled="#{mbVentas.venta.idPedido!=0}" >
+                                <p:ajax event="change" process="@this" listener="#{mbVentas.actualizaProducto()}" 
+                                        update=":main:msgsEdicion panelEdicion" 
+                                        oncomplete="handleEdicion(xhr, status, args);" />
+                            </pe:inputNumber>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtSinCargo" value="CANT.SIN CARGO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtSinCargo" value="#{mbVentas.producto.cantSinCargo}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.0000" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column style="text-align: right;" >
+                            <p:commandButton id="btnTraspasoSimilares" value="Cambiar" title="Cambiar sin canrgo a otro similar" 
+                                             disabled="#{mbVentas.producto.cantSinCargo==0}"
+                                             actionListener="#{mbVentas.traspasoSimilar()}" 
+                                             oncomplete="handleAbrirSimilares(xhr, status, args);" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtPrecio" value="PRECIO LISTA :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtPrecio" value="#{mbVentas.producto.precio}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtDescto" value="DESCUENTO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText id="txtDescto" value="#{mbVentas.producto.descuento}" size="8" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtUnitario" value="PRECIO UNITARIO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtUnitario" value="#{mbVentas.producto.unitario}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtNeto" value="PRECIO NETO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText id="txtNeto" value="#{mbVentas.producto.neto}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.000000" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                    <f:facet name="footer" >
+                        <p:row >
+                            <p:column colspan="5" style="text-align: right;" >
+                                <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
+                                                 immediate="true" onclick="PF('EdicionDlg').hide();" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+            </p:dialog>
             <p:dialog header="Captura de Pedido" widgetVar="pedidoDlg" resizable="false" modal="true" >
                 <p:ajax event="close" listener="#{mbVentas.liberarMovtoRelacionado()}" />
                 <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
@@ -142,25 +248,30 @@
                             update=":main:msgsPedido" oncomplete="abrirEdicion(xhr, status, args);" />
 
                     <f:facet name="header" >Detalle del pedido</f:facet>
-                    <p:column headerText="Codigo" style="width: 50px;" >
+                    <p:column headerText="SKU" style="width: 50px;" >
                         <h:outputText value="#{prod.producto.cod_pro}" />
                     </p:column>
-                    <p:column headerText="Producto" >
+                    <p:column headerText="Descripción" >
                         <h:outputText value="#{prod.producto.toString()}" />
                     </p:column>
-                    <p:column headerText="Ordenadas" rendered="#{mbVentas.venta.idPedido!=0}" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantidadOrdenada}" >
-                            <f:convertNumber pattern="###,##0.0000" />
+                    <p:column headerText="Ordenadas Con Cargo" rendered="#{mbVentas.venta.idPedido!=0}" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantOrdenada}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Ordenadas Sin Cargo" rendered="#{mbVentas.venta.idPedido!=0}" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantOrdenadaSinCargo}" >
+                            <f:convertNumber pattern="#,##0.000" />
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Con Cargo" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantidadFacturada}" >
-                            <f:convertNumber pattern="###,##0.0000" />
+                        <h:outputText value="#{prod.cantFacturada}" >
+                            <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
                         <h:outputText value="#{prod.cantSinCargo}" >
-                            <f:convertNumber pattern="#,##0.0000" />
+                            <f:convertNumber pattern="#,##0.000" />
                         </h:outputText>
                     </p:column>
                     <p:column headerText="% Descto" style="width: 60px; text-align: right;" >
@@ -174,7 +285,7 @@
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Importe" style="width: 80px; text-align: right;" >
-                        <h:outputText value="#{prod.cantidadFacturada*prod.unitario}" >
+                        <h:outputText value="#{prod.cantFacturada*prod.unitario}" >
                             <f:convertNumber pattern="###,##0.000000" />
                         </h:outputText>
                     </p:column>
@@ -323,16 +434,6 @@
             </p:dialog>
         </h:form>
         <script type="text/javascript" >
-            function handleEdicion(xhr, status, args) {
-                if (!(args.validationFailed || !args.okEdicion)) {
-                    PF('EdicionDlg').hide();
-                }
-            }
-            function abrirEdicion(xhr, status, args) {
-                if (!(args.validationFailed || !args.okEdicion)) {
-                    PF('EdicionDlg').show();
-                }
-            }
             function handleSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
                     PF('SimilaresDlg').hide();
@@ -342,6 +443,16 @@
             function handleAbrirSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
                     PF('SimilaresDlg').show();
+                }
+            }
+            function handleEdicion(xhr, status, args) {
+                if (!(args.validationFailed || !args.okEdicion)) {
+                    PF('EdicionDlg').hide();
+                }
+            }
+            function abrirEdicion(xhr, status, args) {
+                if (!(args.validationFailed || !args.okEdicion)) {
+                    PF('EdicionDlg').show();
                 }
             }
             function handleBuscar(xhr, status, args) {

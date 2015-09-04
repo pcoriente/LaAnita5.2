@@ -251,7 +251,7 @@ public class MbPedidos implements Serializable {
                 this.producto.setCantOrdenada(cantOrdenadaOld);
 
                 this.daoMv = new DAOMovimientos();
-                daoMv.grabarPedidoDetalle(toPed, toProd);
+                daoMv.grabarPedidoDetalle(this.pedido.getIdEmpresa(), toPed, toProd);
                 this.pedido.setCantArticulos(this.pedido.getCantArticulos() - this.producto.getCantOrdenadaTotal());
                 this.totalResta(this.producto);
 
@@ -326,7 +326,7 @@ public class MbPedidos implements Serializable {
                 toProd.setIdImpuestoGrupo(this.producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
 
                 this.daoMv = new DAOMovimientos();
-                this.daoMv.agregarProductoPedido(toPed, toProd);
+                this.daoMv.agregarProductoPedido(this.pedido.getIdEmpresa(), toPed, this.pedido.getTienda().getIdImpuestoZona(), toProd);
                 this.producto = this.convertir(toProd);
                 this.detalle.add(this.producto);
                 ok = true;
@@ -427,7 +427,7 @@ public class MbPedidos implements Serializable {
             ArrayList<TOProductoPedido> tos = this.daoMv.obtenerPedidoDetalle(this.pedido.getIdMovto());
             if (this.pedido.getEstatus() == 0) {
                 TOPedido toPed = this.convertir(this.pedido);
-                this.daoMv.actualizarPedido(toPed, tos);
+                this.daoMv.actualizarPedido(this.pedido.getIdEmpresa(), toPed, tos);
             }
             this.pedido.setSubTotal(0);
             this.pedido.setDescuento(0);
@@ -460,15 +460,15 @@ public class MbPedidos implements Serializable {
 
         to.setIdMovto(p.getIdMovto());
         to.setIdTipo(28);
-        to.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
-        to.setIdCedis(this.mbAlmacenes.getToAlmacen().getIdCedis());
+//        to.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
+//        to.setIdCedis(this.mbAlmacenes.getToAlmacen().getIdCedis());
         to.setIdAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen());
         to.setFolio(0);
         to.setIdComprobante(0);
         to.setDesctoComercial(p.getCliente().getDesctoComercial());
         to.setDesctoProntoPago(p.getDesctoProntoPago());
-        to.setIdImpuestoZona(p.getTienda().getIdImpuestoZona());
-        to.setIdMoneda(1);
+//        to.setIdImpuestoZona(p.getTienda().getIdImpuestoZona());
+//        to.setIdMoneda(1);
         to.setTipoDeCambio(1);
         to.setFecha(p.getFecha());
         to.setIdReferencia(p.getTienda().getIdTienda());
@@ -537,7 +537,7 @@ public class MbPedidos implements Serializable {
         p.setCancelacionMotivo(to.getCanceladoMotivo());
 
         p.setIdMovto(to.getIdMovto());
-        p.setIdEmpresa(to.getIdEmpresa());
+        p.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
         p.setTienda(this.mbTiendas.obtenerTienda(to.getIdReferencia()));
         p.setFormato(this.mbFormatos.obtenerFormato(p.getTienda().getIdFormato()));
         p.setCliente(this.mbClientes.obtenerCliente(p.getTienda().getIdCliente()));

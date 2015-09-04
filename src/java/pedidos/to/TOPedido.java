@@ -1,13 +1,13 @@
 package pedidos.to;
 
 import java.util.Date;
-import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoOficina;
 
 /**
  *
  * @author jesc
  */
-public class TOPedido extends TOMovimiento {
+public class TOPedido extends TOMovimientoOficina {
     private int idPedidoOC;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;

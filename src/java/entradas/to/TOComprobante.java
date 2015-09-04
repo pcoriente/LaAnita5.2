@@ -8,38 +8,43 @@ import java.util.Date;
  */
 public class TOComprobante {
     private int idComprobante;
+    private int idTipoMovto;
     private int idReferencia;
     private int tipo;
     private String serie;
     private String numero;
     private Date fecha;
+    private int idMoneda;
+    private int idUsuario;
     private int propietario;
-    private int idMovto;
+    private int estatus;
 
     public TOComprobante() {
-        this.tipo=2;
-        this.serie="";
-        this.numero="";
-        this.fecha=new Date();
+        this.tipo = 3;
+        this.serie = "";
+        this.numero = "";
+        this.fecha = new Date();
+        this.idMoneda = 1;
     }
-    
-    public TOComprobante(int idProveedor) {
-        this.idReferencia=idProveedor;
-        this.tipo=2;
-        this.serie="";
-        this.numero="";
-        this.fecha=new Date();
+
+    public TOComprobante(int idTipoMovto, int idReferencia) {
+        this.idReferencia = idReferencia;
+        this.idTipoMovto = idTipoMovto;
+        this.tipo = 3;
+        this.serie = "";
+        this.numero = "";
+        this.fecha = new Date();
+        this.idMoneda = 1;
     }
     
     @Override
     public String toString() {
-//        return this.remision.isEmpty()?((this.serie.isEmpty()?"":this.serie+"-")+this.numero):this.remision;
-        return (this.tipo==3?"Factura "+this.serie+"-":(this.tipo==2?"Remision ":"Interno "))+this.numero;
+        return (this.tipo == 3 ? "Factura " + this.serie + "-" : (this.tipo == 2 ? "Remision " : "Interno ")) + this.numero;
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
+        int hash = 5;
         hash = 67 * hash + this.idComprobante;
         return hash;
     }
@@ -65,6 +70,14 @@ public class TOComprobante {
 
     public void setIdComprobante(int idComprobante) {
         this.idComprobante = idComprobante;
+    }
+
+    public int getIdTipoMovto() {
+        return idTipoMovto;
+    }
+
+    public void setIdTipoMovto(int idTipoMovto) {
+        this.idTipoMovto = idTipoMovto;
     }
 
     public int getIdReferencia() {
@@ -107,6 +120,22 @@ public class TOComprobante {
         this.fecha = fecha;
     }
 
+    public int getIdMoneda() {
+        return idMoneda;
+    }
+
+    public void setIdMoneda(int idMoneda) {
+        this.idMoneda = idMoneda;
+    }
+
+    public int getIdUsuario() {
+        return idUsuario;
+    }
+
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
+    }
+
     public int getPropietario() {
         return propietario;
     }
@@ -115,11 +144,11 @@ public class TOComprobante {
         this.propietario = propietario;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

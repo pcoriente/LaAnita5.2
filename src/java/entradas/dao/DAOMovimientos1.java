@@ -1,8 +1,8 @@
 package entradas.dao;
 
 import entradas.dominio.MovimientoProducto;
-import movimientos.to.TOMovimiento;
-import movimientos.to.TOMovimientoProducto;
+import movimientos.to.TOMovimientoOficina;
+import movimientos.to1.TOMovimientoProducto;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,7 +24,7 @@ import movimientos.dominio.MovimientoTipo;
 import entradas.to.TOEntradaProducto;
 import movimientos.to.TOLote;
 import movimientos.to.TOMovimientoAlmacenProducto;
-import movimientos.to.TOMovimientoAlmacenProducto1;
+import movimientos.to1.TOMovimientoAlmacenProducto1;
 import mvEntradas.TOEntradaOficinaProducto;
 import pedidos.to.TOPedido;
 import pedidos.to.TOPedidoProducto;
@@ -187,7 +187,7 @@ public class DAOMovimientos1 {
         }
     }
 
-    public void grabarEntradaOficina(TOMovimiento to) throws SQLException {
+    public void grabarEntradaOficina(TOMovimientoOficina to) throws SQLException {
         String strSQL;
         int folio;
         this.cnx = this.ds.getConnection();
@@ -293,7 +293,7 @@ public class DAOMovimientos1 {
         }
     }
 
-    public void grabarEntradaAlmacen(TOMovimiento to) throws SQLException {
+    public void grabarEntradaAlmacen(TOMovimientoOficina to) throws SQLException {
         int folio;
         double saldo;
         String strSQL;
@@ -448,7 +448,7 @@ public class DAOMovimientos1 {
         return folio;
     }
 
-    public void grabarSalidaOficina(TOMovimiento to) throws SQLException {
+    public void grabarSalidaOficina(TOMovimientoOficina to) throws SQLException {
         int folio;
         String strSQL;
 
@@ -662,12 +662,12 @@ public class DAOMovimientos1 {
             ResultSet rs = st.executeQuery(strSQL);
             rs.next();
 
-            TOMovimiento toMv = new TOMovimiento();
+            TOMovimientoOficina toMv = new TOMovimientoOficina();
             toMv.setIdTipo(28);
-            toMv.setIdEmpresa(rs.getInt("idEmpresa"));
+//            toMv.setIdEmpresa(rs.getInt("idEmpresa"));
             toMv.setIdAlmacen(rs.getInt("idAlmacen"));
-            toMv.setIdImpuestoZona(rs.getInt("idImpuestoZona"));
-            toMv.setIdMoneda(1);
+//            toMv.setIdImpuestoZona(rs.getInt("idImpuestoZona"));
+//            toMv.setIdMoneda(1);
             toMv.setTipoDeCambio(1);
             toMv.setIdReferencia(rs.getInt("idTienda"));
             toMv.setReferencia(idPedido);
@@ -693,7 +693,7 @@ public class DAOMovimientos1 {
                 toProd.setCantOrdenada(rs.getDouble("cantFacturada"));
                 toProd.setIdImpuestoGrupo(rs.getInt("idImpuestoGrupo"));
 
-                this.agregarProductoOficina(toMv.getIdEmpresa(), toProd, toMv.getIdImpuestoZona(), toMv.getIdReferencia());
+//                this.agregarProductoOficina(toMv.getIdEmpresa(), toProd, toMv.getIdImpuestoZona(), toMv.getIdReferencia());
             }
             strSQL = "UPDATE movimientos SET propietario=0 WHERE idMovto=" + toMv.getIdMovto();
             st.executeUpdate(strSQL);
@@ -2057,10 +2057,11 @@ public class DAOMovimientos1 {
         return cantidad;
     }
 
-    public int agregarMovimientoOficina(TOMovimiento to) throws SQLException {
+    public int agregarMovimientoOficina(TOMovimientoOficina to) throws SQLException {
         int idMovto = 0;
-        String strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus) "
-                + "VALUES(" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
+//        String strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus) "
+//                + "VALUES(" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
+        String strSQL="";
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
@@ -2112,8 +2113,8 @@ public class DAOMovimientos1 {
         }
     }
 
-    public ArrayList<TOMovimiento> movimientosPendientes(boolean oficina, int entrada) throws SQLException {
-        ArrayList<TOMovimiento> lista = new ArrayList<TOMovimiento>();
+    public ArrayList<TOMovimientoOficina> movimientosPendientes(boolean oficina, int entrada) throws SQLException {
+        ArrayList<TOMovimientoOficina> lista = new ArrayList<TOMovimientoOficina>();
         String tabla = "movimientosAlmacen";
         if (oficina) {
             tabla = "movimientos";
@@ -2137,13 +2138,13 @@ public class DAOMovimientos1 {
         return lista;
     }
 
-    private TOMovimiento construirMovimientoAlmacen(ResultSet rs) throws SQLException {
-        TOMovimiento to = new TOMovimiento();
+    private TOMovimientoOficina construirMovimientoAlmacen(ResultSet rs) throws SQLException {
+        TOMovimientoOficina to = new TOMovimientoOficina();
         to.setIdMovto(rs.getInt("idMovto"));
         to.setIdTipo(rs.getInt("idTipo"));
         to.setFolio(rs.getInt("folio"));
-        to.setIdCedis(rs.getInt("idCedis"));
-        to.setIdEmpresa(rs.getInt("idEmpresa"));
+//        to.setIdCedis(rs.getInt("idCedis"));
+//        to.setIdEmpresa(rs.getInt("idEmpresa"));
         to.setIdAlmacen(rs.getInt("idAlmacen"));
         to.setIdComprobante(rs.getInt("idComprobante"));
         java.sql.Date f = rs.getDate("fecha");
@@ -2153,7 +2154,7 @@ public class DAOMovimientos1 {
         return to;
     }
 
-    public void grabarSalidaAlmacen(TOMovimiento to) throws SQLException {
+    public void grabarSalidaAlmacen(TOMovimientoOficina to) throws SQLException {
         ResultSet rs, rs1;
 
         String strSQL;
@@ -2208,14 +2209,15 @@ public class DAOMovimientos1 {
         }
     }
 
-    public int agregarMovimientoAlmacen(TOMovimiento to) throws SQLException {
+    public int agregarMovimientoAlmacen(TOMovimientoOficina to) throws SQLException {
         int idMovto = 0;
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
         try {
             st.executeUpdate("BEGIN TRANSACTION");
-            String strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, estatus) "
-                    + "VALUES (" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 0)";
+//            String strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, estatus) "
+//                    + "VALUES (" + to.getIdTipo() + ", " + to.getIdCedis() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 0)";
+            String strSQL="";
             st.executeUpdate(strSQL);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
@@ -2267,7 +2269,7 @@ public class DAOMovimientos1 {
         return lst;
     }
 
-    public void grabarTraspasoRecepcion(TOMovimiento m, ArrayList<TOEntradaProducto> detalle) throws SQLException {
+    public void grabarTraspasoRecepcion(TOMovimientoOficina m, ArrayList<TOEntradaProducto> detalle) throws SQLException {
         String strSQL;
         ResultSet rs;
         Statement st;
@@ -2317,19 +2319,19 @@ public class DAOMovimientos1 {
                         + "WHERE idMovto=" + m.getIdMovto() + " AND idEmpaque=" + to.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                strSQL = "SELECT promedioPonderado, existenciaOficina FROM empresasEmpaques "
-                        + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
+//                strSQL = "SELECT promedioPonderado, existenciaOficina FROM empresasEmpaques "
+//                        + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     promedioPonderado = rs.getDouble("promedioPonderado");
                     existenciaOficina = rs.getDouble("existenciaOficina");
                     promedioPonderado = (promedioPonderado * existenciaOficina + to.getUnitario() * to.getCantFacturada()) / (existenciaOficina + to.getCantFacturada());
-                    strSQL = "UPDATE empresasEmpaques "
-                            + "SET promedioPonderado=" + promedioPonderado + ", existenciaOficina=existenciaOficina+" + to.getCantFacturada() + " "
-                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
+//                    strSQL = "UPDATE empresasEmpaques "
+//                            + "SET promedioPonderado=" + promedioPonderado + ", existenciaOficina=existenciaOficina+" + to.getCantFacturada() + " "
+//                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + to.getIdProducto();
                 } else {
-                    strSQL = "INSERT INTO empresasEmpaques (idEmpresa, idEmpaque, promedioPonderado, existenciaOficina, idMovtoUltimaEntrada) "
-                            + "VALUES (" + m.getIdEmpresa() + ", " + to.getIdProducto() + ", " + to.getUnitario() + ", " + to.getCantFacturada() + ", 0)";
+//                    strSQL = "INSERT INTO empresasEmpaques (idEmpresa, idEmpaque, promedioPonderado, existenciaOficina, idMovtoUltimaEntrada) "
+//                            + "VALUES (" + m.getIdEmpresa() + ", " + to.getIdProducto() + ", " + to.getUnitario() + ", " + to.getCantFacturada() + ", 0)";
                 }
                 st.executeUpdate(strSQL);
 
@@ -2405,7 +2407,7 @@ public class DAOMovimientos1 {
 //        }
 //        return idMovto;
 //    }
-    public void grabarTraspasoEnvio(int idAlmacenDestino, TOMovimiento m, ArrayList<TOMovimientoProducto> detalle) throws SQLException {
+    public void grabarTraspasoEnvio(int idAlmacenDestino, TOMovimientoOficina m, ArrayList<TOMovimientoProducto> detalle) throws SQLException {
         String strSQL;
         ResultSet rs;
         Statement st, st1;
@@ -2482,8 +2484,8 @@ public class DAOMovimientos1 {
                     if (d.getCantFacturada() == sumaLotes) {
                         costo = 0;    // Cuando ya no hay existencia el costo promedio de la empresa se hace cero
                     }
-                    strSQL = "UPDATE empresasEmpaques SET existenciaOficina=existenciaOficina-" + d.getCantFacturada() + ", promedioPonderado=" + costo + " "
-                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + d.getIdProducto();
+//                    strSQL = "UPDATE empresasEmpaques SET existenciaOficina=existenciaOficina-" + d.getCantFacturada() + ", promedioPonderado=" + costo + " "
+//                            + "WHERE idEmpresa=" + m.getIdEmpresa() + " AND idEmpaque=" + d.getIdProducto();
                     st.executeUpdate(strSQL);
                 }
             }
@@ -2524,8 +2526,8 @@ public class DAOMovimientos1 {
                 throw new SQLException("No se encontro almacen=" + idAlmacenDestino);
             }
             int idMovto = 0;
-            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus) "
-                    + "VALUES(9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + idAlmacenDestino + ", " + folioRecepcion + ", 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
+//            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus) "
+//                    + "VALUES(9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + idAlmacenDestino + ", " + folioRecepcion + ", 0, 0, 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -2544,8 +2546,8 @@ public class DAOMovimientos1 {
             st.executeUpdate(strSQL);
 
             int idMovtoAlmacen = 0;
-            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario) "
-                    + "VALUES (9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + idAlmacenDestino + ", " + folioRecepcionAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ")";
+//            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario) "
+//                    + "VALUES (9, " + idCedisDestino + ", " + m.getIdEmpresa() + ", " + idAlmacenDestino + ", " + folioRecepcionAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ")";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {
@@ -2581,7 +2583,7 @@ public class DAOMovimientos1 {
         }
     }
 
-    public boolean grabarTraspasoSolicitud(TOMovimiento solicitud, ArrayList<MovimientoProducto> productos) throws SQLException {
+    public boolean grabarTraspasoSolicitud(TOMovimientoOficina solicitud, ArrayList<MovimientoProducto> productos) throws SQLException {
         boolean ok = true;
         int folio;
         int idMovto, idMovtoAlmacen;
@@ -2607,8 +2609,8 @@ public class DAOMovimientos1 {
             st.executeUpdate(strSQL);
 
             idMovto = 0;
-            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus, propietario, idReferencia, referencia) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, 0, " + solicitud.getIdReferencia() + ", 0)";
+//            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, estatus, propietario, idReferencia, referencia) "
+//                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folio + ", 0, " + solicitud.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", 1, 1, 0, 0, " + solicitud.getIdReferencia() + ", 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -2639,8 +2641,8 @@ public class DAOMovimientos1 {
             st.executeUpdate(strSQL);
 
             idMovtoAlmacen = 0;
-            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, propietario, idReferencia, referencia, estatus) "
-                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ", 0, " + solicitud.getIdReferencia() + ", 0, 0)";
+//            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario, propietario, idReferencia, referencia, estatus) "
+//                    + "VALUES (35, " + solicitud.getIdCedis() + ", " + solicitud.getIdEmpresa() + ", " + solicitud.getIdAlmacen() + ", " + folioAlmacen + ", " + idComprobante + ", GETDATE(), " + this.idUsuario + ", 0, " + solicitud.getIdReferencia() + ", 0, 0)";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
             if (rs.next()) {
@@ -2785,7 +2787,7 @@ public class DAOMovimientos1 {
         return ok;
     }
 
-    public boolean grabarComprasAlmacen(TOMovimiento m, ArrayList<MovimientoProducto> productos, int idOrdenCompra) throws SQLException {
+    public boolean grabarComprasAlmacen(TOMovimientoOficina m, ArrayList<MovimientoProducto> productos, int idOrdenCompra) throws SQLException {
         boolean ok = false;
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
@@ -2824,8 +2826,8 @@ public class DAOMovimientos1 {
             } else {
                 throw new SQLException("No se encontro el lote de fecha de hoy");
             }
-            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario) "
-                    + "VALUES (1, " + m.getIdCedis() + ", " + m.getIdEmpresa() + ", " + m.getIdAlmacen() + ", " + folio + ", " + m.getIdComprobante() + ", GETDATE(), " + this.idUsuario + ")";
+//            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idUsuario) "
+//                    + "VALUES (1, " + m.getIdCedis() + ", " + m.getIdEmpresa() + ", " + m.getIdAlmacen() + ", " + folio + ", " + m.getIdComprobante() + ", GETDATE(), " + this.idUsuario + ")";
             st.executeUpdate(strSQL);
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
@@ -3326,7 +3328,7 @@ public class DAOMovimientos1 {
 //        return to;
 //    }
 
-    public void agregarMovimientoRelacionado(TOMovimiento to) throws SQLException {
+    public void agregarMovimientoRelacionado(TOMovimientoOficina to) throws SQLException {
         this.cnx = this.ds.getConnection();
         Statement st = this.cnx.createStatement();
         try {
@@ -3343,20 +3345,20 @@ public class DAOMovimientos1 {
         }
     }
 
-    private void agregaMovimientoRelacionado(TOMovimiento to) throws SQLException {
-        String strSQL;
+    private void agregaMovimientoRelacionado(TOMovimientoOficina to) throws SQLException {
+        String strSQL="";
         Statement st = this.cnx.createStatement();
         try {
-            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, idReferencia, referencia, estatus, propietario) "
-                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, " + to.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + this.idUsuario + ")";
+//            strSQL = "INSERT INTO movimientos (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, idImpuestoZona, desctoComercial, desctoProntoPago, fecha, idUsuario, idMoneda, tipoCambio, idReferencia, referencia, estatus, propietario) "
+//                    + "VALUES(" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, " + to.getIdImpuestoZona() + ", 0, 0, GETDATE(), " + this.idUsuario + ", " + to.getIdMoneda() + ", " + to.getTipoDeCambio() + ", " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getEstatus() + ", " + this.idUsuario + ")";
             st.executeUpdate(strSQL);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovto");
             if (rs.next()) {
                 to.setIdMovto(rs.getInt("idMovto"));
             }
-            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idReferencia, referencia, idUsuario, estatus, propietario) "
-                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + this.idUsuario + ", " + to.getEstatus() + ", " + this.idUsuario + ")";
+//            strSQL = "INSERT INTO movimientosAlmacen (idTipo, idCedis, idEmpresa, idAlmacen, folio, idComprobante, fecha, idReferencia, referencia, idUsuario, estatus, propietario) "
+//                    + "VALUES (" + to.getIdTipo() + ", " + this.idCedis + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", 0, 0, GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + this.idUsuario + ", " + to.getEstatus() + ", " + this.idUsuario + ")";
             st.executeUpdate(strSQL);
 
             rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
@@ -3370,12 +3372,12 @@ public class DAOMovimientos1 {
         }
     }
 
-    public ArrayList<TOMovimiento> obtenerMovimientosAlmacenRelacionados(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
+    public ArrayList<TOMovimientoOficina> obtenerMovimientosAlmacenRelacionados(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
         if (fechaInicial == null) {
             fechaInicial = new Date();
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        ArrayList<TOMovimiento> solicitudes = new ArrayList<TOMovimiento>();
+        ArrayList<TOMovimientoOficina> solicitudes = new ArrayList<TOMovimientoOficina>();
         String strSQL = "SELECT M.*"
                 + ", ISNULL(C.tipoComprobante, 0) AS tipoComprobante, ISNULL(C.remision, '') AS remision"
                 + ", ISNULL(C.serie, '') AS  serie, ISNULL(C.numero, '') AS numero, ISNULL(C.idUsuario, 0) AS idUsuarioComprobante"
@@ -3400,12 +3402,12 @@ public class DAOMovimientos1 {
         return solicitudes;
     }
 
-    public ArrayList<TOMovimiento> obtenerMovimientosRelacionados(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
+    public ArrayList<TOMovimientoOficina> obtenerMovimientosRelacionados(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
         if (fechaInicial == null) {
             fechaInicial = new Date();
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        ArrayList<TOMovimiento> solicitudes = new ArrayList<TOMovimiento>();
+        ArrayList<TOMovimientoOficina> solicitudes = new ArrayList<TOMovimientoOficina>();
         String strSQL = "SELECT M.*"
                 + ", ISNULL(C.tipoComprobante, 0) AS tipoComprobante, ISNULL(C.remision, '') AS remision"
                 + ", ISNULL(C.serie, '') AS  serie, ISNULL(C.numero, '') AS numero, ISNULL(C.idUsuario, 0) AS idUsuarioComprobante"

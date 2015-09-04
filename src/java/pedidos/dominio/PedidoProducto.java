@@ -11,11 +11,12 @@ import producto2.dominio.Producto;
 public class PedidoProducto {
 
     private int idPedido;
-    private int idMovto;
-    private Producto producto;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private double cantOrdenadaTotal;
+    
+    private int idMovto;
+    private Producto producto;
     private double cantFacturada;
     private double cantSinCargo;
 //    private double separados;
@@ -32,6 +33,7 @@ public class PedidoProducto {
 
     public PedidoProducto(Producto producto) {
         this.producto = producto;
+        this.impuestos = new ArrayList<>();
     }
 
     @Override
