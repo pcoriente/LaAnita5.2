@@ -1,4 +1,4 @@
-package movimientos;
+package traspasos;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
@@ -26,8 +26,8 @@ import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.EntradaProducto;
 import movimientos.dominio.Lote;
 import movimientos.dominio.MovimientoRelacionado;
-import movimientos.to.TOMovimiento;
-import movimientos.to.TOMovimientoProducto;
+import movimientos.to.TOMovimientoOficina;
+import movimientos.to1.TOMovimientoProducto;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -84,7 +84,7 @@ public class MbRechazo implements Serializable {
         for (Lote l : prod.getLotes()) {
             if (l.getSeparados() != 0) {
                 if (ya) {
-                    rep.getLotes().add(l);
+//                    rep.getLotes().add(l);
                 } else {
                     rep.setLote(l.getLote());
                     rep.setLoteCantidad(l.getSeparados());
@@ -202,7 +202,7 @@ public class MbRechazo implements Serializable {
         }
     }
 
-    private MovimientoRelacionado convertir(TOMovimiento toMovimiento) {
+    private MovimientoRelacionado convertir(TOMovimientoOficina toMovimiento) {
         MovimientoRelacionado movimiento = new MovimientoRelacionado();
         movimiento.setIdMovto(toMovimiento.getIdMovto());
         movimiento.setIdMovtoAlmacen(toMovimiento.getIdMovtoAlmacen());
@@ -220,7 +220,7 @@ public class MbRechazo implements Serializable {
         this.rechazos = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientos(this.almacen.getIdAlmacen(), 53, 1, new Date())) {
+            for (TOMovimientoOficina m : this.dao.obtenerMovimientos(this.almacen.getIdAlmacen(), 53, 1, new Date())) {
                 this.rechazos.add(this.convertir(m));
             }
             ok = true;

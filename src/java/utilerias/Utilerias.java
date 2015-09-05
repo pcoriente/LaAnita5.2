@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  *
  * @author Julio
  */
-public  class Utilerias {
+public class Utilerias {
 
     public static String date2String(Date fecha) {
         String strFecha = "";

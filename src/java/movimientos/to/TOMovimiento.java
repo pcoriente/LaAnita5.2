@@ -7,37 +7,25 @@ import java.util.Date;
  * @author jesc
  */
 public class TOMovimiento {
-    private int idMovto;
     private int idTipo;
-    private int idCedis;
+    private int folio;
     private int idEmpresa;
     private int idAlmacen;
-    private int folio;
     private int idComprobante;
-    private int idImpuestoZona;
-    private double desctoComercial;
-    private double desctoProntoPago;
     private Date fecha;
-    private int idUsuario;
-    private int idMoneda;
-    private double tipoDeCambio;
     private int idReferencia;
     private int referencia;
+    private int idUsuario;
     private int propietario;
     private int estatus;
-    private int idMovtoAlmacen;
-//    private int folioAlmacen;
-
+    
     public TOMovimiento() {
-        this.fecha=new Date();
+        this.fecha = new Date();
     }
-
-    public int getIdMovto() {
-        return idMovto;
-    }
-
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    
+    public TOMovimiento(int idTipo) {
+        this.idTipo = idTipo;
+        this.fecha = new Date();
     }
 
     public int getIdTipo() {
@@ -48,12 +36,12 @@ public class TOMovimiento {
         this.idTipo = idTipo;
     }
 
-    public int getIdCedis() {
-        return idCedis;
+    public int getFolio() {
+        return folio;
     }
 
-    public void setIdCedis(int idCedis) {
-        this.idCedis = idCedis;
+    public void setFolio(int folio) {
+        this.folio = folio;
     }
 
     public int getIdEmpresa() {
@@ -72,44 +60,12 @@ public class TOMovimiento {
         this.idAlmacen = idAlmacen;
     }
 
-    public int getFolio() {
-        return folio;
-    }
-
-    public void setFolio(int folio) {
-        this.folio = folio;
-    }
-
     public int getIdComprobante() {
         return idComprobante;
     }
 
     public void setIdComprobante(int idComprobante) {
         this.idComprobante = idComprobante;
-    }
-
-    public int getIdImpuestoZona() {
-        return idImpuestoZona;
-    }
-
-    public void setIdImpuestoZona(int idImpuestoZona) {
-        this.idImpuestoZona = idImpuestoZona;
-    }
-
-    public double getDesctoComercial() {
-        return desctoComercial;
-    }
-
-    public void setDesctoComercial(double desctoComercial) {
-        this.desctoComercial = desctoComercial;
-    }
-
-    public double getDesctoProntoPago() {
-        return desctoProntoPago;
-    }
-
-    public void setDesctoProntoPago(double desctoProntoPago) {
-        this.desctoProntoPago = desctoProntoPago;
     }
 
     public Date getFecha() {
@@ -126,22 +82,6 @@ public class TOMovimiento {
 
     public void setIdUsuario(int idUsuario) {
         this.idUsuario = idUsuario;
-    }
-
-    public int getIdMoneda() {
-        return idMoneda;
-    }
-
-    public void setIdMoneda(int idMoneda) {
-        this.idMoneda = idMoneda;
-    }
-
-    public double getTipoDeCambio() {
-        return tipoDeCambio;
-    }
-
-    public void setTipoDeCambio(double tipoDeCambio) {
-        this.tipoDeCambio = tipoDeCambio;
     }
 
     public int getIdReferencia() {
@@ -175,20 +115,4 @@ public class TOMovimiento {
     public void setEstatus(int estatus) {
         this.estatus = estatus;
     }
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
-    }
-
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
-    }
-
-//    public int getFolioAlmacen() {
-//        return folioAlmacen;
-//    }
-//
-//    public void setFolioAlmacen(int folioAlmacen) {
-//        this.folioAlmacen = folioAlmacen;
-//    }
 }

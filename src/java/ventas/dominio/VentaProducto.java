@@ -24,10 +24,12 @@ public class VentaProducto {
     
     public VentaProducto() {
         this.producto=new Producto();
+        this.impuestos=new ArrayList<>();
     }
     
     public VentaProducto(Producto producto) {
         this.producto=producto;
+        this.impuestos=new ArrayList<>();
     }
     
     @Override

@@ -142,7 +142,7 @@
                                     <p:commandButton id="btnBuscarOC" icon="ui-icon-search" title="Buscar Orden de Compra"
                                                      disabled="#{mbComprasAlmacen.compra.idOrdenCompra!=0 or mbComprasAlmacen.compra.estatus!=0}"
                                                      process="@this" actionListener="#{mbComprasAlmacen.cargaOrdenes()}"
-                                                     update="listaOrdenes" oncomplete="PF('listaOrdenesDlg').show();" />
+                                                     update=":main:msgs listaOrdenes" oncomplete="PF('listaOrdenesDlg').show();" />
                                 </p:column>
                             </p:row>
                             <f:facet name="footer" >
@@ -343,7 +343,7 @@
                                     <h:outputLabel for="txtNumero" value="NUMERO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtNumero" value="#{mbComprasAlmacen.mbComprobantes.edicion.numero}" maxlength="8" size="10" />
+                                    <p:inputText id="txtNumero" value="#{mbComprasAlmacen.mbComprobantes.edicion.numero}" maxlength="20" size="20" />
                                 </p:column>
                             </p:row>
                             <p:row >

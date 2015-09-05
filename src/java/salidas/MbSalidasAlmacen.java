@@ -4,7 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import entradas.dominio.MovimientoAlmacenProductoReporte;
 import java.io.IOException;
-import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoOficina;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -226,7 +226,7 @@ public class MbSalidasAlmacen implements Serializable {
 
     private Salida convertir(TOMovimientoAlmacen to) throws SQLException {
         Salida s = new Salida();
-        s.setIdMovto(to.getIdMovto());
+        s.setIdMovto(to.getIdMovtoAlmacen());
         s.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
         s.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         s.setFecha(to.getFecha());
@@ -247,7 +247,7 @@ public class MbSalidasAlmacen implements Serializable {
                 }
                 if (total != 0) {
                     this.dao = new DAOMovimientos();
-                    TOMovimiento to = this.convertirTO();
+                    TOMovimientoOficina to = this.convertirTO();
                     this.dao.grabarSalidaAlmacen(to);
                     Mensajes.mensajeSucces("La salida se grabo correctamente !!!");
                     this.salida.setIdUsuario(to.getIdUsuario());
@@ -384,25 +384,25 @@ public class MbSalidasAlmacen implements Serializable {
             this.salida.setTipo(this.tipo);
             try {
                 this.dao = new DAOMovimientos();
-                this.salida.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
+//                this.salida.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
                 this.salidaDetalle = new ArrayList<>();
                 this.salidaProducto = new SalidaAlmacenProducto();
                 this.modoEdicion = true;
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//            } catch (SQLException ex) {
+//                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
     }
 
-    private TOMovimiento convertirTO() {
-        TOMovimiento to = new TOMovimiento();
+    private TOMovimientoOficina convertirTO() {
+        TOMovimientoOficina to = new TOMovimientoOficina();
         to.setIdMovto(this.salida.getIdMovto());
         to.setIdTipo(this.salida.getTipo().getIdTipo());
         to.setFolio(this.salida.getFolio());
-        to.setIdCedis(this.salida.getAlmacen().getIdCedis());
-        to.setIdEmpresa(this.salida.getAlmacen().getIdEmpresa());
+//        to.setIdCedis(this.salida.getAlmacen().getIdCedis());
+//        to.setIdEmpresa(this.salida.getAlmacen().getIdEmpresa());
         to.setIdAlmacen(this.salida.getAlmacen().getIdAlmacen());
         to.setFecha(this.salida.getFecha());
         to.setIdUsuario(this.salida.getIdUsuario());

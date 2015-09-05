@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -41,7 +40,7 @@
                         <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px"
                                      var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargaDetalleRecepcion}" update="main" />
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.cargarDetalle}" update="main" />
 
                             <p:column headerText="CEDIS" >
                                 <h:outputText value="#{recepcion.almacen.cedis}" />
@@ -86,11 +85,11 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio"
-                                                     disabled="#{mbRecepcion.recepcion.estatus!=0}"
+                                                     disabled="#{mbRecepcion.recepcion.estatus!=1}"
                                                      process="@this" actionListener="#{mbRecepcion.grabar()}" 
                                                      update="@this main :main:msgs" />
                                     <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
-                                                     disabled="#{mbRecepcion.recepcion.estatus==0}"
+                                                     disabled="#{mbRecepcion.recepcion.estatus==1}"
                                                      ajax="false" immediate="true" action="#{mbRecepcion.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbRecepcion.salir()}" update="main" />
@@ -110,7 +109,10 @@
                                 <h:outputText value="#{prod.producto}" style="width: 440px;" />
                             </p:column>
                             <p:column headerText="Solicitados" style="width: 70px;" >
-                                <h:outputText value="#{prod.cantOrdenada}" style="width: 60px;" />
+                                <h:outputText value="#{prod.cantSolicitada}" style="width: 60px;" />
+                            </p:column>
+                            <p:column headerText="Enviados" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantEnviada}" style="width: 60px;" />
                             </p:column>
                             <p:column headerText="Recibidos" style="width: 70px;" >
                                 <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
@@ -130,17 +132,17 @@
                                 <h:outputText value="#{lte.lote}" />
                             </p:column>
                             <p:column headerText="ENVIADOS" style="width: 80px;" >
-                                <h:outputText value="#{lte.saldo}" />
+                                <h:outputText value="#{lte.cantEnviada}" />
                             </p:column>
                             <p:column headerText="RECIBIDOS" style="width: 80px;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
-                                        <h:outputText value="#{lte.separados}" >
+                                        <h:outputText value="#{lte.cantidad}" >
                                             <f:convertNumber pattern="###,##0.000" />
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{lte.separados}" readonly="#{mbRecepcion.recepcion.estatus!=0}" >
+                                        <p:inputText value="#{lte.cantidad}" readonly="#{mbRecepcion.recepcion.estatus!=1}" >
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <p:ajax event="change" listener="#{mbRecepcion.gestionarLotes()}" 
@@ -156,7 +158,7 @@
                                     <h:outputText value="Enviados :" />
                                 </p:column>
                                 <p:column style="text-align: right; width: 100px;" >
-                                    <h:outputText value="#{mbRecepcion.recepcionProducto.cantOrdenada}" />
+                                    <h:outputText value="#{mbRecepcion.recepcionProducto.cantEnviada}" />
                                 </p:column>
                                 <p:column style="text-align: right; width: 100px;" >
                                     <h:outputText value="Recibidos :" />

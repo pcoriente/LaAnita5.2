@@ -5,6 +5,7 @@ package entradas.dominio;
  * @author jesc
  */
 public class MovimientoProductoReporte {
+    private int referencia;
     private String sku;
     private String empaque;
     private double cantOrdenada;
@@ -26,6 +27,14 @@ public class MovimientoProductoReporte {
     public MovimientoProductoReporte() {
         this.sku="";
         this.empaque="";
+    }
+
+    public int getReferencia() {
+        return referencia;
+    }
+
+    public void setReferencia(int referencia) {
+        this.referencia = referencia;
     }
 
     public String getSku() {

@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import movimientos.dao.DAOMovimientos;
-import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoOficina;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
@@ -141,10 +141,10 @@ public class MbEnvios implements Serializable {
         this.detalle = new ArrayList<EnvioProducto>();
         try {
             DAOMovimientos daoMv = new DAOMovimientos();
-            TOMovimiento toMv = daoMv.obtenerMovimientoRelacionado(this.fincado.getIdMovto());
+            TOMovimientoOficina toMv = daoMv.obtenerMovimientoRelacionado(this.fincado.getIdMovto());
             
-            DAOMovimientos1 daoMv1=new DAOMovimientos1();
-            daoMv1.cambiarDirecto(agregar, this.envio.getIdEnvio(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdReferencia(), toMv.getIdImpuestoZona());
+//            DAOMovimientos1 daoMv1=new DAOMovimientos1();
+//            daoMv1.cambiarDirecto(agregar, this.envio.getIdEnvio(), toMv.getIdMovto(), toMv.getIdMovtoAlmacen(), toMv.getIdReferencia(), toMv.getIdImpuestoZona());
 
             this.dao = new DAOEnvios();
             this.detalle = new ArrayList<EnvioProducto>();
