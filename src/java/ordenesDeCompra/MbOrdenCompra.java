@@ -292,7 +292,7 @@ public class MbOrdenCompra implements Serializable {
                 this.cargaOrdenesEncabezado();
 
                 fMsg.setDetail("Se ha guardado con satisfactoriamente...");
-            } else if (estado == 2) {
+            } else if (estado == 5) {
                 fMsg.setDetail("La orden se ha registrado con anterioridad");
             }
         } catch (SQLException ex) {
@@ -1068,7 +1068,7 @@ public class MbOrdenCompra implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
         DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
         try {
-            if (estado == 0) {
+            if (estado == 5) {
                 daoO.cancelarOrdenCompra(idOrden);
                 this.setListaOrdenesEncabezadoD(null);
                 this.cargaOrdenesEncabezadoD();

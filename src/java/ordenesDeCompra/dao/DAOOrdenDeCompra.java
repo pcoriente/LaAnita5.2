@@ -80,7 +80,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                     + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -297,7 +297,7 @@ public class DAOOrdenDeCompra {
         try {
 
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=6, estadoAlmacen=6, fechaCancelacion=GETDATE() WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -352,8 +352,8 @@ public class DAOOrdenDeCompra {
             //CABECERO
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
-                    + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
-                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
+                    + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 5, " + mp.getDesctoComercial() + ", "
+                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 5," + oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
