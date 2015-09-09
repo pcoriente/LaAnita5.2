@@ -4,7 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import entradas.dominio.MovimientoOficinaProductoReporte;
 import java.io.IOException;
-import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoOficina;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.MovimientoTipo;
-import movimientos.to.TOMovimientoProducto;
+import movimientos.to1.TOMovimientoProducto;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -188,7 +188,7 @@ public class MbSalidasOficina implements Serializable {
         this.salidasPendientes = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.tipo.getIdTipo(), 0, new Date())) {
+            for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.tipo.getIdTipo(), 0, new Date())) {
                 this.salidasPendientes.add(this.convertir(to));
             }
             ok = true;
@@ -201,7 +201,7 @@ public class MbSalidasOficina implements Serializable {
         context.addCallbackParam("ok", ok);
     }
 
-    private Salida convertir(TOMovimiento to) throws SQLException {
+    private Salida convertir(TOMovimientoOficina to) throws SQLException {
         Salida s = new Salida();
         s.setIdMovto(to.getIdMovto());
         s.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
@@ -223,7 +223,7 @@ public class MbSalidasOficina implements Serializable {
                 }
                 if (total != 0) {
                     this.dao = new DAOMovimientos();
-                    TOMovimiento to = this.convertirTO();
+                    TOMovimientoOficina to = this.convertirTO();
                     this.dao.grabarSalidaOficina(to);
                     this.salida.setIdUsuario(to.getIdUsuario());
                     this.salida.setFolio(to.getFolio());
@@ -326,7 +326,7 @@ public class MbSalidasOficina implements Serializable {
             this.salida.setTipo(this.tipo);
             try {
                 this.dao = new DAOMovimientos();
-                this.salida.setIdMovto(this.dao.agregarMovimientoOficina(this.convertirTO()));
+                this.salida.setIdMovto(this.dao.agregarMovimientoOficina(this.convertirTO(), false));
                 this.salidaDetalle = new ArrayList<>();
                 this.salidaProducto = new SalidaOficinaProducto();
                 this.modoEdicion = true;
@@ -338,13 +338,13 @@ public class MbSalidasOficina implements Serializable {
         }
     }
 
-    private TOMovimiento convertirTO() {
-        TOMovimiento to = new TOMovimiento();
+    private TOMovimientoOficina convertirTO() {
+        TOMovimientoOficina to = new TOMovimientoOficina();
         to.setIdMovto(this.salida.getIdMovto());
         to.setIdTipo(this.salida.getTipo().getIdTipo());
         to.setFolio(this.salida.getFolio());
-        to.setIdCedis(this.salida.getAlmacen().getIdCedis());
-        to.setIdEmpresa(this.salida.getAlmacen().getIdEmpresa());
+//        to.setIdCedis(this.salida.getAlmacen().getIdCedis());
+//        to.setIdEmpresa(this.salida.getAlmacen().getIdEmpresa());
         to.setIdAlmacen(this.salida.getAlmacen().getIdAlmacen());
         to.setFecha(this.salida.getFecha());
         to.setIdUsuario(this.salida.getIdUsuario());

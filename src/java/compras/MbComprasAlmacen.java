@@ -84,11 +84,11 @@ public class MbComprasAlmacen implements Serializable {
     public void cerrarOrdenDeCompraAlmacen() {
         try {
             this.dao = new DAOMovimientos();
-            this.dao.cerrarOrdenDeCompra(false, this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+//            this.dao.cerrarOrdenDeCompra(false, this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
             this.mbOrdenCompra.getListaOrdenesEncabezado().remove(this.mbOrdenCompra.getOrdenElegida());
             this.mbOrdenCompra.setOrdenElegida(null);
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//        } catch (SQLException ex) {
+//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
@@ -183,9 +183,9 @@ public class MbComprasAlmacen implements Serializable {
     
     public TOMovimientoAlmacen convertir(CompraAlmacen compra) {
         TOMovimientoAlmacen to = new TOMovimientoAlmacen();
-        to.setIdMovto(compra.getIdCompra());
+        to.setIdMovtoAlmacen(compra.getIdCompra());
         to.setIdTipo(1);
-        to.setIdCedis(compra.getAlmacen().getIdCedis());
+//        to.setIdCedis(compra.getAlmacen().getIdCedis());
         to.setIdEmpresa(compra.getAlmacen().getIdEmpresa());
         to.setIdAlmacen(compra.getAlmacen().getIdAlmacen());
         to.setFolio(compra.getFolio());
@@ -257,7 +257,7 @@ public class MbComprasAlmacen implements Serializable {
 
     private CompraAlmacen convertir(TOMovimientoAlmacen to) {
         CompraAlmacen c = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-        c.setIdCompra(to.getIdMovto());
+        c.setIdCompra(to.getIdMovtoAlmacen());
         c.setIdOrdenCompra(to.getReferencia());
         c.setFolio(to.getFolio());
         c.setFecha(to.getFecha());
@@ -402,7 +402,8 @@ public class MbComprasAlmacen implements Serializable {
     }
 
     public void actualizaComprobanteProveedor() {
-        this.mbComprobantes.setIdProveedor(this.mbProveedores.getMiniProveedor().getIdProveedor());
+        this.mbComprobantes.setIdTipoMovto(1);
+        this.mbComprobantes.setIdReferencia(this.mbProveedores.getMiniProveedor().getIdProveedor());
         this.mbComprobantes.setComprobante(null);
     }
 

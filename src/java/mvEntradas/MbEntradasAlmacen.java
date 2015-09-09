@@ -4,7 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import entradas.dominio.MovimientoAlmacenProductoReporte;
 import java.io.IOException;
-import movimientos.to.TOMovimiento;
+import movimientos.to.TOMovimientoOficina;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -180,7 +180,7 @@ public class MbEntradasAlmacen implements Serializable {
                 }
                 if (total != 0) {
                     this.dao = new DAOMovimientos();
-                    TOMovimiento to = this.convertirTO();
+                    TOMovimientoOficina to = this.convertirTO();
                     this.dao.grabarEntradaAlmacen(to);
                     Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
                     this.entrada.setIdUsuario(to.getIdUsuario());
@@ -262,7 +262,7 @@ public class MbEntradasAlmacen implements Serializable {
 
     private Entrada convertir(TOMovimientoAlmacen to) throws SQLException {
         Entrada e = new Entrada();
-        e.setIdMovto(to.getIdMovto());
+        e.setIdMovto(to.getIdMovtoAlmacen());
         e.setAlmacen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdAlmacen()));
         e.setTipo(this.dao.obtenerMovimientoTipo(to.getIdTipo()));
         e.setFecha(to.getFecha());
@@ -439,13 +439,13 @@ public class MbEntradasAlmacen implements Serializable {
         this.modoEdicion = false;
     }
 
-    private TOMovimiento convertirTO() {
-        TOMovimiento to = new TOMovimiento();
+    private TOMovimientoOficina convertirTO() {
+        TOMovimientoOficina to = new TOMovimientoOficina();
         to.setIdMovto(this.entrada.getIdMovto());
         to.setIdTipo(this.entrada.getTipo().getIdTipo());
         to.setFolio(this.entrada.getFolio());
-        to.setIdCedis(this.entrada.getAlmacen().getIdCedis());
-        to.setIdEmpresa(this.entrada.getAlmacen().getIdEmpresa());
+//        to.setIdCedis(this.entrada.getAlmacen().getIdCedis());
+//        to.setIdEmpresa(this.entrada.getAlmacen().getIdEmpresa());
         to.setIdAlmacen(this.entrada.getAlmacen().getIdAlmacen());
         to.setFecha(this.entrada.getFecha());
         to.setIdUsuario(this.entrada.getIdUsuario());
@@ -461,13 +461,13 @@ public class MbEntradasAlmacen implements Serializable {
             this.entrada.setTipo(this.tipo);
             try {
                 this.dao = new DAOMovimientos();
-                this.entrada.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
+//                this.entrada.setIdMovto(this.dao.agregarMovimientoAlmacen(this.convertirTO()));
                 this.entradaDetalle = new ArrayList<>();
                 this.entradaProducto = new EntradaAlmacenProducto();
                 this.modoEdicion = true;
                 this.lote = new Lote();
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//            } catch (SQLException ex) {
+//                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }

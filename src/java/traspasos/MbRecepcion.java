@@ -1,13 +1,10 @@
-package movimientos;
+package traspasos;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
 import cedis.MbMiniCedis;
-import entradas.dominio.MovimientoProducto;
 import entradas.dominio.MovimientoRelacionadoProductoReporte;
-import movimientos.to.TOMovimiento;
-import movimientos.to.TOMovimientoProducto;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -15,11 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
-import movimientos.dao.DAOLotes;
-import movimientos.dominio.EntradaProducto;
-import movimientos.dominio.Lote;
-import movimientos.dominio.Recepcion;
-import entradas.to.TOEntradaProducto;
+import traspasos.dominio.Recepcion;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,6 +24,7 @@ import javax.faces.model.SelectItem;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOMovimientos;
+import movimientos.to.TOProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -41,6 +35,10 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
+import traspasos.dominio.RecepcionProducto;
+import traspasos.to.TORecepcion;
+import traspasos.to.TORecepcionProducto;
+import traspasos.to.TORecepcionProductoAlmacen;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 
@@ -66,12 +64,12 @@ public class MbRecepcion implements Serializable {
 //    private DAOImpuestosProducto daoImps;
     private TOAlmacenJS toAlmacen;
     private ArrayList<SelectItem> listaAlmacenes;
-    private DAOLotes daoLotes;
-    private Lote lote;
+//    private DAOLotes daoLotes;
+    private TORecepcionProductoAlmacen lote;
     private ArrayList<Recepcion> recepciones;
     private Recepcion recepcion;
-    private ArrayList<EntradaProducto> recepcionDetalle;
-    private EntradaProducto recepcionProducto;
+    private ArrayList<RecepcionProducto> recepcionDetalle;
+    private RecepcionProducto recepcionProducto;
 //    private EntradaProducto resRecepcionProducto;
 //    private double sumaLotes;
 
@@ -83,20 +81,20 @@ public class MbRecepcion implements Serializable {
         this.inicializa();
     }
 
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(EntradaProducto prod) {
+    private MovimientoRelacionadoProductoReporte convertirProductoReporte(RecepcionProducto prod) {
         boolean ya = false;
         MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (Lote l : prod.getLotes()) {
-            if (l.getSeparados() != 0) {
+        for (TORecepcionProductoAlmacen l : prod.getLotes()) {
+            if (l.getCantidad() != 0) {
                 if (ya) {
                     rep.getLotes().add(l);
                 } else {
                     rep.setLote(l.getLote());
-                    rep.setLoteCantidad(l.getSeparados());
+                    rep.setLoteCantidad(l.getCantidad());
                     ya = true;
                 }
             }
@@ -109,7 +107,7 @@ public class MbRecepcion implements Serializable {
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
         ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
-        for (EntradaProducto p : this.recepcionDetalle) {
+        for (RecepcionProducto p : this.recepcionDetalle) {
             if (p.getCantFacturada() != 0) {
                 detalleReporte.add(this.convertirProductoReporte(p));
             }
@@ -149,171 +147,166 @@ public class MbRecepcion implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
+    
+    public TORecepcion convertir(Recepcion mov) {
+        TORecepcion toMov = new TORecepcion();
+        toMov.setIdSolicitud(mov.getIdSolicitud());
+        toMov.setSolicitudFolio(mov.getSolicitudFolio());
+        toMov.setSolicitudFecha(mov.getSolicitudFecha());
+        toMov.setTraspasoFolio(mov.getTraspasoFolio());
+        toMov.setTraspasoFecha(mov.getTraspasoFecha());
+        movimientos.Movimientos.convertir(mov, toMov);
+        toMov.setIdReferencia(mov.getAlmacenOrigen().getIdAlmacen());
+        toMov.setReferencia(mov.getIdTraspaso());
+        return toMov;
+    }
+    
+    public void grabar() {
+        try {
+//            if (this.recepcionDetalle.isEmpty()) {
+//                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+//            } else {
+//                double total = 0;
+//                for (RecepcionProducto e : this.recepcionDetalle) {
+//                    total += e.getCantFacturada();
+//                }
+//                if (total != 0) {
+                    TORecepcion to = this.convertir(this.recepcion);
+                    
+                    this.dao = new DAOMovimientos();
+                    this.dao.grabarTraspasoRecepcion(to);
+                    this.recepcion.setFecha(to.getFecha());
+                    this.recepcion.setIdUsuario(to.getIdUsuario());
+                    this.recepcion.setEstatus(to.getEstatus());
+                    Mensajes.mensajeSucces("La recepcion se grabo correctamente !!!");
+//                    this.obtenerRecepciones();
+//                } else {
+//                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+//                }
+//            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
+    public void gestionarLotes() {
+        TORecepcionProductoAlmacen toProd = this.convertir(this.lote);
+        this.lote.setCantidad(this.lote.getSeparados());
+        if (toProd.getCantidad() < 0) {
+            Mensajes.mensajeAlert("Cantidad recibida no puede ser menor que cero");
+        } else if (toProd.getCantidad() > this.lote.getCantEnviada()) {
+            Mensajes.mensajeAlert("Cantidad recibida mayor que cantidad enviada");
+        } else {
+            try {
+                this.dao = new DAOMovimientos();
+                this.dao.actualizaEntradaAlmacen(this.recepcion.getIdMovto(), toProd, this.lote.getSeparados());
+                this.lote.setCantidad(toProd.getCantidad());
+                
+                this.recepcionProducto.setCantFacturada(this.recepcionProducto.getCantFacturada() - this.lote.getSeparados() + this.lote.getCantidad());
+                this.lote.setSeparados(this.lote.getCantidad());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+    }
 
     public void onCellEdit(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
+        this.lote = this.recepcionProducto.getLotes().get(event.getRowIndex());
+//        this.lote.setCantidad((Double) oldValue);
         if (newValue != null && newValue != oldValue) {
-            oldValue = newValue;
-            this.lote = this.recepcionProducto.getLotes().get(event.getRowIndex());
         } else {
-            newValue = oldValue;
-            Mensajes.mensajeAlert("Checar que pasa !!!");
+            Mensajes.mensajeAlert("Checar que pasa ( onCellEdit ) !!!");
         }
     }
 
-    public void grabar() {
-        try {
-            if (this.recepcionDetalle.isEmpty()) {
-                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
-            } else {
-                double total = 0;
-                for (MovimientoProducto e : this.recepcionDetalle) {
-                    total += e.getCantFacturada();
-                }
-                if (total != 0) {
-                    this.dao = new DAOMovimientos();
-                    TOMovimiento to=this.convertirTOMovimiento();
-                    ArrayList<TOEntradaProducto> detalle=this.convertirDetalle();
-                    this.dao.grabarTraspasoRecepcion(to, detalle);
-                    this.recepcion.setIdUsuario(to.getIdUsuario());
-                    this.recepcion.setEstatus(1);
-                    Mensajes.mensajeSucces("La recepcion se grabo correctamente !!!");
-                    this.obtenerRecepciones();
-                } else {
-                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
-                }
-            }
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
-    }
-
-    public ArrayList<TOEntradaProducto> convertirDetalle() {
-        ArrayList<TOEntradaProducto> listaDetalle = new ArrayList<>();
-        for (EntradaProducto p : this.recepcionDetalle) {
-            listaDetalle.add(this.convertirTOMovimientoDetalle(p));
-        }
-        return listaDetalle;
-    }
-
-    public TOEntradaProducto convertirTOMovimientoDetalle(EntradaProducto d) {
-        TOEntradaProducto to = new TOEntradaProducto();
-        to.setIdProducto(d.getProducto().getIdProducto());
-        to.setCantOrdenada(d.getCantOrdenada());
-        to.setCantFacturada(d.getCantFacturada());
-        to.setCantRecibida(0);
-        to.setCantSinCargo(0);
-        to.setCostoOrdenado(0);
-        to.setCosto(d.getCosto());
-        to.setDesctoConfidencial(0);
-        to.setDesctoProducto1(0);
-        to.setDesctoProducto2(0);
-        to.setUnitario(d.getUnitario());
-        to.setIdImpuestoGrupo(0);
-        to.setLotes(d.getLotes());
-        return to;
-    }
-
-    public TOMovimiento convertirTOMovimiento() {
-        TOMovimiento to = new TOMovimiento();
-        to.setIdMovto(this.recepcion.getIdMovto());
-        to.setIdTipo(3);
-        to.setIdCedis(this.recepcion.getAlmacen().getIdCedis());
-        to.setIdEmpresa(this.recepcion.getAlmacen().getIdEmpresa());
-        to.setIdAlmacen(this.recepcion.getAlmacen().getIdAlmacen());
-        to.setFolio(this.recepcion.getFolio());
-        to.setFecha(this.recepcion.getFecha());
-        to.setIdUsuario(this.recepcion.getIdUsuario());
-        to.setIdReferencia(this.recepcion.getAlmacenOrigen().getIdAlmacen());
-        to.setReferencia(this.recepcion.getReferencia());
-        to.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
-//        to.setFolioAlmacen(this.recepcion.getFolioAlmacen());
-        return to;
-    }
-
-    public void gestionarLotes() {
-        if (this.lote.getSeparados() < 0) {
-            Mensajes.mensajeAlert("Cantidad recibida no puede ser menor que cero");
-            this.lote.setSeparados(this.lote.getCantidad());
-        } else if (this.lote.getSeparados() > this.lote.getSaldo()) {
-            Mensajes.mensajeAlert("Cantidad recibida mayor que cantidad enviada");
-            this.lote.setSeparados(this.lote.getCantidad());
-        } else {
-//            this.sumaLotes-=this.resSeparados;
-//            this.sumaLotes+=this.lote.getSeparados();
-//            this.resSeparados=this.lote.getSeparados();
-            this.recepcionProducto.setCantFacturada(this.recepcionProducto.getCantFacturada() - this.lote.getCantidad() + this.lote.getSeparados());
-            this.lote.setCantidad(this.lote.getSeparados());
-        }
-    }
-
-    public boolean comparaLotes(Lote lote) {
-        boolean disable = true;
-        if (this.lote.getLote().equals(lote.getLote())) {
-            disable = false;
-        }
-        return disable;
-    }
-
-    public void respaldaSeparados() {
-//        this.resSeparados = this.lote.getSeparados();
-    }
-
-//    public void actualizarCantidad() {
-//        this.recepcionProducto.setCantFacturada(this.sumaLotes);
-//        this.resRecepcionProducto.setCantFacturada(this.sumaLotes);
+//    public ArrayList<TORecepcionProducto> convertirDetalle() {
+//        ArrayList<TORecepcionProducto> listaDetalle = new ArrayList<>();
+//        for (RecepcionProducto p : this.recepcionDetalle) {
+//            listaDetalle.add(this.convertir(p));
+//        }
+//        return listaDetalle;
 //    }
-    public boolean comparaProductos(MovimientoProducto prod) {
-        if (prod.getProducto().getIdProducto() == this.recepcionProducto.getProducto().getIdProducto()) {
-            return false;
-        } else {
-            return true;
-        }
-    }
+//
+//    public TORecepcionProducto convertir(RecepcionProducto d) {
+//        TORecepcionProducto to = new TORecepcionProducto();
+//        to.setCantSolicitada(d.getCantSolicitada());
+//        to.setCantEnviada(d.getCantEnviada());
+//        movimientos.Movimientos.convertir(d, to);
+//        return to;
+//    }
+
+//    public boolean comparaLotes(Lote lote) {
+//        boolean disable = true;
+//        if (this.lote.getLote().equals(lote.getLote())) {
+//            disable = false;
+//        }
+//        return disable;
+//    }
+
+//    public void respaldaSeparados() {
+////        this.resSeparados = this.lote.getSeparados();
+//    }
+
+//    public boolean comparaProductos(MovimientoProducto prod) {
+//        if (prod.getProducto().getIdProducto() == this.recepcionProducto.getProducto().getIdProducto()) {
+//            return false;
+//        } else {
+//            return true;
+//        }
+//    }
 
     public void editarLotes(SelectEvent event) {
-        this.recepcionProducto = (EntradaProducto) event.getObject();
-//        this.lote=new Lote();
-//        this.sumaLotes=0;
-//        for(Lote l:this.recepcionProducto.getLotes()) {
-//            this.sumaLotes+=l.getSeparados();
-//        }
+        this.recepcionProducto = (RecepcionProducto) event.getObject();
     }
 
-//    public void respaldaFila() {
-//        this.resRecepcionProducto.setCantOrdenada(this.recepcionProducto.getCantOrdenada());
-//        this.resRecepcionProducto.setCantFacturada(this.recepcionProducto.getCantFacturada());
-//        this.resRecepcionProducto.setCantRecibida(this.recepcionProducto.getCantRecibida());
-//        this.resRecepcionProducto.setDesctoConfidencial(this.recepcionProducto.getDesctoConfidencial());
-//        this.resRecepcionProducto.setDesctoProducto1(this.recepcionProducto.getDesctoProducto1());
-//        this.resRecepcionProducto.setDesctoProducto2(this.recepcionProducto.getDesctoProducto2());
-//        this.resRecepcionProducto.setProducto(this.recepcionProducto.getProducto());
-//        this.resRecepcionProducto.setImporte(this.recepcionProducto.getImporte());
-//        this.resRecepcionProducto.setNeto(this.recepcionProducto.getNeto());
-//        this.resRecepcionProducto.setUnitario(this.recepcionProducto.getUnitario());
-//        this.resRecepcionProducto.setCosto(this.recepcionProducto.getCosto());
-//        this.resRecepcionProducto.setLotes(this.recepcionProducto.getLotes());
-//        this.resRecepcionProducto.setImpuestos(this.recepcionProducto.getImpuestos());
-//    }
     public void salir() {
-//        this.inicializar();
+        this.obtenerRecepciones();
         this.modoEdicion = false;
     }
 
-    public void cargaDetalleRecepcion(SelectEvent event) {
-        this.recepcion = (Recepcion) event.getObject();
+    private TORecepcionProductoAlmacen convertir(TOProductoAlmacen to) {
+        TORecepcionProductoAlmacen rec = new TORecepcionProductoAlmacen();
+        rec.setCantEnviada(to.getCantidad());
+        rec.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
+        rec.setIdProducto(to.getIdProducto());
+        rec.setLote(to.getLote());
+        rec.setCantidad(to.getCantidad());
+        rec.setSeparados(to.getCantidad());
+        rec.setFechaCaducidad(to.getFechaCaducidad());
+        return rec;
+    }
+
+    private RecepcionProducto convertir(TORecepcionProducto toProd) throws SQLException {
+        double suma = 0;
+        RecepcionProducto prod = new RecepcionProducto();
+        prod.setCantSolicitada(toProd.getCantSolicitada());
+        prod.setCantEnviada(toProd.getCantEnviada());
+        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        movimientos.Movimientos.convertir(toProd, prod);
+        for (TOProductoAlmacen l : this.dao.obtenerLotes(this.recepcion.getIdMovtoAlmacen(), toProd.getIdProducto())) {
+            prod.getLotes().add(this.convertir(l));
+            suma += l.getCantidad();
+        }
+        if (prod.getCantFacturada() != suma) {
+            throw new SQLException("Error de sincronizacion Lotes vs oficina en producto (id=" + toProd.getIdProducto() + ") del movimiento !!!");
+        }
+        return prod;
+    }
+
+    private void cargaDetalle() {
         try {
             this.dao = new DAOMovimientos();
-            this.daoLotes = new DAOLotes();
+//            this.daoLotes = new DAOLotes();
             this.recepcionDetalle = new ArrayList<>();
-            for (TOMovimientoProducto p : this.dao.obtenerDetalle(this.recepcion.getIdMovto())) {
-                this.recepcionDetalle.add(this.convertirDetalle(p));
+            for (TORecepcionProducto p : this.dao.obtenerRecepcionDetalle(this.recepcion.getIdMovto())) {
+                this.recepcionDetalle.add(this.convertir(p));
             }
-            this.recepcionProducto = new EntradaProducto();
-            this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -321,38 +314,35 @@ public class MbRecepcion implements Serializable {
         }
     }
 
-    private EntradaProducto convertirDetalle(TOMovimientoProducto to) throws SQLException {
-        EntradaProducto p = new EntradaProducto();
-        p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        p.setCantOrdenada(to.getCantOrdenada());
-        p.setCantFacturada(to.getCantFacturada());
-        p.setCantRecibida(0);
-        p.setCantSinCargo(0);
-        p.setCostoOrdenado(0);
-        p.setCosto(to.getCosto());
-        p.setDesctoProducto1(to.getDesctoProducto1());
-        p.setDesctoProducto2(to.getDesctoProducto2());
-        p.setDesctoConfidencial(to.getDesctoConfidencial());
-        p.setUnitario(to.getUnitario());
-        p.setImporte(to.getUnitario() * to.getCantFacturada());
-        p.setLotes(this.daoLotes.obtenerLotesMovtoEmpaque(this.recepcion.getIdMovtoAlmacen(), to.getIdProducto()));
-        double suma = 0;
-        for (Lote l : p.getLotes()) {
-            suma += l.getSeparados();
-        }
-        if (p.getCantFacturada() != suma) {
-            throw new SQLException("Error de sincronizacion Lotes en producto: " + p.getProducto().getIdProducto());
-        }
-        return p;
+    public void cargarDetalle(SelectEvent event) {
+        this.recepcion = (Recepcion) event.getObject();
+        this.cargaDetalle();
+        this.recepcionProducto = new RecepcionProducto();
+        this.modoEdicion = true;
+    }
+
+    private Recepcion convertir(TORecepcion toMov) {
+        Recepcion mov = new Recepcion();
+        mov.setIdSolicitud(toMov.getIdSolicitud());
+        mov.setSolicitudFolio(toMov.getSolicitudFolio());
+        mov.setSolicitudFecha(toMov.getSolicitudFecha());
+        mov.setIdTraspaso(toMov.getReferencia());
+        mov.setTraspasoFolio(toMov.getTraspasoFolio());
+        mov.setTraspasoFecha(toMov.getTraspasoFecha());
+        mov.setAlmacen(this.toAlmacen);
+        mov.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
+        movimientos.Movimientos.convertir(toMov, mov);
+        return mov;
     }
 
     public void obtenerRecepciones() {
         this.recepciones = new ArrayList<>();
         try {
             this.dao = new DAOMovimientos();
-            for (TOMovimiento m : this.dao.obtenerMovimientos(this.toAlmacen.getIdAlmacen(), 9, 0, new Date())) {
+            for (TORecepcion m : this.dao.obtenerRecepciones(this.toAlmacen.getIdAlmacen(), 1, new Date())) {
                 this.recepciones.add(this.convertir(m));
             }
+            this.recepcion = new Recepcion();
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -360,52 +350,23 @@ public class MbRecepcion implements Serializable {
         }
     }
 
-    private Recepcion convertir(TOMovimiento to) {
-        Recepcion e = new Recepcion();
-        e.setIdMovto(to.getIdMovto());
-        e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        e.setAlmacen(this.toAlmacen);
-        e.setFolio(to.getFolio());
-        e.setFecha(to.getFecha());
-        e.setIdUsuario(to.getIdUsuario());
-        e.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
-        e.setReferencia(to.getReferencia());
-        e.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-//        e.setFolioAlmacen(to.getFolioAlmacen());
-        return e;
-    }
-
     // ---------------- getters and setters ----------------
-//    public double getSumaLotes() {
-//        return sumaLotes;
-//    }
-//
-//    public void setSumaLotes(double sumaLotes) {
-//        this.sumaLotes = sumaLotes;
-//    }
-    public ArrayList<EntradaProducto> getRecepcionDetalle() {
+    public ArrayList<RecepcionProducto> getRecepcionDetalle() {
         return recepcionDetalle;
     }
 
-    public void setRecepcionDetalle(ArrayList<EntradaProducto> recepcionDetalle) {
+    public void setRecepcionDetalle(ArrayList<RecepcionProducto> recepcionDetalle) {
         this.recepcionDetalle = recepcionDetalle;
     }
 
-    public EntradaProducto getRecepcionProducto() {
+    public RecepcionProducto getRecepcionProducto() {
         return recepcionProducto;
     }
 
-    public void setRecepcionProducto(EntradaProducto recepcionProducto) {
+    public void setRecepcionProducto(RecepcionProducto recepcionProducto) {
         this.recepcionProducto = recepcionProducto;
     }
 
-//    public EntradaProducto getResRecepcionProducto() {
-//        return resRecepcionProducto;
-//    }
-//
-//    public void setResRecepcionProducto(EntradaProducto resRecepcionProducto) {
-//        this.resRecepcionProducto = resRecepcionProducto;
-//    }
     public Recepcion getRecepcion() {
         return recepcion;
     }
@@ -422,11 +383,11 @@ public class MbRecepcion implements Serializable {
         this.recepciones = recepciones;
     }
 
-    public Lote getLote() {
+    public TORecepcionProductoAlmacen getLote() {
         return lote;
     }
 
-    public void setLote(Lote lote) {
+    public void setLote(TORecepcionProductoAlmacen lote) {
         this.lote = lote;
     }
     // ------------------- generales -----------------------
@@ -440,8 +401,7 @@ public class MbRecepcion implements Serializable {
 
     private void inicializaLocales() {
         this.modoEdicion = false;
-//        this.resRecepcionProducto=new EntradaProducto();
-        this.lote = new Lote();
+        this.lote = new TORecepcionProductoAlmacen();
         this.recepciones = new ArrayList<>();
     }
 
