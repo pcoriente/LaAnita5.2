@@ -11,14 +11,14 @@ package enumEstatus;
  */
 public enum EnumEstatus {
 
-    Ninguno(0),
+    Pendiente(0),
     Solicitado(1),
     Rechazado(2),
     Aprobado(3),
     Proceso(4),
     Ordenado(5),
     Cancelado(6),
-    Cerrada(7),
+    Terminado(7),
     Devolucion(8);
     private final int valorEstado;
 
