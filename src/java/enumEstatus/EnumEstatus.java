@@ -11,11 +11,7 @@ package enumEstatus;
  */
 public enum EnumEstatus {
 
-<<<<<<< HEAD
-    Ninguno(0),
-=======
     Pendiente(0),
->>>>>>> origin/master
     Solicitado(1),
     Rechazado(2),
     Aprobado(3),
