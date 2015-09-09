@@ -79,7 +79,25 @@ public class Utilerias {
         return (((double) temp) / Math.pow(10, dec));
     }
 
-    public static String md5(String clear) throws Exception {
+//    public static String md5(String clear) throws Exception {
+//        MessageDigest md = MessageDigest.getInstance("MD5");
+//        byte[] b = md.digest(clear.getBytes());
+//        int size = b.length;
+//        StringBuilder h = new StringBuilder(size);
+//        for (int i = 0; i < size; i++) {
+//            int u = b[i] & 255;
+//            if (u < 16) {
+//                h.append("0");
+//                h.append(Integer.toHexString(u));
+//            } else {
+//                h.append(Integer.toHexString(u));
+//            }
+//        }
+//        return h.toString();
+//    }
+    
+    
+     public static String md51(String clear) throws Exception {
         MessageDigest md = MessageDigest.getInstance("MD5");
         byte[] b = md.digest(clear.getBytes());
         int size = b.length;
@@ -95,6 +113,12 @@ public class Utilerias {
         }
         return h.toString();
     }
+    
+    
+    
+    
+    
+    
 
     public static String formatoMonedas(double importe) {
         NumberFormat formatoImporte;

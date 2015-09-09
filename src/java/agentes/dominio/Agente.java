@@ -23,6 +23,7 @@ public class Agente implements Serializable {
     private String nombreNivel;
 //    private EnumNivel nivel;
     private int superior;
+    private int codigo;
     private Direccion direccionAgente = new Direccion();
     private Contribuyente contribuyente = new Contribuyente();
     private MiniCedis miniCedis = new MiniCedis();
@@ -134,6 +135,14 @@ public class Agente implements Serializable {
 
     public void setNombreNivel(String nombreNivel) {
         this.nombreNivel = nombreNivel;
+    }
+
+    public int getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(int codigo) {
+        this.codigo = codigo;
     }
 
 }

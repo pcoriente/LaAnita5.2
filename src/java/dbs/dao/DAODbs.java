@@ -71,24 +71,25 @@ public class DAODbs {
         }
         return dbs;
     }
-    
+
     public Usuario login(String login, String password, String jndi, int idDbs) throws NamingException, SQLException, Exception {
-        Usuario usuario=null;
-        Connection cn=ds.getConnection();
-        
+        Usuario usuario = null;
+        Connection cn = ds.getConnection();
+
         Statement st = cn.createStatement();
         try {
-            String strSQL="SELECT u.idUsuario, u.usuario, u.password, u.email, isnull(a.idPerfil, 0) as idPerfil "
+            String strSQL = "SELECT u.idUsuario, u.usuario, u.password, u.email, isnull(a.idPerfil, 0) as idPerfil "
                     + "FROM usuarios u "
-                    + "LEFT JOIN (SELECT idUsuario, idPerfil FROM accesos WHERE idDbs="+idDbs+") a ON a.idUsuario=u.idUsuario "
-                    + "WHERE u.login='"+login+"'";
-            ResultSet rs=st.executeQuery(strSQL);
-            if(rs.next()) {
-                String clave=Utilerias.md5(password);
-                if(rs.getString("password").equals(clave)) {
-                    usuario=this.construirUsuario(rs);
+                    + "LEFT JOIN (SELECT idUsuario, idPerfil FROM accesos WHERE idDbs=" + idDbs + ") a ON a.idUsuario=u.idUsuario "
+                    + "WHERE u.login='" + login + "'";
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                String claveVer = rs.getString("password");
+                String clave = Utilerias.md51(password.trim());
+                if (rs.getString("password").equals(clave)) {
+                    usuario = this.construirUsuario(rs);
                 } else {
-                    usuario=new Usuario();
+                    usuario = new Usuario();
                 }
             }
         } finally {
@@ -96,9 +97,9 @@ public class DAODbs {
         }
         return usuario;
     }
-    
+
     private Usuario construirUsuario(ResultSet rs) throws SQLException {
-        Usuario usuario=new Usuario();
+        Usuario usuario = new Usuario();
         usuario.setId(rs.getInt("idUsuario"));
         usuario.setUsuario(rs.getString("usuario"));
         usuario.setCorreo(rs.getString("email"));
