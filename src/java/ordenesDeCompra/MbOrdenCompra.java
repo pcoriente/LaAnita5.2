@@ -942,8 +942,8 @@ public class MbOrdenCompra implements Serializable {
 //        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
     }
 
-    public void dameOrdenCompraDirectaV(SelectEvent event) {
-        this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
+    public void dameOrdenCompraDirectaV() {
+//        this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
         subtotalGeneral = 0;
         double sumaCostoCotizado = 0;
         double descuentoC;
@@ -1064,14 +1064,15 @@ public class MbOrdenCompra implements Serializable {
         return ok;
     }
 
-    public void cancelarOrden(int idOrden, int estado) throws NamingException {
-        // int idOrden=this.ordenElegidaD.getIdOrdenCompra();
+   public void cancelarOrden() throws NamingException {
+//         int idOrden=this.ordenElegidaD.getIdOrdenCompra();
+         int idOrden=this.ordenElegidaD.getIdOrdenCompra();
         Boolean correcto = false;
         //    FacesMessage msg = null;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");
         DAOOrdenDeCompra daoO = new DAOOrdenDeCompra();
         try {
-            if (estado == 5) {
+            if (this.ordenElegidaD.getEstado() == 5) {
                 daoO.cancelarOrdenCompra(idOrden);
                 this.setListaOrdenesEncabezadoD(null);
                 this.cargaOrdenesEncabezadoD();

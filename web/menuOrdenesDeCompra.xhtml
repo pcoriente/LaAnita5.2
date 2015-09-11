@@ -102,7 +102,7 @@
                                      value="#{mbOrdenCompra.listaOrdenesEncabezadoD}"
                                      var="ocd"
                                      emptyMessage="No hay ORDENES DE COMPRA-DIRECTAS que mostrar !!"
-                                     rowKey="#{ocd}"
+                                     rowKey="#{ocd.idOrdenCompra}"
                                      selectionMode="single"
                                      selection="#{mbOrdenCompra.ordenElegidaD}"
                                      scrollable="true" 
@@ -111,6 +111,7 @@
                             <f:facet name="footer">
                                 #{mbOrdenCompra.listaOrdenesEncabezadoD.size()} Ordenes de compra.
                             </f:facet>
+
                             <p:ajax event="rowSelect" 
                                     listener="#{mbOrdenCompra.dameOrdenCompraDirectaV}"   
                                     oncomplete="PF('odecDV').show()" 
@@ -123,6 +124,7 @@
                             <p:column sortBy="#{ocd.idOrdenCompra}"  headerText="OC"  width="30"  >
                                 <h:outputText value="#{ocd.idOrdenCompra}"   />
                             </p:column>
+
 
                             <p:column headerText="Empresa" width="100" filterBy="#{ocd.empresa.empresa}"  filterMatchMode="contains" >
                                 <h:outputText value="#{ocd.empresa.nombreComercial}"    />
@@ -910,7 +912,7 @@
                               id="dialogoOCDV"
                               modal="true"
                               resizable="false"
-                              
+
                               styleClass="darias">
                         <p:ajax event="close" 
                                 listener="#{mbOrdenCompra.limpiar()}" 
@@ -940,8 +942,8 @@
                                     icon="ui-icon-cancel"
                                     title="CANCELAR la Orden de Compra"
                                     update=":form:OCDetalle :form:ordenCompraD"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado==0}"
-                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
+                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado==6}"
+                                    actionListener="#{mbOrdenCompra.cancelarOrden()}"
                                     oncomplete="PF('odecDV').hide()"
                                     >
                                     <p:confirm header="Deseas CANCELAR la orden de compra?" message="Estás seguro?" icon="ui-icon-alert" />

@@ -280,7 +280,7 @@ public class DAOOrdenDeCompra {
         PreparedStatement ps2;
         try {
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=2, estadoAlmacen=2 WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=6, estadoAlmacen=6 WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -352,7 +352,7 @@ public class DAOOrdenDeCompra {
             //CABECERO
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
-                    + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 5, " + mp.getDesctoComercial() + ", "
+                    + "VALUES(0, GETDATE(), '','', 5, " + mp.getDesctoComercial() + ", "
                     + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 5," + oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
@@ -464,6 +464,14 @@ public class DAOOrdenDeCompra {
                 + "     INNER JOIN movimientosDetalle D ON D.idMovto=EE.idMovtoUltimaEntrada AND D.idEmpaque=EE.idEmpaque\n"
                 + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "WHERE EE.idEmpaque=" + idEmpaque;
+        
+//        SELECT top 1 D.costo, D.fecha,idReferencia,idEmpaque
+//            FROM movimientosDetalle D
+//            INNER JOIN movimientos M ON M.idMovto=D.idMovto
+//            WHERE M.idEmpresa=1 AND M.idTipo=1 AND M.idReferencia=327 and D.idEmpaque=60
+//            ORDER BY D.fecha DESC
+
+        
         try {
             ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {
