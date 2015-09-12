@@ -19,7 +19,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.dominio.MovimientoTipo;
 import entradas.to.TOEntradaProducto;
 import movimientos.to.TOLote;
@@ -2335,7 +2335,7 @@ public class DAOMovimientos1 {
                 }
                 st.executeUpdate(strSQL);
 
-                for (Lote l : to.getLotes()) {
+                for (Lote1 l : to.getLotes()) {
                     strSQL = "SELECT saldo FROM almacenesLotes "
                             + "WHERE idAlmacen=" + m.getIdAlmacen() + " AND idEmpaque=" + to.getIdProducto() + " AND lote='" + l.getLote() + "'";
                     rs = st.executeQuery(strSQL);

@@ -1,8 +1,8 @@
 package movimientos.dao;
 
-import compras.to.TOProductoCompra;
-import compras.dominio.ProductoCompra;
-import entradas.dominio.MovimientoAlmacenProducto;
+import compras.to.TOProductoCompraOficina;
+import compras.dominio.ProductoCompraOficina;
+import movimientos.dominio.MovimientoAlmacenProducto;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +20,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoOficina;
 import movimientos.to.TOMovimientoAlmacen;
@@ -337,8 +337,8 @@ public class DAOMovimientos {
         return lotes;
     }
 
-    private Lote construirLote(ResultSet rs) throws SQLException {
-        Lote lote = new Lote();
+    private Lote1 construirLote(ResultSet rs) throws SQLException {
+        Lote1 lote = new Lote1();
         lote.setIdAlmacen(rs.getInt("idAlmacen"));
         lote.setIdProducto(rs.getInt("idEmpaque"));
         lote.setLote(rs.getString("lote"));
@@ -349,8 +349,8 @@ public class DAOMovimientos {
         return lote;
     }
 
-    public ArrayList<Lote> obtenerLotes(int idAlmacen, int idMovtoAlmacen, int idProducto) throws SQLException {
-        ArrayList<Lote> lotes = new ArrayList<>();
+    public ArrayList<Lote1> obtenerLotes(int idAlmacen, int idMovtoAlmacen, int idProducto) throws SQLException {
+        ArrayList<Lote1> lotes = new ArrayList<>();
         String strSQL = "SELECT L.idAlmacen, L.idEmpaque, L.lote, L.fechaCaducidad, L.saldo-L.separados AS saldo\n"
                 + "	, ISNULL(D.cantidad, 0) AS cantidad\n"
                 + "FROM (SELECT M.idAlmacen, D.idEmpaque, D.lote, D.cantidad\n"

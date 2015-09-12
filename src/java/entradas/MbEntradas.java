@@ -4,7 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import compras.dominio.CompraOficina;
 import entradas.dominio.MovimientoProducto;
-import entradas.dominio.MovimientoProductoReporte;
+import entradas.dominio.ProductoReporte;
 import movimientos.to.TOMovimientoOficina;
 import movimientos.to1.TOMovimientoProducto;
 import impuestos.dominio.ImpuestosProducto;
@@ -120,8 +120,8 @@ public class MbEntradas implements Serializable {
         }
     }
 
-    private MovimientoProductoReporte convertir(MovimientoProducto prod) {
-        MovimientoProductoReporte rep = new MovimientoProductoReporte();
+    private ProductoReporte convertir(MovimientoProducto prod) {
+        ProductoReporte rep = new ProductoReporte();
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setCantOrdenada(prod.getCantOrdenada());
         rep.setCantOrdenadaSinCargo(prod.getCantOrdenadaSinCargo());
@@ -144,7 +144,7 @@ public class MbEntradas implements Serializable {
     public void imprimirCompraOficinaPdf() {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
-        ArrayList<MovimientoProductoReporte> detalleReporte = new ArrayList<>();
+        ArrayList<ProductoReporte> detalleReporte = new ArrayList<>();
         for (MovimientoProducto p : this.entradaDetalle) {
             if (p.getCantFacturada() + p.getCantSinCargo() != 0) {
                 detalleReporte.add(this.convertir(p));

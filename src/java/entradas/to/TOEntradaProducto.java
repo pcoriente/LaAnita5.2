@@ -1,7 +1,7 @@
 package entradas.to;
 
 import java.util.ArrayList;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.to1.TOMovimientoProducto;
 
 /**
@@ -9,18 +9,18 @@ import movimientos.to1.TOMovimientoProducto;
  * @author jesc
  */
 public class TOEntradaProducto extends TOMovimientoProducto {
-    ArrayList<Lote> lotes;
+    ArrayList<Lote1> lotes;
     
     public TOEntradaProducto() {
         super();
         this.lotes=new ArrayList<>();
     }
 
-    public ArrayList<Lote> getLotes() {
+    public ArrayList<Lote1> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote> lotes) {
+    public void setLotes(ArrayList<Lote1> lotes) {
         this.lotes = lotes;
     }
 }

@@ -6,13 +6,13 @@ import movimientos.dominio.ProductoOficina;
  *
  * @author jesc
  */
-public class ProductoCompra extends ProductoOficina {
+public class ProductoCompraOficina extends ProductoOficina {
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private String cantOrdenadaTotal;
 //    private double neto;
     
-    public ProductoCompra() {
+    public ProductoCompraOficina() {
         super();
         this.cantOrdenadaTotal = "";
     }

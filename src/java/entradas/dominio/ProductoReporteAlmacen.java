@@ -1,24 +1,42 @@
 package entradas.dominio;
 
 import java.util.ArrayList;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 
 /**
  *
  * @author jesc
  */
-public class MovimientoAlmacenProductoReporte {
+public class ProductoReporteAlmacen {
+    private int folio;
+    private int idOrdenCompra;
     private String sku;
     private String empaque;
     private double cantidad;
     private String lote;
     private double loteCantidad;
-    private ArrayList<Lote> lotes;
+    private ArrayList<Lote1> lotes;
     
-    public MovimientoAlmacenProductoReporte() {
+    public ProductoReporteAlmacen() {
         this.sku="";
         this.empaque="";
         this.lotes=new ArrayList<>();
+    }
+
+    public int getFolio() {
+        return folio;
+    }
+
+    public void setFolio(int folio) {
+        this.folio = folio;
+    }
+
+    public int getIdOrdenCompra() {
+        return idOrdenCompra;
+    }
+
+    public void setIdOrdenCompra(int idOrdenCompra) {
+        this.idOrdenCompra = idOrdenCompra;
     }
 
     public String getSku() {
@@ -61,11 +79,11 @@ public class MovimientoAlmacenProductoReporte {
         this.loteCantidad = loteCantidad;
     }
 
-    public ArrayList<Lote> getLotes() {
+    public ArrayList<Lote1> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote> lotes) {
+    public void setLotes(ArrayList<Lote1> lotes) {
         this.lotes = lotes;
     }
 }

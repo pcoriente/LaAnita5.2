@@ -2,7 +2,7 @@ package salidas;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
-import entradas.dominio.MovimientoAlmacenProductoReporte;
+import entradas.dominio.ProductoReporteAlmacen;
 import java.io.IOException;
 import movimientos.to.TOMovimientoOficina;
 import javax.inject.Named;
@@ -22,7 +22,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacenProducto;
@@ -57,7 +57,7 @@ public class MbSalidasAlmacen implements Serializable {
     private MbProductosBuscar mbBuscar;
     private boolean modoEdicion;
 //    private double sumaLotes;
-    private Lote lote;
+    private Lote1 lote;
     private ArrayList<SelectItem> listaMovimientosTipos;
     private MovimientoTipo tipo;
     private ArrayList<SalidaAlmacenProducto> salidaDetalle;
@@ -75,13 +75,13 @@ public class MbSalidasAlmacen implements Serializable {
         this.inicializa();
     }
 
-    private MovimientoAlmacenProductoReporte convertirProductoReporte(SalidaAlmacenProducto prod) {
+    private ProductoReporteAlmacen convertirProductoReporte(SalidaAlmacenProducto prod) {
         boolean ya = false;
-        MovimientoAlmacenProductoReporte rep = new MovimientoAlmacenProductoReporte();
+        ProductoReporteAlmacen rep = new ProductoReporteAlmacen();
         rep.setCantidad(prod.getCantidad());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setSku(prod.getProducto().getCod_pro());
-        for (Lote l : prod.getLotes()) {
+        for (Lote1 l : prod.getLotes()) {
             if (l.getCantidad() != 0) {
                 if (ya) {
                     rep.getLotes().add(l);
@@ -99,7 +99,7 @@ public class MbSalidasAlmacen implements Serializable {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
-        ArrayList<MovimientoAlmacenProductoReporte> detalleReporte = new ArrayList<>();
+        ArrayList<ProductoReporteAlmacen> detalleReporte = new ArrayList<>();
         for (SalidaAlmacenProducto p : this.salidaDetalle) {
             if (p.getCantidad() != 0) {
                 detalleReporte.add(this.convertirProductoReporte(p));
@@ -241,7 +241,7 @@ public class MbSalidasAlmacen implements Serializable {
             } else {
                 double total = 0;
                 for (SalidaAlmacenProducto s : this.salidaDetalle) {
-                    for (Lote l : s.getLotes()) {
+                    for (Lote1 l : s.getLotes()) {
                         total += l.getCantidad();
                     }
                 }
@@ -264,7 +264,7 @@ public class MbSalidasAlmacen implements Serializable {
         }
     }
 
-    public boolean comparaLotes(Lote lote) {
+    public boolean comparaLotes(Lote1 lote) {
         boolean disable = true;
         if (this.lote.getLote().equals(lote.getLote())) {
             disable = false;
@@ -440,11 +440,11 @@ public class MbSalidasAlmacen implements Serializable {
         this.salidasPendientes = salidasPendientes;
     }
 
-    public Lote getLote() {
+    public Lote1 getLote() {
         return lote;
     }
 
-    public void setLote(Lote lote) {
+    public void setLote(Lote1 lote) {
         this.lote = lote;
     }
 
@@ -502,7 +502,7 @@ public class MbSalidasAlmacen implements Serializable {
         this.modoEdicion = false;
         this.listaMovimientosTipos = null;
         this.salidaDetalle = new ArrayList<>();
-        this.lote = new Lote();
+        this.lote = new Lote1();
     }
 
     public boolean isModoEdicion() {

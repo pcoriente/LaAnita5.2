@@ -1,6 +1,6 @@
 package compras.dao;
 
-import compras.to.TOProductoCompra;
+import compras.to.TOProductoCompraOficina;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,12 +21,12 @@ import usuarios.dominio.UsuarioSesion;
  *
  * @author jesc
  */
-public class DAOCompras {
+public class DAOComprasOficina {
 
     int idUsuario, idCedis;
     private DataSource ds = null;
 
-    public DAOCompras() throws NamingException {
+    public DAOComprasOficina() throws NamingException {
         FacesContext context = FacesContext.getCurrentInstance();
         ExternalContext externalContext = context.getExternalContext();
         HttpSession httpSession = (HttpSession) externalContext.getSession(false);
@@ -38,9 +38,9 @@ public class DAOCompras {
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
     
-    public ArrayList<TOProductoCompra> obtenerComprobanteDetalle(int idComprobante) throws SQLException {
+    public ArrayList<TOProductoCompraOficina> obtenerComprobanteDetalle(int idComprobante) throws SQLException {
         String strSQL;
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 strSQL="SELECT S.cantOrdenada, S.cantOrdenadaSinCargo, S.costoOrdenado\n"
@@ -61,13 +61,8 @@ public class DAOCompras {
         return detalle;
     }
 
-    public void cerrarOrdenDeCompra(boolean oficina, int idOrdenDeCompra) throws SQLException {
-        String strSQL;
-        if (oficina) {
-            strSQL = "UPDATE ordenCompra SET estado=6, fechaCierreOficina=GETDATE() WHERE idOrdenCompra=" + idOrdenDeCompra;
-        } else {
-            strSQL = "UPDATE ordenCompra SET estadoAlmacen=6, fechaCierreAlmacen=GETDATE() WHERE idOrdenCompra=" + idOrdenDeCompra;
-        }
+    public void cerrarOrdenDeCompra(int idOrdenDeCompra) throws SQLException {
+        String strSQL = "UPDATE ordenCompra SET estado=6, fechaCierreOficina=GETDATE() WHERE idOrdenCompra=" + idOrdenDeCompra;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 st.executeUpdate(strSQL);
@@ -116,7 +111,7 @@ public class DAOCompras {
                 toMov.setIdTipo(34);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setPropietario(0);
-                toMov.setEstatus(0);
+                toMov.setEstatus(5);
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, true);
 
                 strSQL = "INSERT INTO movimientosDetalle\n"
@@ -169,10 +164,9 @@ public class DAOCompras {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolio(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
-                
                 toMov.setEstatus(5);
                 toMov.setIdUsuario(this.idUsuario);
+                toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolio(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabarMovimiento(cn, toMov);
                 
                 movimientos.Movimientos.actualizaDetalle(cn, toMov.getIdMovto(), toMov.getIdTipo(), true);
@@ -468,23 +462,7 @@ public class DAOCompras {
                         + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
                 st.executeUpdate(strSQL);
                 
-                strSQL = "UPDATE D\n"
-                        + "SET cantFacturada=0, cantSinCargo=0\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
-                st.executeUpdate(strSQL);
-                
-                strSQL="DELETE D\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "WHERE D.idMovto="+idMovto+" AND D.idEmpaque="+idProducto+" AND M.referencia=0";
-                st.executeUpdate(strSQL);
-                
-                strSQL="DELETE D\n"
-                        + "FROM movimientosDetalleImpuestos D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "WHERE D.idMovto="+idMovto+" AND D.idEmpaque="+idProducto+" AND M.referencia=0";
-                st.executeUpdate(strSQL);
+                movimientos.Movimientos.eliminaProductoOficina(cn, idMovto, idProducto);
                 
                 cn.commit();
             } catch (SQLException ex) {
@@ -496,17 +474,17 @@ public class DAOCompras {
         }
     }
 
-    public void liberarSinCargo(int idMovto, int idOrdenCompra, int idEmpaque, double cantLiberar) throws SQLException {
+    public void liberarSinCargo(int idMovto, int idEmpaque, double cantLiberar, int idOrdenCompra) throws SQLException {
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                if (idOrdenCompra != 0) {
+                
                 strSQL = "UPDATE ordenCompraSurtido\n"
                         + "SET separadosOficinaSinCargo=separadosOficinaSinCargo-" + cantLiberar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-//                }
+                
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantSinCargo=cantSinCargo+" + cantLiberar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -522,7 +500,7 @@ public class DAOCompras {
         }
     }
 
-    public double separarSinCargo(int idMovto, int idOrdenCompra, int idEmpaque, double cantSeparar) throws SQLException {
+    public double separarSinCargo(int idMovto, int idEmpaque, double cantSeparar, int idOrdenCompra) throws SQLException {
         double disponibles = 0;
         String strSQL = "SELECT cantOrdenadaSinCargo - surtidosOficinaSinCargo - separadosOficinaSinCargo AS disponibles\n"
                 + "FROM ordenCompraSurtido \n"
@@ -530,7 +508,7 @@ public class DAOCompras {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                if (idOrdenCompra != 0) {
+                
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     disponibles = rs.getDouble("disponibles");
@@ -542,7 +520,7 @@ public class DAOCompras {
                         + "SET separadosOficinaSinCargo=separadosOficinaSinCargo+" + cantSeparar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-//                }
+                
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantSinCargo=cantSinCargo+" + cantSeparar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -559,19 +537,19 @@ public class DAOCompras {
         return cantSeparar;
     }
 
-    public void liberar(int idMovto, int idOrdenCompra, int idEmpaque, double cantLiberar) throws SQLException {
+    public void liberar(int idMovto, int idEmpaque, double cantLiberar, int idOrdenCompra) throws SQLException {
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                if (idOrdenCompra != 0) {
+                
                 strSQL = "UPDATE ordenCompraSurtido\n"
                         + "SET separadosOficina=separadosOficina-" + cantLiberar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-//                }
+                
                 strSQL = "UPDATE movimientosDetalle\n"
-                        + "SET cantFacturada=cantFacturada+" + cantLiberar + "\n"
+                        + "SET cantFacturada=cantFacturada-" + cantLiberar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
 
@@ -585,7 +563,7 @@ public class DAOCompras {
         }
     }
 
-    public double separar(int idMovto, int idOrdenCompra, int idEmpaque, double cantSeparar) throws SQLException {
+    public double separar(int idMovto, int idEmpaque, double cantSeparar, int idOrdenCompra) throws SQLException {
         double disponibles = 0;
         String strSQL = "SELECT cantOrdenada - surtidosOficina - separadosOficina AS disponibles\n"
                 + "FROM ordenCompraSurtido \n"
@@ -593,7 +571,6 @@ public class DAOCompras {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                if (idOrdenCompra != 0) {
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     disponibles = rs.getDouble("disponibles");
@@ -605,7 +582,7 @@ public class DAOCompras {
                         + "SET separadosOficina=separadosOficina+" + cantSeparar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-//                }
+                
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantFacturada=cantFacturada+" + cantSeparar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -622,9 +599,9 @@ public class DAOCompras {
         return cantSeparar;
     }
 
-    public ArrayList<TOProductoCompra> actualizarCompraPrecios(TOMovimientoOficina toMov, double tipoDeCambioOld) throws SQLException {
+    public ArrayList<TOProductoCompraOficina> actualizarCompraPrecios(TOMovimientoOficina toMov, double tipoDeCambioOld) throws SQLException {
         String strSQL;
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -657,8 +634,8 @@ public class DAOCompras {
         return detalle;
     }
 
-    public ArrayList<TOProductoCompra> cargarCompraDetalle(int idMovto, int estatus) throws SQLException {
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+    public ArrayList<TOProductoCompraOficina> cargarCompraDetalle(int idMovto, int estatus) throws SQLException {
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
@@ -705,9 +682,9 @@ public class DAOCompras {
         }
     }
 
-    public ArrayList<TOProductoCompra> cargarOrdenDeCompraDetalle(int idOrdenCompra, int idMovto) throws SQLException {
+    public ArrayList<TOProductoCompraOficina> cargarOrdenDeCompraDetalle(int idOrdenCompra, int idMovto) throws SQLException {
         String strSQL = "";
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -732,10 +709,10 @@ public class DAOCompras {
 
                 strSQL = "INSERT INTO movimientosDetalle\n"
                         + "SELECT " + idMovto + " AS idMovto, OCD.idEmpaque\n"
-                        + "        , CASE WHEN ISNULL(DA.cantidad, 0) = 0 THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
-                        + "               WHEN ISNULL(DA.cantidad, 0) + OCS.surtidosOficina + OCS.separadosOficina > OCS.cantOrdenada \n"
-                        + "               THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
-                        + "               ELSE ISNULL(DA.cantidad, 0) END AS cantFacturada, 0 AS cantSinCargo\n"
+                        + "        , CASE WHEN DA.cantidad IS NULL THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
+                        + "               WHEN DA.cantidad + OCS.surtidosOficina + OCS.separadosOficina > OCS.cantOrdenada \n"
+                        + "                     THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
+                        + "               ELSE DA.cantidad END AS cantFacturada, 0 AS cantSinCargo\n"
                         + "	   , 0 AS costoPromedio, OCD.costoOrdenado AS costo\n"
                         + "	   , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
                         + "	   , OCD.desctoConfidencial, 0 AS unitario, OCD.idImpuestosGrupo AS idImpuestoGrupo\n"
@@ -794,8 +771,8 @@ public class DAOCompras {
         return detalle;
     }
 
-    private TOProductoCompra construirProductoCompra(ResultSet rs) throws SQLException {
-        TOProductoCompra toProd = new TOProductoCompra();
+    private TOProductoCompraOficina construirProductoCompra(ResultSet rs) throws SQLException {
+        TOProductoCompraOficina toProd = new TOProductoCompraOficina();
         toProd.setCantOrdenada(rs.getDouble("cantOrdenada"));
         toProd.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
         toProd.setCostoOrdenado(rs.getDouble("costoOrdenado"));
@@ -803,9 +780,9 @@ public class DAOCompras {
         return toProd;
     }
 
-    private ArrayList<TOProductoCompra> obtenCompraDetalle(Connection cn, int idMovto) throws SQLException {
+    private ArrayList<TOProductoCompraOficina> obtenCompraDetalle(Connection cn, int idMovto) throws SQLException {
         String strSQL = "";
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Statement st = cn.createStatement()) {
             strSQL = "SELECT D.*, ISNULL(OCD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
                     + "     , ISNULL(OCD.costoOrdenado, 0) AS costoOrdenado, ISNULL(OCD.cantOrdenada, 0) AS cantOrdenada\n"
@@ -821,8 +798,8 @@ public class DAOCompras {
         return detalle;
     }
 
-    public ArrayList<TOProductoCompra> obtenerCompraDetalle(int idMovto) throws SQLException {
-        ArrayList<TOProductoCompra> detalle = new ArrayList<>();
+    public ArrayList<TOProductoCompraOficina> obtenerCompraDetalle(int idMovto) throws SQLException {
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             detalle = this.obtenCompraDetalle(cn, idMovto);
         }
@@ -845,7 +822,7 @@ public class DAOCompras {
         return precioLista;
     }
 
-    public ArrayList<ImpuestosProducto> agregarProductoCompra(TOMovimientoOficina toMov, TOProductoCompra toProd) throws SQLException {
+    public ArrayList<ImpuestosProducto> agregarProductoCompra(TOMovimientoOficina toMov, TOProductoCompraOficina toProd) throws SQLException {
         ArrayList<ImpuestosProducto> impuestos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);

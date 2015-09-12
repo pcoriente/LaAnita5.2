@@ -2,10 +2,12 @@ package compras;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
+import compras.dao.DAOComprasAlmacen;
 import compras.dominio.CompraAlmacen;
+import compras.dominio.ProductoCompraAlmacen;
+import compras.to.TOProductoCompraAlmacen;
 import entradas.MbComprobantes;
-import entradas.dominio.MovimientoAlmacenProducto;
-import entradas.dominio.MovimientoAlmacenProductoReporte;
+import entradas.dominio.ProductoReporteAlmacen;
 import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -17,14 +19,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosAlmacen;
+import movimientos.dominio.MovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacen;
-import movimientos.to.TOMovimientoAlmacenProducto;
+import movimientos.to.TOProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -34,6 +39,7 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import ordenesDeCompra.MbOrdenCompra;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
 import producto2.MbProductosBuscar;
 import proveedores.MbMiniProveedor;
 import usuarios.MbAcciones;
@@ -60,16 +66,18 @@ public class MbComprasAlmacen implements Serializable {
     private MbComprobantes mbComprobantes;
     @ManagedProperty(value = "#{mbOrdenCompra}")
     private MbOrdenCompra mbOrdenCompra;
-    
     private boolean modoEdicion;
     private CompraAlmacen compra;
     private ArrayList<CompraAlmacen> compras;
-    private MovimientoAlmacenProducto producto;
-    private MovimientoAlmacenProducto resProducto;
-    private ArrayList<MovimientoAlmacenProducto> detalle;
+    private ProductoCompraAlmacen producto;
+    private ProductoCompraAlmacen resProducto;
+    private ArrayList<ProductoCompraAlmacen> detalle;
     private int idModulo;
+    private String btnOrdenCompraIcono;
+    private String btnOrdenCompraTitle;
     private TimeZone zonaHoraria = TimeZone.getDefault();
-    private DAOMovimientos dao;
+    private DAOMovimientosAlmacen daoMv;
+    private DAOComprasAlmacen dao;
 
     public MbComprasAlmacen() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -81,24 +89,130 @@ public class MbComprasAlmacen implements Serializable {
         this.inicializaLocales();
     }
 
-    public void cerrarOrdenDeCompraAlmacen() {
+    public void imprimirComprobantePdf() {
+//        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+//        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
         try {
-            this.dao = new DAOMovimientos();
-//            this.dao.cerrarOrdenDeCompra(false, this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+//            if(this.mbComprobantes.getSeleccion()==null) {
+//                throw new Exception("Seleccione un comprobante");
+//            }
+            this.compra = this.compras.get(0);
+
+            ProductoCompraAlmacen prod;
+            this.dao = new DAOComprasAlmacen();
+            ArrayList<ProductoReporteAlmacen> detalleReporte = new ArrayList<>();
+            for (CompraAlmacen cmp : this.compras) {
+                if (cmp.getEstatus() == 5) {
+                    for (TOProductoCompraAlmacen p : this.dao.obtenerCompraDetalle(this.compra.getIdMovtoAlmacen())) {
+                        prod = this.convertir(p);
+                        if (p.getCantidad() != 0) {
+                            detalleReporte.add(this.convertirRep(prod, cmp));
+                        }
+                    }
+                }
+            }
+            String sourceFileName = "C:\\Carlos Pat\\Reportes\\CompraAlmacenComprobante.jasper";
+            JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+            Map parameters = new HashMap();
+            parameters.put("empresa", this.compra.getAlmacen().getEmpresa());
+
+            parameters.put("cedis", this.compra.getAlmacen().getCedis());
+            parameters.put("almacen", this.compra.getAlmacen().getAlmacen());
+
+            parameters.put("proveedor", this.compra.getProveedor().getProveedor());
+
+            parameters.put("comprobante", this.compra.getComprobante().toString());
+            parameters.put("comprobanteFecha", this.compra.getComprobante().getFecha());
+//        parameters.put("capturaFolio", this.compra.getFolio());
+//        parameters.put("capturaFecha", formatoFecha.format(this.compra.getFecha()));
+//        parameters.put("capturaHora", formatoHora.format(this.compra.getFecha()));
+
+//            parameters.put("idUsuario", this.compra.getIdUsuario());
+//            parameters.put("idOrdenDeCompra", this.compra.getIdOrdenCompra());
+
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=CompraAlmacenComprobante " + this.compra.getComprobante().toString() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (Exception ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+        this.producto = this.detalle.get(event.getRowIndex());
+        if (newValue != null && newValue != oldValue) {
+        } else {
+            this.producto.setCantidad((Double) oldValue);
+        }
+    }
+
+    public void cambiarCantidad() {
+        if (this.producto == null) {
+            Mensajes.mensajeAlert("Se requiere seleccionar un producto !!!");
+        } else if (this.producto.getCantidad() < 0) {
+            this.producto.setCantidad(this.producto.getSeparados());
+            Mensajes.mensajeAlert("La cantidad NO debe ser MENOR QUE CERO !!!");
+        } else if (this.producto.getCantidad() != this.producto.getSeparados()) {
+            try {
+                this.dao = new DAOComprasAlmacen();
+                if (this.compra.getIdOrdenCompra() != 0) {
+                    if (this.producto.getCantidad() > this.producto.getSeparados()) {
+                        double cantSolicitada = this.producto.getCantidad() - this.producto.getSeparados();
+                        double cantSeparada = this.dao.separar(this.producto.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto(), this.producto.getLote(), cantSolicitada, this.compra.getIdOrdenCompra());
+                        if (cantSeparada < cantSolicitada) {
+                            this.producto.setCantidad(this.producto.getSeparados() + cantSeparada);
+                            Mensajes.mensajeAlert("Solo se pudieron separar " + cantSeparada + " unidades !!!");
+                        }
+                    } else {
+                        double cantLiberar = this.producto.getSeparados() - this.producto.getCantidad();
+                        this.dao.liberar(this.producto.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto(), this.producto.getLote(), cantLiberar, this.compra.getIdOrdenCompra());
+                    }
+                } else if (this.producto.getCantidad() > this.producto.getSeparados()) {
+                    double cantSolicitada = this.producto.getCantidad() - this.producto.getSeparados();
+                    this.dao.separar(this.producto.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto(), this.producto.getLote(), cantSolicitada, this.compra.getIdOrdenCompra());
+                } else {
+                    double cantLiberar = this.producto.getSeparados() - this.producto.getCantidad();
+                    this.dao.liberar(this.producto.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto(), this.producto.getLote(), cantLiberar, this.compra.getIdOrdenCompra());
+                }
+                this.producto.setSeparados(this.producto.getCantidad());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+    }
+
+    public void cerrarOrdenDeCompra() {
+        try {
+            this.dao = new DAOComprasAlmacen();
+            this.dao.cerrarOrdenDeCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
             this.mbOrdenCompra.getListaOrdenesEncabezado().remove(this.mbOrdenCompra.getOrdenElegida());
             this.mbOrdenCompra.setOrdenElegida(null);
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
 
-    public void cancelarCompraAlmacen() {
+    public void cancelarCompra() {
         try {
-            this.dao = new DAOMovimientos();
-            this.dao.cancelarCompraAlmacen(this.compra.getIdCompra(), this.compra.getAlmacen().getIdAlmacen(), this.compra.getIdOrdenCompra());
-            this.compra.setEstatus(3);
+            this.dao = new DAOComprasAlmacen();
+            this.dao.cancelarCompra(this.compra.getIdMovtoAlmacen(), this.compra.getAlmacen().getIdAlmacen(), this.compra.getIdOrdenCompra());
+            this.compra.setEstatus(7);
             this.modoEdicion = false;
             Mensajes.mensajeSucces("La compra de Almacen se cancelo correctamente !!!");
         } catch (NamingException ex) {
@@ -110,31 +224,39 @@ public class MbComprasAlmacen implements Serializable {
 
     public void eliminarProductoAlmacen() {
         if (this.producto != null) {
-            this.detalle.remove(this.producto);
-            this.producto = null;
+            try {
+                this.dao = new DAOComprasAlmacen();
+                this.dao.eliminarProducto(this.producto.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto());
+                this.detalle.remove(this.producto);
+                this.producto = null;
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
         } else {
             Mensajes.mensajeAlert("No hay producto seleccionado !!!");
         }
     }
-    
-    private MovimientoAlmacenProductoReporte convertirProductoReporte(MovimientoAlmacenProducto prod) {
-        MovimientoAlmacenProductoReporte rep = new MovimientoAlmacenProductoReporte();
-        rep.setCantidad(prod.getCantidad());
-//        rep.setCantOrdenada(prod.getCantOrdenada());
-//        rep.setCantRecibida(prod.getCantRecibida());
-        rep.setEmpaque(prod.getProducto().toString());
+
+    private ProductoReporteAlmacen convertirRep(ProductoCompraAlmacen prod, CompraAlmacen cmp) {
+        ProductoReporteAlmacen rep = new ProductoReporteAlmacen();
+        rep.setFolio(cmp.getFolio());
+        rep.setIdOrdenCompra(cmp.getIdOrdenCompra());
         rep.setSku(prod.getProducto().getCod_pro());
+        rep.setEmpaque(prod.getProducto().toString());
+        rep.setCantidad(prod.getCantidad());
         return rep;
     }
 
     public void imprimirCompraPdf() {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
-        
-        ArrayList<MovimientoAlmacenProductoReporte> detalleReporte = new ArrayList<>();
-        for (MovimientoAlmacenProducto p : this.detalle) {
+
+        ArrayList<ProductoReporteAlmacen> detalleReporte = new ArrayList<>();
+        for (ProductoCompraAlmacen p : this.detalle) {
             if (p.getCantidad() != 0) {
-                detalleReporte.add(this.convertirProductoReporte(p));
+                detalleReporte.add(this.convertirRep(p, this.compra));
             }
         }
         String sourceFileName = "C:\\Carlos Pat\\Reportes\\CompraAlmacen.jasper";
@@ -172,39 +294,36 @@ public class MbComprasAlmacen implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
-    private TOMovimientoAlmacenProducto convertir(MovimientoAlmacenProducto prod) {
-        TOMovimientoAlmacenProducto to=new TOMovimientoAlmacenProducto();
-        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
-        to.setIdProducto(prod.getProducto().getIdProducto());
-        to.setCantidad(prod.getCantidad());
-        return to;
+
+    private void convertir(MovimientoAlmacen mov, TOMovimientoAlmacen toMov) {
+        toMov.setIdMovtoAlmacen(mov.getIdMovtoAlmacen());
+        toMov.setIdTipo(mov.getIdTipo());
+        toMov.setFolio(mov.getFolio());
+        toMov.setIdEmpresa(mov.getAlmacen().getIdEmpresa());
+        toMov.setIdAlmacen(mov.getAlmacen().getIdAlmacen());
+        toMov.setFecha(mov.getFecha());
+        toMov.setIdUsuario(mov.getIdUsuario());
+        toMov.setPropietario(mov.getPropietario());
+        toMov.setEstatus(mov.getEstatus());
     }
-    
-    public TOMovimientoAlmacen convertir(CompraAlmacen compra) {
-        TOMovimientoAlmacen to = new TOMovimientoAlmacen();
-        to.setIdMovtoAlmacen(compra.getIdCompra());
-        to.setIdTipo(1);
-//        to.setIdCedis(compra.getAlmacen().getIdCedis());
-        to.setIdEmpresa(compra.getAlmacen().getIdEmpresa());
-        to.setIdAlmacen(compra.getAlmacen().getIdAlmacen());
-        to.setFolio(compra.getFolio());
-        to.setIdComprobante(compra.getComprobante().getIdComprobante());
-        to.setFecha(compra.getFecha());
-        to.setIdUsuario(compra.getIdUsuario());
-        to.setIdReferencia(compra.getProveedor().getIdProveedor());
-        to.setReferencia(compra.getIdOrdenCompra());
-        return to;
+
+    public TOMovimientoAlmacen convertir(CompraAlmacen mov) {
+        TOMovimientoAlmacen toMov = new TOMovimientoAlmacen();
+        this.convertir(mov, toMov);
+        toMov.setIdComprobante(mov.getComprobante().getIdComprobante());
+        toMov.setIdReferencia(mov.getProveedor().getIdProveedor());
+        toMov.setReferencia(mov.getIdOrdenCompra());
+        return toMov;
     }
-    
+
     private double sumaPiezas() {
         double piezas = 0;
-        for (MovimientoAlmacenProducto p : this.detalle) {
+        for (ProductoCompraAlmacen p : this.detalle) {
             piezas += p.getCantidad();
         }
         return piezas;
     }
-    
+
     public void grabarCompra() {
         try {
             if (this.detalle.isEmpty()) {
@@ -212,17 +331,12 @@ public class MbComprasAlmacen implements Serializable {
             } else if (this.sumaPiezas() == 0) {
                 Mensajes.mensajeAlert("No hay piezas capturadas !!!");
             } else {
-                this.dao = new DAOMovimientos();
-                TOMovimientoAlmacen toEntrada = convertir(this.compra);
-//                ArrayList<TOMovimientoAlmacenProducto> det=new ArrayList<>();
-//                for(MovimientoAlmacenProducto to: this.detalle) {
-//                    det.add(this.convertir(to));
-//                }
-//                this.dao.grabarCompraAlmacen(toEntrada, det);
-                this.dao.grabarCompraAlmacen(toEntrada, this.detalle);
-                this.compra.setFolio(toEntrada.getFolio());
+                this.dao = new DAOComprasAlmacen();
+                TOMovimientoAlmacen toCompra = convertir(this.compra);
+                this.dao.grabarCompra(toCompra);
+                this.compra.setFolio(toCompra.getFolio());
                 this.compra.setEstatus(1);
-                Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
+                Mensajes.mensajeSucces("La compra se grabo correctamente !!!");
             }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -231,20 +345,30 @@ public class MbComprasAlmacen implements Serializable {
         }
     }
 
-    private MovimientoAlmacenProducto convertir(TOMovimientoAlmacenProducto to) {
-        MovimientoAlmacenProducto prod = new MovimientoAlmacenProducto();
+    private ProductoCompraAlmacen convertir(TOProductoCompraAlmacen to) {
+        ProductoCompraAlmacen prod = new ProductoCompraAlmacen();
+        prod.setCantOrdenada(to.getCantOrdenada());
         prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
+        prod.setLote(to.getLote());
         prod.setCantidad(to.getCantidad());
+        prod.setSeparados(to.getCantidad());
         return prod;
     }
 
     public void editaCompra() {
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOComprasAlmacen();
             this.detalle = new ArrayList<>();
-            for (TOMovimientoAlmacenProducto to : this.dao.obtenerDetalleAlmacen(this.compra.getIdCompra())) {
+            for (TOProductoCompraAlmacen to : this.dao.cargarCompraDetalle(this.compra.getIdMovtoAlmacen())) {
                 this.detalle.add(this.convertir(to));
+            }
+            if (this.compra.getIdOrdenCompra() != 0) {
+                this.btnOrdenCompraIcono = "ui-icon-cancel";
+                this.btnOrdenCompraTitle = "Cambiar Orden de Compra";
+            } else {
+                this.btnOrdenCompraIcono = "ui-icon-search";
+                this.btnOrdenCompraTitle = "Buscar Orden de Compra";
             }
             this.modoEdicion = true;
             this.producto = null;
@@ -257,7 +381,7 @@ public class MbComprasAlmacen implements Serializable {
 
     private CompraAlmacen convertir(TOMovimientoAlmacen to) {
         CompraAlmacen c = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-        c.setIdCompra(to.getIdMovtoAlmacen());
+        c.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         c.setIdOrdenCompra(to.getReferencia());
         c.setFolio(to.getFolio());
         c.setFecha(to.getFecha());
@@ -267,18 +391,22 @@ public class MbComprasAlmacen implements Serializable {
     }
 
     public void mttoCompra() {
+        boolean ok = false;
         if (validaCompra()) {
+            this.compras = new ArrayList<>();
             try {
-                this.dao = new DAOMovimientos();
-                this.compras = new ArrayList<>();
-                for (TOMovimientoAlmacen to : this.dao.obtenerMovimientosAlmacen(this.mbComprobantes.getComprobante().getIdComprobante())) {
+                this.daoMv = new DAOMovimientosAlmacen();
+                for (TOMovimientoAlmacen to : this.daoMv.obtenerMovimientosAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 1, this.mbComprobantes.getComprobante().getIdComprobante())) {
                     this.compras.add(this.convertir(to));
                 }
                 if (this.compras.isEmpty()) {
-                    this.crearCompra();
-                } else if (this.compras.size() == 1) {
-                    this.compra = this.compras.get(0);
-                    this.editaCompra();
+//                    this.crearCompra();
+                    Mensajes.mensajeAlert("No se encontraron compras !!!");
+//                } else if (this.compras.size() == 1) {
+//                    this.compra = this.compras.get(0);
+//                    this.editaCompra();
+                } else {
+                    ok = true;
                 }
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
@@ -286,23 +414,20 @@ public class MbComprasAlmacen implements Serializable {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             }
         }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okEntradas", ok);
     }
 
-    public void cargaDetalleOrdenCompra() {
+    public void cargarOrdenDeCompraDetalle() {
         try {
-            this.detalle=new ArrayList<>();
-            this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
-            
-            this.dao = new DAOMovimientos();
-            for (TOMovimientoAlmacenProducto d : this.dao.obtenerOrdenDeCompraDetalleAlmacen(this.compra.getIdOrdenCompra())) {
-                this.producto = new MovimientoAlmacenProducto();
-                this.producto.setIdMovtoAlmacen(0);
-                this.producto.setProducto(this.mbBuscar.obtenerProducto(d.getIdProducto()));
-                this.producto.setCantOrdenada(d.getCantOrdenada());
-                this.producto.setCantRecibida(d.getCantRecibida());
-                this.producto.setCantidad(0);
-                this.detalle.add(this.producto);
+            this.detalle = new ArrayList<>();
+            this.dao = new DAOComprasAlmacen();
+            for (TOProductoCompraAlmacen d : this.dao.cargarOrdenDeCompraDetalle(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra(), this.compra.getIdMovtoAlmacen())) {
+                this.detalle.add(this.convertir(d));
             }
+            this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+            this.btnOrdenCompraIcono = "ui-icon-cancel";
+            this.btnOrdenCompraTitle = "Cambiar Orden de Compra";
             this.producto = null;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -314,10 +439,18 @@ public class MbComprasAlmacen implements Serializable {
     public void cargaOrdenes() {
         boolean ok = false;
         try {
-            if (!this.detalle.isEmpty()) {
+            if (this.compra.getIdOrdenCompra() != 0) {
+                TOMovimientoAlmacen toMov = this.convertir(this.compra);
+                this.dao = new DAOComprasAlmacen();
+                this.dao.inicializarCompra(toMov);
+                this.compra.setIdOrdenCompra(0);
+                this.detalle = new ArrayList<>();
+                this.btnOrdenCompraIcono = "ui-icon-search";
+                this.btnOrdenCompraTitle = "Buscar Orden de Compra";
+            } else if (!this.detalle.isEmpty()) {
                 Mensajes.mensajeAlert("El movimiento ya tiene productos cargados !!!");
             } else {
-                this.mbOrdenCompra.cargaOrdenesEncabezadoAlmacen(this.compra.getProveedor().getIdProveedor(), 2);
+                this.mbOrdenCompra.cargaOrdenesEncabezadoAlmacen(this.compra.getProveedor().getIdProveedor(), 5);
                 if (this.mbOrdenCompra.getListaOrdenesEncabezado().isEmpty()) {
                     Mensajes.mensajeAlert("No se encontraron ordenes de compra pendientes !!!");
                 } else {
@@ -333,7 +466,7 @@ public class MbComprasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okOrdenDeCompra", ok);
     }
-    
+
     public boolean prueba() {
         boolean disabled = false;
         if (this.compra.getEstatus() != 0) {
@@ -346,11 +479,21 @@ public class MbComprasAlmacen implements Serializable {
         return disabled;
     }
 
+    private TOProductoCompraAlmacen convertir(ProductoCompraAlmacen prod) {
+        TOProductoCompraAlmacen to = new TOProductoCompraAlmacen();
+        to.setCantOrdenada(prod.getCantOrdenada());
+        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
+        to.setIdProducto(prod.getProducto().getIdProducto());
+        to.setLote(prod.getLote());
+        to.setCantidad(prod.getCantidad());
+        return to;
+    }
+
     public void actualizaProductoSeleccionado() {
         boolean nuevo = true;
-        MovimientoAlmacenProducto prod = new MovimientoAlmacenProducto();
+        ProductoCompraAlmacen prod = new ProductoCompraAlmacen();
         prod.setProducto(this.mbBuscar.getProducto());
-        for (MovimientoAlmacenProducto p : this.detalle) {
+        for (ProductoCompraAlmacen p : this.detalle) {
             if (p.equals(prod)) {
                 this.producto = p;
                 nuevo = false;
@@ -358,8 +501,18 @@ public class MbComprasAlmacen implements Serializable {
             }
         }
         if (nuevo) {
-            this.detalle.add(prod);
-            this.producto = prod;
+            prod.setIdMovtoAlmacen(this.compra.getIdMovtoAlmacen());
+            TOProductoAlmacen toProd = this.convertir(prod);
+            try {
+                this.dao = new DAOComprasAlmacen();
+                this.dao.agregarProductoAlmacen(toProd);
+                this.producto = prod;
+                this.detalle.add(this.producto);
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
         }
     }
 
@@ -372,9 +525,26 @@ public class MbComprasAlmacen implements Serializable {
 
     private void crearCompra() {
         this.compra = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-        this.detalle = new ArrayList<>();
-        this.modoEdicion = true;
-        this.producto = null;
+        TOMovimientoAlmacen toMov = this.convertir(this.compra);
+        try {
+            this.daoMv = new DAOMovimientosAlmacen();
+            this.daoMv.agregarMovimiento(toMov, false);
+            this.compra.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
+            this.compra.setFecha(toMov.getFecha());
+            this.compra.setIdUsuario(toMov.getIdUsuario());
+            this.compra.setPropietario(toMov.getPropietario());
+            this.compra.setEstatus(toMov.getEstatus());
+            this.btnOrdenCompraIcono = "ui-icon-search";
+            this.btnOrdenCompraTitle = "Buscar Orden de Compra";
+
+            this.modoEdicion = true;
+            this.detalle = new ArrayList<>();
+            this.producto = null;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     private boolean validaCompra() {
@@ -383,7 +553,7 @@ public class MbComprasAlmacen implements Serializable {
             Mensajes.mensajeAlert("Se requiere un almacen");
         } else if (this.mbProveedores.getMiniProveedor().getIdProveedor() == 0) {
             Mensajes.mensajeAlert("Se requiere un proveedor");
-        } else if (this.mbComprobantes.getComprobante() == null) {
+        } else if (this.mbComprobantes.getSeleccion() == null) {
             Mensajes.mensajeAlert("Se requiere un comprobante");
         } else {
             ok = true;
@@ -396,9 +566,10 @@ public class MbComprasAlmacen implements Serializable {
             this.crearCompra();
         }
     }
-    
+
     public void inicializaListaCompras() {
         this.compras = new ArrayList<>();
+        this.mbComprobantes.convierteSeleccion();
     }
 
     public void actualizaComprobanteProveedor() {
@@ -422,10 +593,10 @@ public class MbComprasAlmacen implements Serializable {
     private void inicializaLocales() {
         this.modoEdicion = false;
         this.compra = new CompraAlmacen();
-        this.resProducto = new MovimientoAlmacenProducto();
+        this.resProducto = new ProductoCompraAlmacen();
         this.compras = new ArrayList<>();
     }
-    
+
     public void inicializar() {
         this.mbBuscar.inicializar();
         this.inicializaLocales();
@@ -472,28 +643,24 @@ public class MbComprasAlmacen implements Serializable {
         this.compras = compras;
     }
 
-    public MovimientoAlmacenProducto getProducto() {
+    public ProductoCompraAlmacen getProducto() {
         return producto;
     }
 
-    public void setProducto(MovimientoAlmacenProducto producto) {
+    public void setProducto(ProductoCompraAlmacen producto) {
         this.producto = producto;
     }
 
-    public MovimientoAlmacenProducto getResProducto() {
+    public ProductoCompraAlmacen getResProducto() {
         return resProducto;
     }
 
-    public void setResProducto(MovimientoAlmacenProducto resProducto) {
+    public void setResProducto(ProductoCompraAlmacen resProducto) {
         this.resProducto = resProducto;
     }
 
-    public ArrayList<MovimientoAlmacenProducto> getDetalle() {
+    public ArrayList<ProductoCompraAlmacen> getDetalle() {
         return detalle;
-    }
-
-    public void setDetalle(ArrayList<MovimientoAlmacenProducto> detalle) {
-        this.detalle = detalle;
     }
 
     public int getIdModulo() {
@@ -502,6 +669,22 @@ public class MbComprasAlmacen implements Serializable {
 
     public void setIdModulo(int idModulo) {
         this.idModulo = idModulo;
+    }
+
+    public String getBtnOrdenCompraIcono() {
+        return btnOrdenCompraIcono;
+    }
+
+    public void setBtnOrdenCompraIcono(String btnOrdenCompraIcono) {
+        this.btnOrdenCompraIcono = btnOrdenCompraIcono;
+    }
+
+    public String getBtnOrdenCompraTitle() {
+        return btnOrdenCompraTitle;
+    }
+
+    public void setBtnOrdenCompraTitle(String btnOrdenCompraTitle) {
+        this.btnOrdenCompraTitle = btnOrdenCompraTitle;
     }
 
     public TimeZone getZonaHoraria() {
