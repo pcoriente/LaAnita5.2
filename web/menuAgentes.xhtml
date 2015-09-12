@@ -102,6 +102,10 @@
                                                  actionListener="#{mbAgentes.dameContribuyente()}"
                                                  update="growl panelContribuyente"
                                                  />
+                                <h:outputText value="Codigo:"/>
+                                <p:inputText id="txtCodigo" value="#{mbAgentes.agente.codigo}"/>
+                                <h:outputText />
+
                                 <h:outputText id="lblAgente" value="Agente* :" />
                                 <p:inputText id="txtNombreAgente"
                                              value="#{mbAgentes.agente.agente}"/> 
@@ -191,7 +195,7 @@
                             </h:panelGrid>
                             <p:commandButton  icon="#{mbAgentes.lblnuevoAgente}" 
                                               title="Guardar Agente"
-                                              process="@this txtNombreAgente cmbCedis direccionAgente"
+                                              process="@this txtNombreAgente cmbCedis direccionAgente cmbNivel txtCodigo"
                                               actionListener="#{mbAgentes.agregarNuevoAgente()}"
                                               oncomplete="nuevoContribuyente(xhr, status, args)"
                                               update="growl listaAgentes actualizar"/>

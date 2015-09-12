@@ -620,7 +620,10 @@
                                     <h:outputLabel for="txtNumero" value="NUMERO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.comprobante.numero}" maxlength="20" size="20" />
+                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.edicion.numero}" maxlength="20" size="20" >
+                                        <!--<f:convertNumber type="number" pattern="#####0" maxIntegerDigits="6" maxFractionDigits="0" />
+                                        <f:validateDoubleRange minimum="0" maximum="999999" /> -->
+                                    </p:inputText>
                                 </p:column>
                             </p:row>
                             <p:row >

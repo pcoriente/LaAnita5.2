@@ -292,7 +292,7 @@ public class MbOrdenCompra implements Serializable {
                 this.cargaOrdenesEncabezado();
 
                 fMsg.setDetail("Se ha guardado con satisfactoriamente...");
-            } else if (estado == 2) {
+            } else if (estado == 5) {
                 fMsg.setDetail("La orden se ha registrado con anterioridad");
             }
         } catch (SQLException ex) {
@@ -778,6 +778,8 @@ public class MbOrdenCompra implements Serializable {
                     this.getListaOrdenesEncabezadoD();
                     RequestContext primeContext = RequestContext.getCurrentInstance();
                     primeContext.execute("PF('odec').hide()");
+                    ordenCompraEncabezadoDirecta = new OrdenCompraEncabezado();
+                    ordenCompraDetallesDirectas = new ArrayList<>();
                 } catch (NamingException | SQLException ex) {
                     Mensajes.MensajeErrorP(ex.getMessage());
                 }
@@ -988,11 +990,12 @@ public class MbOrdenCompra implements Serializable {
 
     public double dameImporteOrdenCompra(int idOrdenCompra, int idZona, OrdenCompraEncabezado ordenElegidaD) {
         try {
-//            double total = 0.00;
             double sumaCostoCotizado = 0;
             double descuentoC;
             double descuentoPP;
-//            double sumaDescuentosProductos = 0;
+            sumaDescuentosProductos = 0;
+            subtotalGeneral = 0;
+
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
             DAOMovimientos dao = new DAOMovimientos();

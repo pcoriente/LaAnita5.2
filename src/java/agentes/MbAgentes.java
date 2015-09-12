@@ -225,7 +225,12 @@ public class MbAgentes implements Serializable {
         boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
         FacesMessage fMsg = null;
-        if (agente.getAgente().equals("")) {
+        if (agente.getCodigo() == 0) {
+            fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
+            fMsg.setDetail("Se requiere un codigo del agente !!");
+            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+            context.addCallbackParam("okContribuyente", ok);
+        } else if (agente.getAgente().equals("")) {
             fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
             fMsg.setDetail("Se requiere el Agente !!");
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
@@ -352,8 +357,8 @@ public class MbAgentes implements Serializable {
             this.agente.getMiniCedis().setIdCedis(seleccionListaAgente.getMiniCedis().getIdCedis());
             this.agente.setIdAgente(seleccionListaAgente.getIdAgente());
             this.agente.getContribuyente().setRfc(seleccionListaAgente.getContribuyente().getRfc());
+            this.agente.getContribuyente().setIdContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente());
             DAOTelefonos telefonos = new DAOTelefonos();
-
             obtenerDireccion();
             this.agente.getContacto().setCorreo(seleccionListaAgente.getContacto().getCorreo());
             this.agente.getContacto().setIdContacto(seleccionListaAgente.getContacto().getIdContacto());
