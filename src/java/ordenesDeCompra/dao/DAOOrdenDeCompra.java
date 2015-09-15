@@ -204,10 +204,10 @@ public class DAOOrdenDeCompra {
         if (idDireccionEntrega != 0) {
             oce.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
-        oce.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
+        oce.setFechaServidor(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oce.setFechaCierreOficina(utilerias.Utilerias.date2String(rs.getDate("fechaCierreOficina")));
         oce.setFechaCierreAlmacen(utilerias.Utilerias.date2String(rs.getDate("fechaCierreAlmacen")));
-        oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaPuesta")));
+        oce.setFechaCancelacion(utilerias.Utilerias.date2String(rs.getDate("fechaCancelacion")));
         oce.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
         oce.setEstado(rs.getInt("estado"));
         oce.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
@@ -431,7 +431,7 @@ public class DAOOrdenDeCompra {
             oced.setProveedor(daoP.obtenerProveedor(idProveedor));
         }
 
-        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
+        oced.setFechaServidor(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oced.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
 
         oced.setDesctoComercial(rs.getDouble("desctoComercial"));
