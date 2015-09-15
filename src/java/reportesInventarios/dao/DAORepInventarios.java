@@ -126,6 +126,7 @@ public class DAORepInventarios {
         toProd.setSaldo(rs.getDouble("existenciaAnterior"));
         toProd.setOperacion(rs.getString("operacion"));
         toProd.setCantidad(rs.getDouble("cantidad"));
+        toProd.setCostoPromedio(rs.getDouble("costoPromedio"));
         return toProd;
     }
 
@@ -135,10 +136,10 @@ public class DAORepInventarios {
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 strSQL = "SELECT D.fecha, T.tipo, M.folio\n"
-                        + "		, CASE WHEN M.idComprobante=0 THEN '' ELSE CASE C.tipo WHEN 1 THEN 'Interno ' WHEN 2 THEN 'Remision ' ELSE 'Factura ' END END\n"
-                        + "		+' '+CASE WHEN M.idComprobante=0 THEN '' WHEN C.serie='' THEN C.numero ELSE C.serie+'-'+C.numero END AS comprobante\n"
+                        + "		, CASE WHEN M.idComprobante=0 THEN '' WHEN C.serie='' THEN C.numero ELSE C.serie+'-'+C.numero END AS comprobante\n"
                         + "		, '' AS lote, D.existenciaAnterior, CASE WHEN T.suma=1 THEN '+' ELSE '-' END AS operacion, D.cantFacturada+D.cantSinCargo AS cantidad\n"
                         + "		, D.existenciaAnterior+CASE WHEN T.suma=1 THEN 1 ELSE -1 END*(D.cantFacturada+D.cantSinCargo) AS saldo\n"
+                        + "             , D.costoPromedio\n"
                         + "FROM movimientosDetalle D\n"
                         + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                         + "INNER JOIN movimientosTipos T ON T.idTipo=M.idTipo\n"

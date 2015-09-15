@@ -15,6 +15,7 @@ public class TOProductoKardexDetalle {
     private double saldo;
     private String operacion;
     private double cantidad;
+    private double costoPromedio;
     
     public TOProductoKardexDetalle() {
         this.fecha = new Date();
@@ -84,5 +85,13 @@ public class TOProductoKardexDetalle {
 
     public void setCantidad(double cantidad) {
         this.cantidad = cantidad;
+    }
+
+    public double getCostoPromedio() {
+        return costoPromedio;
+    }
+
+    public void setCostoPromedio(double costoPromedio) {
+        this.costoPromedio = costoPromedio;
     }
 }
