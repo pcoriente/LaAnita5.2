@@ -80,7 +80,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                     + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -204,10 +204,10 @@ public class DAOOrdenDeCompra {
         if (idDireccionEntrega != 0) {
             oce.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
-        oce.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
+        oce.setFechaServidor(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oce.setFechaCierreOficina(utilerias.Utilerias.date2String(rs.getDate("fechaCierreOficina")));
         oce.setFechaCierreAlmacen(utilerias.Utilerias.date2String(rs.getDate("fechaCierreAlmacen")));
-        oce.setFechaPuesta(utilerias.Utilerias.date2String(rs.getDate("fechaPuesta")));
+        oce.setFechaCancelacion(utilerias.Utilerias.date2String(rs.getDate("fechaCancelacion")));
         oce.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
         oce.setEstado(rs.getInt("estado"));
         oce.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
@@ -280,7 +280,7 @@ public class DAOOrdenDeCompra {
         PreparedStatement ps2;
         try {
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=2, estadoAlmacen=2 WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=6, estadoAlmacen=6 WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -297,7 +297,7 @@ public class DAOOrdenDeCompra {
         try {
 
             //CABECERO
-            String strSQL2 = "UPDATE ordenCompra SET estado=0, estadoAlmacen=0 WHERE idOrdenCompra=" + idOrden;
+            String strSQL2 = "UPDATE ordenCompra SET estado=6, estadoAlmacen=6, fechaCancelacion=GETDATE() WHERE idOrdenCompra=" + idOrden;
             ps2 = cn.prepareStatement(strSQL2);
             ps2.executeUpdate();
         } catch (SQLException e) {
@@ -352,8 +352,8 @@ public class DAOOrdenDeCompra {
             //CABECERO
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
                     + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
-                    + "VALUES(0, GETDATE(), GETDATE(), GETDATE(), 2, " + mp.getDesctoComercial() + ", "
-                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 2," + oced.getEmpresa().getIdEmpresa() + ")";
+                    + "VALUES(0, GETDATE(), '','', 5, " + mp.getDesctoComercial() + ", "
+                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 5," + oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
@@ -431,7 +431,7 @@ public class DAOOrdenDeCompra {
             oced.setProveedor(daoP.obtenerProveedor(idProveedor));
         }
 
-        oced.setFechaCreacion(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
+        oced.setFechaServidor(utilerias.Utilerias.date2String(rs.getDate("fechaServidor")));
         oced.setFechaEntrega(utilerias.Utilerias.date2String(rs.getDate("fechaEntrega")));
 
         oced.setDesctoComercial(rs.getDouble("desctoComercial"));
@@ -464,6 +464,14 @@ public class DAOOrdenDeCompra {
                 + "     INNER JOIN movimientosDetalle D ON D.idMovto=EE.idMovtoUltimaEntrada AND D.idEmpaque=EE.idEmpaque\n"
                 + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "WHERE EE.idEmpaque=" + idEmpaque;
+        
+//        SELECT top 1 D.costo, D.fecha,idReferencia,idEmpaque
+//            FROM movimientosDetalle D
+//            INNER JOIN movimientos M ON M.idMovto=D.idMovto
+//            WHERE M.idEmpresa=1 AND M.idTipo=1 AND M.idReferencia=327 and D.idEmpaque=60
+//            ORDER BY D.fecha DESC
+
+        
         try {
             ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {

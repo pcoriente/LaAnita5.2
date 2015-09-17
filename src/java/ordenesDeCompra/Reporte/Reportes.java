@@ -32,7 +32,7 @@ public class Reportes {
 //        aqui es donde paso los parametros del encabezado lo que dice numeroOrden es el nombre del campo del ireport
         parametros.put("numeroOrden", ordenEncabezado.getIdOrdenCompra());
         parametros.put("proveedor", ordenEncabezado.getProveedor());
-        parametros.put("emision", ordenEncabezado.getFechaCreacion());
+        parametros.put("emision", ordenEncabezado.getFechaServidor());
         parametros.put("entrega", ordenEncabezado.getFechaEntrega());
         parametros.put("empresa", ordenEncabezado.getNombreComercial());
         parametros.put("comercial", ordenEncabezado.getDesctoComercial());

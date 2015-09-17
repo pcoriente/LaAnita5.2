@@ -109,6 +109,8 @@ public class MbComprobantes implements Serializable {
         try {
             if (this.comprobante.getNumero().equals("")) {
                 Mensajes.mensajeAlert("Se requiere el numero del comprobante");
+            } else if(this.comprobante.getMoneda().getIdMoneda()==0) {
+                Mensajes.mensajeAlert("Se requiere una moneda !!!");
             } else {
                 this.dao = new DAOComprobantes();
                 TOComprobante to = this.convertir(this.comprobante);

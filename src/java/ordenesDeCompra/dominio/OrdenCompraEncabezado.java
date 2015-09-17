@@ -19,10 +19,10 @@ public class OrdenCompraEncabezado implements Serializable {
     private Date fecha;
     private double descuento;
     private Proveedor proveedor;
-    private String fechaCreacion;
+    private String fechaServidor;
     private String fechaCierreOficina;
     private String fechaCierreAlmacen;
-    private String fechaPuesta;
+    private String fechaCancelacion;
     private int estado;
     private double desctoComercial;
     private double desctoProntoPago;
@@ -42,10 +42,10 @@ public class OrdenCompraEncabezado implements Serializable {
         this.fecha = new Date();
         this.descuento = 0.00;
         this.proveedor = new Proveedor();
-        this.fechaCreacion = "";
+        this.fechaServidor = "";
         this.fechaCierreOficina = "";
         this.fechaCierreAlmacen = "";
-        this.fechaPuesta = "";
+        this.fechaCancelacion = "";
         this.estado = 0;
         this.desctoComercial = 0.00;
         this.desctoProntoPago = 0.00;
@@ -131,12 +131,12 @@ public class OrdenCompraEncabezado implements Serializable {
         this.nombreComercial = nombreComercial;
     }
 
-    public String getFechaCreacion() {
-        return fechaCreacion;
+    public String getFechaServidor() {
+        return fechaServidor;
     }
 
-    public void setFechaCreacion(String fechaCreacion) {
-        this.fechaCreacion = fechaCreacion;
+    public void setFechaServidor(String fechaServidor) {
+        this.fechaServidor = fechaServidor;
     }
 
     public String getFechaCierreOficina() {
@@ -155,12 +155,12 @@ public class OrdenCompraEncabezado implements Serializable {
         this.fechaCierreAlmacen = fechaCierreAlmacen;
     }
 
-    public String getFechaPuesta() {
-        return fechaPuesta;
+    public String getFechaCancelacion() {
+        return fechaCancelacion;
     }
 
-    public void setFechaPuesta(String fechaPuesta) {
-        this.fechaPuesta = fechaPuesta;
+    public void setFechaCancelacion(String fechaCancelacion) {
+        this.fechaCancelacion = fechaCancelacion;
     }
 
     public int getEstado() {

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <h:outputStylesheet name="css/main.css"/>
+
+        <title>Reportes de Inventarios</title>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center"  >
+            <ui:include src="wrapper.xhtml" />
+            <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+                <p:messages id="msgs" autoUpdate="false" closable="true" showDetail="true" />
+                <p:panel id="panelReportes" header="Reportes de Kardex de productos" style="float: left" >
+                    <p:panelGrid id="reportes" >
+                        <p:row >
+                            <p:column style="width: 80px;" >
+                                <h:outputLabel for="almacen" value="Almacén :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column colspan="4" >
+                                <p:selectOneMenu id="almacen" value="#{mbRepInventarios.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                    <f:selectItems value="#{mbRepInventarios.mbAlmacenes.listaAlmacenes}" />
+                                    <p:ajax event="change" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column style="text-align: right;" >
+                                <p:commandButton id="btnSalir" icon="ui-icon-home" title="Salir" 
+                                                 immediate="true" action="#{mbRepInventarios.terminar()}" ajax="false" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel value="Producto :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <p:inputText id="txtSKU" value="#{mbRepInventarios.productoKardex.producto.cod_pro}" readonly="true" size="8" maxlength="10" />
+                            </p:column>
+                            <p:column colspan="3" >
+                                <p:inputText id="txtProducto" value="#{mbRepInventarios.productoKardex.producto.toString()}" readonly="true" size="70" maxlength="80" />
+                            </p:column>
+                            <p:column style="text-align: left;" >
+                                <p:commandButton id="btnBuscarProducto" icon="ui-icon-search" title="Buscar Producto" 
+                                                 process="@this" actionListener="#{mbRepInventarios.mbBuscar.inicializar()}" 
+                                                 update="buscarProductos listaBuscarProductos" 
+                                                 oncomplete="PF('buscarProductoDlg').show()" />
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel value="Período :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="fecIni" value="Fecha Inicial :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="fecIni" showOn="button"
+                                            value="#{mbRepInventarios.fechaInicial}" 
+                                            maxlength="8" size="15" placeholder="Inicio de Kardex" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this "
+                                            listener="#{mbRepInventarios.validarPeriodo()}" update=":main:msgs" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="fecFin" value="Fecha Final :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="fecFin" showOn="button"
+                                            value="#{mbRepInventarios.fechaFinal}" 
+                                            maxlength="8" size="15" placeholder="Final de Kardex" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this "
+                                            listener="#{mbRepInventarios.validarPeriodo()}" update=":main:msgs" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column >
+                                <p:commandButton id="btnImprimirOficina" icon="ui-icon-print" title="Generar Kardex Oficina" 
+                                                 ajax="false" immediate="true" action="#{mbRepInventarios.imprimirKardexOficinaPdf()}" />
+                                <p:commandButton id="btnImprimirAlmacen" icon="ui-icon-print" title="Generar Kardex Almacen" 
+                                                 ajax="false" immediate="true" action="#{mbRepInventarios.imprimirKardexAlmacenPdf()}" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                </p:panel>
+                <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                    <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                    <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneRadio id="opciones" value="#{mbRepInventarios.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                    <f:selectItem itemLabel="SKU" itemValue="1" />
+                                    <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                    <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                    <p:ajax listener="#{mbRepInventarios.mbBuscar.verCambio()}" 
+                                            update="buscarProductos listaBuscarProductos" />
+                                </p:selectOneRadio>
+                            </p:column>
+                            <p:column rendered="#{mbRepInventarios.mbBuscar.tipoBuscar=='1'}" >
+                                <p:inputText id="opcionSKU" value="#{mbRepInventarios.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionSKU" actionListener="#{mbRepInventarios.buscar()}" 
+                                                 update=":main:msgBuscar :main:txtSKU :main:txtProducto" 
+                                                 oncomplete="handleBuscar(xhr, status, args)" />
+                            </p:column>
+                            <p:column rendered="#{mbRepInventarios.mbBuscar.tipoBuscar=='2'}" >
+                                <p:autoComplete id="opcionParte" value="#{mbRepInventarios.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                completeMethod="#{mbRepInventarios.mbBuscar.mbParte.completePartes}" 
+                                                var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                forceSelection="true" />
+                                <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionParte" actionListener="#{mbRepInventarios.buscar()}" 
+                                                 update="listaBuscarProductos"  />
+                            </p:column>
+                            <p:column rendered="#{mbRepInventarios.mbBuscar.tipoBuscar=='3'}" >
+                                <p:inputText id="opcionDescripcion" value="#{mbRepInventarios.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                 process="@this opcionDescripcion" actionListener="#{mbRepInventarios.buscar()}" 
+                                                 update="listaBuscarProductos" />
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                    <p:dataTable id="listaBuscarProductos" value="#{mbRepInventarios.mbBuscar.productos}" 
+                                 var="prod" scrollable="true" scrollHeight="200" style="width: 800px;" rowKey="#{prod.idProducto}" 
+                                 selectionMode="single" selection="#{mbRepInventarios.mbBuscar.producto}" >
+                        <p:ajax event = "rowSelect" update="seleccion" />
+
+                        <f:facet name="header">Seleccione un producto</f:facet>
+
+                        <p:column headerText="SKU" style="width: 250px;" >
+                            <h:outputText value="#{prod.cod_pro}" />
+                        </p:column>
+
+                        <p:column headerText="Producto" style="width: 250px;" >
+                            <h:outputText value="#{prod.toString()}" />
+                        </p:column>
+
+                        <f:facet name="footer">
+                            <p:commandButton id="seleccion" value="Seleccionar" 
+                                             disabled="#{mbRepInventarios.mbBuscar.producto==null}"
+                                             process="@this" update=":main:msgBuscar :main:txtSKU :main:txtProducto" 
+                                             oncomplete="PF('buscarProductoDlg').hide()" />
+                        </f:facet>
+                    </p:dataTable>
+                </p:dialog>
+            </h:form>
+            <ui:include src="footer.xhtml" />
+        </div>
+        <script type="text/javascript">
+            function handleBuscar(xhr, status, args) {
+                if (!(args.validationFailed || !args.okBuscar)) {
+                    PF('buscarProductoDlg').hide();
+                }
+            }
+        </script>
+    </body>
+</html>

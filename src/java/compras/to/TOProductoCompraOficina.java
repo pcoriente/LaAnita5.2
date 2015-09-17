@@ -6,7 +6,7 @@ import movimientos.to.TOProductoOficina;
  *
  * @author jesc
  */
-public class TOProductoCompra extends TOProductoOficina {
+public class TOProductoCompraOficina extends TOProductoOficina {
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private double costoOrdenado;
@@ -15,7 +15,7 @@ public class TOProductoCompra extends TOProductoOficina {
 //    private double cantRecibidaSinCargo;
 //    private double neto;
     
-    public TOProductoCompra() {
+    public TOProductoCompraOficina() {
         super();
     }
 

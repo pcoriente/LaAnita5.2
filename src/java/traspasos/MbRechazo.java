@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOLotes;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dominio.EntradaProducto;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.dominio.MovimientoRelacionado;
 import movimientos.to.TOMovimientoOficina;
 import movimientos.to1.TOMovimientoProducto;
@@ -63,7 +63,7 @@ public class MbRechazo implements Serializable {
     private ArrayList<MovimientoRelacionado> rechazos;
     private ArrayList<EntradaProducto> detalle;
     private EntradaProducto producto;
-    private Lote lote;
+    private Lote1 lote;
     private DAOMovimientos dao;
     private DAOLotes daoLotes;
 
@@ -81,7 +81,7 @@ public class MbRechazo implements Serializable {
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (Lote l : prod.getLotes()) {
+        for (Lote1 l : prod.getLotes()) {
             if (l.getSeparados() != 0) {
                 if (ya) {
 //                    rep.getLotes().add(l);
@@ -150,7 +150,7 @@ public class MbRechazo implements Serializable {
         try {
             this.daoLotes = new DAOLotes();
             this.producto.setLotes(this.daoLotes.obtenerLotes(this.rechazo.getAlmacenDestino().getIdAlmacen(), this.rechazo.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto()));
-            this.lote = new Lote();
+            this.lote = new Lote1();
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -175,7 +175,7 @@ public class MbRechazo implements Serializable {
         p.setImporte(to.getUnitario() * (to.getCantFacturada() + to.getCantSinCargo()));
         p.setLotes(this.daoLotes.obtenerLotes(this.rechazo.getAlmacenDestino().getIdAlmacen(), this.rechazo.getIdMovtoAlmacen(), to.getIdProducto()));
         int sumaLotes = 0;
-        for (Lote l : p.getLotes()) {
+        for (Lote1 l : p.getLotes()) {
             sumaLotes += l.getSeparados();
         }
         if (p.getCantFacturada() != sumaLotes) {
@@ -314,11 +314,11 @@ public class MbRechazo implements Serializable {
         this.producto = producto;
     }
 
-    public Lote getLote() {
+    public Lote1 getLote() {
         return lote;
     }
 
-    public void setLote(Lote lote) {
+    public void setLote(Lote1 lote) {
         this.lote = lote;
     }
 

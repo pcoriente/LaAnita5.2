@@ -1,7 +1,7 @@
 package salidas;
 
 import java.util.ArrayList;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import producto2.dominio.Producto;
 
 /**
@@ -12,7 +12,7 @@ public class SalidaAlmacenProducto {
     private Producto producto;
     private double cantidad;
 //    private double separados;
-    private ArrayList<Lote> lotes;
+    private ArrayList<Lote1> lotes;
     
     public SalidaAlmacenProducto() {
         this.producto=new Producto();
@@ -75,11 +75,11 @@ public class SalidaAlmacenProducto {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<Lote> getLotes() {
+    public ArrayList<Lote1> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote> lotes) {
+    public void setLotes(ArrayList<Lote1> lotes) {
         this.lotes = lotes;
     }
 }

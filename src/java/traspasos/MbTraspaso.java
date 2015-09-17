@@ -23,7 +23,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOMovimientos;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import movimientos.to.TOProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -52,7 +52,7 @@ import usuarios.dominio.Accion;
 public class MbTraspaso implements Serializable {
 
     private boolean modoEdicion;
-    private Lote lote;
+    private Lote1 lote;
     private double sumaLotes;
     private Traspaso traspaso;
     private TOAlmacenJS toAlmacen;
@@ -315,7 +315,7 @@ public class MbTraspaso implements Serializable {
 
     private void inicializaLocales() {
         this.modoEdicion = false;
-        this.lote = new Lote();
+        this.lote = new Lote1();
     }
 
     public boolean isModoEdicion() {
@@ -408,11 +408,11 @@ public class MbTraspaso implements Serializable {
         this.traspasos = traspasos;
     }
 
-    public Lote getLote() {
+    public Lote1 getLote() {
         return lote;
     }
 
-    public void setLote(Lote lote) {
+    public void setLote(Lote1 lote) {
         this.lote = lote;
     }
 

@@ -10,7 +10,6 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></meta>
         <title>Menu de Ordenes de Compra</title>
         <h:outputStylesheet library="css" name="main.css"/>
-        <h:outputScript library="js" name="lenguaje.js" />
     </h:head>
     <body>
         <div id="wrapper" align="center">
@@ -85,7 +84,7 @@
                                 <h:outputText value="#{oc.proveedor.contribuyente}"  />
                             </p:column>
                             <p:column headerText="F. Emisión">
-                                <h:outputText value="#{oc.fechaFinalizacion}"    />
+                                <h:outputText value="#{oc.fechaServidor}"    />
                             </p:column>
                             <p:column headerText="F. Entrega">
                                 <h:outputText value="#{oc.fechaEntrega}"    />
@@ -102,15 +101,12 @@
                                      value="#{mbOrdenCompra.listaOrdenesEncabezadoD}"
                                      var="ocd"
                                      emptyMessage="No hay ORDENES DE COMPRA-DIRECTAS que mostrar !!"
-                                     rowKey="#{ocd}"
+                                     rowKey="#{ocd.idOrdenCompra}"
                                      selectionMode="single"
                                      selection="#{mbOrdenCompra.ordenElegidaD}"
                                      scrollable="true" 
                                      scrollHeight="250"
                                      >
-                            <f:facet name="footer">
-                                #{mbOrdenCompra.listaOrdenesEncabezadoD.size()} Ordenes de compra.
-                            </f:facet>
                             <p:ajax event="rowSelect" 
                                     listener="#{mbOrdenCompra.dameOrdenCompraDirectaV}"   
                                     oncomplete="PF('odecDV').show()" 
@@ -124,6 +120,7 @@
                                 <h:outputText value="#{ocd.idOrdenCompra}"   />
                             </p:column>
 
+
                             <p:column headerText="Empresa" width="100" filterBy="#{ocd.empresa.empresa}"  filterMatchMode="contains" >
                                 <h:outputText value="#{ocd.empresa.nombreComercial}"    />
                             </p:column>
@@ -131,7 +128,7 @@
                                 <h:outputText value="#{ocd.nombreComercial}"  />
                             </p:column>
                             <p:column headerText="F. Emisión">
-                                <h:outputText value="#{ocd.fechaCreacion}"    />
+                                <h:outputText value="#{ocd.fechaServidor}"    />
                             </p:column>
                             <p:column headerText="F. Entrega">
                                 <h:outputText value="#{ocd.fechaEntrega}"    />
@@ -147,6 +144,9 @@
                                 </center>
                             </p:column>
                         </p:dataTable>
+                        <f:facet name="footer">
+                                #{mbOrdenCompra.listaOrdenesEncabezadoD.size()} Ordenes de compra.
+                            </f:facet>
                     </p:panel>
 
                     <!-- ORDENES QUE SIGUE EN EL PROCESO REQUISICION, COTIZACION Y ORDEN DE COMPRA -->
@@ -216,7 +216,7 @@
                                     <h:outputLabel value="Emision: " styleClass="textoEtiquetas"/> 
                                 </p:column>
                                 <p:column    >
-                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.fechaCreacion}" style="color: black; font-size: 10px;" />
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.fechaServidor}" style="color: black; font-size: 10px;" />
                                 </p:column>
 
                                 <p:column    >
@@ -910,7 +910,7 @@
                               id="dialogoOCDV"
                               modal="true"
                               resizable="false"
-                              draggable="false"
+
                               styleClass="darias">
                         <p:ajax event="close" 
                                 listener="#{mbOrdenCompra.limpiar()}" 
@@ -941,7 +941,7 @@
                                     title="CANCELAR la Orden de Compra"
                                     update=":form:OCDetalle :form:ordenCompraD"
                                     disabled="#{mbOrdenCompra.ordenElegidaD.estado==0}"
-                                    actionListener="#{mbOrdenCompra.cancelarOrden(mbOrdenCompra.ordenElegidaD.idOrdenCompra,0)}"
+                                    actionListener="#{mbOrdenCompra.cancelarOrden()}"
                                     oncomplete="PF('odecDV').hide()"
                                     >
                                     <p:confirm header="Deseas CANCELAR la orden de compra?" message="Estás seguro?" icon="ui-icon-alert" />
@@ -974,7 +974,7 @@
                                     <h:outputLabel value="Emision: " styleClass="textoEtiquetas"/> 
                                 </p:column>
                                 <p:column>
-                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.fechaCreacion}" style="color: black; font-size: 10px;" />
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.fechaServidor}" style="color: black; font-size: 10px;" />
                                 </p:column>
 
                                 <p:column style="width: 100px"   >
@@ -1163,7 +1163,7 @@
                     <script type="text/javascript">
                         function handleBuscar(xhr, status, args) {
                             if (!(args.validationFailed || !args.okBuscar)) {
-                                buscarProductoDlg.hide();
+                                PF('buscarProductoDlg').hide();
                             }
                         }
                     </script>

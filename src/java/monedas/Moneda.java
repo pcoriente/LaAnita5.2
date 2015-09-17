@@ -17,7 +17,7 @@ public class Moneda implements Serializable {
     private String simbolo;
 
     public Moneda() {
-        this.idMoneda=1;
+//        this.idMoneda=1;
         this.moneda="";
         this.codigoIso="";
         this.prefijoUnidad="";
@@ -26,15 +26,15 @@ public class Moneda implements Serializable {
         this.simbolo="";
     }
     
-    public Moneda(int idMoneda) {
-        this.idMoneda=idMoneda;
-        this.moneda="";
-        this.codigoIso="";
-        this.prefijoUnidad="";
-        this.prefijo="";
-        this.sufijo="";
-        this.simbolo="";
-    }
+//    public Moneda(int idMoneda) {
+//        this.idMoneda=idMoneda;
+//        this.moneda="";
+//        this.codigoIso="";
+//        this.prefijoUnidad="";
+//        this.prefijo="";
+//        this.sufijo="";
+//        this.simbolo="";
+//    }
 
     @Override
     public int hashCode() {

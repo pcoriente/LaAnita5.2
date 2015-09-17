@@ -4,8 +4,12 @@ package entradas.dominio;
  *
  * @author jesc
  */
-public class MovimientoProductoReporte {
-    private int referencia;
+public class ProductoReporte {
+    private int folio;
+    private int idOrdenCompra;
+    private double desctoComercial;
+    private double desctoProntoPago;
+    private double tipoDeCambio;
     private String sku;
     private String empaque;
     private double cantOrdenada;
@@ -24,17 +28,49 @@ public class MovimientoProductoReporte {
     private double neto;
     private double importe;
     
-    public MovimientoProductoReporte() {
+    public ProductoReporte() {
         this.sku="";
         this.empaque="";
     }
 
-    public int getReferencia() {
-        return referencia;
+    public int getFolio() {
+        return folio;
     }
 
-    public void setReferencia(int referencia) {
-        this.referencia = referencia;
+    public void setFolio(int folio) {
+        this.folio = folio;
+    }
+
+    public int getIdOrdenCompra() {
+        return idOrdenCompra;
+    }
+
+    public void setIdOrdenCompra(int idOrdenCompra) {
+        this.idOrdenCompra = idOrdenCompra;
+    }
+
+    public double getDesctoComercial() {
+        return desctoComercial;
+    }
+
+    public void setDesctoComercial(double desctoComercial) {
+        this.desctoComercial = desctoComercial;
+    }
+
+    public double getDesctoProntoPago() {
+        return desctoProntoPago;
+    }
+
+    public void setDesctoProntoPago(double desctoProntoPago) {
+        this.desctoProntoPago = desctoProntoPago;
+    }
+
+    public double getTipoDeCambio() {
+        return tipoDeCambio;
+    }
+
+    public void setTipoDeCambio(double tipoDeCambio) {
+        this.tipoDeCambio = tipoDeCambio;
     }
 
     public String getSku() {

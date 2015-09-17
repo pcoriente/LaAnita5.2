@@ -1,18 +1,19 @@
-package movimientos.to1;
+package movimientos.dominio;
 
 import java.util.ArrayList;
+import producto2.dominio.Producto;
 
 /**
  *
  * @author jesc
  */
-public class TOMovimientoAlmacenProducto1 {
+public class ProductoLotes {
     private int idMovtoAlmacen;
-    private int idProducto;
+    private Producto producto;
     private double cantidad;
-    private ArrayList<Lote1> lotes;
+    private ArrayList<Lote> lotes;
     
-    public TOMovimientoAlmacenProducto1() {}
+    public ProductoLotes() {}
 
     public int getIdMovtoAlmacen() {
         return idMovtoAlmacen;
@@ -22,12 +23,12 @@ public class TOMovimientoAlmacenProducto1 {
         this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
-    public int getIdProducto() {
-        return idProducto;
+    public Producto getProducto() {
+        return producto;
     }
 
-    public void setIdProducto(int idProducto) {
-        this.idProducto = idProducto;
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 
     public double getCantidad() {
@@ -38,11 +39,11 @@ public class TOMovimientoAlmacenProducto1 {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<Lote1> getLotes() {
+    public ArrayList<Lote> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote1> lotes) {
+    public void setLotes(ArrayList<Lote> lotes) {
         this.lotes = lotes;
     }
 }

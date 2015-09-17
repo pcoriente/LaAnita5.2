@@ -12,7 +12,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.Lote;
+import movimientos.to1.Lote1;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -61,7 +61,7 @@ public class DAOLotes {
         }
     }
 
-    public boolean validaLote(Lote lote) throws SQLException {
+    public boolean validaLote(Lote1 lote) throws SQLException {
         boolean ok = false;
         String strSQL = "SELECT DATEADD(DAY, 365, convert(date, fecha)) AS fecha FROM lotes WHERE lote='" + lote.getLote().substring(0, 4) + "'";
         try (Connection cn = this.ds.getConnection()) {
@@ -76,7 +76,7 @@ public class DAOLotes {
         return ok;
     }
 
-    public void agregarLoteEntradaAlmacen(int idMovtoAlmacen, Lote l) throws SQLException {
+    public void agregarLoteEntradaAlmacen(int idMovtoAlmacen, Lote1 l) throws SQLException {
         String strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior) "
                 + "VALUES (" + idMovtoAlmacen + ", " + l.getIdProducto() + ", '" + l.getLote() + "', " + l.getCantidad() + ", GETDATE(), 0)";
         Connection cn = this.ds.getConnection();
@@ -87,7 +87,7 @@ public class DAOLotes {
         }
     }
 
-    public void editarLoteEntradaAlmacen(int idMovtoAlmacen, Lote l) throws SQLException {
+    public void editarLoteEntradaAlmacen(int idMovtoAlmacen, Lote1 l) throws SQLException {
         String strSQL;
         if (l.getCantidad() == 0) {
             strSQL = "DELETE FROM movimientosDetalleAlmacen "
@@ -113,18 +113,18 @@ public class DAOLotes {
         }
     }
 
-    public ArrayList<Lote> obtenerLotesKardex(int idMovto, int idProducto) throws SQLException {
-        Lote lote;
+    public ArrayList<Lote1> obtenerLotesKardex(int idMovto, int idProducto) throws SQLException {
+        Lote1 lote;
         String strSQL = "SELECT K.*, COALESCE(DATEADD(DAY, " + this.diasCaducidad + ",L.fecha), DATEADD(DAY, -1, CONVERT(DATETIME, DATEDIFF(DAY, 0, GETDATE()), 102))) AS fechaCaducidad "
                 + "FROM movimientosDetalleAlmacen K "
                 + "LEFT JOIN lotes L ON L.lote=K.lote "
                 + "WHERE idMovtoAlmacen=" + idMovto + " AND idEmpaque=" + idProducto;
-        ArrayList<Lote> lotes = new ArrayList<>();
+        ArrayList<Lote1> lotes = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                lote = new Lote();
+                lote = new Lote1();
                 lote.setIdAlmacen(rs.getInt("idAlmacen"));
                 lote.setIdProducto(rs.getInt("idEmpaque"));
                 lote.setLote(rs.getString("lote"));
@@ -154,7 +154,7 @@ public class DAOLotes {
         }
     }
 
-    public void libera(int idMovto, int idMovtoAlmacen, Lote lote, double cantidad) throws SQLException {
+    public void libera(int idMovto, int idMovtoAlmacen, Lote1 lote, double cantidad) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
@@ -193,7 +193,7 @@ public class DAOLotes {
         }
     }
 
-    public void liberaAlmacen(int idMovtoAlmacen, Lote lote, double liberar) throws SQLException {
+    public void liberaAlmacen(int idMovtoAlmacen, Lote1 lote, double liberar) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
@@ -292,7 +292,7 @@ public class DAOLotes {
         return cantOficina;
     }
 
-    public double separa(int idMovto, int idMovtoAlmacen, Lote lote, double cantidad, boolean exacto) throws SQLException {
+    public double separa(int idMovto, int idMovtoAlmacen, Lote1 lote, double cantidad, boolean exacto) throws SQLException {
         double cantAlmacen, cantOficina;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -317,7 +317,7 @@ public class DAOLotes {
         return cantidad;
     }
 
-    public double separaAlmacen(int idMovtoAlmacen, Lote lote, double cantidad, boolean exacto) throws SQLException {
+    public double separaAlmacen(int idMovtoAlmacen, Lote1 lote, double cantidad, boolean exacto) throws SQLException {
         return this.separaLotes(idMovtoAlmacen, lote.getIdAlmacen(), lote.getIdProducto(), lote.getLote(), cantidad, exacto);
     }
 
@@ -394,8 +394,8 @@ public class DAOLotes {
         return cantidad;
     }
     
-    private Lote construirLotesMovtoEmpaque(ResultSet rs) throws SQLException {
-        Lote lote = new Lote();
+    private Lote1 construirLotesMovtoEmpaque(ResultSet rs) throws SQLException {
+        Lote1 lote = new Lote1();
         lote.setIdAlmacen(rs.getInt("idAlmacen"));
         lote.setIdProducto(rs.getInt("idEmpaque"));
         lote.setLote(rs.getString("lote"));
@@ -406,14 +406,14 @@ public class DAOLotes {
         return lote;
     }
 
-    public ArrayList<Lote> obtenerLotesMovtoEmpaque(int idMovtoAlmacen, int idProducto) throws SQLException {
+    public ArrayList<Lote1> obtenerLotesMovtoEmpaque(int idMovtoAlmacen, int idProducto) throws SQLException {
         String strSQL = "SELECT M.idAlmacen, K.idEmpaque, K.lote, K.cantidad AS saldo"
                 + "     , K.cantidad, K.cantidad AS separados, L.fechaCaducidad "
                 + "FROM movimientosDetalleAlmacen K "
                 + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=K.idMovtoAlmacen "
                 + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=K.idEmpaque AND L.idLote=K.idLote "
                 + "WHERE K.idMovtoAlmacen=" + idMovtoAlmacen + " AND K.idEmpaque=" + idProducto;
-        ArrayList<Lote> lotes = new ArrayList<>();
+        ArrayList<Lote1> lotes = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -426,8 +426,8 @@ public class DAOLotes {
         return lotes;
     }
     
-    private Lote construir(ResultSet rs) throws SQLException {
-        Lote lote = new Lote();
+    private Lote1 construir(ResultSet rs) throws SQLException {
+        Lote1 lote = new Lote1();
         lote.setIdAlmacen(rs.getInt("idAlmacen"));
         lote.setIdProducto(rs.getInt("idEmpaque"));
         lote.setLote(rs.getString("lote"));
@@ -438,8 +438,8 @@ public class DAOLotes {
         return lote;
     }
 
-    public ArrayList<Lote> obtenerLotes(int idAlmacen, int idMovtoAlmacen, int idProducto) throws SQLException {
-        ArrayList<Lote> lotes = new ArrayList<>();
+    public ArrayList<Lote1> obtenerLotes(int idAlmacen, int idMovtoAlmacen, int idProducto) throws SQLException {
+        ArrayList<Lote1> lotes = new ArrayList<>();
         String strSQL = "SELECT L.idAlmacen, L.idEmpaque, L.lote, L.fechaCaducidad, L.saldo-L.separados AS saldo\n"
                 + "	, ISNULL(D.cantidad, 0) AS cantidad\n"
                 + "FROM (SELECT M.idAlmacen, D.idEmpaque, D.lote, D.cantidad\n"

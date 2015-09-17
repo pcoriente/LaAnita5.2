@@ -6,12 +6,12 @@ import java.util.Date;
  *
  * @author jesc
  */
-public class TOProductoAlmacen {
+public class TOProductoAlmacen {    // Esta clase se usuara para grabar y compras (solo un lote por empaque)
     private int idMovtoAlmacen;
     private int idProducto;
     private String lote;
     private double cantidad;
-    private Date fechaCaducidad;
+    private Date fechaCaducidad;    // Pendiente por eliminar, solo queda por ahora por compatibilidad
     
     public TOProductoAlmacen() {
         this.lote="";

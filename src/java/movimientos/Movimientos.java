@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import movimientos.dominio.MovimientoOficina;
 import movimientos.dominio.ProductoOficina;
+import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoOficina;
 import movimientos.to.TOProductoOficina;
 
@@ -16,8 +17,92 @@ import movimientos.to.TOProductoOficina;
  * @author jesc
  */
 public class Movimientos {
-//    static double suma;
 
+//    ====================================== ALMACEN =======================================
+    public static void eliminaProductoAlmacen(Connection cn, int idMovtoAlmacen, int idProducto) throws SQLException {
+        try (Statement st = cn.createStatement()) {
+            String strSQL = "DELETE D\n"
+                    + "FROM movimientosDetalleAlmacen D\n"
+                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto + " AND M.referencia=0";
+            st.executeUpdate(strSQL);
+        }
+    }
+
+    public static TOMovimientoAlmacen construirMovimientoAlmacen(ResultSet rs) throws SQLException {
+        TOMovimientoAlmacen toMov = new TOMovimientoAlmacen();
+        toMov.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
+        toMov.setIdTipo(rs.getInt("idTipo"));
+        toMov.setIdEmpresa(rs.getInt("idEmpresa"));
+        toMov.setIdAlmacen(rs.getInt("idAlmacen"));
+        toMov.setFolio(rs.getInt("folio"));
+        toMov.setIdComprobante(rs.getInt("idComprobante"));
+        toMov.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
+        toMov.setIdReferencia(rs.getInt("idReferencia"));
+        toMov.setReferencia(rs.getInt("referencia"));
+        toMov.setIdUsuario(rs.getInt("idUsuario"));
+        toMov.setPropietario(rs.getInt("propietario"));
+        toMov.setEstatus(rs.getInt("estatus"));
+        return toMov;
+    }
+
+    public static TOMovimientoAlmacen obtenerMovimientoAlmacen(Connection cn, int idMovtoAlmacen) throws SQLException {
+        String strSQL;
+        TOMovimientoAlmacen toMov = null;
+        try (Statement st = cn.createStatement()) {
+            strSQL = "SELECT * FROM movimientosAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                toMov = construirMovimientoAlmacen(rs);
+            }
+        }
+        return toMov;
+    }
+
+    public static int obtenMovimientoFolioAlmacen(Connection cn, int idAlmacen, int idTipo) throws SQLException {
+        int folio;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery("SELECT folio FROM movimientosFoliosAlmacen WHERE idAlmacen=" + idAlmacen + " AND idTipo=" + idTipo);
+            if (rs.next()) {
+                folio = rs.getInt("folio");
+                st.executeUpdate("UPDATE movimientosFoliosAlmacen SET folio=folio+1 WHERE idAlmacen=" + idAlmacen + " AND idTipo=" + idTipo);
+            } else {
+                folio = 1;
+                st.executeUpdate("INSERT INTO movimientosFoliosAlmacen (idAlmacen, idTipo, folio) VALUES (" + idAlmacen + ", " + idTipo + ", 2)");
+            }
+        }
+        return folio;
+    }
+
+    public static void agregaMovimientoAlmacen(Connection cn, TOMovimientoAlmacen to, boolean definitivo) throws SQLException {
+        try (Statement st = cn.createStatement()) {
+            if (definitivo) {
+                to.setFolio(obtenMovimientoFolioAlmacen(cn, to.getIdAlmacen(), to.getIdTipo()));
+            }
+            String strSQL = "INSERT INTO movimientosAlmacen (idTipo, idEmpresa, idAlmacen, folio, idComprobante, fecha, idReferencia, referencia, idUsuario, estatus, propietario) "
+                    + "VALUES (" + to.getIdTipo() + ", " + to.getIdEmpresa() + ", " + to.getIdAlmacen() + ", " + to.getFolio() + ", " + to.getIdComprobante() + ", GETDATE(), " + to.getIdReferencia() + ", " + to.getReferencia() + ", " + to.getIdUsuario() + ", " + to.getEstatus() + ", " + to.getPropietario() + ")";
+            st.executeUpdate(strSQL);
+
+            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idMovtoAlmacen");
+            if (rs.next()) {
+                to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
+            }
+            rs = st.executeQuery("SELECT fecha FROM movimientosAlmacen WHERE idMovtoAlmacen=" + to.getIdMovtoAlmacen());
+            if (rs.next()) {
+                to.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
+            }
+        }
+    }
+
+//    ==================================== OFICINA ===================================
+    public static double sumaPiezasOficina(ArrayList<ProductoOficina> detalle) {
+        double piezas = 0;
+        for (ProductoOficina p : detalle) {
+            piezas += (p.getCantFacturada() + p.getCantSinCargo());
+        }
+        return piezas;
+    }
+    
     public static void restaTotales(ProductoOficina prod, MovimientoOficina mov) {
         double resta;
         resta = prod.getCosto() * prod.getCantFacturada();
@@ -129,9 +214,67 @@ public class Movimientos {
         to.setIdImpuestoGrupo(rs.getInt("idImpuestoGrupo"));
     }
 
+    public static void eliminaProductoOficina(Connection cn, int idMovto, int idProducto) throws SQLException {
+        try (Statement st = cn.createStatement()) {
+            String strSQL = "DELETE D\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto + " AND M.referencia=0";
+            st.executeUpdate(strSQL);
+
+            strSQL = "DELETE D\n"
+                    + "FROM movimientosDetalleImpuestos D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto + " AND M.referencia=0";
+            st.executeUpdate(strSQL);
+        }
+    }
+
+    public static void actualizaDetalleAlmacen(Connection cn, int idMovtoAlmacen, boolean suma) throws SQLException {
+        String strSQL;
+        try (Statement st = cn.createStatement()) {
+            strSQL="DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen="+idMovtoAlmacen+" AND cantidad=0";
+            st.executeUpdate(strSQL);
+            
+            strSQL = "INSERT INTO almacenesLotes\n"
+                    + "SELECT M.idAlmacen, D.idEmpaque, D.lote, DATEADD(DAY, 365, L.fecha), 0, 0, 0\n"
+                    + "FROM movimientosDetalleAlmacen D\n"
+                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
+                    + "LEFT JOIN almacenesLotes AL ON AL.idAlmacen=M.idAlmacen AND AL.idEmpaque=D.idEmpaque AND AL.lote=D.lote\n"
+                    + "WHERE M.idMovtoAlmacen=" + idMovtoAlmacen + " AND AL.idAlmacen IS NULL";
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE D\n"
+                    + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
+                    + "FROM movimientosDetalleAlmacen D\n"
+                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+                    + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen;
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE A\n"
+                    + "SET A.existencia=A.existencia" + (suma ? "+" : "-") + "D.cantidad\n"
+                    + "FROM movimientosDetalleAlmacen D\n"
+                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+                    + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen;
+            st.executeUpdate(strSQL);
+        }
+    }
+
     public static void actualizaDetalle(Connection cn, int idMovto, int idTipo, boolean suma) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
+            strSQL = "DELETE I\n"
+                    + "FROM movimientosDetalleImpuestos I\n"
+                    + "INNER JOIN movimientosDetalle D ON D.idMovto=I.idMovto AND D.idEmpaque=I.idEmpaque\n"
+                    + "WHERE I.idMovto=" + idMovto + " AND D.cantFacturada+D.cantSinCargo=0";
+            st.executeUpdate(strSQL);
+
+            strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + idMovto + " AND cantFacturada+cantSinCargo=0";
+            st.executeUpdate(strSQL);
+
             strSQL = "INSERT INTO almacenesEmpaques (idAlmacen, idEmpaque, existencia, separados, existenciaMinima, existenciaMaxima)\n"
                     + "SELECT M.idAlmacen, D.idEmpaque, 0, 0, 0, 0\n"
                     + "FROM movimientosDetalle D\n"
@@ -160,7 +303,7 @@ public class Movimientos {
                         + "LEFT JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE E\n"
                         + "SET costoUnitarioPromedio=ROUND(((E.costoUnitarioPromedio*E.existencia + D.costoPromedio*(D.cantFacturada+D.cantSinCargo))/(E.existencia+D.cantFacturada+D.cantSinCargo)),6)\n"
                         + "	, idMovtoUltimaCompra=CASE WHEN M.idTipo=1 THEN M.idMovto ELSE E.idMovtoUltimaCompra END\n"
@@ -169,7 +312,7 @@ public class Movimientos {
                         + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
-            } else if(idTipo==34) {
+            } else if (idTipo == 34) {
                 strSQL = "UPDATE D\n"
                         + "SET D.costoPromedio=E.costoUnitarioPromedio\n"
                         + "FROM movimientosDetalle D\n"
@@ -234,7 +377,7 @@ public class Movimientos {
         ip.setAcumulable(rs.getBoolean("acumulable"));
         return ip;
     }
-    
+
     public static double obtenImpuestosProducto(Connection cn, int idMovto, int idEmpaque, ArrayList<ImpuestosProducto> impuestos) throws SQLException {
         double importeImpuestos = 0;
         ImpuestosProducto impuesto;
@@ -336,6 +479,16 @@ public class Movimientos {
         }
     }
 
+    public static void grabarMovimientoAlmacen(Connection cn, TOMovimientoAlmacen toMov) throws SQLException {
+        String strSQL;
+        try (Statement st = cn.createStatement()) {
+            strSQL = "UPDATE movimientosAlmacen\n"
+                    + "SET folio=" + toMov.getFolio() + ", fecha=GETDATE(), idUsuario=" + toMov.getIdUsuario() + ", estatus=" + toMov.getEstatus() + "\n"
+                    + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
+            st.executeUpdate(strSQL);
+        }
+    }
+
     public static void grabarMovimiento(Connection cn, TOMovimientoOficina toMov) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
@@ -369,14 +522,14 @@ public class Movimientos {
         to.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
         return to;
     }
-    
+
     public static TOMovimientoOficina obtenerMovimiento(Connection cn, int idMovto) throws SQLException {
         String strSQL;
         TOMovimientoOficina toMov = null;
         try (Statement st = cn.createStatement()) {
-            strSQL="SELECT * FROM movimientos WHERE idMovto="+idMovto;
-            ResultSet rs=st.executeQuery(strSQL);
-            if(rs.next()) {
+            strSQL = "SELECT * FROM movimientos WHERE idMovto=" + idMovto;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
                 toMov = construirMovimiento(rs);
             }
         }
