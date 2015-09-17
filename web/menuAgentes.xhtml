@@ -302,13 +302,14 @@
                                         icon="ui-icon-search"
                                         action="#{mbAgentes.mbDireccion.buscarAsentamientos()}" 
                                         process="@this cboPaises codigoPostal" 
-                                        update="cboAsentamientos"
+                                        update="cboAsentamientos asentamientos"
                                         style="height: 30px"/>
                                 </h:panelGrid>
                             </h:panelGroup>
                             <h:outputLabel value="Colonia:"  styleClass="colorLetra" />
                             <h:panelGroup id="asentamientos">
-                                <h:panelGrid rendered="#{mbAgentes.mbDireccion.editarAsentamiento}" columns="2" >
+                                <h:panelGrid rendered="#{mbAgentes.mbDireccion.editarAsentamiento}" 
+                                             columns="2" >
                                     <p:inputText id="txtAsentamiento" 
                                                  value="#{mbAgentes.mbDireccion.direccion.colonia}"/>
                                     <p:commandButton 
