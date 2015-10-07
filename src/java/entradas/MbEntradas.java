@@ -1,5 +1,6 @@
 package entradas;
 
+import comprobantes.MbComprobantes;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import compras.dominio.CompraOficina;
@@ -27,7 +28,7 @@ import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import monedas.MbMonedas;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import movimientos.to.TOMovimientoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -81,7 +82,7 @@ public class MbEntradas implements Serializable {
     private double tipoDeCambio;  // Solo sirve para cuando hay cambio en el valor del tipo de cambio
     private int idModulo;
     private boolean grabar;
-    private DAOMovimientos dao;
+    private DAOMovimientosOld dao;
 //    private DAOImpuestosProducto daoImps;
     private TimeZone zonaHoraria = TimeZone.getDefault();
 
@@ -221,7 +222,7 @@ public class MbEntradas implements Serializable {
         this.modoEdicion = true;
         this.entradaDetalle = new ArrayList<>();
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
             for (TOMovimientoProducto to : this.dao.obtenerDetalle(this.entrada.getIdMovto())) {
                 this.entradaProducto = this.convertir(this.entrada.getIdMovto(), to);
                 this.entradaDetalle.add(this.entradaProducto);
@@ -259,7 +260,7 @@ public class MbEntradas implements Serializable {
             this.entradaProducto = null;
             this.entradas = new ArrayList<>();
             try {
-                this.dao = new DAOMovimientos();
+                this.dao = new DAOMovimientosOld();
                 for (TOMovimientoAlmacen to : this.dao.obtenerMovimientosAlmacen(this.mbComprobantes.getComprobante().getIdComprobante())) {
 //                    this.entradas.add(this.convertir(to));
                 }
@@ -291,7 +292,7 @@ public class MbEntradas implements Serializable {
             this.modoEdicion = true;
             this.entradas = new ArrayList<>();
             try {
-                this.dao = new DAOMovimientos();
+                this.dao = new DAOMovimientosOld();
 //                for (TOMovimientoOficina to : this.dao.obtenerMovimientosRelacionados(this.mbComprobantes.getComprobante().getIdComprobante())) {
 //                    this.entradas.add(this.convertir(to));
 //                }
@@ -480,7 +481,7 @@ public class MbEntradas implements Serializable {
             } else if (this.sumaPiezas() == 0) {
                 Mensajes.mensajeAlert("No hay piezas capturadas !!!");
             } else {
-                this.dao = new DAOMovimientos();
+                this.dao = new DAOMovimientosOld();
                 TOMovimientoOficina toEntrada = convertirTO(this.entrada);
 //                this.dao.grabarCompraOficina(this.entrada.getAlmacen().getIdEmpresa(), toEntrada, this.entrada.getProveedor().getIdImpuestoZona(), this.entradaDetalle);
                 this.entrada.setFolio(toEntrada.getFolio());
@@ -509,7 +510,7 @@ public class MbEntradas implements Serializable {
 //    }
     public void cerrarOrdenDeCompraAlmacen() {
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
 //            this.dao.cerrarOrdenDeCompra(false, this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
             this.mbOrdenCompra.getListaOrdenesEncabezado().remove(this.mbOrdenCompra.getOrdenElegida());
             this.mbOrdenCompra.setOrdenElegida(null);
@@ -522,7 +523,7 @@ public class MbEntradas implements Serializable {
 
     public void cerrarOrdenDeCompra() {
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
 //            this.dao.cerrarOrdenDeCompra(true, this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
             this.mbOrdenCompra.getListaOrdenesEncabezado().remove(this.mbOrdenCompra.getOrdenElegida());
             this.mbOrdenCompra.setOrdenElegida(null);
@@ -617,7 +618,7 @@ public class MbEntradas implements Serializable {
 
     public void cancelarCompraAlmacen() {
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
             this.dao.cancelarCompraAlmacen(this.entrada.getIdMovto(), this.entrada.getAlmacen().getIdAlmacen(), this.entrada.getIdOrdenCompra());
             this.entrada.setEstatus(3);
             this.modoEdicion = false;
@@ -631,7 +632,7 @@ public class MbEntradas implements Serializable {
 
     public void cancelarCompra() {
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
 //            this.dao.cancelarCompra(this.entrada.getIdMovto(), this.entrada.getAlmacen().getIdAlmacen(), this.entrada.getIdOrdenCompra());
             this.entrada.setEstatus(3);
             this.modoEdicion = false;
@@ -648,7 +649,7 @@ public class MbEntradas implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cargaFactura");
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
 //            this.daoImps = new DAOImpuestosProducto();
 //            this.daoEmpaques = new DAOEmpaques();
             this.cargaDatosFactura(this.selEntrada.getIdMovto());
@@ -670,7 +671,7 @@ public class MbEntradas implements Serializable {
         boolean ok = false;
         this.entradas = new ArrayList<>();
         try {
-            this.dao = new DAOMovimientos();
+            this.dao = new DAOMovimientosOld();
 //            TOMovimiento m=this.dao.obtenerMovimientoComprobante(this.mbComprobantes.getSeleccion().getIdComprobante());
 //            this.entradas.add(this.convertir(m));
 ////            for (TOMovimiento m : this.dao.obtenerMovimientoComprobante(this.mbComprobantes.getToComprobante().getIdComprobante())) {
@@ -930,7 +931,7 @@ public class MbEntradas implements Serializable {
         }
         if (nuevo) {
             try {
-                this.dao = new DAOMovimientos();
+                this.dao = new DAOMovimientosOld();
                 producto.setImpuestos(this.dao.generarImpuestosProducto(producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), this.entrada.getProveedor().getIdImpuestoZona()));
 //                producto.setCosto(this.dao.obtenerPrecioUltimaCompra(this.entrada.getAlmacen().getIdEmpresa(), producto.getProducto().getIdProducto()));
                 this.entradaDetalle.add(producto);

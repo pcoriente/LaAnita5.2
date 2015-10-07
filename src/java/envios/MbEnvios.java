@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import movimientos.to.TOMovimientoOficina;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
@@ -140,7 +140,7 @@ public class MbEnvios implements Serializable {
         boolean ok = true;
         this.detalle = new ArrayList<EnvioProducto>();
         try {
-            DAOMovimientos daoMv = new DAOMovimientos();
+            DAOMovimientosOld daoMv = new DAOMovimientosOld();
             TOMovimientoOficina toMv = daoMv.obtenerMovimientoRelacionado(this.fincado.getIdMovto());
             
 //            DAOMovimientos1 daoMv1=new DAOMovimientos1();

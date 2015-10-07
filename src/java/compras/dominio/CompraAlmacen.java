@@ -1,8 +1,9 @@
 package compras.dominio;
 
 import almacenes.to.TOAlmacenJS;
-import entradas.dominio.Comprobante;
+import comprobantes.dominio.Comprobante;
 import movimientos.dominio.MovimientoAlmacen;
+import movimientos.dominio.MovimientoTipo;
 import proveedores.dominio.MiniProveedor;
 
 /**
@@ -15,13 +16,13 @@ public class CompraAlmacen extends MovimientoAlmacen {
     private int idOrdenCompra;
     
     public CompraAlmacen() {
-        super(1);
+        super(new MovimientoTipo(1, "COMPRA OFICINA"));
         this.proveedor=new MiniProveedor();
         this.comprobante=new Comprobante();
     }
     
     public CompraAlmacen(TOAlmacenJS almacen, MiniProveedor proveedor, Comprobante comprobante) {
-        super(1, almacen);
+        super(new MovimientoTipo(1, "COMPRA OFICINA"), almacen);
         this.proveedor=proveedor;
         this.comprobante=comprobante;
     }

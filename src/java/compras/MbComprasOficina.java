@@ -6,7 +6,7 @@ import compras.dao.DAOComprasOficina;
 import compras.dominio.CompraOficina;
 import compras.dominio.ProductoCompraOficina;
 import compras.to.TOProductoCompraOficina;
-import entradas.MbComprobantes;
+import comprobantes.MbComprobantes;
 import entradas.dominio.ProductoReporte;
 import impuestos.dominio.ImpuestosProducto;
 import java.io.IOException;
@@ -667,7 +667,7 @@ public class MbComprasOficina implements Serializable {
             this.compras = new ArrayList<>();
             try {
                 this.daoMv = new DAOMovimientosOficina();
-                for (TOMovimientoOficina to : this.daoMv.obtenerMovimientosOficina(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 1, this.mbComprobantes.getComprobante().getIdComprobante())) {
+                for (TOMovimientoOficina to : this.daoMv.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 1, this.mbComprobantes.getComprobante().getIdComprobante())) {
                     this.compras.add(this.convertir(to));
                 }
                 if (this.compras.isEmpty()) {

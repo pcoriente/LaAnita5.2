@@ -354,7 +354,7 @@
     </converter>
     <converter>
         <converter-id>converters.ComprobanteConverter</converter-id>
-        <converter-class>entradas.converters.ComprobanteConverter</converter-class>
+        <converter-class>comprobantes.converters.ComprobanteConverter</converter-class>
     </converter>
     
     

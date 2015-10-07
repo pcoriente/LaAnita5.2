@@ -1,4 +1,4 @@
-package traspasos;
+package rechazos;
 
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
@@ -21,13 +21,10 @@ import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import movimientos.dao.DAOLotes;
-import movimientos.dao.DAOMovimientos;
-import movimientos.dominio.EntradaProducto;
+import movimientos.dao.DAOMovimientosAlmacen;
+import movimientos.dao.DAOMovimientosOld;
 import movimientos.to1.Lote1;
-import movimientos.dominio.MovimientoRelacionado;
-import movimientos.to.TOMovimientoOficina;
-import movimientos.to1.TOMovimientoProducto;
+import movimientos.dominio.MovimientoTipo;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -38,6 +35,13 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
+import rechazos.dao.DAORechazos;
+import rechazos.dominio.Rechazo;
+import rechazos.dominio.RechazoProducto;
+import rechazos.dominio.RechazoProductoAlmacen;
+import rechazos.to.TORechazo;
+import rechazos.to.TORechazoProducto;
+import rechazos.to.TORechazoProductoAlmacen;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 
@@ -57,15 +61,18 @@ public class MbRechazo implements Serializable {
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
     private boolean modoEdicion;
+    
     private TOAlmacenJS almacen;
     private ArrayList<SelectItem> listaAlmacenes;
-    private MovimientoRelacionado rechazo;
-    private ArrayList<MovimientoRelacionado> rechazos;
-    private ArrayList<EntradaProducto> detalle;
-    private EntradaProducto producto;
+    private Rechazo rechazo;
+    private ArrayList<Rechazo> rechazos;
+    private ArrayList<RechazoProducto> detalle;
+    private RechazoProducto producto;
     private Lote1 lote;
-    private DAOMovimientos dao;
-    private DAOLotes daoLotes;
+//    private DAOLotes daoLotes;
+    private DAOMovimientosOld daoMv;
+    private DAORechazos dao;
+    private DAOMovimientosAlmacen daoAlm;
 
     public MbRechazo() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -74,20 +81,20 @@ public class MbRechazo implements Serializable {
         this.inicializa();
     }
 
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(EntradaProducto prod) {
+    private MovimientoRelacionadoProductoReporte convertirProductoReporte(RechazoProducto prod) {
         boolean ya = false;
         MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (Lote1 l : prod.getLotes()) {
-            if (l.getSeparados() != 0) {
+        for (RechazoProductoAlmacen l : prod.getLotes()) {
+            if (l.getCantidad() != 0) {
                 if (ya) {
-//                    rep.getLotes().add(l);
+                    rep.getLotes().add(l);
                 } else {
                     rep.setLote(l.getLote());
-                    rep.setLoteCantidad(l.getSeparados());
+                    rep.setLoteCantidad(l.getCantidad());
                     ya = true;
                 }
             }
@@ -100,7 +107,7 @@ public class MbRechazo implements Serializable {
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
         ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
-        for (EntradaProducto p : this.detalle) {
+        for (RechazoProducto p : this.detalle) {
             if (p.getCantFacturada() != 0) {
                 detalleReporte.add(this.convertirProductoReporte(p));
             }
@@ -108,10 +115,10 @@ public class MbRechazo implements Serializable {
         String sourceFileName = "C:\\Carlos Pat\\Reportes\\Traspaso.jasper";
         JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
         Map parameters = new HashMap();
-        parameters.put("empresa", this.rechazo.getAlmacenDestino().getEmpresa());
+        parameters.put("empresa", this.rechazo.getAlmacen().getEmpresa());
 
-        parameters.put("cedis", this.rechazo.getAlmacenDestino().getCedis());
-        parameters.put("almacen", this.rechazo.getAlmacenDestino().getAlmacen());
+        parameters.put("cedis", this.rechazo.getAlmacen().getCedis());
+        parameters.put("almacen", this.rechazo.getAlmacen().getAlmacen());
 
         parameters.put("concepto", "RECHAZO DEL ALMACEN :");
 
@@ -140,60 +147,49 @@ public class MbRechazo implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-
+    
     public void salir() {
         this.obtenerRechazos();
         this.modoEdicion = false;
     }
-
-    public void editarLotes() {
-        try {
-            this.daoLotes = new DAOLotes();
-            this.producto.setLotes(this.daoLotes.obtenerLotes(this.rechazo.getAlmacenDestino().getIdAlmacen(), this.rechazo.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto()));
-            this.lote = new Lote1();
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
+    
+    private RechazoProductoAlmacen convertirProductoAlmacen(TORechazoProductoAlmacen toProd) {
+        RechazoProductoAlmacen prod = new RechazoProductoAlmacen();
+        prod.setCantTraspasada(toProd.getCantTraspasada());
+        prod.setCantRecibida(toProd.getCantRecibida());
+        movimientos.Movimientos.convertir(toProd, prod);
+        return prod;
     }
 
-    private EntradaProducto convertirDetalle(TOMovimientoProducto to) throws SQLException {
-        EntradaProducto p = new EntradaProducto();
-        p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        p.setCantOrdenada(to.getCantOrdenada());
-        p.setCostoOrdenado(to.getCostoOrdenado());
-        p.setCantRecibida(to.getCantRecibida());
-        p.setCantFacturada(to.getCantFacturada());
-        p.setCantSinCargo(to.getCantSinCargo());
-        p.setCostoPromedio(to.getCostoPromedio());
-        p.setCosto(to.getCosto());
-        p.setDesctoProducto1(to.getDesctoProducto1());
-        p.setDesctoProducto2(to.getDesctoProducto2());
-        p.setDesctoConfidencial(to.getDesctoConfidencial());
-        p.setUnitario(to.getUnitario());
-        p.setImporte(to.getUnitario() * (to.getCantFacturada() + to.getCantSinCargo()));
-        p.setLotes(this.daoLotes.obtenerLotes(this.rechazo.getAlmacenDestino().getIdAlmacen(), this.rechazo.getIdMovtoAlmacen(), to.getIdProducto()));
-        int sumaLotes = 0;
-        for (Lote1 l : p.getLotes()) {
-            sumaLotes += l.getSeparados();
+    private RechazoProducto convertir(TORechazoProducto toProd) throws SQLException {
+        RechazoProducto prod = new RechazoProducto();
+        prod.setCantTraspasada(toProd.getCantTraspasada());
+        prod.setCantRecibida(toProd.getCantRecibida());
+        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        movimientos.Movimientos.convertir(toProd, prod);
+        double sumaLotes=0;
+        for(TORechazoProductoAlmacen to : this.dao.obtenerDetalleProducto(this.rechazo.getIdMovtoAlmacen(), toProd.getIdProducto())) {
+            prod.getLotes().add(this.convertirProductoAlmacen(to));
+            sumaLotes+=to.getCantidad();
         }
-        if (p.getCantFacturada() != sumaLotes) {
-            throw new SQLException("(idMovtoAlmacen=" + this.rechazo.getIdMovtoAlmacen() + ") Error de sincronizacion Lotes en producto: " + p.getProducto().getIdProducto());
+        if(prod.getCantFacturada()!=sumaLotes) {
+            throw new SQLException("Error de sincronizacion Lotes vs oficina en producto (id=" + toProd.getIdProducto() + ") del movimiento !!!");
+        } else {
+            prod.setSumaLotes(sumaLotes);
         }
-        return p;
+        return prod;
     }
 
-    public void cargaDetalle(SelectEvent event) {
-        this.rechazo = (MovimientoRelacionado) event.getObject();
+    public void obtenerDetalle(SelectEvent event) {
+        this.rechazo = (Rechazo) event.getObject();
         try {
-            this.dao = new DAOMovimientos();
-            this.daoLotes = new DAOLotes();
+            this.daoAlm = new DAOMovimientosAlmacen();
+            this.dao = new DAORechazos();
             this.detalle = new ArrayList<>();
-            for (TOMovimientoProducto p : this.dao.obtenerDetalle(this.rechazo.getIdMovto())) {
-                this.detalle.add(this.convertirDetalle(p));
+            for (TORechazoProducto toProd : this.dao.obtenerDetalle(this.rechazo.getIdMovto())) {
+                this.detalle.add(this.convertir(toProd));
             }
-            this.producto = new EntradaProducto();
+            this.producto = new RechazoProducto();
             this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -202,26 +198,24 @@ public class MbRechazo implements Serializable {
         }
     }
 
-    private MovimientoRelacionado convertir(TOMovimientoOficina toMovimiento) {
-        MovimientoRelacionado movimiento = new MovimientoRelacionado();
-        movimiento.setIdMovto(toMovimiento.getIdMovto());
-        movimiento.setIdMovtoAlmacen(toMovimiento.getIdMovtoAlmacen());
-        movimiento.setAlmacenDestino(this.almacen);
-        movimiento.setFolio(toMovimiento.getFolio());
-        movimiento.setFecha(toMovimiento.getFecha());
-        movimiento.setIdUsuario(toMovimiento.getIdUsuario());
-        movimiento.setAlmacenOrigen(this.mbAlmacenes.obtenerTOAlmacen(toMovimiento.getIdReferencia()));
-//        movimiento.setFolioAlmacen(toMovimiento.getFolioAlmacen());
-        return movimiento;
+    private Rechazo convertir(TORechazo toMov) {
+        Rechazo mov = new Rechazo(new MovimientoTipo(54, "Rechazo"), this.almacen, this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
+        mov.setRecepcionFolio(toMov.getRecepcionFolio());
+        mov.setRecepcionFecha(toMov.getRecepcionFecha());
+        mov.setTraspasoFolio(toMov.getTraspasoFolio());
+        mov.setTraspasoFecha(toMov.getTraspasoFecha());
+        movimientos.Movimientos.convertir(toMov, mov);
+        mov.setIdRecepcion(toMov.getReferencia());
+        return mov;
     }
 
     public void obtenerRechazos() {
         boolean ok = false;
         this.rechazos = new ArrayList<>();
         try {
-            this.dao = new DAOMovimientos();
-            for (TOMovimientoOficina m : this.dao.obtenerMovimientos(this.almacen.getIdAlmacen(), 53, 1, new Date())) {
-                this.rechazos.add(this.convertir(m));
+            this.dao = new DAORechazos();
+            for (TORechazo mov : this.dao.obtenerRechazos(this.almacen.getIdAlmacen(), new Date())) {
+                this.rechazos.add(this.convertir(mov));
             }
             ok = true;
         } catch (SQLException ex) {
@@ -282,35 +276,35 @@ public class MbRechazo implements Serializable {
         this.listaAlmacenes = listaAlmacenes;
     }
 
-    public MovimientoRelacionado getRechazo() {
+    public Rechazo getRechazo() {
         return rechazo;
     }
 
-    public void setRechazo(MovimientoRelacionado rechazo) {
+    public void setRechazo(Rechazo rechazo) {
         this.rechazo = rechazo;
     }
 
-    public ArrayList<MovimientoRelacionado> getRechazos() {
+    public ArrayList<Rechazo> getRechazos() {
         return rechazos;
     }
 
-    public void setRechazos(ArrayList<MovimientoRelacionado> rechazos) {
+    public void setRechazos(ArrayList<Rechazo> rechazos) {
         this.rechazos = rechazos;
     }
 
-    public ArrayList<EntradaProducto> getDetalle() {
+    public ArrayList<RechazoProducto> getDetalle() {
         return detalle;
     }
 
-    public void setDetalle(ArrayList<EntradaProducto> detalle) {
+    public void setDetalle(ArrayList<RechazoProducto> detalle) {
         this.detalle = detalle;
     }
 
-    public EntradaProducto getProducto() {
+    public RechazoProducto getProducto() {
         return producto;
     }
 
-    public void setProducto(EntradaProducto producto) {
+    public void setProducto(RechazoProducto producto) {
         this.producto = producto;
     }
 

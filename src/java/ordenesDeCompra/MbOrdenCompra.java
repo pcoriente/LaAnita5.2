@@ -43,7 +43,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.naming.NamingException;
 import monedas.MbMonedas;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import net.sf.jasperreports.engine.JRException;
 import ordenDeCompra.Report.OrdenCompraReporte;
 import ordenesDeCompra.Reporte.Reportes;
@@ -891,7 +891,7 @@ public class MbOrdenCompra implements Serializable {
         double descuentoC;
         double descuentoPP;
         double sumaDescuentosProductos = 0;
-        DAOMovimientos dao = new DAOMovimientos();
+        DAOMovimientosOld dao = new DAOMovimientosOld();
         Double impuestos = 0.00;
 
         //CALCULOS
@@ -954,7 +954,7 @@ public class MbOrdenCompra implements Serializable {
             int idOC = ordenElegidaD.getIdOrdenCompra();
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
-            DAOMovimientos dao = new DAOMovimientos();
+            DAOMovimientosOld dao = new DAOMovimientosOld();
             Double impuestos = 0.00;
             //calculos
             for (OrdenCompraDetalle d : lista) {
@@ -998,7 +998,7 @@ public class MbOrdenCompra implements Serializable {
 
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
-            DAOMovimientos dao = new DAOMovimientos();
+            DAOMovimientosOld dao = new DAOMovimientosOld();
             Double impuestos = 0.00;
             //calculos
             for (OrdenCompraDetalle d : lista) {

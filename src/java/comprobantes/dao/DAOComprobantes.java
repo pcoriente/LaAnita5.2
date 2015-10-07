@@ -1,6 +1,6 @@
-package entradas.dao;
+package comprobantes.dao;
 
-import entradas.to.TOComprobante;
+import comprobantes.to.TOComprobante;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -60,7 +60,9 @@ public class DAOComprobantes {
                 if (rs.next()) {
                     throw new SQLException("El comprobante no puede ser eliminado, utilizado en movimientos de almacen !!!");
                 }
-                st.executeUpdate("DELETE FROM comprobantes WHERE idComprobante=" + idComprobante);
+                strSQL="DELETE FROM comprobantes WHERE idComprobante=" + idComprobante;
+                st.executeUpdate(strSQL);
+                
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -74,9 +76,7 @@ public class DAOComprobantes {
     public void liberaComprobante(int idComprobante) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
-                st.executeUpdate("UPDATE comprobantes\n"
-                        + "SET propietario=0, idUsuario=" + this.idUsuario + "\n"
-                        + "WHERE idComprobante=" + idComprobante);
+                st.executeUpdate("UPDATE comprobantes SET propietario=0 WHERE idComprobante=" + idComprobante);
             }
         }
     }
@@ -87,21 +87,20 @@ public class DAOComprobantes {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                st.execute("BEGIN TRANSACTION");
                 ResultSet rs = st.executeQuery("SELECT propietario, estatus FROM comprobantes WHERE idComprobante=" + idComprobante);
                 if (rs.next()) {
-                    if (rs.getInt("estatus") == 5) {
-                        throw new SQLException("El comprobante ya ha sido cerrado !!!");
-                    } else {
+//                    if (rs.getInt("estatus") == 7) {
+//                        ok = false;
+//                    } else {
                         propietario = rs.getInt("propietario");
-                    }
+                        if (propietario == 0) {
+                            st.executeUpdate("UPDATE comprobantes SET propietario=" + this.idUsuario + " WHERE idComprobante=" + idComprobante);
+                        } else if (propietario != this.idUsuario) {
+                            ok = false;
+                        }
+//                    }
                 } else {
                     throw new SQLException("No se encotro el comprobante");
-                }
-                if (propietario == 0) {
-                    st.executeUpdate("UPDATE comprobantes SET propietario=" + this.idUsuario + " WHERE idComprobante=" + idComprobante);
-                } else if (propietario != this.idUsuario) {
-                    ok = false;
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -129,11 +128,12 @@ public class DAOComprobantes {
 
     public int agregar(TOComprobante to) throws SQLException {
         int idComprobante = 0;
-        to.setEstatus(2);
+        to.setEstatus(5);
         to.setIdUsuario(this.idUsuario);
+        to.setPropietario(this.idUsuario);
         Date fechaFactura = new java.sql.Date(to.getFecha().getTime());
         String strSQL = "INSERT INTO comprobantes (idTipoMovto, idReferencia, tipo, serie, numero, fecha, idMoneda, idUsuario, propietario, estatus) "
-                + "VALUES (" + to.getIdTipoMovto() + ", " + to.getIdReferencia() + ", " + to.getTipo() + ", '" + to.getSerie() + "', '" + to.getNumero() + "', '" + fechaFactura.toString() + "', " + to.getIdMoneda() + ", " + to.getIdUsuario() + ", 0, " + to.getEstatus() + ")";
+                + "VALUES (" + to.getIdTipoMovto() + ", " + to.getIdReferencia() + ", " + to.getTipo() + ", '" + to.getSerie() + "', '" + to.getNumero() + "', '" + fechaFactura.toString() + "', " + to.getIdMoneda() + ", " + to.getIdUsuario() + ", " + to.getPropietario() + ", " + to.getEstatus() + ")";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -243,26 +243,31 @@ public class DAOComprobantes {
         to.setNumero(rs.getString("numero"));
         to.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
         to.setIdMoneda(rs.getInt("idMoneda"));
-        to.setIdUsuario(rs.getInt("idUsuario"));
+        to.setIdUsuario(this.idUsuario);
         to.setPropietario(rs.getInt("propietario"));
         to.setEstatus(rs.getInt("estatus"));
         return to;
     }
-//    public ArrayList<TOComprobante> obtenerSolicitudes(int idAlmacen) throws SQLException {
-//        ArrayList<TOComprobante> comprobantes = new ArrayList<>();
-//        String strSQL = "SELECT c.*\n"
-//                + "FROM movimientos m\n"
-//                + "INNER JOIN comprobantes c ON c.idComprobante=m.idComprobante\n"
-//                + "WHERE m.idTipo=2 AND m.status=1 AND c.idAlmacen=" + idAlmacen + "\n"
-//                + "ORDER BY c.fecha DESC";
-//        try (Connection cn = this.ds.getConnection()) {
-//            try (Statement st = cn.createStatement()) {
-//                ResultSet rs = st.executeQuery(strSQL);
-//                while (rs.next()) {
-//                    comprobantes.add(construir(rs));
-//                }
-//            }
-//        }
-//        return comprobantes;
-//    }
+
+    //    public ArrayList<TOComprobante> obtenerSolicitudes(int idAlmacen) throws SQLException {
+    //        ArrayList<TOComprobante> comprobantes = new ArrayList<>();
+    //        String strSQL = "SELECT c.*\n"
+    //                + "FROM movimientos m\n"
+    //                + "INNER JOIN comprobantes c ON c.idComprobante=m.idComprobante\n"
+    //                + "WHERE m.idTipo=2 AND m.status=1 AND c.idAlmacen=" + idAlmacen + "\n"
+    //                + "ORDER BY c.fecha DESC";
+    //        try (Connection cn = this.ds.getConnection()) {
+    //            try (Statement st = cn.createStatement()) {
+    //                ResultSet rs = st.executeQuery(strSQL);
+    //                while (rs.next()) {
+    //                    comprobantes.add(construir(rs));
+    //                }
+    //            }
+    //        }
+    //    }
+    //    }
+    
+    public int getIdUsuario() {
+        return idUsuario;
+    }
 }

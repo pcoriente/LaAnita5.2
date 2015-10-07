@@ -1,10 +1,10 @@
-package entradas;
+package comprobantes;
 
 import Message.Mensajes;
 import almacenes.to.TOAlmacenJS;
-import entradas.dao.DAOComprobantes;
-import entradas.dominio.Comprobante;
-import entradas.to.TOComprobante;
+import comprobantes.dao.DAOComprobantes;
+import comprobantes.dominio.Comprobante;
+import comprobantes.to.TOComprobante;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -57,7 +57,10 @@ public class MbComprobantes implements Serializable {
         try {
             this.dao = new DAOComprobantes();
             if (this.comprobante.getIdComprobante() != 0) {
-                this.dao.liberaComprobante(this.comprobante.getIdComprobante());
+                if (this.comprobante.isGrabable()) {
+                    this.dao.liberaComprobante(this.comprobante.getIdComprobante());
+                    this.comprobante.setPropietario(0);
+                }
             } else {
                 this.setSeleccion(null);
             }
@@ -74,8 +77,10 @@ public class MbComprobantes implements Serializable {
     public void eliminar() {
         boolean ok = false;
         try {
-            this.dao = new DAOComprobantes();
-            this.dao.eliminar(this.seleccion.getIdComprobante());
+            if(this.comprobante.getIdComprobante()!=0) {
+                this.dao = new DAOComprobantes();
+                this.dao.eliminar(this.comprobante.getIdComprobante());
+            }
             this.comprobante = new Comprobante(this.idTipoMovto, this.idReferencia);
             this.seleccion = null;
             ok = true;
@@ -109,7 +114,7 @@ public class MbComprobantes implements Serializable {
         try {
             if (this.comprobante.getNumero().equals("")) {
                 Mensajes.mensajeAlert("Se requiere el numero del comprobante");
-            } else if(this.comprobante.getMoneda().getIdMoneda()==0) {
+            } else if (this.comprobante.getMoneda().getIdMoneda() == 0) {
                 Mensajes.mensajeAlert("Se requiere una moneda !!!");
             } else {
                 this.dao = new DAOComprobantes();
@@ -117,12 +122,14 @@ public class MbComprobantes implements Serializable {
                 if (to.getIdComprobante() == 0) {
                     to.setIdComprobante(this.dao.agregar(to));
                     this.comprobante.setIdComprobante(to.getIdComprobante());
+                    this.comprobante.setIdUsuario(to.getIdUsuario());
+                    this.comprobante.setPropietario(to.getPropietario());
                     this.comprobante.setEstatus(to.getEstatus());
                 } else {
                     this.dao.modificar(to);
+//                    this.comprobante.setIdUsuario(to.getIdUsuario());
                 }
-                this.comprobante.setIdUsuario(to.getIdUsuario());
-                this.seleccion=to;
+                this.seleccion = to;
                 ok = true;
             }
         } catch (NamingException ex) {
@@ -144,8 +151,9 @@ public class MbComprobantes implements Serializable {
             try {
                 this.dao = new DAOComprobantes();
                 if (this.dao.asegurarComprobante(this.seleccion.getIdComprobante())) {
-                    ok = true;
+                    this.comprobante.setPropietario(this.comprobante.getIdUsuario());
                 }
+                ok = true;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {

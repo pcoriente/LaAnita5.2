@@ -9,7 +9,7 @@ import java.util.Date;
  */
 public class MovimientoAlmacen {
     private int idMovtoAlmacen;
-    private int idTipo;
+    private MovimientoTipo tipo;
     private TOAlmacenJS almacen;
     private int folio;
     private Date fecha;
@@ -18,26 +18,28 @@ public class MovimientoAlmacen {
     private int estatus;
     
     public MovimientoAlmacen() {
+        this.tipo = new MovimientoTipo();
         this.almacen = new TOAlmacenJS();
         this.fecha = new Date();
     }
     
-    public MovimientoAlmacen(int idTipo) {
-        this.idTipo = idTipo;
+    public MovimientoAlmacen(MovimientoTipo tipo) {
+        this.tipo = tipo;
         this.almacen = new TOAlmacenJS();
         this.fecha = new Date();
     }
 
-    public MovimientoAlmacen(TOAlmacenJS almacen) {
+    public MovimientoAlmacen(MovimientoTipo tipo, TOAlmacenJS almacen) {
+        this.tipo = tipo;
         this.almacen = almacen;
         this.fecha = new Date();
     }
-    
-    public MovimientoAlmacen(int idTipo, TOAlmacenJS almacen) {
-        this.idTipo = idTipo;
-        this.almacen = almacen;
-        this.fecha = new Date();
-    }
+//    
+//    public MovimientoAlmacen(int idTipo, TOAlmacenJS almacen) {
+//        this.idTipo = idTipo;
+//        this.almacen = almacen;
+//        this.fecha = new Date();
+//    }
 
     public int getIdMovtoAlmacen() {
         return idMovtoAlmacen;
@@ -47,12 +49,12 @@ public class MovimientoAlmacen {
         this.idMovtoAlmacen = idMovtoAlmacen;
     }
 
-    public int getIdTipo() {
-        return idTipo;
+    public MovimientoTipo getTipo() {
+        return tipo;
     }
 
-    public void setIdTipo(int idTipo) {
-        this.idTipo = idTipo;
+    public void setTipo(MovimientoTipo tipo) {
+        this.tipo = tipo;
     }
 
     public TOAlmacenJS getAlmacen() {

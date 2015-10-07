@@ -105,7 +105,7 @@ public class DAOComprasOficina {
                 strSQL = "UPDATE movimientos SET estatus=7 WHERE idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
 
-                toMov = movimientos.Movimientos.obtenerMovimiento(cn, idMovto);
+                toMov = movimientos.Movimientos.obtenMovimientoOficina(cn, idMovto);
 
                 toMov.setFolio(0);
                 toMov.setIdTipo(34);
@@ -124,7 +124,7 @@ public class DAOComprasOficina {
                         + "FROM movimientosDetalleImpuestos WHERE idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
 
-                movimientos.Movimientos.actualizaDetalle(cn, toMov.getIdMovto(), toMov.getIdTipo(), false);
+                movimientos.Movimientos.actualizaDetalleOficina(cn, toMov.getIdMovto(), toMov.getIdTipo(), false);
 
                 strSQL = "INSERT INTO devoluciones (idMovto, idDevolucion) VALUES (" + idMovto + ", " + toMov.getIdMovto() + ")";
                 st.executeUpdate(strSQL);
@@ -166,10 +166,10 @@ public class DAOComprasOficina {
             try (Statement st = cn.createStatement()) {
                 toMov.setEstatus(5);
                 toMov.setIdUsuario(this.idUsuario);
-                toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolio(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
-                movimientos.Movimientos.grabarMovimiento(cn, toMov);
+                toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
+                movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
                 
-                movimientos.Movimientos.actualizaDetalle(cn, toMov.getIdMovto(), toMov.getIdTipo(), true);
+                movimientos.Movimientos.actualizaDetalleOficina(cn, toMov.getIdMovto(), toMov.getIdTipo(), true);
                 
                 if (toMov.getReferencia() != 0) {
                     strSQL = "UPDATE S\n"
@@ -433,7 +433,7 @@ public class DAOComprasOficina {
                 toMov.setDesctoComercial(0);
                 toMov.setDesctoProntoPago(0);
                 toMov.setTipoDeCambio(1);
-                movimientos.Movimientos.grabarMovimiento(cn, toMov);
+                movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
                 
                 strSQL="UPDATE movimientos SET referencia=0 WHERE idMovto="+toMov.getIdMovto();
                 st.executeUpdate(strSQL);
@@ -542,7 +542,6 @@ public class DAOComprasOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                
                 strSQL = "UPDATE ordenCompraSurtido\n"
                         + "SET separadosOficina=separadosOficina-" + cantLiberar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
@@ -566,7 +565,7 @@ public class DAOComprasOficina {
     public double separar(int idMovto, int idEmpaque, double cantSeparar, int idOrdenCompra) throws SQLException {
         double disponibles = 0;
         String strSQL = "SELECT cantOrdenada - surtidosOficina - separadosOficina AS disponibles\n"
-                + "FROM ordenCompraSurtido \n"
+                + "FROM ordenCompraSurtido\n"
                 + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -806,29 +805,13 @@ public class DAOComprasOficina {
         return detalle;
     }
 
-    private double obtenCostoUltimaCompraProveedor(Connection cn, int idEmpresa, int idProveedor, int idEmpaque) throws SQLException {
-        double precioLista = 0;
-        try (Statement st = cn.createStatement()) {
-            String strSQL = "SELECT top 1 D.costo\n"
-                    + "FROM movimientosDetalle D\n"
-                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                    + "WHERE M.idEmpresa=" + idEmpresa + " AND M.idTipo=1 AND M.idReferencia=" + idProveedor + " AND M.estatus=5 AND D.idEmpaque=" + idEmpaque + "\n"
-                    + "ORDER BY D.fecha DESC";
-            ResultSet rs = st.executeQuery(strSQL);
-            if (rs.next()) {
-                precioLista = rs.getDouble("costo");
-            }
-        }
-        return precioLista;
-    }
-
     public ArrayList<ImpuestosProducto> agregarProductoCompra(TOMovimientoOficina toMov, TOProductoCompraOficina toProd) throws SQLException {
         ArrayList<ImpuestosProducto> impuestos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 // El campo costoPromedio=costoUltimaDeCompra muentras el movimiento estatus=0
-                toProd.setCostoPromedio(this.obtenCostoUltimaCompraProveedor(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdProducto()));
+                toProd.setCostoPromedio(movimientos.Movimientos.obtenCostoUltimaCompraProveedor(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdProducto()));
                 toProd.setCosto(toProd.getCostoPromedio() * toMov.getTipoDeCambio());
 
                 movimientos.Movimientos.agregaProductoOficina(cn, toProd, toMov.getIdImpuestoZona());

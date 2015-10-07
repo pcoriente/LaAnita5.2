@@ -1,51 +1,54 @@
-package entradas.to;
+package comprobantes.dominio;
 
 import java.util.Date;
+import monedas.Moneda;
 
 /**
  *
  * @author jesc
  */
-public class TOComprobante {
+public class Comprobante {
     private int idComprobante;
     private int idTipoMovto;
     private int idReferencia;
-    private int tipo;
+    private String tipo;
     private String serie;
     private String numero;
     private Date fecha;
-    private int idMoneda;
+    private Moneda moneda;
     private int idUsuario;
     private int propietario;
     private int estatus;
+//    private boolean grabable;
 
-    public TOComprobante() {
-        this.tipo = 3;
-        this.serie = "";
-        this.numero = "";
-        this.fecha = new Date();
-        this.idMoneda = 1;
+    public Comprobante() {
+        this.tipo = "3";
+        this.serie="";
+        this.numero="";
+        this.fecha=new Date();
+        this.moneda = new Moneda();
     }
-
-    public TOComprobante(int idTipoMovto, int idReferencia) {
-        this.idReferencia = idReferencia;
+    
+    public Comprobante(int idTipoMovto, int idReferencia) {
+        this.idReferencia=idReferencia;
         this.idTipoMovto = idTipoMovto;
-        this.tipo = 3;
-        this.serie = "";
-        this.numero = "";
-        this.fecha = new Date();
-        this.idMoneda = 1;
+        this.tipo = "3";
+        this.serie="";
+        this.numero="";
+        this.fecha=new Date();
+        this.moneda = new Moneda();
     }
     
     @Override
     public String toString() {
-        return (this.tipo == 3 ? "Factura " + this.serie + "-" : (this.tipo == 2 ? "Remision " : "Interno ")) + this.numero;
+//        return (this.tipo.equals("3")?"Factura: "+this.serie+"-":(this.tipo.equals("2")?"Remision: ":"Interno: "))+this.numero;
+        return (this.tipo.equals("3")? "Factura " + this.serie + "-" : (this.tipo.equals("2")? "Remision " : "Interno ")) + this.numero;
     }
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + this.idComprobante;
+        int hash = 7;
+        hash = 97 * hash + this.idComprobante;
         return hash;
     }
 
@@ -57,11 +60,15 @@ public class TOComprobante {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final TOComprobante other = (TOComprobante) obj;
+        final Comprobante other = (Comprobante) obj;
         if (this.idComprobante != other.idComprobante) {
             return false;
         }
         return true;
+    }
+
+    public boolean isGrabable() {
+        return (this.idComprobante==0 || (this.idUsuario==this.propietario && this.estatus!=7));
     }
 
     public int getIdComprobante() {
@@ -88,11 +95,11 @@ public class TOComprobante {
         this.idReferencia = idReferencia;
     }
 
-    public int getTipo() {
+    public String getTipo() {
         return tipo;
     }
 
-    public void setTipo(int tipo) {
+    public void setTipo(String tipo) {
         this.tipo = tipo;
     }
 
@@ -120,12 +127,12 @@ public class TOComprobante {
         this.fecha = fecha;
     }
 
-    public int getIdMoneda() {
-        return idMoneda;
+    public Moneda getMoneda() {
+        return moneda;
     }
 
-    public void setIdMoneda(int idMoneda) {
-        this.idMoneda = idMoneda;
+    public void setMoneda(Moneda moneda) {
+        this.moneda = moneda;
     }
 
     public int getIdUsuario() {

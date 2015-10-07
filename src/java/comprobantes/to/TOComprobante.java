@@ -1,53 +1,51 @@
-package entradas.dominio;
+package comprobantes.to;
 
 import java.util.Date;
-import monedas.Moneda;
 
 /**
  *
  * @author jesc
  */
-public class Comprobante {
+public class TOComprobante {
     private int idComprobante;
     private int idTipoMovto;
     private int idReferencia;
-    private String tipo;
+    private int tipo;
     private String serie;
     private String numero;
     private Date fecha;
-    private Moneda moneda;
+    private int idMoneda;
     private int idUsuario;
     private int propietario;
     private int estatus;
 
-    public Comprobante() {
-        this.tipo = "3";
-        this.serie="";
-        this.numero="";
-        this.fecha=new Date();
-        this.moneda = new Moneda();
+    public TOComprobante() {
+        this.tipo = 3;
+        this.serie = "";
+        this.numero = "";
+        this.fecha = new Date();
+        this.idMoneda = 1;
     }
-    
-    public Comprobante(int idTipoMovto, int idReferencia) {
-        this.idReferencia=idReferencia;
+
+    public TOComprobante(int idTipoMovto, int idReferencia) {
+        this.idReferencia = idReferencia;
         this.idTipoMovto = idTipoMovto;
-        this.tipo = "3";
-        this.serie="";
-        this.numero="";
-        this.fecha=new Date();
-        this.moneda = new Moneda();
+        this.tipo = 3;
+        this.serie = "";
+        this.numero = "";
+        this.fecha = new Date();
+        this.idMoneda = 1;
     }
     
     @Override
     public String toString() {
-//        return (this.tipo.equals("3")?"Factura: "+this.serie+"-":(this.tipo.equals("2")?"Remision: ":"Interno: "))+this.numero;
-        return (this.tipo.equals("3")? "Factura " + this.serie + "-" : (this.tipo.equals("2")? "Remision " : "Interno ")) + this.numero;
+        return (this.tipo == 3 ? "Factura " + this.serie + "-" : (this.tipo == 2 ? "Remision " : "Interno ")) + this.numero;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + this.idComprobante;
+        int hash = 5;
+        hash = 67 * hash + this.idComprobante;
         return hash;
     }
 
@@ -59,7 +57,7 @@ public class Comprobante {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Comprobante other = (Comprobante) obj;
+        final TOComprobante other = (TOComprobante) obj;
         if (this.idComprobante != other.idComprobante) {
             return false;
         }
@@ -90,11 +88,11 @@ public class Comprobante {
         this.idReferencia = idReferencia;
     }
 
-    public String getTipo() {
+    public int getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(int tipo) {
         this.tipo = tipo;
     }
 
@@ -122,12 +120,12 @@ public class Comprobante {
         this.fecha = fecha;
     }
 
-    public Moneda getMoneda() {
-        return moneda;
+    public int getIdMoneda() {
+        return idMoneda;
     }
 
-    public void setMoneda(Moneda moneda) {
-        this.moneda = moneda;
+    public void setIdMoneda(int idMoneda) {
+        this.idMoneda = idMoneda;
     }
 
     public int getIdUsuario() {

@@ -13,7 +13,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.Lote;
+import movimientos.dominio.ProductoAlmacen;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import usuarios.dominio.UsuarioSesion;
@@ -111,7 +111,7 @@ public class DAOComprasAlmacen {
                 strSQL = "UPDATE movimientosAlmacen SET estatus=7 WHERE idMovtoAlmacen=" + idMovtoAlmacen;
                 st.executeUpdate(strSQL);
                 
-                toMov = movimientos.Movimientos.obtenerMovimientoAlmacen(cn, idMovtoAlmacen);
+                toMov = movimientos.Movimientos.obtenMovimientoAlmacen(cn, idMovtoAlmacen);
                 
                 toMov.setFolio(0);
                 toMov.setIdTipo(34);
@@ -167,7 +167,7 @@ public class DAOComprasAlmacen {
                 toMov.setEstatus(5);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
-                movimientos.Movimientos.grabarMovimientoAlmacen(cn, toMov);
+                movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
 
                 strSQL = "UPDATE D\n"
                         + "SET lote=L.lote+'1'\n"
@@ -403,41 +403,41 @@ public class DAOComprasAlmacen {
         return detalle;
     }
 
-    public ArrayList<TOProductoCompraAlmacen> cargarCompraDetalle(int idMovto) throws SQLException {
-        ArrayList<TOProductoCompraAlmacen> detalle = new ArrayList<>();
-        try (Connection cn = this.ds.getConnection()) {
-            cn.setAutoCommit(false);
-            try {
-                detalle = this.obtenCompraDetalle(cn, idMovto);
-                cn.commit();
-            } catch (SQLException ex) {
-                cn.rollback();
-                throw ex;
-            } finally {
-                cn.setAutoCommit(true);
-            }
-        }
-        return detalle;
-    }
+//    public ArrayList<TOProductoCompraAlmacen> cargarCompraDetalle(int idMovtoAlmacen) throws SQLException {
+//        ArrayList<TOProductoCompraAlmacen> detalle = new ArrayList<>();
+//        try (Connection cn = this.ds.getConnection()) {
+//            cn.setAutoCommit(false);
+//            try {
+//                detalle = this.obtenCompraDetalle(cn, idMovtoAlmacen);
+//                cn.commit();
+//            } catch (SQLException ex) {
+//                cn.rollback();
+//                throw ex;
+//            } finally {
+//                cn.setAutoCommit(true);
+//            }
+//        }
+//        return detalle;
+//    }
 
-    private Lote construirLote(ResultSet rs) throws SQLException {
-        Lote lote = new Lote();
-        lote.setLote(rs.getString("lote"));
-        lote.setCantidad(rs.getDouble("cantidad"));
-        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
-        return lote;
-    }
+//    private Lote construirLote(ResultSet rs) throws SQLException {
+//        Lote lote = new Lote();
+//        lote.setLote(rs.getString("lote"));
+//        lote.setCantidad(rs.getDouble("cantidad"));
+//        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
+//        return lote;
+//    }
 
-    public Lote obtenerLoteHoy(int dias) throws SQLException {
-        Lote lote = null;
-        String strSQL = "SELECT lote, 0 AS cantidad, DATEADD(DAY, " + dias + ", fecha) AS fechaCaducidad\n"
+    public ProductoAlmacen obtenerLoteHoy(int dias) throws SQLException {
+        ProductoAlmacen lote = null;
+        String strSQL = "SELECT 0 AS idMovtoAlmacen, 0 AS idEmpaque, lote, 0 AS cantidad, DATEADD(DAY, " + dias + ", fecha) AS fechaCaducidad\n"
                 + "FROM lotes\n"
                 + "WHERE fecha=CONVERT(DATE, GETDATE())";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
-                    lote = this.construirLote(rs);
+                    lote = movimientos.Movimientos.construirLote(rs);
                 } else {
                     throw new SQLException("No hay lote creado con la fecha de hoy !!!");
                 }
@@ -447,13 +447,8 @@ public class DAOComprasAlmacen {
     }
 
     public void agregarProductoAlmacen(TOProductoAlmacen toProd) throws SQLException {
-        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
-                        + "VALUES (" + toProd.getIdMovtoAlmacen() + ", " + toProd.getIdProducto() + ", '" + toProd.getLote() + "', " + toProd.getCantidad() + ", '', 0)";
-                st.executeUpdate(strSQL);
-            }
+            movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
         }
     }
 }

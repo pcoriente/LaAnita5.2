@@ -8,19 +8,18 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class ProductoLotes {
-    private int idMovtoAlmacen;
     private Producto producto;
     private double cantidad;
-    private ArrayList<Lote> lotes;
+    private ArrayList<ProductoAlmacen> lotes;
     
-    public ProductoLotes() {}
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
+    public ProductoLotes() {
+        this.producto=new Producto();
+        this.lotes = new ArrayList<>();
     }
-
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
+    
+    public ProductoLotes(Producto producto) {
+        this.producto = producto;
+        this.lotes = new ArrayList<>();
     }
 
     public Producto getProducto() {
@@ -39,11 +38,11 @@ public class ProductoLotes {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<Lote> getLotes() {
+    public ArrayList<ProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote> lotes) {
+    public void setLotes(ArrayList<ProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 }

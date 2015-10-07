@@ -71,7 +71,7 @@
                                     <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
                                                      disabled="#{mbEntradasOficina.entrada.estatus==0}"
                                                      ajax="false" immediate="true" action="#{mbEntradasOficina.imprimir()}" />
-                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar salida de almacen" 
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar entrada de almacen" 
                                                      disabled="#{mbEntradasOficina.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasOficina.cancelar()}" 
                                                      update="main" />
@@ -96,7 +96,7 @@
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" 
-                                     value="#{mbEntradasOficina.entradaDetalle}" style="border:solid 1px;"
+                                     value="#{mbEntradasOficina.detalle}" style="border:solid 1px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax event="cellEdit" listener="#{mbEntradasOficina.onCellEdit}" update=":main:msgs" />
@@ -130,16 +130,13 @@
                     <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE ENTRADAS DE OFICINA PENDIENTES" 
                               resizable="false" modal="true" >
                         <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbEntradasOficina.entradasPendientes}" style="border: solid 1px; width: 800px;"
+                                     value="#{mbEntradasOficina.pendientes}" style="border: solid 1px; width: 800px;"
                                      var="entrada" rowKey="#{entrada.idMovto}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasOficina.cargaDetalleEntrada}" 
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasOficina.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
                             <p:column headerText="ALMACEN" style="width: 150px;" >
                                 <h:outputText value="#{entrada.almacen}" style="width: 150px;" />
-                            </p:column>
-                            <p:column headerText="TIPO" style="width: 150px;" >
-                                <h:outputText value="#{entrada.tipo}" style="width: 150px;" />
                             </p:column>
                             <p:column headerText="FECHA" style="width: 60px;" >
                                 <h:outputText value="#{entrada.fecha}" style="width: 150px;" >
@@ -167,7 +164,7 @@
                                     <p:inputText id="opcionSKU" value="#{mbEntradasOficina.mbBuscar.strBuscar}" maxlength="8" size="10" />
                                     <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionSKU" actionListener="#{mbEntradasOficina.buscar()}" 
-                                                     update=":main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
+                                                     update=":main:msgs :main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
                                 </p:column>
                                 <p:column rendered="#{mbEntradasOficina.mbBuscar.tipoBuscar=='2'}" >
                                     <p:autoComplete id="opcionParte" value="#{mbEntradasOficina.mbBuscar.mbParte.parte}" maxlength="24" size="24"
@@ -176,13 +173,13 @@
                                                     forceSelection="true" />
                                     <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionParte" actionListener="#{mbEntradasOficina.buscar()}" 
-                                                     update="listaBuscarProductos"  />
+                                                     update=":main:msgs listaBuscarProductos"  />
                                 </p:column>
                                 <p:column rendered="#{mbEntradasOficina.mbBuscar.tipoBuscar=='3'}" >
                                     <p:inputText id="opcionDescripcion" value="#{mbEntradasOficina.mbBuscar.strBuscar}" maxlength="24" size="24" />
                                     <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionDescripcion" actionListener="#{mbEntradasOficina.buscar()}" 
-                                                     update="listaBuscarProductos" />
+                                                     update=":main:msgs listaBuscarProductos" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -207,7 +204,7 @@
                                 <p:commandButton id="seleccion" value="Seleccionar" 
                                                  disabled="#{mbEntradasOficina.mbBuscar.producto==null}"
                                                  actionListener="#{mbEntradasOficina.actualizaProductoSeleccionado()}"
-                                                 update=":main:detalleEntrada" oncomplete="PF('buscarProductoDlg').hide()" />
+                                                 update=":main:msgs :main:detalleEntrada" oncomplete="PF('buscarProductoDlg').hide()" />
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>

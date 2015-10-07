@@ -24,7 +24,7 @@
                                     <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column colspan="3" >
-                                    <p:selectOneMenu value="#{mbSolicitud.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu value="#{mbSolicitud.almacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
@@ -74,7 +74,7 @@
                                 <p:row >
                                     <p:column colspan="4" style="text-align: right;" >
                                         <p:commandButton id="btnNuevaSolicitud" icon="ui-icon-document" title="Nueva Solicitud" 
-                                                         disabled="#{mbSolicitud.toAlmacen.idAlmacen==0 or mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                         disabled="#{mbSolicitud.almacen.idAlmacen==0 or mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
                                                          process="@this" actionListener="#{mbSolicitud.nuevaSolicitud()}" update="main" />
                                         <p:commandButton icon="ui-icon-home" title="Salir" 
                                                          action="#{mbSolicitud.terminar()}" immediate="true" ajax="false" />
@@ -82,21 +82,24 @@
                                 </p:row>
                             </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="lstSolicitudes" value="#{mbSolicitud.solicitudes}" style="border:solid 1px; width: 350px;"
-                                     var="solicitud" rowKey="#{solicitud.idSolicitud}" selectionMode="single"
+                        <p:dataTable id="lstSolicitudes" value="#{mbSolicitud.solicitudes}" style="border:solid 1px; width: 410px;"
+                                     var="solicitud" rowKey="#{solicitud.idMovto}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbSolicitud.cargarDetalle}" update="main" />
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbSolicitud.obtenerDetalle}" update="main" />
                             
                             <p:column headerText="FOLIO" style="width: 60px;" >
-                                <h:outputText value="#{solicitud.solicitudFolio}" />
+                                <h:outputText value="#{solicitud.folio}" />
                             </p:column>
                             <p:column headerText="FECHA" style="width: 130px;" >
-                                <h:outputText value="#{solicitud.solicitudFecha}" >
+                                <h:outputText value="#{solicitud.fecha}" >
                                     <f:convertDateTime pattern="dd/MMM/yyyy hh:mm:ss a" locale="es_MX" timeZone="#{mbSolicitud.zonaHoraria.ID}" />
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="SOLICITO" style="width: 60px; text-align: right" >
-                                <h:outputText value="#{solicitud.solicitudIdUsuario}" />
+                                <h:outputText value="#{solicitud.idUsuario}" />
+                            </p:column>
+                            <p:column headerText="ESTATUS" style="width: 60px; text-align: right" >
+                                <h:outputText value="#{solicitud.estatus}" />
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -108,7 +111,7 @@
                                     <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.almacen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -116,7 +119,7 @@
                                     <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.mbCedis.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.mbAlmacenes.toAlmacen.cedis}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -131,21 +134,21 @@
                                 <p:row >
                                     <p:column >
                                         <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
-                                                         disabled="#{mbSolicitud.solicitud.solicitudEstatus!=0}"
+                                                         disabled="#{mbSolicitud.solicitud.estatus!=0}"
                                                          process="@this" actionListener="#{mbSolicitud.mbBuscar.inicializar()}" 
                                                          update="buscarProductos listaBuscarProductos" 
                                                          oncomplete="PF('buscarProductoDlg').show()" />
                                     </p:column>
                                     <p:column colspan="2" style="text-align: right;" >
                                         <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar solicitud" 
-                                                         disabled="#{mbSolicitud.solicitud.solicitudEstatus!=0}"
+                                                         disabled="#{mbSolicitud.solicitud.estatus!=0}"
                                                          process="@this" actionListener="#{mbSolicitud.grabar()}" 
-                                                         update="@this main :main:msgs" />
+                                                         update="main" />
                                         <p:commandButton icon="ui-icon-print" title="Imprimir solicitud"
-                                                         disabled="#{mbSolicitud.solicitud.solicitudEstatus==0}"
+                                                         process="@this" disabled="#{mbSolicitud.solicitud.estatus==0}"
                                                          ajax="false" immediate="true" action="#{mbSolicitud.imprimir()}" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar solicitud"
-                                                         disabled="#{mbSolicitud.solicitud.solicitudEstatus!=0}"
+                                                         disabled="#{mbSolicitud.solicitud.estatus!=0}"
                                                          process="@this" actionListener="#{mbSolicitud.eliminar()}"
                                                          update="main" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
@@ -154,7 +157,7 @@
                                 </p:row>
                             </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="detalleSolicitud" value="#{mbSolicitud.solicitudDetalle}" style="border:solid 1px;"
+                        <p:dataTable id="detalleSolicitud" value="#{mbSolicitud.detalle}" style="border:solid 1px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax event="cellEdit" listener="#{mbSolicitud.onCellEdit}" update=":main:msgs" />
@@ -178,7 +181,7 @@
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" 
-                                                    process="@this" listener="#{mbSolicitud.actualizarProducto()}"
+                                                    process="@this" listener="#{mbSolicitud.gestionar()}"
                                                     update=":main:msgs detalleSolicitud" />
                                         </p:inputText>
                                     </f:facet>

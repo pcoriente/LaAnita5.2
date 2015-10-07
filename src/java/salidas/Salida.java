@@ -10,6 +10,7 @@ import movimientos.dominio.MovimientoTipo;
  * @author jesc
  */
 public class Salida {
+
     private int idMovto;
     private TOAlmacenJS almacen;
     private MovimientoTipo tipo;
@@ -17,11 +18,17 @@ public class Salida {
     private Date fecha;
     private int idUsuario;
     private int estatus;
-    
+
     public Salida() {
-        this.almacen=new TOAlmacenJS();
-        this.tipo=new MovimientoTipo();
-        this.fecha=new Date();
+        this.almacen = new TOAlmacenJS();
+        this.tipo = new MovimientoTipo();
+        this.fecha = new Date();
+    }
+
+    public Salida(MovimientoTipo tipo, TOAlmacenJS almacen) {
+        this.tipo = tipo;
+        this.almacen = almacen;
+        this.fecha = new Date();
     }
 
     public int getIdMovto() {

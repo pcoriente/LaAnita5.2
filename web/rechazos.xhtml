@@ -40,7 +40,7 @@
                         <p:dataTable id="lista" value="#{mbRechazo.rechazos}" style="border:solid 1px"
                                      var="rechazo" rowKey="#{rechazo.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbRechazo.cargaDetalle}" update="main" />
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbRechazo.obtenerDetalle}" update="main" />
 
                             <p:column headerText="CEDIS" >
                                 <h:outputText value="#{rechazo.almacenOrigen.cedis}" />
@@ -62,7 +62,7 @@
                                     <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText value="#{mbRechazo.rechazo.almacenDestino}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbRechazo.rechazo.almacen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -101,6 +101,12 @@
                             <p:column headerText="Producto" style="width: 450px;" >
                                 <h:outputText value="#{prod.producto}" style="width: 440px;" />
                             </p:column>
+                            <p:column headerText="Enviados" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantTraspasada}" style="width: 60px;" />
+                            </p:column>
+                            <p:column headerText="Recibidos" style="width: 70px;" >
+                                <h:outputText value="#{prod.cantRecibida}" style="width: 60px;" />
+                            </p:column>
                             <p:column headerText="Rechazados" style="width: 70px;" >
                                 <h:outputText value="#{prod.cantFacturada}" style="width: 60px;" />
                             </p:column>
@@ -120,8 +126,18 @@
                                     <f:convertDateTime pattern="dd/MM/yyyy" />
                                 </h:outputText>
                             </p:column>
+                            <p:column headerText="Enviados" style="width: 80px;" >
+                                <h:outputText value="#{lote.cantTraspasada}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Recibidos" style="width: 80px;" >
+                                <h:outputText value="#{lote.cantRecibida}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </p:column>
                             <p:column headerText="RECHAZADOS" style="width: 80px;" >
-                                <h:outputText value="#{lote.separados}" >
+                                <h:outputText value="#{lote.cantidad}" >
                                     <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>
                             </p:column>
@@ -132,7 +148,7 @@
                                             <h:outputText value="Total :" />
                                         </p:column>
                                         <p:column style="text-align: left" >
-                                            <h:outputText value="#{mbRechazo.producto.cantFacturada}" />
+                                            <h:outputText value="#{mbRechazo.producto.sumaLotes}" />
                                         </p:column>
                                     </p:row>
                                 </p:panelGrid>

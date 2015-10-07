@@ -15,7 +15,7 @@ import java.util.TimeZone;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import pedidos.dominio.Pedido;
@@ -59,7 +59,7 @@ public class MbPedidos implements Serializable {
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private boolean asegurado;
-    private DAOMovimientos daoMv;
+    private DAOMovimientosOld daoMv;
     private boolean pendientes;
     private Date fechaInicial;
     private TimeZone zonaHoraria = TimeZone.getDefault();
@@ -83,7 +83,7 @@ public class MbPedidos implements Serializable {
             Mensajes.mensajeAlert("Se requiere el motivo de cancelacion !!!");
         } else {
             try {
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 TOPedido toPed = this.convertir(this.pedido);
                 this.daoMv.cancelarPedido(toPed);
                 this.pedidos.remove(this.pedido);
@@ -103,7 +103,7 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
         this.asegurado = false;
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             TOPedido toPed = this.convertir(this.pedido);
             this.daoMv.eliminarPedido(toPed);
             this.pedidos.remove(this.pedido);
@@ -121,7 +121,7 @@ public class MbPedidos implements Serializable {
     public void cerrarPedido() {
         boolean ok = false;
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             TOPedido toPed = this.convertir(this.pedido);
             this.daoMv.cerrarPedido(toPed);
             this.pedidos.remove(this.pedido);
@@ -141,7 +141,7 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
         this.similares = new ArrayList<>();
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             for (TOProductoPedido to : daoMv.obtenerSimilaresPedido(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto())) {
                 this.similares.add(this.convertir(to));
             }
@@ -164,10 +164,10 @@ public class MbPedidos implements Serializable {
                 TOProductoPedido toProd = this.convertir(this.producto);
                 TOProductoPedido toSimilar = this.convertir(this.similar);
 
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 this.daoMv.trasferirSinCargo(this.pedido.getIdPedido(), this.producto.getProducto().getIdProducto(), toSimilar, this.pedido.getTienda().getIdImpuestoZona(), this.cantTraspasar);
 
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 for (TOProductoPedido to : this.daoMv.obtenerPedidoSimilares(this.pedido.getIdPedido(), toProd.getIdProducto())) {
                     prod = this.convertir(to);
                     if ((idx = this.detalle.indexOf(prod)) != -1) {
@@ -250,7 +250,7 @@ public class MbPedidos implements Serializable {
                 TOProductoPedido toProd = this.convertir(this.producto);
                 this.producto.setCantOrdenada(cantOrdenadaOld);
 
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 daoMv.grabarPedidoDetalle(this.pedido.getIdEmpresa(), toPed, toProd);
                 this.pedido.setCantArticulos(this.pedido.getCantArticulos() - this.producto.getCantOrdenadaTotal());
                 this.totalResta(this.producto);
@@ -295,7 +295,7 @@ public class MbPedidos implements Serializable {
         } else if (this.asegurado) {
             try {
                 this.asegurado = false;
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 ok = this.daoMv.liberarPedido(this.pedido.getIdMovto());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
@@ -325,7 +325,7 @@ public class MbPedidos implements Serializable {
                 toProd.setIdProducto(this.producto.getProducto().getIdProducto());
                 toProd.setIdImpuestoGrupo(this.producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
 
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
                 this.daoMv.agregarProductoPedido(this.pedido.getIdEmpresa(), toPed, this.pedido.getTienda().getIdImpuestoZona(), toProd);
                 this.producto = this.convertir(toProd);
                 this.detalle.add(this.producto);
@@ -418,7 +418,7 @@ public class MbPedidos implements Serializable {
         this.impuestosTotales = new ArrayList<>();
         PedidoProducto prod;
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             try {
                 this.asegurado = this.daoMv.asegurarPedido(this.pedido.getIdMovto());
             } catch (Exception ex) {
@@ -487,7 +487,7 @@ public class MbPedidos implements Serializable {
         this.pedido.setOrdenDeCompraFecha(this.ordenDeCompraFecha);
         TOPedido to = this.convertir(this.pedido);
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             this.daoMv.agregarPedido(to);
             this.pedido.setIdPedido(to.getReferencia());
             this.pedido.setIdMovto(to.getIdMovto());
@@ -558,7 +558,7 @@ public class MbPedidos implements Serializable {
     public void obtenerPedidos() {
         try {   // Segun fecha y status
             this.pedidos = new ArrayList<>();
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             for (TOPedido to : this.daoMv.obtenerPedidos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 0 : 1), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }

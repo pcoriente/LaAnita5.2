@@ -4,13 +4,12 @@ package movimientos.to;
  *
  * @author jesc
  */
-public class TOMovimientoOficina extends TOMovimiento {
+public class TOMovimientoOficina extends TOMovimientoAlmacen {
     private int idMovto;
     private double desctoComercial;
     private double desctoProntoPago;
     private double tipoDeCambio;
     private int idImpuestoZona;
-    private int idMovtoAlmacen;
 
     public TOMovimientoOficina() {
         super();
@@ -58,13 +57,5 @@ public class TOMovimientoOficina extends TOMovimiento {
 
     public void setIdImpuestoZona(int idImpuestoZona) {
         this.idImpuestoZona = idImpuestoZona;
-    }
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
-    }
-
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
     }
 }

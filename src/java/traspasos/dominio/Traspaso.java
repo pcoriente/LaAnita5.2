@@ -3,24 +3,31 @@ package traspasos.dominio;
 import almacenes.to.TOAlmacenJS;
 import java.util.Date;
 import movimientos.dominio.MovimientoOficina;
+import movimientos.dominio.MovimientoTipo;
 
 /**
  *
  * @author jesc
  */
 public class Traspaso extends MovimientoOficina {
-    private int idSolicitud;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int solicitudIdUsuario;
     private int solicitudProietario;
     private int solicitudEstatus;
     private TOAlmacenJS almacenDestino;
+    private int idSolicitud;
     
     public Traspaso() {
         super();
         this.solicitudFecha=new Date();
         this.almacenDestino=new TOAlmacenJS();
+    }
+    
+    public Traspaso(MovimientoTipo tipo, TOAlmacenJS almacen, TOAlmacenJS almacenDestino) {
+        super(tipo, almacen);
+        this.solicitudFecha = new Date();
+        this.almacenDestino = almacenDestino;
     }
 
     @Override

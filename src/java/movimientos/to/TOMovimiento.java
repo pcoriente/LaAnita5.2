@@ -23,10 +23,10 @@ public class TOMovimiento {
         this.fecha = new Date();
     }
     
-    public TOMovimiento(int idTipo) {
-        this.idTipo = idTipo;
-        this.fecha = new Date();
-    }
+//    public TOMovimiento(int idTipo) {
+//        this.idTipo = idTipo;
+//        this.fecha = new Date();
+//    }
 
     public int getIdTipo() {
         return idTipo;

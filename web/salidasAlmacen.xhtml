@@ -95,14 +95,14 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleSalida" widgetVar="detalleSalida" value="#{mbSalidasAlmacen.salidaDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                        <p:dataTable id="detalleSalida" widgetVar="detalleSalida" value="#{mbSalidasAlmacen.detalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" 
+                                     selectionMode="single" selection="#{mbSalidasAlmacen.producto}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbSalidasAlmacen.editarLotes}" 
-                                    update=":main:msgs :main:listaLotes :main:listaTotales" 
-                                    oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
+                            <p:ajax event="rowSelect" update=":main:msgs :main:listaLotes :main:listaTotales" 
+                                    oncomplete="PF('editarLotesDlg').show();" />
 
-                            <p:column headerText="SKU" width="64"  >
+                            <p:column headerText="SKU" width="64" >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
                             </p:column>
                             <p:column headerText="Producto" width="500" >
@@ -115,34 +115,32 @@
                             </p:column>
                         </p:dataTable>
                     </p:panel>
-                    <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE SALIDAS DE ALMACEN PENDIENTES" 
-                              resizable="false" modal="true" >
-                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbSalidasAlmacen.salidasPendientes}" style="border: solid 1px; width: 800px;"
-                                     var="salida" rowKey="#{salida.idMovto}" selectionMode="single"
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasAlmacen.cargaDetalleSalida}" 
-                                    update=":main" oncomplete="PF('pendientesDlg').hide();" />
-                            
-                            <p:column headerText="ALMACEN" style="width: 150px;" >
-                                <h:outputText value="#{salida.almacen}" style="width: 150px;" />
-                            </p:column>
-                            <p:column headerText="TIPO" style="width: 150px;" >
-                                <h:outputText value="#{salida.tipo}" style="width: 150px;" />
-                            </p:column>
-                            <p:column headerText="FECHA" style="width: 60px;" >
-                                <h:outputText value="#{salida.fecha}" style="width: 150px;" >
-                                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                                </h:outputText>
-                            </p:column>
-                        </p:dataTable>
+                    <p:dialog id="agregarLoteDlg" widgetVar="agregarLoteDlg" header="NUEVO LOTE" resizable="false" modal="true" width="300" >
+                        <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" update=":main:listaLotes" />
+                        <p:panelGrid id="datosLote" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputText value="LOTE :" />
+                                </p:column>
+                                <p:column style="text-align: left" >
+                                    <p:inputText id="txtLote" value="#{mbSalidasAlmacen.lote.lote}" maxlength="10" size="10" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnAgregarLote" icon="ui-icon-disk" title="Nuevo lote" 
+                                                     process="@this txtLote" actionListener="#{mbSalidasAlmacen.agregarLote()}" 
+                                                     update=":main:msgs2 :main:listaLotes" 
+                                                     oncomplete="handleCerrarAgregarLote(xhr, status, args);" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
                     </p:dialog>
-                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="600" >
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="300" >
                         <p:messages id="msgs1" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
                         <p:ajax event="close" update=":main:detalleSalida"  />
-
+                        
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" 
-                                     value="#{mbSalidasAlmacen.salidaProducto.lotes}" style="border: solid 1px" 
+                                     value="#{mbSalidasAlmacen.producto.lotes}" style="border: solid 1px" 
                                      var="lote" rowKey="#{lote.lote}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="100" >
                             <p:ajax event="cellEdit" listener="#{mbSalidasAlmacen.onCellEdit}" update=":main:msgs1" />
@@ -153,11 +151,6 @@
                             <p:column headerText="CADUCIDAD" style="width: 80px;" >
                                 <h:outputText value="#{lote.fechaCaducidad}" >
                                     <f:convertDateTime pattern="dd/MM/yyyy" />
-                                </h:outputText>
-                            </p:column>
-                            <p:column headerText="SALDO" style="width: 80px;" >
-                                <h:outputText value="#{lote.saldo}" >
-                                    <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="CANTIDAD" style="width: 100px;" >
@@ -181,22 +174,48 @@
                         </p:dataTable>
                         <p:panelGrid id="listaTotales" >
                             <p:row >
-                                <p:column style="width: 35px;" >
+                                <p:column >
                                     <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Eliminar un Producto" 
                                                      disabled="#{mbSalidasAlmacen.salida.estatus!=0}" 
                                                      process="@this" actionListener="#{mbSalidasAlmacen.eliminarProducto()}" 
                                                      update=":main:detalleSalida" oncomplete="PF('editarLotesDlg').hide();" />
+                                    <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
+                                                     disabled="#{mbSalidasAlmacen.salida.estatus!=0}"
+                                                     process="@this" actionListener="#{mbSalidasAlmacen.nuevoLote()}" 
+                                                     update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
                                 </p:column>
-                                <p:column style="text-align: right; width: 345px;" >
+                                <p:column style="text-align: right; width: 100px;" >
                                     <h:outputText value="Total :" />
                                 </p:column>
-                                <p:column style="text-align: left; width: 130px;" >
-                                    <h:outputText value="#{mbSalidasAlmacen.salidaProducto.cantidad}" >
+                                <p:column style="text-align: left; width: 100px;" >
+                                    <h:outputText value="#{mbSalidasAlmacen.producto.cantidad}" >
                                         <f:convertNumber pattern="###,##0.000" />
                                     </h:outputText>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE SALIDAS DE ALMACEN PENDIENTES" 
+                              resizable="false" modal="true" >
+                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
+                                     value="#{mbSalidasAlmacen.pendientes}" style="border: solid 1px; width: 800px;"
+                                     var="salida" rowKey="#{salida.idMovtoAlmacen}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasAlmacen.obtenerDetalle}" 
+                                    update=":main" oncomplete="PF('pendientesDlg').hide();" />
+                            
+                            <p:column headerText="ALMACEN" style="width: 150px;" >
+                                <h:outputText value="#{salida.almacen}" style="width: 150px;" />
+                            </p:column>
+                            <p:column headerText="TIPO" style="width: 150px;" >
+                                <h:outputText value="#{salida.tipo}" style="width: 150px;" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 60px;" >
+                                <h:outputText value="#{salida.fecha}" style="width: 150px;" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
                     </p:dialog>
                     <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
@@ -266,6 +285,11 @@
                     function handleAbrirPendientes(xhr, status, args) {
                         if (!(args.validationFailed || !args.ok)) {
                             PF('pendientesDlg').show();
+                        }
+                    }
+                    function handleCerrarAgregarLote(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okLotes)) {
+                            PF('agregarLoteDlg').hide();
                         }
                     }
                     function handleCerrarEditarLotes(xhr, status, args) {

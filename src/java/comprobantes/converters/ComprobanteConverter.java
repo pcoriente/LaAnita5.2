@@ -1,7 +1,7 @@
-package entradas.converters;
+package comprobantes.converters;
 
-import entradas.dao.DAOComprobantes;
-import entradas.to.TOComprobante;
+import comprobantes.dao.DAOComprobantes;
+import comprobantes.to.TOComprobante;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
