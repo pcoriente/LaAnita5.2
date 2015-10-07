@@ -285,6 +285,7 @@ public class MbDireccion implements Serializable {
             this.iconSearch="ui-icon-search";
             this.iconSearchTitle="Buscar Colonias";
         }
+        editarAsentamiento = false;
     }
 
     public List<SelectItem> getListaAsentamientos() {
