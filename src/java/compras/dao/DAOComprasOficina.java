@@ -102,7 +102,7 @@ public class DAOComprasOficina {
             try (Statement st = cn.createStatement()) {
                 this.validarExistenciaOficina(cn, idMovto);
 
-                strSQL = "UPDATE movimientos SET estatus=7 WHERE idMovto=" + idMovto;
+                strSQL = "UPDATE movimientos SET estatus=8 WHERE idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
 
                 toMov = movimientos.Movimientos.obtenMovimientoOficina(cn, idMovto);
@@ -145,7 +145,7 @@ public class DAOComprasOficina {
                             + "         AND (surtidosOficina < cantOrdenada OR surtidosOficinaSinCargo < cantOrdenadaSinCargo)";
                     ResultSet rs = st.executeQuery(strSQL);
                     if (rs.next()) {
-                        strSQL = "UPDATE ordenCompra SET estado=5 WHERE idOrdenCompra=" + idOrdenDeCompra;
+                        strSQL = "UPDATE ordenCompra SET estado=5, fechaCierreOficina='' WHERE idOrdenCompra=" + idOrdenDeCompra;
                         st.executeUpdate(strSQL);
                     }
                 }
@@ -189,7 +189,7 @@ public class DAOComprasOficina {
                             + "         AND (surtidosOficina < cantOrdenada OR surtidosOficinaSinCargo < cantOrdenadaSinCargo)";
                     ResultSet rs = st.executeQuery(strSQL);
                     if (!rs.next()) {
-                        strSQL = "UPDATE ordenCompra SET estado=6 WHERE idOrdenCompra=" + toMov.getReferencia();
+                        strSQL = "UPDATE ordenCompra SET estado=7, fechaCierreOficina=GETDATE() WHERE idOrdenCompra=" + toMov.getReferencia();
                         st.executeUpdate(strSQL);
                     }
                 }
