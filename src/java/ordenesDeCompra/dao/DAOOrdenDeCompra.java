@@ -110,7 +110,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenesAlmacen(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaPuesta, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -143,7 +143,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaPuesta, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -454,16 +454,16 @@ public class DAOOrdenDeCompra {
         return oced;
     }
 
-    public Double ObtenerUltimoCosto(int idEmpaque) throws SQLException {
+    public Double ObtenerUltimoCosto(int idEmpaque, int idEmpresa, int idProveedor) throws SQLException {
         Double ultimoCosto = 0.00;
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
 
-        String sql = "SELECT EE.*, D.unitario, M.fecha\n"
-                + "FROM empresasEmpaques EE\n"
-                + "     INNER JOIN movimientosDetalle D ON D.idMovto=EE.idMovtoUltimaEntrada AND D.idEmpaque=EE.idEmpaque\n"
+        String sql = "SELECT top 1 (D.costo / tipoDeCambio) AS costo, D.fecha,idReferencia,idEmpaque\n"
+                + "FROM movimientosDetalle D\n"
                 + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "WHERE EE.idEmpaque=" + idEmpaque;
+                + "WHERE M.idEmpresa="+ idEmpresa +" AND M.idTipo=1 AND M.idReferencia="+ idProveedor +" and D.idEmpaque="+ idEmpaque
+                + " ORDER BY D.fecha DESC";
         
 //        SELECT top 1 D.costo, D.fecha,idReferencia,idEmpaque
 //            FROM movimientosDetalle D
@@ -475,7 +475,7 @@ public class DAOOrdenDeCompra {
         try {
             ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {
-                ultimoCosto = rs.getDouble("D.unitario");
+                ultimoCosto = rs.getDouble("costo");
             }
         } finally {
             st.close();

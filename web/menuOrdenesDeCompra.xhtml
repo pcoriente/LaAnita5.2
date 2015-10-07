@@ -96,7 +96,7 @@
 
                         </p:dataTable>
                     </p:panel >
-                    <p:panel header="ORDENES DE COMPRA-DIRECTAS" styleClass="dariasPanelD" >
+                    <p:panel header="ORDENES DE COMPRA-DIRECTAS" styleClass="dariasPanelD" id="panelOCD" >
                         <p:dataTable id="ordenCompraD"
                                      value="#{mbOrdenCompra.listaOrdenesEncabezadoD}"
                                      var="ocd"
@@ -145,8 +145,8 @@
                             </p:column>
                         </p:dataTable>
                         <f:facet name="footer">
-                                #{mbOrdenCompra.listaOrdenesEncabezadoD.size()} Ordenes de compra.
-                            </f:facet>
+                            #{mbOrdenCompra.listaOrdenesEncabezadoD.size()} Ordenes de compra.
+                        </f:facet>
                     </p:panel>
 
                     <!-- ORDENES QUE SIGUE EN EL PROCESO REQUISICION, COTIZACION Y ORDEN DE COMPRA -->
@@ -390,11 +390,7 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-
-
-
                     </p:dialog>
-
 
                     <!-- ////////////////////////////////////////////////////    DIRECTAS   /////////////////////////////////////////////////////////////////////             -->
                     <p:dialog widgetVar="odec"
@@ -810,13 +806,13 @@
                                          actionListener="#{mbOrdenCompra.limpiarFormulario()}"
                                          update="para asunto mensaje"
                                          process="@this"/>
-                        <p:blockUI  block="formCorreo" trigger="grabar">
-                            <p:graphicImage value="/resources/images/big-roller.gif" />
-                        </p:blockUI>
-                    </p:dialog> 
-
+                    </p:dialog>
+                    <!--p:blockUI block="dialogoCorreo" trigger="dialogoCorreo">
+                        LOADING<br />
+                        <p:graphicImage name="D:\Documents\NetBeansProjects\LaAnita5.2-15sep15\LaAnita5.2\web\resources\images\big-roller.gif"/>
+                    </p:blockUI-->
                     <!--                                B U S C A D O R  DE  P R O D U C T O S.. -->
-                    <p:dialog header="BUSCADOR DE PRODUCTOS" 
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" id="buscador" 
                               widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
                         <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
@@ -940,17 +936,26 @@
                                     icon="ui-icon-cancel"
                                     title="CANCELAR la Orden de Compra"
                                     update=":form:OCDetalle :form:ordenCompraD"
-                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado==0}"
+                                    disabled="#{mbOrdenCompra.ordenElegidaD.estado==6}"
+                                    process="@this"
                                     actionListener="#{mbOrdenCompra.cancelarOrden()}"
                                     oncomplete="PF('odecDV').hide()"
                                     >
                                     <p:confirm header="Deseas CANCELAR la orden de compra?" message="Estás seguro?" icon="ui-icon-alert" />
                                 </p:commandButton>
+                                <!--p:blockUI trigger="salirOCDV" block="panelOCD">
+                                    LOADING<br />
+                                    <p:graphicImage name="D:\Documents\NetBeansProjects\LaAnita5.2-15sep15\LaAnita5.2\web\resources\images\big-roller.gif"/>
+                                </p:blockUI-->                                    
 
                                 <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
-                                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecDV').hide();" />
+                                    <p:commandButton id="confirma" value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" onclick="PF('odecDV').hide();" />
+                                    <p:blockUI trigger="confirma" block="panelOCD">
+                                        LOADING<br />
+                                        <p:graphicImage name="D:\Documents\NetBeansProjects\LaAnita5.2-15sep15\LaAnita5.2\web\resources\images\big-roller.gif"/>
+                                    </p:blockUI>
                                     <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
-                                </p:confirmDialog>
+                                </p:confirmDialog>                            
                             </p:toolbarGroup>  
                         </p:toolbar>
                         <!--<p:separator style="width:900px;height:0.5px" />-->
@@ -1049,7 +1054,7 @@
                                      var="v"
                                      >
                             <p:columnGroup type="footer" 
-                                           rendered="#{mbOrdenCompra.ordenElegidaD.estado ==0}"
+                                           rendered="#{mbOrdenCompra.ordenElegidaD.estado ==6}"
                                            >
                                 <h3 style="color: red">¡CANCELADO!</h3>
                             </p:columnGroup>
@@ -1154,10 +1159,6 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-
-
-
-
                     </p:dialog>
 
                     <script type="text/javascript">

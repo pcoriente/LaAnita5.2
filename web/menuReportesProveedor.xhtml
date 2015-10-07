@@ -9,7 +9,7 @@
         <title>Facelet Title</title>
     </h:head>
     <h:body>
-       <div id="wrapper" align="center">
+        <div id="wrapper" align="center">
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="center">
                 <br></br>
@@ -35,22 +35,22 @@
                             </p:selectOneMenu>
                             <p:outputLabel/>
                             <p:outputLabel/>
-                            <h:outputLabel value="Referencia proveedor Inicial :" style="color: black"/>
+                            <h:outputLabel value="Fecha Inicial :" style="color: black"/>
+                            <p:calendar value="#{mbReporteProveedor.encabezadoBusqueda.fechaInicial}" 
+                                        id="fechaInicial" size="10" />
+                            <h:outputLabel value="Fecha Final :" style="color: black"/>
+                            <p:calendar  value="#{mbReporteProveedor.encabezadoBusqueda.fechaFinal}"
+                                         id="fechaFinal" size="10"/>
+
+                            <h:outputLabel value="Proveedor Inicial :" style="color: black"/>
                             <p:inputText id="txtCodigoInicial" 
                                          style="width: 245px" 
                                          value="#{mbReporteProveedor.encabezadoBusqueda.codigoProductoInicial}"/>
-                            <h:outputLabel value="Final :" style="color: black"/>
+                            <h:outputLabel value="Proveedor Final :" style="color: black"/>
                             <p:inputText style="width: 245px" 
                                          value="#{mbReporteProveedor.encabezadoBusqueda.codigoProductoFinal}"
                                          id="txtCodigoFinal"/>
-                            <h:outputLabel value="Fecha Inicial :" 
-                                           style="color: black" 
-                                           />
-                            <p:calendar value="#{mbReporteProveedor.encabezadoBusqueda.fechaInicial}" 
-                                        id="fechaInicial"/>
-                            <h:outputLabel value="Fecha Final :" style="color: black"/>
-                            <p:calendar  value="#{mbReporteProveedor.encabezadoBusqueda.fechaFinal}"
-                                         id="fechaFinal"/>
+
                         </h:panelGrid>
                         <p:toolbar>
                             <f:facet name="left">
@@ -77,40 +77,56 @@
                                                  />
                             </f:facet>
                         </p:toolbar>
+                        <p:panel header="Compras Por Proveedor" id="panelCompProv">
+                            <p:dataTable id="tablaDatos"
+                                         value="#{mbReporteProveedor.lst}" 
+                                         var="lst"
+                                         scrollable="true" 
+                                         scrollHeight="250"
+                                         emptyMessage="No hay Datos a Desplegar"> 
 
-                        <p:dataTable value="#{mbReporteProveedor.lst}" 
-                                     var="lst" 
-                                     id="tablaDatos"
-                                     emptyMessage="No hay registros para mostrar"> 
+                                <p:column headerText="Nombre." width="300">
+                                    #{lst.nombre}
+                                </p:column>
+                                <p:column headerText="Importe.">
 
-                            <p:column headerText="Nombre.">
-                                #{lst.nombre}
-                            </p:column>
-                            <p:column headerText="Importe.">
-                                #{lst.importe}
-                            </p:column>
-                            <p:column headerText="I.V.A.">
-                                #{lst.iva}
-                            </p:column>
-                            <p:column headerText="Descuento.">
-                                #{lst.descuento}
-                            </p:column>
-                            <p:column headerText="Total.">
-                                #{lst.total}
-                            </p:column>
-                            <f:facet name="footer">
-                                <strong>#{mbReporteProveedor.lst.size()} Registros encontrados.</strong>
-                            </f:facet>
-                        </p:dataTable>
+                                    <h:outputText value="#{lst.importe}">
+                                        <f:convertNumber type="currency"/>
+                                    </h:outputText>
+
+                                </p:column>
+                                <p:column headerText="I.V.A.">
+
+                                    <h:outputText value="#{lst.iva}">
+                                        <f:convertNumber type="currency"/>
+                                    </h:outputText>
+
+                                </p:column>
+                                <p:column headerText="Descuento.">
+
+                                    <h:outputText value="#{lst.descuento}">
+                                        <f:convertNumber type="currency"/>
+                                    </h:outputText>
+
+                                </p:column>
+                                <p:column headerText="Total.">
+                                    <!--#{lst.total}-->
+
+                                    <h:outputText value="#{lst.total}">
+                                        <f:convertNumber currencySymbol="$" type="currency" />
+                                    </h:outputText>
+
+                                </p:column>    
+                                <f:facet name="footer">
+                                    <strong>#{mbReporteProveedor.lst.size()} Registros encontrados.</strong>
+                                </f:facet>
+                            </p:dataTable>
+                        </p:panel>
                     </p:panel>
                 </h:form>
             </div>
         </div> 
-        
-        
-        
-        
-        
+
     </h:body>
 </html>
 

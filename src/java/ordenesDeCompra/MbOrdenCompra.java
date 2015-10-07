@@ -752,7 +752,8 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void limpiar() {
-        ordenElegidaD = null;
+        System.out.println("Entro  a limpiar");
+//        ordenElegidaD = null;
 //        System.out.println("entro a limpiar");
     }
 
@@ -820,8 +821,8 @@ public class MbOrdenCompra implements Serializable {
                 DAOOrdenDeCompra dao = new DAOOrdenDeCompra();
                 OrdenCompraDetalle req = new OrdenCompraDetalle();
                 req.setProducto(mbBuscar.getProducto());
-//                Double ultimoCosto = dao.ObtenerUltimoCosto(req.getProducto().getEmpaque().getIdEmpaque());
-//                req.setCostoOrdenado(ultimoCosto);
+                Double ultimoCosto = dao.ObtenerUltimoCosto(mbBuscar.getProducto().getIdProducto(), empresa.getCodigoEmpresa(), mbProveedores.getMiniProveedor().getIdProveedor());
+                req.setCostoOrdenado(ultimoCosto);
                 ordenCompraDetallesDirectas.add(req);
                 mbBuscar.setProducto(new Producto());
             }
@@ -886,30 +887,45 @@ public class MbOrdenCompra implements Serializable {
 
     public void calcularImporte() throws NamingException {
         // ordenCompraDetallesDirectas
-        subtotalGeneral = 0;
+        this.totales = new TotalesOrdenCompra();
         double sumaCostoCotizado = 0;
-        double descuentoC;
-        double descuentoPP;
-        double sumaDescuentosProductos = 0;
+        double descuentoC = 0;
+        double descuentoPP = 0;
+        double desctoProd1 = 0;
+        double desctoProd2 = 0;
+        sumaDescuentosProductos = 0;
+        subtotalGeneral = 0;
+        descuentoGeneralAplicado = 0;
         DAOMovimientos dao = new DAOMovimientos();
         Double impuestos = 0.00;
 
         //CALCULOS
         for (OrdenCompraDetalle e : ordenCompraDetallesDirectas) {
             try {
-                double neto = e.getCostoOrdenado() - (e.getCostoOrdenado() * (e.getDescuentoProducto() / 100));
-                double neto2 = neto - neto * (e.getDescuentoProducto2() / 100);
+                sumaCostoCotizado += (e.getCantOrdenada() * e.getCostoOrdenado());
+                descuentoC = (e.getCantOrdenada() * e.getCostoOrdenado()) * (mbProveedores.getMiniProveedor().getDesctoComercial() / 100);
+                descuentoPP = ((e.getCantOrdenada() * e.getCostoOrdenado()) - descuentoC) * (mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
+                desctoProd1 = ((e.getCantOrdenada() * e.getCostoOrdenado()) - (descuentoC + descuentoPP)) * (e.getDescuentoProducto() / 100);
+                desctoProd2 = ((e.getCantOrdenada() * e.getCostoOrdenado()) - (descuentoC + descuentoPP + desctoProd1)) * (e.getDescuentoProducto2() / 100);
+
+                double neto2 = sumaCostoCotizado - (descuentoC + descuentoPP + desctoProd1 + desctoProd2);
                 e.setNeto(neto2);
                 e.setSubtotal(e.getCostoOrdenado() * e.getCantOrdenada());
                 subtotalGeneral += e.getSubtotal();
-                sumaCostoCotizado += (e.getCantOrdenada() * e.getNeto());
-                sumaDescuentosProductos += (e.getCantOrdenada() * (e.getCostoOrdenado() - e.getNeto()));
+                descuentoGeneralAplicado += descuentoC + descuentoPP;
+                sumaDescuentosProductos += desctoProd1 + desctoProd2;
+
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
                 CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
                     double costoReal = 0.00;
-                    double descuento = (e.getCostoOrdenado() * e.getDescuentoProducto()) / 100;
-                    costoReal = e.getCostoOrdenado() - descuento;
+                    //carlos pat descuentos globales
+                    double descuentoComercial = (e.getCostoOrdenado() * this.mbProveedores.getMiniProveedor().getDesctoComercial()) / 100;
+                    costoReal = e.getCostoOrdenado() - descuentoComercial;
+                    double descuentoProntoPago = costoReal * this.mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100;
+                    costoReal = costoReal - descuentoProntoPago;
+                    double descuento = (costoReal * e.getDescuentoProducto()) / 100;
+                    costoReal = costoReal - descuento;
                     double descuento2 = (costoReal * e.getDescuentoProducto2() / 100);
                     costoReal = costoReal - descuento2;
 
@@ -921,34 +937,27 @@ public class MbOrdenCompra implements Serializable {
                 Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        descuentoC = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoComercial() / 100);
-        sumaCostoCotizado = sumaCostoCotizado - descuentoC;
-        descuentoPP = sumaCostoCotizado * (mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
-
         totales.setSubtotalGeneral(Redondear(subtotalGeneral));
-        totales.setDescuentoGeneralAplicado(Redondear(descuentoPP + descuentoC));
+        totales.setDescuentoGeneralAplicado(Redondear(descuentoGeneralAplicado));
         totales.setSumaDescuentosProductos(Redondear(sumaDescuentosProductos));
         totales.setSumaDescuentoTotales(Redondear(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
         totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
         totales.setImpuesto(Redondear(impuestos));
         totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
-
-//        totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
-//        totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
-//        totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
-//        totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
-//        totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-//        totales.setImpuesto(truncarNumeros(impuestos));
-//        totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
     }
 
     public void dameOrdenCompraDirectaV(SelectEvent event) {
-//        this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
-        subtotalGeneral = 0;
+        this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
         double sumaCostoCotizado = 0;
-        double descuentoC;
-        double descuentoPP;
-        double sumaDescuentosProductos = 0;
+        double descuentoC = 0;
+        double descuentoPP = 0;
+        double desctoProd1 = 0;
+        double desctoProd2 = 0;
+        sumaDescuentosProductos = 0;
+        subtotalGeneral = 0;
+        descuentoGeneralAplicado = 0;
+        double costoConDescuentos = 0;
+        
         listaOrdenDetalleD = new ArrayList<>();
         try {
             int idOC = ordenElegidaD.getIdOrdenCompra();
@@ -958,31 +967,36 @@ public class MbOrdenCompra implements Serializable {
             Double impuestos = 0.00;
             //calculos
             for (OrdenCompraDetalle d : lista) {
-                double neto = d.getCostoOrdenado() - (d.getCostoOrdenado() * (d.getDescuentoProducto() / 100));
-                double neto2 = neto - neto * (d.getDescuentoProducto2() / 100);
+                sumaCostoCotizado += (d.getCantOrdenada() * d.getCostoOrdenado());
+                descuentoC = (d.getCantOrdenada() * d.getCostoOrdenado()) * (ordenElegidaD.getDesctoComercial() / 100);
+                descuentoPP = ((d.getCantOrdenada() * d.getCostoOrdenado()) - descuentoC) * (ordenElegidaD.getDesctoProntoPago() / 100);
+                desctoProd1 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP)) * (d.getDescuentoProducto() / 100);
+                desctoProd2 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP + desctoProd1)) * (d.getDescuentoProducto2() / 100);
+                
+                costoConDescuentos = d.getCostoOrdenado() * ((1 - (ordenElegidaD.getDesctoComercial() / 100)) * (1 - (ordenElegidaD.getDesctoProntoPago() / 100)) * (1 - (d.getDescuentoProducto() / 100)) * (1 - (d.getDescuentoProducto2() / 100)));
+
+                double neto2 = sumaCostoCotizado - (descuentoC + descuentoPP + desctoProd1 + desctoProd2);
                 d.setNeto(neto2);
                 d.setSubtotal(d.getCostoOrdenado() * d.getCantOrdenada());
-                d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
-                sumaDescuentosProductos += (d.getCantOrdenada() * (d.getCostoOrdenado() - d.getNeto()));
-                sumaCostoCotizado += (d.getCantOrdenada() * d.getNeto());
                 subtotalGeneral += d.getSubtotal();
+                descuentoGeneralAplicado += descuentoC + descuentoPP;
+                sumaDescuentosProductos += desctoProd1 + desctoProd2;
+
+                d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
                 CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(d.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), ordenElegidaD.getProveedor().getImpuestoZona().getIdZona());
                 if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
-                    impuestos += (calculo.calculaImpuestos(d.getCostoOrdenado(), d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
+                    impuestos += (calculo.calculaImpuestos(costoConDescuentos, d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
                 }
                 listaOrdenDetalleD.add(d);
             }
-            descuentoC = sumaCostoCotizado * (ordenElegidaD.getDesctoComercial() / 100);
-            sumaCostoCotizado = sumaCostoCotizado - descuentoC;
-            descuentoPP = sumaCostoCotizado * (ordenElegidaD.getDesctoProntoPago() / 100);
-            totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
-            totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
-            totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
-            totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
-            totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-            totales.setImpuesto(truncarNumeros(impuestos));
-            totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
+            totales.setSubtotalGeneral(Redondear(subtotalGeneral));
+            totales.setDescuentoGeneralAplicado(Redondear(descuentoGeneralAplicado));
+            totales.setSumaDescuentosProductos(Redondear(sumaDescuentosProductos));
+            totales.setSumaDescuentoTotales(Redondear(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+            totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+            totales.setImpuesto(Redondear(impuestos));
+            totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
         } catch (NamingException | SQLException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         }
@@ -993,39 +1007,49 @@ public class MbOrdenCompra implements Serializable {
             double sumaCostoCotizado = 0;
             double descuentoC;
             double descuentoPP;
+            double desctoProd1;
+            double desctoProd2;
             sumaDescuentosProductos = 0;
             subtotalGeneral = 0;
+            descuentoGeneralAplicado = 0;
+            double costoConDescuentos = 0;
 
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
             DAOMovimientos dao = new DAOMovimientos();
             Double impuestos = 0.00;
-            //calculos
+            //calculos            
             for (OrdenCompraDetalle d : lista) {
-                double neto = d.getCostoOrdenado() - (d.getCostoOrdenado() * (d.getDescuentoProducto() / 100));
-                double neto2 = neto - neto * (d.getDescuentoProducto2() / 100);
+                sumaCostoCotizado += (d.getCantOrdenada() * d.getCostoOrdenado());
+                descuentoC = (d.getCantOrdenada() * d.getCostoOrdenado()) * (ordenElegidaD.getDesctoComercial() / 100);
+                descuentoPP = ((d.getCantOrdenada() * d.getCostoOrdenado()) - descuentoC) * (ordenElegidaD.getDesctoProntoPago() / 100);
+                desctoProd1 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP)) * (d.getDescuentoProducto() / 100);
+                desctoProd2 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP + desctoProd1)) * (d.getDescuentoProducto2() / 100);
+
+                costoConDescuentos = d.getCostoOrdenado() * ((1 - (ordenElegidaD.getDesctoComercial() / 100)) * (1 - (ordenElegidaD.getDesctoProntoPago() / 100)) * (1 - (d.getDescuentoProducto() / 100)) * (1 - (d.getDescuentoProducto2() / 100)));
+
+                double neto2 = sumaCostoCotizado - (descuentoC + descuentoPP + desctoProd1 + desctoProd2);
                 d.setNeto(neto2);
                 d.setSubtotal(d.getCostoOrdenado() * d.getCantOrdenada());
-                d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
-                sumaDescuentosProductos += (d.getCantOrdenada() * (d.getCostoOrdenado() - d.getNeto()));
-                sumaCostoCotizado += (d.getCantOrdenada() * d.getNeto());
                 subtotalGeneral += d.getSubtotal();
+                descuentoGeneralAplicado += descuentoC + descuentoPP;
+                sumaDescuentosProductos += desctoProd1 + desctoProd2;
+
+                d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
+
                 CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(d.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), idZona);
                 if (d.getCostoOrdenado() > 0 && d.getCantOrdenada() > 0) {
-                    impuestos += (calculo.calculaImpuestos(d.getCostoOrdenado(), d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
+                    impuestos += (calculo.calculaImpuestos(costoConDescuentos, d.getCantOrdenada(), d.getProducto(), lst) * d.getCantOrdenada());
                 }
             }
-            descuentoC = sumaCostoCotizado * (ordenElegidaD.getDesctoComercial() / 100);
-            sumaCostoCotizado = sumaCostoCotizado - descuentoC;
-            descuentoPP = sumaCostoCotizado * (ordenElegidaD.getDesctoProntoPago() / 100);
-            totales.setSubtotalGeneral(truncarNumeros(subtotalGeneral));
-            totales.setDescuentoGeneralAplicado(truncarNumeros(descuentoPP + descuentoC));
-            totales.setSumaDescuentosProductos(truncarNumeros(sumaDescuentosProductos));
-            totales.setSumaDescuentoTotales(truncarNumeros(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
-            totales.setSubtotalBruto(truncarNumeros(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
-            totales.setImpuesto(truncarNumeros(impuestos));
-            totales.setTotal(truncarNumeros(totales.getImpuesto() + totales.getSubtotalBruto()));
+            totales.setSubtotalGeneral(Redondear(subtotalGeneral));
+            totales.setDescuentoGeneralAplicado(Redondear(descuentoGeneralAplicado));
+            totales.setSumaDescuentosProductos(Redondear(sumaDescuentosProductos));
+            totales.setSumaDescuentoTotales(Redondear(totales.getDescuentoGeneralAplicado() + totales.getSumaDescuentosProductos()));
+            totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
+            totales.setImpuesto(Redondear(impuestos));
+            totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
         } catch (NamingException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         } catch (SQLException ex) {
@@ -1065,7 +1089,7 @@ public class MbOrdenCompra implements Serializable {
     }
 
     public void cancelarOrden() throws NamingException {
-         int idOrden=this.ordenElegidaD.getIdOrdenCompra();
+        int idOrden = this.ordenElegidaD.getIdOrdenCompra();
         Boolean correcto = false;
         //    FacesMessage msg = null;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "cancelarOrden");

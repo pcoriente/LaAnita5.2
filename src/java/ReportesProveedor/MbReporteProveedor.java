@@ -17,18 +17,14 @@ import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
-import javax.faces.context.FacesContext;
-import javax.naming.NamingException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-import listaPrecioIdeal.DAO.DAOListaPrecio;
-import listaPrecioIdeal.MbListaPrecioIdeal;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -57,6 +53,9 @@ public class MbReporteProveedor implements Serializable {
     }
 
     public boolean validar() {
+        DateFormat formatoFecha = new SimpleDateFormat("yyyy/MM/dd");
+        String feini = formatoFecha.format(encabezadoBusqueda.getFechaInicial());
+        String fefin = formatoFecha.format(encabezadoBusqueda.getFechaFinal());
         boolean ok = false;
         if (empresa.getIdEmpresa() == 0) {
             Mensajes.mensajeAlert("Se requiere una empresa");
@@ -68,7 +67,9 @@ public class MbReporteProveedor implements Serializable {
             Mensajes.mensajeAlert("Se requiere una fecha inicial");
         } else if (encabezadoBusqueda.getFechaFinal().equals("")) {
             Mensajes.mensajeAlert("Se requiere una fecha final");
-        } else {
+        } else if (fefin.compareTo(feini) < 0) {
+            Mensajes.MensajeAlertP("La Fecha Final no Puede ser Menor a la Inicial");
+        } else{
             ok = true;
         }
         return ok;
@@ -87,6 +88,8 @@ public class MbReporteProveedor implements Serializable {
     }
 
     public String salir() {
+//        lst = null;
+        lst.removeAll(lst);
         return "index.xhtml";
     }
 

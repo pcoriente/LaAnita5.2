@@ -69,16 +69,14 @@ public class DAOReportesProveedor {
         String sql = "SELECT c.contribuyente as proveedor, d.importe as importe,  d.importe-d.unitario as descuentos , d.impuestos as impuestos, d.unitario+d.impuestos as total   FROM \n"
                 + "(SELECT idReferencia, sum(costo * cantFacturada) as importe , sum (unitario*cantFacturada) as unitario,  sum(i.importe*cantFacturada)as impuestos \n"
                 + "FROM movimientosDetalle md\n"
-                + "inner join movimientos m \n"
-                + "on m.idMovto = md.idMovto\n"
-                + "inner join (select idEmpaque, idMovto, sum(importe)as importe FROM	 movimientosDetalleImpuestos GROUP BY idMovto, idEmpaque ) i\n"
-                + "on  i.idMovto = md.idMovto and i.idEmpaque = md.idEmpaque\n"
-                + "WHERE m.fecha BETWEEN '" + utilerias.Utilerias.darFormatoFecha(encabezado.getFechaInicial()) + "' and '" + utilerias.Utilerias.darFormatoFecha(encabezado.getFechaFinal()) + "' and m.idEmpresa = " + encabezado.getIdEmpresa() + " and m.idReferencia BETWEEN " + encabezado.getCodigoProductoInicial() + " and " + encabezado.getCodigoProductoFinal() + " and m.idTipo = 1\n"
-                + "GROUP BY idReferencia) d\n"
-                + "INNER JOIN proveedores p\n"
-                + "on p.idProveedor = d.idReferencia\n"
-                + "INNER JOIN contribuyentes c \n"
-                + "on c.idContribuyente = p.idContribuyente";
+                + "INNER JOIN movimientos m ON m.idMovto = md.idMovto\n"
+                + "INNER JOIN (SELECT idEmpaque, idMovto, sum(importe) as importe FROM	 movimientosDetalleImpuestos GROUP BY idMovto, idEmpaque ) i\n"
+                + "     ON  i.idMovto = md.idMovto AND i.idEmpaque = md.idEmpaque\n"
+                + "     WHERE m.fecha BETWEEN '" + utilerias.Utilerias.darFormatoFecha(encabezado.getFechaInicial()) + "' and '" + utilerias.Utilerias.darFormatoFecha(encabezado.getFechaFinal()) + "' and m.idEmpresa = " + encabezado.getIdEmpresa() + " and m.idReferencia BETWEEN " + encabezado.getCodigoProductoInicial() + " and " + encabezado.getCodigoProductoFinal() + " and m.idTipo = 1\n"
+                + "     GROUP BY idReferencia) d\n"
+                + "INNER JOIN proveedores p ON p.idProveedor = d.idReferencia\n"
+                + "INNER JOIN contribuyentes c ON c.idContribuyente = p.idContribuyente \n"
+                + "ORDER BY importe DESC";
         try {
             rs = st.executeQuery(sql);
             while (rs.next()) {

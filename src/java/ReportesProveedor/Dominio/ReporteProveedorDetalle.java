@@ -12,10 +12,10 @@ package ReportesProveedor.Dominio;
 public class ReporteProveedorDetalle {
 
     private String nombre;
-    private double importe;
-    private double iva;
-    private double descuento;
-    private double total;
+    private double importe = 0.00;
+    private double iva = 0.00;
+    private double descuento = 0.00;
+    private double total = 0.00;
 
     public String getNombre() {
         return nombre;
