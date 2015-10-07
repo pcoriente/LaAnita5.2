@@ -108,7 +108,7 @@ public class DAOReportesProveedor {
 //            String ruta = "C:\\Reportes\\listaPrecioIdeal.pdf";
             
 //        -----RUTA DEL SERVIDOR-----
-            String ruta = "C:\\Carlos Pat\\Reportes\\listaPrecioIdeal.pdf";
+            String ruta = "C:\\Carlos Pat\\Reportes\\comprasPorProveedor.pdf";
             String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\comprarPorProveedor.jasper";
 //        ------------------------------
 //            String ubicacionCompilado = "C:\\Reportes\\comprarPorProveedor.jasper";
@@ -124,7 +124,7 @@ public class DAOReportesProveedor {
                 report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
                 jasperprint = JasperFillManager.fillReport(report, parametros, cn);
                 HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
-                httpServletResponse.addHeader("Content-disposition", "attachment; filename=listaPrecio.pdf");
+                httpServletResponse.addHeader("Content-disposition", "attachment; filename=comprasPorProveedor.pdf");
                 ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
                 JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
                 try {

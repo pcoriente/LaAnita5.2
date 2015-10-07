@@ -110,7 +110,8 @@ public class DAOListaPrecio {
     public void generarReporte() throws JRException, SQLException {
         Connection cn = ds.getConnection();
 //        String ruta = "C:\\Reportes\\listaPrecioIdeal.pdf";
-        String ubicacionCompilado = "C:\\Reportes\\listaPrecios.jasper";
+        //String ubicacionCompilado = "C:\\Reportes\\listaPrecios.jasper";
+        String ubicacionCompilado = "C:\\Reportes\\comprarPorProveedor.jasper";
         JasperPrint jasperprint;
         JasperReport report;
         Map<String, Object> parametros = new HashMap<String, Object>();
