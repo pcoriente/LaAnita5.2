@@ -67,7 +67,7 @@
                                                      disabled="#{mbComprasOficina.mbProveedores.miniProveedor.idProveedor==0}"
                                                      process="@this comprobanteComplete" 
                                                      actionListener="#{mbComprasOficina.mbComprobantes.mttoComprobante()}" 
-                                                     update=":main:msgs mttoComprobanteDlg" 
+                                                     update=":main:msgs mttoComprobante" 
                                                      oncomplete="handleAbrirMttoComprobanteDlg(xhr, status, args);" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
@@ -620,10 +620,7 @@
                                     <h:outputLabel for="txtNumero" value="NUMERO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.comprobante.numero}" maxlength="20" size="20" >
-                                        <!--<f:convertNumber type="number" pattern="#####0" maxIntegerDigits="6" maxFractionDigits="0" />
-                                        <f:validateDoubleRange minimum="0" maximum="999999" /> -->
-                                    </p:inputText>
+                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.comprobante.numero}" maxlength="20" size="20" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -654,12 +651,13 @@
                                 <p:row >
                                     <p:column colspan="2" >
                                         <p:commandButton icon="ui-icon-disk" title="Grabar Comprobante" 
+                                                         disabled="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}"
                                                          process="@this selectTipoComprobante txtSerie txtNumero txtFechaFactura" 
                                                          actionListener="#{mbComprasOficina.mbComprobantes.grabar()}" 
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar" 
-                                                         disabled="#{mbComprasOficina.mbComprobantes.comprobante.idComprobante==0}"
+                                                         disabled="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}"
                                                          actionListener="#{mbComprasOficina.mbComprobantes.eliminar()}"
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />

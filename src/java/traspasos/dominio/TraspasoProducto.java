@@ -1,29 +1,18 @@
 package traspasos.dominio;
 
-import java.util.ArrayList;
 import movimientos.dominio.ProductoOficina;
-import movimientos.to.TOProductoAlmacen;
 
 /**
  *
  * @author jesc
  */
 public class TraspasoProducto extends ProductoOficina {
-    private int idSolicitud;
     private double cantSolicitada;
-    private ArrayList<TOProductoAlmacen> lotes;
+//    private ArrayList<ProductoAlmacen> lotes;
     
     public TraspasoProducto() {
         super();
-        this.lotes = new ArrayList<>();
-    }
-
-    public int getIdSolicitud() {
-        return idSolicitud;
-    }
-
-    public void setIdSolicitud(int idSolicitud) {
-        this.idSolicitud = idSolicitud;
+//        this.lotes = new ArrayList<>();
     }
 
     public double getCantSolicitada() {
@@ -34,11 +23,11 @@ public class TraspasoProducto extends ProductoOficina {
         this.cantSolicitada = cantSolicitada;
     }
 
-    public ArrayList<TOProductoAlmacen> getLotes() {
-        return lotes;
-    }
-
-    public void setLotes(ArrayList<TOProductoAlmacen> lotes) {
-        this.lotes = lotes;
-    }
+//    public ArrayList<ProductoAlmacen> getLotes() {
+//        return lotes;
+//    }
+//
+//    public void setLotes(ArrayList<ProductoAlmacen> lotes) {
+//        this.lotes = lotes;
+//    }
 }

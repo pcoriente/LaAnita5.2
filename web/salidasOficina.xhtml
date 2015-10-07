@@ -130,10 +130,10 @@
                     <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE SALIDAS DE OFICINA PENDIENTES" 
                               resizable="false" modal="true" >
                         <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbSalidasOficina.salidasPendientes}" style="border: solid 1px; width: 800px;"
+                                     value="#{mbSalidasOficina.pendientes}" style="border: solid 1px; width: 800px;"
                                      var="salida" rowKey="#{salida.idMovto}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasOficina.cargaDetalleSalida}" 
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasOficina.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
                             <p:column headerText="ALMACEN" style="width: 150px;" >
                                 <h:outputText value="#{salida.almacen}" style="width: 150px;" />

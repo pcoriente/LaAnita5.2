@@ -1,5 +1,6 @@
 package traspasos;
 
+import traspasos.dao.DAOTraspasos;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
@@ -13,9 +14,10 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -23,7 +25,8 @@ import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOMovimientos;
-import movimientos.to1.Lote1;
+import movimientos.dao.DAOMovimientosAlmacen;
+import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -32,7 +35,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
-import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -52,15 +54,15 @@ import usuarios.dominio.Accion;
 public class MbTraspaso implements Serializable {
 
     private boolean modoEdicion;
-    private Lote1 lote;
     private double sumaLotes;
     private Traspaso traspaso;
-    private TOAlmacenJS toAlmacen;
+    private TOAlmacenJS almacen;
     private ArrayList<SelectItem> listaAlmacenes;
     private ArrayList<Traspaso> traspasos;
-    private ArrayList<TraspasoProducto> traspasoDetalle;
-    private TraspasoProducto traspasoProducto;
-    private DAOMovimientos dao;
+    private ArrayList<TraspasoProducto> detalle;
+    private TraspasoProducto producto;
+    DAOMovimientosAlmacen daoAlm;
+    private DAOTraspasos dao;
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
@@ -79,15 +81,15 @@ public class MbTraspaso implements Serializable {
 
         this.inicializa();
     }
-    
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(TraspasoProducto prod) {
+
+    private MovimientoRelacionadoProductoReporte convertirProductoReporte(TraspasoProducto prod) throws SQLException {
         boolean ya = false;
         MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (TOProductoAlmacen l : prod.getLotes()) {
+        for (TOProductoAlmacen l : this.daoAlm.obtenerDetalleProducto(this.traspaso.getAlmacen().getIdAlmacen(), prod.getProducto().getIdProducto())) {
             if (l.getCantidad() != 0) {
                 if (ya) {
                     rep.getLotes().add(l);
@@ -104,34 +106,35 @@ public class MbTraspaso implements Serializable {
     public void imprimir() {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
-
-        this.cargaDetalle();
-        ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
-        for (TraspasoProducto p : this.traspasoDetalle) {
-            if (p.getCantFacturada() != 0) {
-                detalleReporte.add(this.convertirProductoReporte(p));
-            }
-        }
-        String sourceFileName = "C:\\Carlos Pat\\Reportes\\Traspaso.jasper";
-        JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
-        Map parameters = new HashMap();
-        parameters.put("empresa", this.traspaso.getAlmacen().getEmpresa());
-
-        parameters.put("cedis", this.traspaso.getAlmacen().getCedis());
-        parameters.put("almacen", this.traspaso.getAlmacen().getAlmacen());
-
-        parameters.put("concepto", "TRASPASO AL ALMACEN :");
-
-        parameters.put("cedisOrigen", this.traspaso.getAlmacenDestino().getCedis());
-        parameters.put("almacenOrigen", this.traspaso.getAlmacenDestino().getAlmacen());
-
-        parameters.put("capturaFolio", this.traspaso.getFolio());
-        parameters.put("capturaFecha", formatoFecha.format(this.traspaso.getFecha()));
-        parameters.put("capturaHora", formatoHora.format(this.traspaso.getFecha()));
-
-        parameters.put("idUsuario", this.traspaso.getIdUsuario());
-
         try {
+            this.obtenDetalleTraspaso();
+            this.daoAlm = new DAOMovimientosAlmacen();
+            ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
+            for (TraspasoProducto p : this.detalle) {
+                if (p.getCantFacturada() != 0) {
+                    detalleReporte.add(this.convertirProductoReporte(p));
+                }
+            }
+            String sourceFileName = "C:\\Carlos Pat\\Reportes\\Traspaso.jasper";
+            JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+            Map parameters = new HashMap();
+            parameters.put("empresa", this.traspaso.getAlmacen().getEmpresa());
+
+            parameters.put("cedis", this.traspaso.getAlmacen().getCedis());
+            parameters.put("almacen", this.traspaso.getAlmacen().getAlmacen());
+
+            parameters.put("concepto", "TRASPASO AL ALMACEN :");
+
+            parameters.put("cedisOrigen", this.traspaso.getAlmacenDestino().getCedis());
+            parameters.put("almacenOrigen", this.traspaso.getAlmacenDestino().getAlmacen());
+
+            parameters.put("capturaFolio", this.traspaso.getFolio());
+            parameters.put("capturaFecha", formatoFecha.format(this.traspaso.getFecha()));
+            parameters.put("capturaHora", formatoHora.format(this.traspaso.getFecha()));
+
+            parameters.put("idUsuario", this.traspaso.getIdUsuario());
+
+//            try {
             JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
             JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
 
@@ -141,6 +144,15 @@ public class MbTraspaso implements Serializable {
             ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
             JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
             FacesContext.getCurrentInstance().responseComplete();
+//            } catch (JRException e) {
+//                Mensajes.mensajeError(e.getMessage());
+//            } catch (IOException ex) {
+//                Mensajes.mensajeError(ex.getMessage());
+//            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
         } catch (JRException e) {
             Mensajes.mensajeError(e.getMessage());
         } catch (IOException ex) {
@@ -160,28 +172,31 @@ public class MbTraspaso implements Serializable {
         to.setReferencia(traspaso.getIdSolicitud());
         return to;
     }
-    
+
+    private double sumaPiezas() {
+        double total = 0;
+        for (TraspasoProducto prod : this.detalle) {
+            total += prod.getCantFacturada();
+        }
+        return total;
+    }
+
     public void grabar() {
         try {
-            if (this.traspasoDetalle.isEmpty()) {
+            if (this.detalle.isEmpty()) {
                 Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+            } else if (this.sumaPiezas() != 0) {
+                TOTraspaso to = this.convertir(this.traspaso);
+
+                this.dao = new DAOTraspasos();
+                this.dao.grabarTraspaso(to);
+                this.traspaso.setFolio(to.getFolio());
+                this.traspaso.setFecha(to.getFecha());
+                this.traspaso.setIdUsuario(to.getIdUsuario());
+                this.traspaso.setEstatus(to.getEstatus());
+                Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
             } else {
-                double total = 0;
-                for (TraspasoProducto e : this.traspasoDetalle) {
-                    total += e.getCantFacturada();
-                }
-                if (total != 0) {
-                    this.dao = new DAOMovimientos();
-                    TOTraspaso to = this.convertir(this.traspaso);
-                    this.dao.grabarTraspasoEnvio(this.traspaso.getAlmacen().getIdEmpresa(), to);
-                    this.traspaso.setFolio(to.getFolio());
-                    this.traspaso.setFecha(to.getFecha());
-                    this.traspaso.setIdUsuario(to.getIdUsuario());
-                    this.traspaso.setEstatus(to.getEstatus());
-                    Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
-                } else {
-                    Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
-                }
+                Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
             }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -189,58 +204,65 @@ public class MbTraspaso implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
-    public TOTraspasoProducto convertir(TraspasoProducto traspasoProducto) {
-        TOTraspasoProducto toTraspasoProducto = new TOTraspasoProducto();
-        toTraspasoProducto.setIdSolicitud(traspasoProducto.getIdSolicitud());
-        toTraspasoProducto.setCantSolicitada(traspasoProducto.getCantSolicitada());
-        movimientos.Movimientos.convertir(traspasoProducto, toTraspasoProducto);
-        return toTraspasoProducto;
+
+    public TOTraspasoProducto convertir(TraspasoProducto prod) {
+        TOTraspasoProducto toProd = new TOTraspasoProducto();
+        toProd.setCantSolicitada(prod.getCantSolicitada());
+        movimientos.Movimientos.convertir(prod, toProd);
+        return toProd;
     }
 
-    public void actualizarProducto() {
-        TOTraspaso toMov = this.convertir(this.traspaso);
-        TOTraspasoProducto toProd = this.convertir(this.traspasoProducto);
-        this.traspasoProducto.setCantFacturada(this.traspasoProducto.getSeparados());
-        try {
-            this.dao = new DAOMovimientos();
-            this.traspasoProducto.setLotes(this.dao.grabarMovimientoDetalle(this.traspaso.getAlmacen().getIdEmpresa(), toMov, toProd, this.traspasoProducto.getCantFacturada(), false));
-            this.traspasoProducto.setCantFacturada(toProd.getCantFacturada());
-            this.traspasoProducto.setSeparados(this.traspasoProducto.getCantFacturada());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
+    public void gestionar() {
+        if (this.producto.getCantFacturada() < 0) {
+            this.producto.setCantFacturada(this.producto.getSeparados());
+            Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
+        } else if (this.producto.getCantFacturada() > this.producto.getCantSolicitada()) {
+            this.producto.setCantFacturada(this.producto.getSeparados());
+            Mensajes.mensajeAlert("La cantidad traspasada no debe ser mayor que la solicitada !!!");
+        } else if (this.producto.getCantFacturada() != this.producto.getSeparados()) {
+            double cantFacturada = this.producto.getCantFacturada();
+            this.producto.setCantFacturada(this.producto.getSeparados());
+            try {
+                DAOMovimientos daoMv = new DAOMovimientos();
+                if (cantFacturada > this.producto.getSeparados()) {
+                    double cantSolicitada = cantFacturada - this.producto.getSeparados();
+                    double cantSeparada = daoMv.separar(this.traspaso.getIdMovto(), this.traspaso.getIdMovtoAlmacen(), this.traspaso.getAlmacen().getIdAlmacen(), this.producto.getProducto().getIdProducto(), cantSolicitada, false);
+                    if (cantSeparada < cantSolicitada) {
+                        cantFacturada = this.producto.getSeparados() + cantSeparada;
+                        Mensajes.mensajeAlert("Solo se pudieron separar " + cantSeparada + " unidades !!!");
+                    }
+                } else {
+                    double cantSolicitada = this.producto.getSeparados() - cantFacturada;
+                    daoMv.liberar(this.traspaso.getIdMovto(), this.traspaso.getIdMovtoAlmacen(), this.traspaso.getAlmacen().getIdAlmacen(), this.producto.getProducto().getIdProducto(), cantSolicitada);
+                }
+                this.producto.setCantFacturada(cantFacturada);
+                this.producto.setSeparados(cantFacturada);
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
         }
     }
 
     public void onCellEdit(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
-        this.traspasoProducto = this.traspasoDetalle.get(event.getRowIndex());
+        this.producto = this.detalle.get(event.getRowIndex());
         if (newValue != null && newValue != oldValue) {
+            oldValue = newValue;
         } else {
-            this.traspasoProducto.setCantSolicitada((Double) oldValue);
+            newValue = oldValue;
+            Mensajes.mensajeAlert("A ver que pasa !!!");
         }
     }
 
-    private TraspasoProducto convertir(TOTraspasoProducto to) throws SQLException {
-        TraspasoProducto p = new TraspasoProducto();
-        p.setIdSolicitud(to.getIdSolicitud());
-        p.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        p.setCantSolicitada(to.getCantSolicitada());
-        movimientos.Movimientos.convertir(to, p);
-        p.setLotes(this.dao.obtenerLotes(this.traspaso.getIdMovtoAlmacen(), to.getIdProducto()));
-        return p;
-    }
-    
-    private void cargaDetalle() {
+    public void cancelar() {
         try {
-            this.dao = new DAOMovimientos();
-            this.traspasoDetalle = new ArrayList<>();
-            for (TOTraspasoProducto to : this.dao.obtenerTraspasoDetalle(this.traspaso.getIdSolicitud())) {
-                this.traspasoDetalle.add(this.convertir(to));
-            }
+            this.dao = new DAOTraspasos();
+            this.dao.cancelar(this.traspaso.getIdMovto(), this.traspaso.getIdMovtoAlmacen());
+            this.obtenTraspasos();
+            this.modoEdicion = false;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -248,48 +270,143 @@ public class MbTraspaso implements Serializable {
         }
     }
 
-    public void cargarDetalle(SelectEvent event) {
-        this.traspaso = (Traspaso) event.getObject();
-        this.cargaDetalle();
-        this.traspasoProducto = new TraspasoProducto();
-        this.modoEdicion = true;
-    }
-    
-    private Traspaso convertir(TOTraspaso to) {
-        Traspaso e = new Traspaso();
-        e.setIdSolicitud(to.getReferencia());
-        e.setSolicitudFolio(to.getSolicitudFolio());
-        e.setSolicitudFecha(to.getSolicitudFecha());
-        e.setSolicitudIdUsuario(to.getSolicitudIdUsuario());
-        e.setSolicitudProietario(to.getSolicitudProietario());
-        e.setSolicitudEstatus(to.getSolicitudEstatus());
-        e.setAlmacen(this.toAlmacen);
-        movimientos.Movimientos.convertir(to, e);
-        e.setAlmacenDestino(this.mbAlmacenes.obtenerTOAlmacen(to.getIdReferencia()));
-        return e;
-    }
-
-    public void obtenerSolicitudes() {
-        boolean ok = false;
-        this.traspasos = new ArrayList<>();
+    public void procesar() {
+        TOTraspaso toMov = this.convertir(this.traspaso);
         try {
-            this.dao = new DAOMovimientos();
-            for (TOTraspaso to : this.dao.obtenerTraspasos(this.toAlmacen.getIdAlmacen(), 1, new Date())) {
-                this.traspasos.add(this.convertir(to));
-            }
-            ok = true;
+            this.dao = new DAOTraspasos();
+            this.dao.procesar(toMov);
+            this.traspaso.setIdMovto(toMov.getIdMovto());
+            this.traspaso.setFecha(toMov.getFecha());
+            this.traspaso.setIdUsuario(toMov.getIdUsuario());
+            this.traspaso.setPropietario(toMov.getPropietario());
+            this.traspaso.setEstatus(toMov.getEstatus());
+            this.traspaso.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
+            this.obtenDetalleTraspaso();
+            Mensajes.mensajeSucces("La solicitud fue aceptada !!!");
+//            this.obtenTraspasos();
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLista", ok);
+    }
+
+    public void rechazar() {
+        try {
+            this.dao = new DAOTraspasos();
+            this.dao.rechazar(this.traspaso.getIdSolicitud());
+            this.obtenSolicitudes();
+            this.modoEdicion = false;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public void salir() {
-        this.obtenerSolicitudes();
+        if (this.traspaso.getIdMovto() != 0) {
+            this.obtenerTraspasos();
+        } else {
+            this.obtenerSolicitudes();
+        }
         this.modoEdicion = false;
+    }
+
+    private TraspasoProducto convertir(TOTraspasoProducto toProd) throws SQLException {
+        TraspasoProducto prod = new TraspasoProducto();
+        prod.setCantSolicitada(toProd.getCantSolicitada());
+        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        movimientos.Movimientos.convertir(toProd, prod);
+        return prod;
+    }
+
+    private void obtenDetalleTraspaso() {
+        this.detalle = new ArrayList<>();
+        try {
+            this.dao = new DAOTraspasos();
+            for (TOTraspasoProducto to : this.dao.obtenerDetalleTraspaso(this.traspaso.getIdMovto())) {
+                this.detalle.add(this.convertir(to));
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    private void obtenDetalleSolicitud() {
+        this.detalle = new ArrayList<>();
+        try {
+            this.dao = new DAOTraspasos();
+            for (TOTraspasoProducto to : this.dao.obtenerDetalleSolicitud(this.traspaso.getIdSolicitud())) {
+                this.detalle.add(this.convertir(to));
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void obtenerDetalle(SelectEvent event) {
+        this.traspaso = (Traspaso) event.getObject();
+        if (this.traspaso.getIdMovto() != 0) {
+            this.obtenDetalleTraspaso();
+        } else {
+            this.obtenDetalleSolicitud();
+        }
+        this.producto = new TraspasoProducto();
+        this.modoEdicion = true;
+    }
+
+    private void obtenTraspasos() throws NamingException, SQLException {
+        this.traspasos = new ArrayList<>();
+        this.dao = new DAOTraspasos();
+        for (TOTraspaso to : this.dao.obtenerTraspasos(this.almacen.getIdAlmacen())) {
+            traspasos.add(this.convertir(to));
+        }
+    }
+
+    public void obtenerTraspasos() {
+        try {
+            this.obtenTraspasos();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    private Traspaso convertir(TOTraspaso toMov) {
+        Traspaso mov = new Traspaso(new MovimientoTipo(35, "Traspaso"), this.almacen, this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
+        mov.setSolicitudFolio(toMov.getSolicitudFolio());
+        mov.setSolicitudFecha(toMov.getSolicitudFecha());
+        mov.setSolicitudIdUsuario(toMov.getSolicitudIdUsuario());
+        mov.setSolicitudEstatus(toMov.getSolicitudEstatus());
+//        mov.setAlmacen(this.almacen);
+        movimientos.Movimientos.convertir(toMov, mov);
+//        mov.setAlmacenDestino(this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
+        mov.setIdSolicitud(toMov.getReferencia());
+        return mov;
+    }
+
+    private void obtenSolicitudes() throws NamingException, SQLException {
+        this.traspasos = new ArrayList<>();
+        this.dao = new DAOTraspasos();
+        for (TOTraspaso to : this.dao.obtenerSolicitudes(this.almacen.getIdAlmacen())) {
+            this.traspasos.add(this.convertir(to));
+        }
+    }
+
+    public void obtenerSolicitudes() {
+        try {
+            this.obtenSolicitudes();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public String terminar() {
@@ -298,11 +415,11 @@ public class MbTraspaso implements Serializable {
         this.inicializar();
         return "index.xhtml";
     }
-    
+
     private void inicializa() {
         this.mbAlmacenes.setListaAlmacenes(null);
         this.listaAlmacenes = this.mbAlmacenes.getListaAlmacenes();
-        this.toAlmacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
+        this.almacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
         this.mbCedis.cargaMiniCedisTodos();
         this.mbBuscar.inicializar();
         this.inicializaLocales();
@@ -315,7 +432,6 @@ public class MbTraspaso implements Serializable {
 
     private void inicializaLocales() {
         this.modoEdicion = false;
-        this.lote = new Lote1();
     }
 
     public boolean isModoEdicion() {
@@ -326,20 +442,20 @@ public class MbTraspaso implements Serializable {
         this.modoEdicion = modoEdicion;
     }
 
-    public ArrayList<TraspasoProducto> getTraspasoDetalle() {
-        return traspasoDetalle;
+    public ArrayList<TraspasoProducto> getDetalle() {
+        return detalle;
     }
 
-    public void setTraspasoDetalle(ArrayList<TraspasoProducto> traspasoDetalle) {
-        this.traspasoDetalle = traspasoDetalle;
+    public void setDetalle(ArrayList<TraspasoProducto> detalle) {
+        this.detalle = detalle;
     }
 
-    public TraspasoProducto getTraspasoProducto() {
-        return traspasoProducto;
+    public TraspasoProducto getProducto() {
+        return producto;
     }
 
-    public void setTraspasoProducto(TraspasoProducto traspasoProducto) {
-        this.traspasoProducto = traspasoProducto;
+    public void setProducto(TraspasoProducto producto) {
+        this.producto = producto;
     }
 
     public ArrayList<Accion> obtenerAcciones(int idModulo) {
@@ -408,14 +524,6 @@ public class MbTraspaso implements Serializable {
         this.traspasos = traspasos;
     }
 
-    public Lote1 getLote() {
-        return lote;
-    }
-
-    public void setLote(Lote1 lote) {
-        this.lote = lote;
-    }
-
     public double getSumaLotes() {
         return sumaLotes;
     }
@@ -424,12 +532,12 @@ public class MbTraspaso implements Serializable {
         this.sumaLotes = sumaLotes;
     }
 
-    public TOAlmacenJS getToAlmacen() {
-        return toAlmacen;
+    public TOAlmacenJS getAlmacen() {
+        return almacen;
     }
 
-    public void setToAlmacen(TOAlmacenJS toAlmacen) {
-        this.toAlmacen = toAlmacen;
+    public void setAlmacen(TOAlmacenJS almacen) {
+        this.almacen = almacen;
     }
 
     public ArrayList<SelectItem> getListaAlmacenes() {

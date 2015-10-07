@@ -95,12 +95,13 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" value="#{mbEntradasAlmacen.entradaDetalle}" style="border:solid 1px;"
-                                     var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                        <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" 
+                                     value="#{mbEntradasAlmacen.detalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" 
+                                     selectionMode="single" selection="#{mbEntradasAlmacen.producto}" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
-                            <p:ajax event="rowSelect" listener="#{mbEntradasAlmacen.editarLotes}" 
-                                    update=":main:msgs :main:listaTotales :main:listaLotes" 
-                                    oncomplete="handleAbrirEditarLotes(xhr, status, args);" />
+                            <p:ajax event="rowSelect" update=":main:listaTotales :main:listaLotes" 
+                                    oncomplete="PF('editarLotesDlg').show();" />
 
                             <p:column headerText="SKU" width="64"  >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
@@ -116,10 +117,10 @@
                     <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE ENTRADAS DE ALMACEN PENDIENTES" 
                               resizable="false" modal="true" >
                         <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbEntradasAlmacen.entradasPendientes}" style="border: solid 1px; width: 800px;"
-                                     var="entrada" rowKey="#{entrada.idMovto}" selectionMode="single"
+                                     value="#{mbEntradasAlmacen.pendientes}" style="border: solid 1px; width: 800px;"
+                                     var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasAlmacen.cargaDetalleEntrada}" 
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasAlmacen.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
 
                             <p:column headerText="ALMACEN" style="width: 150px;" >
@@ -160,7 +161,7 @@
                         <p:ajax event="close" update=":main:detalleEntrada" />
 
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" 
-                                     value="#{mbEntradasAlmacen.entradaProducto.lotes}" style="border: solid 1px" 
+                                     value="#{mbEntradasAlmacen.producto.lotes}" style="border: solid 1px" 
                                      var="lote" rowKey="#{lote.lote}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="100" >
                             <p:ajax event="cellEdit" listener="#{mbEntradasAlmacen.onCellEdit}" update=":main:msgs1" />
@@ -168,6 +169,11 @@
                             <p:column colspan="2" headerText="LOTE" style="width: 80px;" >
                                 <h:outputText value="#{lote.lote}" >
                                     <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="CADUCIDAD" style="width: 80px;" >
+                                <h:outputText value="#{lote.fechaCaducidad}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="CANTIDAD" style="width: 100px;" >
@@ -189,25 +195,25 @@
                                 </p:cellEditor>
                             </p:column>
                         </p:dataTable>
-                        <p:panelGrid id="listaTotales" style="width: 275px;" >
+                        <p:panelGrid id="listaTotales" >
                             <p:row >
-                                <p:column style="width: 35px;" >
+                                <p:column >
                                     <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Eliminar un Producto" 
                                                      disabled="#{mbEntradasAlmacen.entrada.estatus!=0}" 
                                                      process="@this" actionListener="#{mbEntradasAlmacen.eliminarProducto()}" 
-                                                     update=":main:detalleEntrada" oncomplete="PF('editarLotesDlg').hide();" />
-                                </p:column>
-                                <p:column style="text-align: right; width: 60px;" >
-                                    <h:outputText value="Entran :" />
-                                </p:column>
-                                <p:column style="text-align: left" >
-                                    <h:outputText id="txtTotalLotes" value="#{mbEntradasAlmacen.entradaProducto.cantidad}" />
-                                </p:column>
-                                <p:column style="width: 35px;" >
+                                                     update=":main:detalleSalida" oncomplete="PF('editarLotesDlg').hide();" />
                                     <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
                                                      disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.nuevoLote()}" 
                                                      update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 100px;" >
+                                    <h:outputText value="Total :" />
+                                </p:column>
+                                <p:column style="text-align: left; width: 100px;" >
+                                    <h:outputText value="#{mbEntradasAlmacen.producto.cantidad}" >
+                                        <f:convertNumber pattern="###,##0.000" />
+                                    </h:outputText>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -231,7 +237,7 @@
                                     <p:inputText id="opcionSKU" value="#{mbEntradasAlmacen.mbBuscar.strBuscar}" maxlength="8" size="10" />
                                     <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionSKU" actionListener="#{mbEntradasAlmacen.buscar()}" 
-                                                     update=":main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
+                                                     update=":main:msgs :main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
                                 </p:column>
                                 <p:column rendered="#{mbEntradasAlmacen.mbBuscar.tipoBuscar=='2'}" >
                                     <p:autoComplete id="opcionParte" value="#{mbEntradasAlmacen.mbBuscar.mbParte.parte}" maxlength="24" size="24"
@@ -240,13 +246,13 @@
                                                     forceSelection="true" />
                                     <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionParte" actionListener="#{mbEntradasAlmacen.buscar()}" 
-                                                     update="listaBuscarProductos"  />
+                                                     update=":main:msgs listaBuscarProductos"  />
                                 </p:column>
                                 <p:column rendered="#{mbEntradasAlmacen.mbBuscar.tipoBuscar=='3'}" >
                                     <p:inputText id="opcionDescripcion" value="#{mbEntradasAlmacen.mbBuscar.strBuscar}" maxlength="24" size="24" />
                                     <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionDescripcion" actionListener="#{mbEntradasAlmacen.buscar()}" 
-                                                     update="listaBuscarProductos" />
+                                                     update=":main:msgs listaBuscarProductos" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -271,7 +277,7 @@
                                 <p:commandButton id="seleccion" value="Seleccionar" 
                                                  disabled="#{mbEntradasAlmacen.mbBuscar.producto==null}"
                                                  actionListener="#{mbEntradasAlmacen.actualizaProductoSeleccionado()}"
-                                                 update=":main:detalleEntrada" oncomplete="PF('buscarProductoDlg').hide()" />
+                                                 update=":main:msgs :main:detalleEntrada" oncomplete="PF('buscarProductoDlg').hide()" />
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>

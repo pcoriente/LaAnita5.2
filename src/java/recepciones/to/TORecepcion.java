@@ -1,4 +1,4 @@
-package traspasos.to;
+package recepciones.to;
 
 import java.util.Date;
 import movimientos.to.TOMovimientoOficina;

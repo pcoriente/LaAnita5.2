@@ -6,7 +6,7 @@ import compras.dao.DAOComprasAlmacen;
 import compras.dominio.CompraAlmacen;
 import compras.dominio.ProductoCompraAlmacen;
 import compras.to.TOProductoCompraAlmacen;
-import entradas.MbComprobantes;
+import comprobantes.MbComprobantes;
 import entradas.dominio.ProductoReporteAlmacen;
 import java.io.IOException;
 import javax.inject.Named;
@@ -19,15 +19,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOMovimientosAlmacen;
-import movimientos.dominio.MovimientoAlmacen;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
@@ -295,21 +292,9 @@ public class MbComprasAlmacen implements Serializable {
         }
     }
 
-    private void convertir(MovimientoAlmacen mov, TOMovimientoAlmacen toMov) {
-        toMov.setIdMovtoAlmacen(mov.getIdMovtoAlmacen());
-        toMov.setIdTipo(mov.getIdTipo());
-        toMov.setFolio(mov.getFolio());
-        toMov.setIdEmpresa(mov.getAlmacen().getIdEmpresa());
-        toMov.setIdAlmacen(mov.getAlmacen().getIdAlmacen());
-        toMov.setFecha(mov.getFecha());
-        toMov.setIdUsuario(mov.getIdUsuario());
-        toMov.setPropietario(mov.getPropietario());
-        toMov.setEstatus(mov.getEstatus());
-    }
-
     public TOMovimientoAlmacen convertir(CompraAlmacen mov) {
         TOMovimientoAlmacen toMov = new TOMovimientoAlmacen();
-        this.convertir(mov, toMov);
+        movimientos.Movimientos.convertir(mov, toMov);
         toMov.setIdComprobante(mov.getComprobante().getIdComprobante());
         toMov.setIdReferencia(mov.getProveedor().getIdProveedor());
         toMov.setReferencia(mov.getIdOrdenCompra());
@@ -360,7 +345,7 @@ public class MbComprasAlmacen implements Serializable {
         try {
             this.dao = new DAOComprasAlmacen();
             this.detalle = new ArrayList<>();
-            for (TOProductoCompraAlmacen to : this.dao.cargarCompraDetalle(this.compra.getIdMovtoAlmacen())) {
+            for (TOProductoCompraAlmacen to : this.dao.obtenerCompraDetalle(this.compra.getIdMovtoAlmacen())) {
                 this.detalle.add(this.convertir(to));
             }
             if (this.compra.getIdOrdenCompra() != 0) {
@@ -396,7 +381,7 @@ public class MbComprasAlmacen implements Serializable {
             this.compras = new ArrayList<>();
             try {
                 this.daoMv = new DAOMovimientosAlmacen();
-                for (TOMovimientoAlmacen to : this.daoMv.obtenerMovimientosAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 1, this.mbComprobantes.getComprobante().getIdComprobante())) {
+                for (TOMovimientoAlmacen to : this.daoMv.obtenerMovimientosComprobante(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 1, this.mbComprobantes.getComprobante().getIdComprobante())) {
                     this.compras.add(this.convertir(to));
                 }
                 if (this.compras.isEmpty()) {

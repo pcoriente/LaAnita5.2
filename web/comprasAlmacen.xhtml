@@ -398,12 +398,13 @@
                                 <p:row >
                                     <p:column colspan="2" >
                                         <p:commandButton icon="ui-icon-disk" title="Grabar Comprobante" 
+                                                         disabled="#{not mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}"
                                                          process="@this selectTipoComprobante txtSerie txtNumero txtFechaFactura" 
                                                          actionListener="#{mbComprasAlmacen.mbComprobantes.grabar()}" 
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar" 
-                                                         disabled="#{mbComprasAlmacen.mbComprobantes.comprobante.idComprobante==0}"
+                                                         disabled="#{not mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}"
                                                          actionListener="#{mbComprasAlmacen.mbComprobantes.eliminar()}"
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />

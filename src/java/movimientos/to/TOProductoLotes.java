@@ -1,7 +1,6 @@
 package movimientos.to;
 
 import java.util.ArrayList;
-import movimientos.dominio.Lote;
 
 /**
  *
@@ -10,7 +9,8 @@ import movimientos.dominio.Lote;
 public class TOProductoLotes {
     private int idMovtoAlmacen;
     private int idProducto;
-    private ArrayList<Lote> lotes;
+    private double cantidad;
+    private ArrayList<TOProductoAlmacen> lotes;
     
     public TOProductoLotes() {
         this.lotes=new ArrayList<>();
@@ -32,11 +32,19 @@ public class TOProductoLotes {
         this.idProducto = idProducto;
     }
 
-    public ArrayList<Lote> getLotes() {
+    public double getCantidad() {
+        return cantidad;
+    }
+
+    public void setCantidad(double cantidad) {
+        this.cantidad = cantidad;
+    }
+
+    public ArrayList<TOProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<Lote> lotes) {
+    public void setLotes(ArrayList<TOProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 }

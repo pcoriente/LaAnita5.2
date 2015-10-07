@@ -2,7 +2,6 @@ package usuarios.dominio;
 
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import usuarios.dominio.Usuario;
 
 /**
  *

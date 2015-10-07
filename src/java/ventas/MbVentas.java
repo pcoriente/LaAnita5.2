@@ -22,7 +22,7 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import movimientos.to.TOLote;
 import movimientos.to.TOMovimientoAlmacenProducto;
 import org.primefaces.context.RequestContext;
@@ -59,7 +59,7 @@ public class MbVentas implements Serializable {
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
     private DAOMovimientos1 dao;
-    private DAOMovimientos daoMv;
+    private DAOMovimientosOld daoMv;
     private ArrayList<Venta> pedidos;
     private Venta venta;
     private boolean ventaAsegurada;
@@ -90,7 +90,7 @@ public class MbVentas implements Serializable {
     
     public void surtirOrdenDeCompra() {
         try {
-            this.daoMv=new DAOMovimientos();
+            this.daoMv=new DAOMovimientosOld();
 //            this.daoMv.surtirOrdenDeCompra(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), this.venta.getTienda().getIdImpuestoZona());
             
             this.detalle=new ArrayList<>();
@@ -288,7 +288,7 @@ public class MbVentas implements Serializable {
         toDestino.setIdImpuestoGrupo(this.similar.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
         toDestino.setCantSinCargo(this.similar.getCantSinCargo());
         try {
-            this.daoMv=new DAOMovimientos();
+            this.daoMv=new DAOMovimientosOld();
             this.daoMv.tranferirSinCargo(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), toOrigen, toDestino, this.cantTraspasar, this.venta.getTienda().getIdImpuestoZona());
             this.producto.setCantSinCargo(toOrigen.getCantSinCargo());
             this.producto.setSeparados(this.producto.getCantFacturada()+this.producto.getCantSinCargo());
@@ -353,7 +353,7 @@ public class MbVentas implements Serializable {
                 TOMovimientoOficina to=this.convertir();
                 this.dao.agregarMovimientoRelacionado(to);
                 
-                this.daoMv=new DAOMovimientos();
+                this.daoMv=new DAOMovimientosOld();
                 this.venta = this.convertir(this.daoMv.obtenerMovimientoRelacionado(to.getIdMovto()));
                 this.detalle = new ArrayList<>();
                 this.producto = new VentaProducto();
@@ -521,7 +521,7 @@ public class MbVentas implements Serializable {
             TOProductoPedido toProd=this.convertirProducto(this.producto);
             this.producto.setCantFacturada(this.producto.getSeparados()-this.producto.getCantSinCargo());
             
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             this.daoMv.grabarMovimientoDetalle(this.venta.getAlmacen().getIdEmpresa(), toVta, toProd, this.producto.getSeparados(), false);
             this.venta.setCantArticulos(this.venta.getCantArticulos() - this.producto.getSeparados());
             this.totalResta(this.producto);
@@ -631,7 +631,7 @@ public class MbVentas implements Serializable {
         this.detalle=new ArrayList<>();
         this.impuestosTotales=new ArrayList<>();
         try {
-            this.daoMv = new DAOMovimientos();
+            this.daoMv = new DAOMovimientosOld();
             try {
                 this.ventaAsegurada = this.daoMv.asegurarPedido(this.venta.getIdMovto());
             } catch (Exception ex) {
@@ -744,7 +744,7 @@ public class MbVentas implements Serializable {
             try {
                 TOProductoPedido to=this.convertirProducto(this.producto);
                 
-                this.daoMv = new DAOMovimientos();
+                this.daoMv = new DAOMovimientosOld();
 //                agregados=this.daoMv.grabarMovimientoDetalle(true, this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), to, this.producto.getSeparados(), this.venta.getTienda().getIdImpuestoZona());
                 
                 this.producto=this.convertirProducto(to);
@@ -793,7 +793,7 @@ public class MbVentas implements Serializable {
         this.venta = new Venta(this.mbAlmacenes.getAlmacen(), this.mbTiendas.getTienda(), this.mbFormatos.getFormatoSeleccion(), this.mbClientes.getCliente());
         TOMovimientoOficina to=this.convertir();
         try {
-            this.daoMv=new DAOMovimientos();
+            this.daoMv=new DAOMovimientosOld();
             this.daoMv.agregarMovimientoRelacionado(to, true);
             this.venta.setIdMovto(to.getIdMovto());
             this.venta.setFolio(to.getFolio());
@@ -843,7 +843,7 @@ public class MbVentas implements Serializable {
     public void obtenerPedidos() {
         try {   // Segun fecha y status
             this.pedidos=new ArrayList<>();
-            this.daoMv=new DAOMovimientos();
+            this.daoMv=new DAOMovimientosOld();
             for(TOMovimientoOficina to: this.daoMv.obtenerMovimientos(this.mbAlmacenes.getAlmacen().getIdAlmacen(), 28, (this.pendientes?0:2), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }

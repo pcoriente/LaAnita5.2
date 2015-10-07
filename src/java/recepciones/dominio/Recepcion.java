@@ -1,36 +1,44 @@
-package traspasos.dominio;
+package recepciones.dominio;
 
 import almacenes.to.TOAlmacenJS;
 import java.util.Date;
 import movimientos.dominio.MovimientoOficina;
+import movimientos.dominio.MovimientoTipo;
 
 /**
  *
  * @author jesc
  */
 public class Recepcion extends MovimientoOficina {
-    private int idSolicitud;
+//    private int idSolicitud;
     private int solicitudFolio;
     private Date solicitudFecha;
-    private int idTraspaso;
     private int traspasoFolio;
     private Date traspasoFecha;
     private TOAlmacenJS almacenOrigen;
+    private int idTraspaso;
     
     public Recepcion() {
         super();
-        solicitudFecha=new Date();
-        traspasoFecha=new Date();
         this.almacenOrigen=new TOAlmacenJS();
+        this.solicitudFecha=new Date();
+        this.traspasoFecha=new Date();
+    }
+    
+    public Recepcion(MovimientoTipo tipo, TOAlmacenJS almacen, TOAlmacenJS almacenOrigen) {
+        super(tipo, almacen);
+        this.almacenOrigen=almacenOrigen;
+        this.solicitudFecha=new Date();
+        this.traspasoFecha=new Date();
     }
 
-    public int getIdSolicitud() {
-        return idSolicitud;
-    }
-
-    public void setIdSolicitud(int idSolicitud) {
-        this.idSolicitud = idSolicitud;
-    }
+//    public int getIdSolicitud() {
+//        return idSolicitud;
+//    }
+//
+//    public void setIdSolicitud(int idSolicitud) {
+//        this.idSolicitud = idSolicitud;
+//    }
 
     public int getSolicitudFolio() {
         return solicitudFolio;

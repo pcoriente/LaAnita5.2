@@ -8,7 +8,6 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TOTraspaso extends TOMovimientoOficina {
-//    private int idSolicitud;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int solicitudIdUsuario;
@@ -19,14 +18,6 @@ public class TOTraspaso extends TOMovimientoOficina {
         super();
         this.solicitudFecha=new Date();
     }
-
-//    public int getIdSolicitud() {
-//        return idSolicitud;
-//    }
-//
-//    public void setIdSolicitud(int idSolicitud) {
-//        this.idSolicitud = idSolicitud;
-//    }
 
     public int getSolicitudFolio() {
         return solicitudFolio;

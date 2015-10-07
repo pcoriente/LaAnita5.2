@@ -1,4 +1,4 @@
-package traspasos.to;
+package recepciones.to;
 
 import movimientos.to.TOProductoOficina;
 
@@ -8,7 +8,7 @@ import movimientos.to.TOProductoOficina;
  */
 public class TORecepcionProducto extends TOProductoOficina {
     private double cantSolicitada;
-    private double cantEnviada;
+    private double cantTraspasada;
     private double separados;
     
     public TORecepcionProducto() {
@@ -23,12 +23,12 @@ public class TORecepcionProducto extends TOProductoOficina {
         this.cantSolicitada = cantSolicitada;
     }
 
-    public double getCantEnviada() {
-        return cantEnviada;
+    public double getCantTraspasada() {
+        return cantTraspasada;
     }
 
-    public void setCantEnviada(double cantEnviada) {
-        this.cantEnviada = cantEnviada;
+    public void setCantTraspasada(double cantTraspasada) {
+        this.cantTraspasada = cantTraspasada;
     }
 
     public double getSeparados() {

@@ -43,7 +43,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.naming.NamingException;
 import monedas.MbMonedas;
-import movimientos.dao.DAOMovimientos;
+import movimientos.dao.DAOMovimientosOld;
 import net.sf.jasperreports.engine.JRException;
 import ordenDeCompra.Report.OrdenCompraReporte;
 import ordenesDeCompra.Reporte.Reportes;
@@ -828,10 +828,7 @@ public class MbOrdenCompra implements Serializable {
             }
         } catch (NullPointerException e) {
             Mensajes.MensajeAlertP("Error de excepcion");
-        } catch (NamingException ex) {
-            Mensajes.MensajeAlertP(ex.getMessage());
-            Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (Exception ex) {
+        } catch (NamingException | SQLException ex) {
             Mensajes.MensajeAlertP(ex.getMessage());
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -889,14 +886,14 @@ public class MbOrdenCompra implements Serializable {
         // ordenCompraDetallesDirectas
         this.totales = new TotalesOrdenCompra();
         double sumaCostoCotizado = 0;
-        double descuentoC = 0;
-        double descuentoPP = 0;
-        double desctoProd1 = 0;
-        double desctoProd2 = 0;
+        double descuentoC;
+        double descuentoPP;
+        double desctoProd1;
+        double desctoProd2;
         sumaDescuentosProductos = 0;
         subtotalGeneral = 0;
         descuentoGeneralAplicado = 0;
-        DAOMovimientos dao = new DAOMovimientos();
+        DAOMovimientosOld dao = new DAOMovimientosOld();
         Double impuestos = 0.00;
 
         //CALCULOS
@@ -918,7 +915,7 @@ public class MbOrdenCompra implements Serializable {
                 ArrayList<ImpuestosProducto> lst = dao.generarImpuestosProducto(e.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo(), mbProveedores.getMiniProveedor().getIdImpuestoZona());
                 CalculoDeImpuestos calculo = new CalculoDeImpuestos();
                 if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
-                    double costoReal = 0.00;
+                    double costoReal;
                     //carlos pat descuentos globales
                     double descuentoComercial = (e.getCostoOrdenado() * this.mbProveedores.getMiniProveedor().getDesctoComercial()) / 100;
                     costoReal = e.getCostoOrdenado() - descuentoComercial;
@@ -949,21 +946,21 @@ public class MbOrdenCompra implements Serializable {
     public void dameOrdenCompraDirectaV(SelectEvent event) {
         this.ordenElegidaD = (OrdenCompraEncabezado) event.getObject();
         double sumaCostoCotizado = 0;
-        double descuentoC = 0;
-        double descuentoPP = 0;
-        double desctoProd1 = 0;
-        double desctoProd2 = 0;
+        double descuentoC;
+        double descuentoPP;
+        double desctoProd1;
+        double desctoProd2;
         sumaDescuentosProductos = 0;
         subtotalGeneral = 0;
         descuentoGeneralAplicado = 0;
-        double costoConDescuentos = 0;
+        double costoConDescuentos;
         
         listaOrdenDetalleD = new ArrayList<>();
         try {
             int idOC = ordenElegidaD.getIdOrdenCompra();
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
-            DAOMovimientos dao = new DAOMovimientos();
+            DAOMovimientosOld dao = new DAOMovimientosOld();
             Double impuestos = 0.00;
             //calculos
             for (OrdenCompraDetalle d : lista) {
@@ -1012,11 +1009,11 @@ public class MbOrdenCompra implements Serializable {
             sumaDescuentosProductos = 0;
             subtotalGeneral = 0;
             descuentoGeneralAplicado = 0;
-            double costoConDescuentos = 0;
+            double costoConDescuentos;
 
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
-            DAOMovimientos dao = new DAOMovimientos();
+            DAOMovimientosOld dao = new DAOMovimientosOld();
             Double impuestos = 0.00;
             //calculos            
             for (OrdenCompraDetalle d : lista) {
