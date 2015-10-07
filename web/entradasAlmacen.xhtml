@@ -201,7 +201,7 @@
                                     <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Eliminar un Producto" 
                                                      disabled="#{mbEntradasAlmacen.entrada.estatus!=0}" 
                                                      process="@this" actionListener="#{mbEntradasAlmacen.eliminarProducto()}" 
-                                                     update=":main:detalleSalida" oncomplete="PF('editarLotesDlg').hide();" />
+                                                     update=":main:detalleEntrada" oncomplete="PF('editarLotesDlg').hide();" />
                                     <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
                                                      disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.nuevoLote()}" 
