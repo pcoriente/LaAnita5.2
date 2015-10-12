@@ -508,7 +508,6 @@ public class DAOComprasOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     disponibles = rs.getDouble("disponibles");
@@ -563,20 +562,21 @@ public class DAOComprasOficina {
     }
 
     public double separar(int idMovto, int idEmpaque, double cantSeparar, int idOrdenCompra) throws SQLException {
-        double disponibles = 0;
-        String strSQL = "SELECT cantOrdenada - surtidosOficina - separadosOficina AS disponibles\n"
-                + "FROM ordenCompraSurtido\n"
-                + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
+//        double disponibles = 0;
+//        String strSQL = "SELECT cantOrdenada - surtidosOficina - separadosOficina AS disponibles\n"
+//                + "FROM ordenCompraSurtido\n"
+//                + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
+        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    disponibles = rs.getDouble("disponibles");
-                }
-                if (disponibles < cantSeparar) {
-                    cantSeparar = disponibles;
-                }
+//                ResultSet rs = st.executeQuery(strSQL);
+//                if (rs.next()) {
+//                    disponibles = rs.getDouble("disponibles");
+//                }
+//                if (disponibles < cantSeparar) {
+//                    cantSeparar = disponibles;
+//                }
                 strSQL = "UPDATE ordenCompraSurtido\n"
                         + "SET separadosOficina=separadosOficina+" + cantSeparar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
@@ -775,7 +775,7 @@ public class DAOComprasOficina {
         toProd.setCantOrdenada(rs.getDouble("cantOrdenada"));
         toProd.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
         toProd.setCostoOrdenado(rs.getDouble("costoOrdenado"));
-        movimientos.Movimientos.construirProducto(rs, toProd);
+        movimientos.Movimientos.construirProductoOficina(rs, toProd);
         return toProd;
     }
 

@@ -15,7 +15,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import pedidos.DAO.DAOCargaPedidos;
+import pedidos.dao.DAOCargaPedidos;
 import pedidos.dominio.Chedraui;
 import pedidos.dominio.Coma;
 import pedidos.dominio.ComercialMexicana;

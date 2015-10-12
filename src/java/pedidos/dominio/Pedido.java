@@ -1,57 +1,48 @@
 package pedidos.dominio;
 
-import clientes.to.TOCliente;
-import formatos.dominio.ClienteFormato;
+import almacenes.to.TOAlmacenJS;
 import java.util.Date;
-import menuClientesGrupos.dominio.ClienteGrupo;
+import movimientos.dominio.MovimientoOficina;
+import movimientos.dominio.MovimientoTipo;
 import tiendas.to.TOTienda;
 
 /**
  *
  * @author jesc
  */
-public class Pedido {
+public class Pedido extends MovimientoOficina {
     private int idPedidoOC;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
-    
-    private int idPedido;
-    private String cancelacionMotivo;
     private Date cancelacionFecha;
+    private String cancelacionMotivo;
     
-    private int idMovto;
-    private int idEmpresa;
     private TOTienda tienda;
-    private ClienteGrupo grupo;
-    private ClienteFormato formato;
-    private TOCliente cliente;
-    private double desctoComercial;
-    private double desctoProntoPago;
-    private Date fecha;
-    private int estatus;
-    private int idMovtoAlmacen;
+//    private ClienteGrupo grupo;
+//    private ClienteFormato formato;
+//    private TOCliente cliente;
+    private int idPedido;
     
-    private double cantArticulos;
-    private double subTotal;
-    private double descuento;
-    private double impuesto;
-    private double total;
+//    private double cantArticulos;
 
     public Pedido() {
+        super();
         this.tienda=new TOTienda();
-        this.formato=new ClienteFormato();
-        this.cliente=new TOCliente();
+//        this.formato=new ClienteFormato();
+//        this.cliente=new TOCliente();
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
-        this.fecha=new Date();
+//        this.fecha=new Date();
         this.cancelacionFecha=new Date();
         this.cancelacionMotivo="";
     }
 
-    public Pedido(TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
+//    public Pedido(TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
+        public Pedido(MovimientoTipo tipo, TOAlmacenJS almacen, TOTienda tienda) {
+            super(tipo, almacen);
         this.tienda = tienda;
-        this.formato = formato;
-        this.cliente = cliente;
+//        this.formato = formato;
+//        this.cliente = cliente;
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
         this.cancelacionMotivo="";
@@ -80,13 +71,13 @@ public class Pedido {
         return true;
     }
 
-    public double getCantArticulos() {
-        return cantArticulos;
-    }
-
-    public void setCantArticulos(double cantArticulos) {
-        this.cantArticulos = cantArticulos;
-    }
+//    public double getCantArticulos() {
+//        return cantArticulos;
+//    }
+//
+//    public void setCantArticulos(double cantArticulos) {
+//        this.cantArticulos = cantArticulos;
+//    }
 
     public int getIdPedido() {
         return idPedido;
@@ -96,21 +87,21 @@ public class Pedido {
         this.idPedido = idPedido;
     }
 
-    public int getIdMovto() {
-        return idMovto;
-    }
-
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
-    }
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
-    }
-
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
-    }
+//    public int getIdMovto() {
+//        return idMovto;
+//    }
+//
+//    public void setIdMovto(int idMovto) {
+//        this.idMovto = idMovto;
+//    }
+//
+//    public int getIdMovtoAlmacen() {
+//        return idMovtoAlmacen;
+//    }
+//
+//    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
+//        this.idMovtoAlmacen = idMovtoAlmacen;
+//    }
 
     public int getIdPedidoOC() {
         return idPedidoOC;
@@ -120,13 +111,13 @@ public class Pedido {
         this.idPedidoOC = idPedidoOC;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
-    }
-
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
-    }
+//    public int getIdEmpresa() {
+//        return idEmpresa;
+//    }
+//
+//    public void setIdEmpresa(int idEmpresa) {
+//        this.idEmpresa = idEmpresa;
+//    }
 
     public TOTienda getTienda() {
         return tienda;
@@ -136,37 +127,37 @@ public class Pedido {
         this.tienda = tienda;
     }
 
-    public ClienteFormato getFormato() {
-        return formato;
-    }
+//    public ClienteFormato getFormato() {
+//        return formato;
+//    }
+//
+//    public void setFormato(ClienteFormato formato) {
+//        this.formato = formato;
+//    }
+//
+//    public TOCliente getCliente() {
+//        return cliente;
+//    }
+//
+//    public void setCliente(TOCliente cliente) {
+//        this.cliente = cliente;
+//    }
 
-    public void setFormato(ClienteFormato formato) {
-        this.formato = formato;
-    }
-
-    public TOCliente getCliente() {
-        return cliente;
-    }
-
-    public void setCliente(TOCliente cliente) {
-        this.cliente = cliente;
-    }
-
-    public double getDesctoComercial() {
-        return desctoComercial;
-    }
-
-    public void setDesctoComercial(double desctoComercial) {
-        this.desctoComercial = desctoComercial;
-    }
-
-    public double getDesctoProntoPago() {
-        return desctoProntoPago;
-    }
-
-    public void setDesctoProntoPago(double desctoProntoPago) {
-        this.desctoProntoPago = desctoProntoPago;
-    }
+//    public double getDesctoComercial() {
+//        return desctoComercial;
+//    }
+//
+//    public void setDesctoComercial(double desctoComercial) {
+//        this.desctoComercial = desctoComercial;
+//    }
+//
+//    public double getDesctoProntoPago() {
+//        return desctoProntoPago;
+//    }
+//
+//    public void setDesctoProntoPago(double desctoProntoPago) {
+//        this.desctoProntoPago = desctoProntoPago;
+//    }
 
     public String getOrdenDeCompra() {
         return ordenDeCompra;
@@ -184,21 +175,21 @@ public class Pedido {
         this.ordenDeCompraFecha = ordenDeCompraFecha;
     }
 
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
-    public int getEstatus() {
-        return estatus;
-    }
-
-    public void setEstatus(int estatus) {
-        this.estatus = estatus;
-    }
+//    public Date getFecha() {
+//        return fecha;
+//    }
+//
+//    public void setFecha(Date fecha) {
+//        this.fecha = fecha;
+//    }
+//
+//    public int getEstatus() {
+//        return estatus;
+//    }
+//
+//    public void setEstatus(int estatus) {
+//        this.estatus = estatus;
+//    }
 
     public Date getCancelacionFecha() {
         return cancelacionFecha;
@@ -216,43 +207,43 @@ public class Pedido {
         this.cancelacionMotivo = cancelacionMotivo;
     }
 
-    public ClienteGrupo getGrupo() {
-        return grupo;
-    }
+//    public ClienteGrupo getGrupo() {
+//        return grupo;
+//    }
+//
+//    public void setGrupo(ClienteGrupo grupo) {
+//        this.grupo = grupo;
+//    }
 
-    public void setGrupo(ClienteGrupo grupo) {
-        this.grupo = grupo;
-    }
-
-    public double getSubTotal() {
-        return subTotal;
-    }
-
-    public void setSubTotal(double subTotal) {
-        this.subTotal = subTotal;
-    }
-
-    public double getDescuento() {
-        return descuento;
-    }
-
-    public void setDescuento(double descuento) {
-        this.descuento = descuento;
-    }
-
-    public double getImpuesto() {
-        return impuesto;
-    }
-
-    public void setImpuesto(double impuesto) {
-        this.impuesto = impuesto;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public void setTotal(double total) {
-        this.total = total;
-    }
+//    public double getSubTotal() {
+//        return subTotal;
+//    }
+//
+//    public void setSubTotal(double subTotal) {
+//        this.subTotal = subTotal;
+//    }
+//
+//    public double getDescuento() {
+//        return descuento;
+//    }
+//
+//    public void setDescuento(double descuento) {
+//        this.descuento = descuento;
+//    }
+//
+//    public double getImpuesto() {
+//        return impuesto;
+//    }
+//
+//    public void setImpuesto(double impuesto) {
+//        this.impuesto = impuesto;
+//    }
+//
+//    public double getTotal() {
+//        return total;
+//    }
+//
+//    public void setTotal(double total) {
+//        this.total = total;
+//    }
 }

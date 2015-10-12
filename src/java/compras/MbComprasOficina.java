@@ -501,9 +501,9 @@ public class MbComprasOficina implements Serializable {
             if (this.producto.getCantFacturada() < 0) {
                 this.producto.setCantFacturada(this.resProducto.getCantFacturada());
                 Mensajes.mensajeAlert("La cantidad facturada NO debe ser MENOR QUE CERO !!!");
-            } else if (this.producto.getCantFacturada() > this.producto.getCantOrdenada()) {
-                this.producto.setCantFacturada(this.resProducto.getCantFacturada());
-                Mensajes.mensajeAlert("La cantidad facturada no debe ser mayor a la cantidad ordenada !!!");
+//            } else if (this.producto.getCantFacturada() > this.producto.getCantOrdenada()) {
+//                this.producto.setCantFacturada(this.resProducto.getCantFacturada());
+//                Mensajes.mensajeAlert("La cantidad facturada no debe ser mayor a la cantidad ordenada !!!");
             } else if (this.producto.getCantFacturada() != this.resProducto.getCantFacturada()) {
                 try {
                     this.dao = new DAOComprasOficina();

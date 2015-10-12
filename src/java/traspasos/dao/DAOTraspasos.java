@@ -274,7 +274,7 @@ public class DAOTraspasos {
     private TOTraspasoProducto construir(ResultSet rs) throws SQLException {
         TOTraspasoProducto toProd = new TOTraspasoProducto();
         toProd.setCantSolicitada(rs.getDouble("cantSolicitada"));
-        movimientos.Movimientos.construirProducto(rs, toProd);
+        movimientos.Movimientos.construirProductoOficina(rs, toProd);
         return toProd;
     }
 

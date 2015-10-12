@@ -74,7 +74,7 @@ public class DAORechazos {
         TORechazoProducto toProd = new TORechazoProducto();
         toProd.setCantTraspasada(rs.getDouble("cantTraspasada"));
         toProd.setCantRecibida(rs.getDouble("cantRecibida"));
-        movimientos.Movimientos.construirProducto(rs, toProd);
+        movimientos.Movimientos.construirProductoOficina(rs, toProd);
         return toProd;
     }
 

@@ -21,11 +21,12 @@ public class TOMovimientoAlmacen {
     private int estatus;
     
     public TOMovimientoAlmacen() {
-        super();
+        this.fecha=new Date();
     }
     
     public TOMovimientoAlmacen(int idTipo) {
         this.idTipo = idTipo;
+        this.fecha=new Date();
     }
 
     public int getIdMovtoAlmacen() {

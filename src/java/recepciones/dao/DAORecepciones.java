@@ -318,7 +318,7 @@ public class DAORecepciones {
         TORecepcionProducto to = new TORecepcionProducto();
         to.setCantSolicitada(rs.getInt("cantSolicitada"));
         to.setCantTraspasada(rs.getDouble("cantTraspasada"));
-        movimientos.Movimientos.construirProducto(rs, to);
+        movimientos.Movimientos.construirProductoOficina(rs, to);
         return to;
     }
 

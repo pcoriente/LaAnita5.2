@@ -235,6 +235,125 @@ public class Movimientos {
     }
 
 //    ==================================== OFICINA ===================================
+    
+    public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, int idProducto) throws SQLException {
+        ArrayList<Double> boletin;
+        String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
+                + "FROM clientesTiendas T\n"
+                + "INNER JOIN clientesFormatos F ON F.idFormato=T.idFormato\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=F.idGrupoCte\n"
+                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=" + idProducto + "\n"
+                + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+                + "WHERE T.idTienda=" + idTienda;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                int idGrupoCte = rs.getInt("idGrupoCte");
+                int idCliente = rs.getInt("idCliente");
+                int idFormato = rs.getInt("idFormato");
+                int idGrupo = rs.getInt("idGrupo");
+                int idSubGrupo = rs.getInt("idSubGrupo");
+                boletin = new ArrayList<>();
+                boletin.add(0.0);
+                boletin.add(0.0);
+                strSQL = "SELECT B.* \n"
+                        + "FROM clientesBoletinesDetalle B\n"
+                        + "WHERE B.idEmpresa=" + idEmpresa + "\n"
+                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=" + idTienda + "))\n"
+                        + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
+                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
+                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
+                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND B.finVigencia";
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
+                        boletin.set(0, rs.getDouble("conCargo"));
+                        boletin.set(1, rs.getDouble("sinCargo"));
+                    }
+                }
+            } else {
+                throw (new SQLException("No se encontro producto id=" + idProducto + " en detalle de tienda id=" + idTienda + " !!!"));
+            }
+        }
+        return boletin;
+    }
+    
+    private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, double desctoComercial, int idProducto) throws SQLException {
+        ArrayList<Double> precio = new ArrayList<>();
+        double precioUnitario, desctoProducto1, precioLista;
+        String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
+                + "FROM clientesTiendas T\n"
+                + "INNER JOIN clientesFormatos F ON F.idFormato=T.idFormato\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=F.idGrupoCte\n"
+                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=" + idProducto + "\n"
+                + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+                + "WHERE T.idTienda=" + idTienda;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                int idGrupoCte = rs.getInt("idGrupoCte");
+                int idCliente = rs.getInt("idCliente");
+                int idFormato = rs.getInt("idFormato");
+                int idGrupo = rs.getInt("idGrupo");
+                int idSubGrupo = rs.getInt("idSubGrupo");
+                strSQL = "SELECT B.*\n"
+                        + "FROM clientesListasPrecios B\n"
+                        + "WHERE B.idEmpresa=" + idEmpresa + "\n"
+                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=" + idTienda + "))\n"
+                        + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
+                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
+                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
+                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND B.finVigencia";
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    if (rs.getDouble("precioVenta") == 0) {
+                        throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
+                    } else {
+                        precioUnitario = rs.getDouble("precioVenta");
+                        if (!rs.getString("descuentos").equals("")) {
+                            double descuento = 1.00;
+                            for (String str : rs.getString("descuentos").split(",")) {
+                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
+                            }
+                            desctoProducto1 = (1.00 - descuento) * 100.00;
+                        } else {
+                            desctoProducto1 = 0.00;
+                        }
+                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
+                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+
+                        precio.add(precioUnitario);
+                        precio.add(desctoProducto1);
+                        precio.add(precioLista);
+                    }
+                } else {
+                    throw (new SQLException("No se encontro precio de venta para el producto id=" + idProducto + " !!!"));
+                }
+            } else {
+                throw new SQLException("No se encotro el detalle de la tienda id=" + idTienda + " para obtener precio del producto id=" + idProducto + " !!!");
+            }
+        }
+        return precio;
+    }
+    
+    public static void actualizaProductoPrecio(Connection cn, TOMovimientoOficina toMov, TOProductoOficina toProd) throws SQLException {
+        ArrayList<Double> precio = obtenerPrecioUnitario(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toMov.getDesctoComercial(), toProd.getIdProducto());
+        toProd.setUnitario(precio.get(0));
+        toProd.setDesctoProducto1(precio.get(1));
+        toProd.setCosto(precio.get(2));
+
+        grabaProductoCambios(cn, toProd);
+        calculaUnitario(cn, toMov.getIdMovto(), toProd.getIdProducto());
+    }
+    
     public static double sumaPiezasOficina(ArrayList<ProductoOficina> detalle) {
         double piezas = 0;
         for (ProductoOficina p : detalle) {
@@ -336,11 +455,11 @@ public class Movimientos {
 
     public static TOProductoOficina construirProductoOficina(ResultSet rs) throws SQLException {
         TOProductoOficina to = new TOProductoOficina();
-        construirProducto(rs, to);
+        construirProductoOficina(rs, to);
         return to;
     }
 
-    public static void construirProducto(ResultSet rs, TOProductoOficina to) throws SQLException {
+    public static void construirProductoOficina(ResultSet rs, TOProductoOficina to) throws SQLException {
         to.setIdMovto(rs.getInt("idMovto"));
         to.setIdProducto(rs.getInt("idEmpaque"));
         to.setCantFacturada(rs.getDouble("cantFacturada"));
