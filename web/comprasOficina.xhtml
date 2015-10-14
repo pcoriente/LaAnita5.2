@@ -319,7 +319,7 @@
                                         <f:convertNumber type="number" pattern="##,###,##0.000" maxIntegerDigits="8" maxFractionDigits="3" />
                                         <f:validateDoubleRange minimum="0.0" maximum="99999999.999" />
                                         <p:ajax event="change" process="@this" listener="#{mbComprasOficina.cambiarFacturada()}" 
-                                                update="msgsDetalle lblUnitario lblSubTotal btnGrabarProducto" />
+                                                update=":main:msgsDetalle :main:detalleEntrada :main:mttoEntradasTotales lblUnitario lblSubTotal btnGrabarProducto" />
                                     </p:inputText>
                                 </p:column>
                                 <p:column >
@@ -332,7 +332,7 @@
                                         <f:convertNumber type="number" pattern="##,##0.000" maxIntegerDigits="5" maxFractionDigits="3" />
                                         <f:validateDoubleRange minimum="0.0" maximum="99999.999" />
                                         <p:ajax event="change" process="@this" listener="#{mbComprasOficina.cambiarSinCargo()}" 
-                                                update="msgsDetalle lblUnitario lblSubTotal btnGrabarProducto" />
+                                                update=":main:msgsDetalle :main:detalleEntrada :main:mttoEntradasTotales lblUnitario lblSubTotal btnGrabarProducto" />
                                     </p:inputText>
                                 </p:column>
                             </p:row>
