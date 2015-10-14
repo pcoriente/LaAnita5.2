@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package pedidos.dao;
 
 import java.sql.Connection;
@@ -28,7 +23,6 @@ import usuarios.dominio.UsuarioSesion;
  * @author Usuario
  */
 public class DAOCargaPedidos {
-
     protected static DataSource ds;
 
     public DAOCargaPedidos() {
@@ -67,5 +61,4 @@ public class DAOCargaPedidos {
         }
         return glns;
     }
-
 }
