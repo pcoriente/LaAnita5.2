@@ -9,22 +9,29 @@ import Message.Mensajes;
 import ReportesProveedor.DAO.DAOReportesProveedor;
 import ReportesProveedor.Dominio.ReporteProveedorDetalle;
 import ReportesProveedor.Dominio.ReporteProveedorEncabezado;
-import empresas.MbEmpresas;
+//import empresas.MbEmpresas;
 import empresas.MbMiniEmpresa;
-import empresas.dominio.Empresa;
+//import empresas.dominio.Empresa;
 import empresas.dominio.MiniEmpresa;
+import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+//import java.util.HashMap;
+//import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -76,15 +83,42 @@ public class MbReporteProveedor implements Serializable {
     }
 
     public void generarReporte() {
-        DAOReportesProveedor dao = new DAOReportesProveedor();
+//        Connection cn = ds.getConnection();
+//        DAOReportesProveedor dao = new DAOReportesProveedor();
         try {
-            dao.generarReporte(encabezadoBusqueda);
+            String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\comprarPorProveedor.jasper";
+            JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.getLst());
+            Map parametros = new HashMap();
+//            Map<String, Object> parametros = new HashMap<String, Object>();
+//            parametros.put("empresa", encabezado.getIdEmpresa());
+//            parametros.put("codigoProveedorInicial",encabezado.getCodigoProductoInicial());
+//            parametros.put("codigoProveedorFinal", encabezado.getCodigoProductoFinal());
+//            parametros.put("fechaInicial", encabezado.getFechaInicial());
+//            parametros.put("fechaFinal", encabezado.getFechaFinal());
+            
+            //parametros.put("empresa", encabezadoBusqueda.getIdEmpresa());
+            parametros.put("empresa",this.miniEmpresa.getEmpresa());
+            //parametros.put("codigoProveedorInicial",encabezadoBusqueda.getCodigoProductoInicial());
+            //parametros.put("codigoProveedorFinal", encabezadoBusqueda.getCodigoProductoFinal());
+            //parametros.put("fechaInicial", encabezadoBusqueda.getFechaInicial());
+            //parametros.put("fechaFinal", encabezadoBusqueda.getFechaFinal());
+            
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado); 
+            JasperPrint jasperprint = JasperFillManager.fillReport(report, parametros, beanColDataSource);
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=comprasPorProveedor.pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+
+            //dao.generarReporte(encabezadoBusqueda);
             Mensajes.mensajeSucces("Reporte Generado");
         } catch (JRException ex) {
             Mensajes.mensajeAlert(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeAlert(ex.getMessage());
-        }
+        } catch (IOException ex) {
+            Logger.getLogger(MbReporteProveedor.class.getName()).log(Level.SEVERE, null, ex);
+        } 
     }
 
     public String salir() {
@@ -100,10 +134,10 @@ public class MbReporteProveedor implements Serializable {
             try {
                 encabezadoBusqueda.setIdEmpresa(empresa.getIdEmpresa());
                 lst = dao.dameInformacion(encabezadoBusqueda);
-                if (lst.size() == 0) {
-                    Mensajes.mensajeAlert("No hay información que desplegar");
+                if (lst.isEmpty()) {
+                    Mensajes.mensajeAlert("No hay Registros Para Procesar");
                 } else {
-                    Mensajes.mensajeSucces("Información encontrada");
+                    Mensajes.mensajeSucces("Registros Procesados");
                 }
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getMessage());

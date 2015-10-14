@@ -8,6 +8,7 @@ package ReportesProveedor.DAO;
 import ReportesProveedor.Dominio.ReporteProveedorDetalle;
 import ReportesProveedor.Dominio.ReporteProveedorEncabezado;
 import agentes.dao.DaoAgentes;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -102,45 +103,45 @@ public class DAOReportesProveedor {
     
      public void generarReporte(ReporteProveedorEncabezado encabezado) throws JRException, SQLException {
          Connection cn = ds.getConnection();
-        try {
-            DAOListaPrecio dao = new DAOListaPrecio();
-            dao.generarReporte();
+        //try {
+        //    DAOListaPrecio dao = new DAOListaPrecio();
+        //    dao.generarReporte();
 //            String ruta = "C:\\Reportes\\listaPrecioIdeal.pdf";
             
 //        -----RUTA DEL SERVIDOR-----
-            String ruta = "C:\\Carlos Pat\\Reportes\\comprasPorProveedor.pdf";
+//            String ruta = "C:\\Carlos Pat\\Reportes\\comprasPorProveedor.pdf";
             String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\comprarPorProveedor.jasper";
 //        ------------------------------
 //            String ubicacionCompilado = "C:\\Reportes\\comprarPorProveedor.jasper";
             JasperPrint jasperprint;
             JasperReport report;
-            Map<String, Object> parametros = new HashMap<String, Object>();
-            parametros.put("empresa", encabezado.getIdEmpresa());
-            parametros.put("codigoProveedorInicial",encabezado.getCodigoProductoInicial());
-            parametros.put("codigoProveedorFinal", encabezado.getCodigoProductoFinal());
-            parametros.put("fechaInicial", encabezado.getFechaInicial());
-            parametros.put("fechaFinal", encabezado.getFechaFinal());
-            try {
-                report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
-                jasperprint = JasperFillManager.fillReport(report, parametros, cn);
-                HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
-                httpServletResponse.addHeader("Content-disposition", "attachment; filename=comprasPorProveedor.pdf");
-                ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
-                JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
-                try {
-                    JasperExportManager.exportReportToPdfFile(jasperprint, ruta);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-                FacesContext.getCurrentInstance().responseComplete();
-            } catch (Exception e) {
-                System.out.println(e);
+            //JRBeanCollecionDataSource beanColDataSource = new JRBeanCollectionDataSource(lst);
+            //Map<String, Object> parametros = new HashMap<String, Object>();
+//            parametros.put("empresa", encabezado.getIdEmpresa());
+//            parametros.put("codigoProveedorInicial",encabezado.getCodigoProductoInicial());
+//            parametros.put("codigoProveedorFinal", encabezado.getCodigoProductoFinal());
+//            parametros.put("fechaInicial", encabezado.getFechaInicial());
+//            parametros.put("fechaFinal", encabezado.getFechaFinal());
+            //try {
+                //report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
+                //jasperprint = JasperFillManager.fillReport(report, parametros, cn);
+                //HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+                //httpServletResponse.setContentType("application/pdf");
+                //httpServletResponse.addHeader("Content-disposition", "attachment; filename=comprasPorProveedor.pdf");
+                //ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+                //JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
+                //FacesContext.getCurrentInstance().responseComplete();
+//                try {
+//                    JasperExportManager.exportReportToPdfFile(jasperprint, ruta);
+//                } catch (Exception e) {
+//                    System.out.println(e);
+//                }               
+            //} catch (JRException | IOException e) {
+            //    System.out.println(e);
             }
-        } catch (NamingException ex) {
-            Logger.getLogger(MbListaPrecioIdeal.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(MbListaPrecioIdeal.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+        //} catch (NamingException | SQLException ex) {
+        //    Logger.getLogger(MbListaPrecioIdeal.class.getName()).log(Level.SEVERE, null, ex);
+        //}
+    //}
     
 }
