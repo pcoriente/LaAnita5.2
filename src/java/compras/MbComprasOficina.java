@@ -434,26 +434,27 @@ public class MbComprasOficina implements Serializable {
                 impuestos += i.getImporte();
             }
         }
+        impuestos=(double) Math.round(impuestos * 1000000) / 1000000;
         return impuestos;
     }
 
     private void calculaUnitario() {
         double unitario = this.producto.getCosto();
         unitario *= (1 - this.compra.getDesctoComercial() / 100.00);
-        unitario *= (1 - this.compra.getDesctoProntoPago() / 100.00);
+//        unitario *= (1 - this.compra.getDesctoProntoPago() / 100.00);
         unitario *= (1 - this.producto.getDesctoProducto1() / 100.00);
         unitario *= (1 - this.producto.getDesctoProducto2() / 100.00);
         unitario *= (1 - this.producto.getDesctoConfidencial() / 100.00);
         this.producto.setUnitario((double) Math.round(unitario * 1000000) / 1000000);
-        this.producto.setNeto(unitario + this.calculaImpuestos());
+        this.producto.setNeto(this.producto.getUnitario() + this.calculaImpuestos());
         this.producto.setImporte(this.producto.getUnitario() * this.producto.getCantFacturada());
     }
 
     private void cambiaUnitario() {
         this.setGrabable(true);
         this.calculaUnitario();
-        movimientos.Movimientos.restaTotales(this.resProducto, this.compra);
-        movimientos.Movimientos.sumaTotales(this.producto, this.compra);
+//        movimientos.Movimientos.restaTotales(this.resProducto, this.compra);
+//        movimientos.Movimientos.sumaTotales(this.producto, this.compra);
     }
 
     public void cambiarCosto() {
@@ -520,10 +521,10 @@ public class MbComprasOficina implements Serializable {
                         double cantLiberar = this.resProducto.getCantFacturada() - this.producto.getCantFacturada();
                         this.dao.liberar(this.compra.getIdMovto(), this.producto.getProducto().getIdProducto(), cantLiberar, this.compra.getIdOrdenCompra());
                     }
-                    this.resProducto.setCantFacturada(this.producto.getCantFacturada());
                     this.producto.setImporte(this.producto.getCantFacturada() * this.producto.getUnitario());
                     movimientos.Movimientos.restaTotales(this.resProducto, this.compra);
                     movimientos.Movimientos.sumaTotales(this.producto, this.compra);
+                    this.resProducto.setCantFacturada(this.producto.getCantFacturada());
                 } catch (SQLException ex) {
                     Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
                 } catch (NamingException ex) {
