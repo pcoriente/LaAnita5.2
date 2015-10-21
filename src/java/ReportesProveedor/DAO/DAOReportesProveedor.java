@@ -115,6 +115,7 @@ public class DAOReportesProveedor {
 //            String ubicacionCompilado = "C:\\Reportes\\comprarPorProveedor.jasper";
             JasperPrint jasperprint;
             JasperReport report;
+          
             //JRBeanCollecionDataSource beanColDataSource = new JRBeanCollectionDataSource(lst);
             //Map<String, Object> parametros = new HashMap<String, Object>();
 //            parametros.put("empresa", encabezado.getIdEmpresa());

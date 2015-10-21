@@ -920,13 +920,13 @@ public class MbOrdenCompra implements Serializable {
                 if (e.getCostoOrdenado() > 0 && e.getCantOrdenada() > 0) {
                     double costoReal;
                     //carlos pat descuentos globales
-                    double descuentoComercial = (e.getCostoOrdenado() * this.mbProveedores.getMiniProveedor().getDesctoComercial()) / 100;
+                    double descuentoComercial = Redondear((e.getCostoOrdenado() * this.mbProveedores.getMiniProveedor().getDesctoComercial()) / 100);
                     costoReal = e.getCostoOrdenado() - descuentoComercial;
-                    double descuentoProntoPago = costoReal * this.mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100;
+                    double descuentoProntoPago = Redondear(costoReal * this.mbProveedores.getMiniProveedor().getDesctoProntoPago() / 100);
                     costoReal = costoReal - descuentoProntoPago;
-                    double descuento = (costoReal * e.getDescuentoProducto()) / 100;
+                    double descuento = Redondear((costoReal * e.getDescuentoProducto()) / 100);
                     costoReal = costoReal - descuento;
-                    double descuento2 = (costoReal * e.getDescuentoProducto2() / 100);
+                    double descuento2 = Redondear((costoReal * e.getDescuentoProducto2() / 100));
                     costoReal = costoReal - descuento2;
 
                     impuestos += (calculo.calculaImpuestos(costoReal, e.getCantOrdenada(), e.getProducto(), lst) * e.getCantOrdenada());

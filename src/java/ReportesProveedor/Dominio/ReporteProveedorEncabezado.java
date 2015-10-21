@@ -18,7 +18,15 @@ public class ReporteProveedorEncabezado {
     private int codigoProductoFinal;
     private Date fechaInicial;
     private Date fechaFinal;
+    private String empresa;
 
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
+    }
 
     public int getCodigoProductoInicial() {
         return codigoProductoInicial;
@@ -52,15 +60,12 @@ public class ReporteProveedorEncabezado {
         this.fechaFinal = fechaFinal;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
+    public String getEmpresa() {
+        return empresa;
     }
 
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
+    public void setEmpresa(String empresa) {
+        this.empresa = empresa;
     }
-
-    
-    
-    
+  
 }

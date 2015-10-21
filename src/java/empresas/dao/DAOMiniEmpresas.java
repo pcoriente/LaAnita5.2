@@ -70,7 +70,7 @@ public class DAOMiniEmpresas {
         MiniEmpresa mini=new MiniEmpresa();
         mini.setIdEmpresa(rs.getInt("idEmpresa"));
         mini.setCodigoEmpresa(rs.getString("codigoEmpresa"));
-        mini.setNombreComercial(rs.getString("nombreComercial"));
+        mini.setNombreComercial(rs.getString("empresa"));
         return mini;
     }
 }

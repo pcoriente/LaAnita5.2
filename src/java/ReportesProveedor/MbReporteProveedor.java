@@ -9,23 +9,18 @@ import Message.Mensajes;
 import ReportesProveedor.DAO.DAOReportesProveedor;
 import ReportesProveedor.Dominio.ReporteProveedorDetalle;
 import ReportesProveedor.Dominio.ReporteProveedorEncabezado;
-//import empresas.MbEmpresas;
 import empresas.MbMiniEmpresa;
-//import empresas.dominio.Empresa;
 import empresas.dominio.MiniEmpresa;
 import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-//import java.util.HashMap;
-//import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
@@ -39,6 +34,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import utilerias.Habilita;
 
 /**
  *
@@ -53,6 +49,7 @@ public class MbReporteProveedor implements Serializable {
     private ReporteProveedorEncabezado encabezadoBusqueda;
     private MiniEmpresa empresa = new MiniEmpresa();
     private ArrayList<ReporteProveedorDetalle> lst = new ArrayList<>();
+    private Habilita habilita = new Habilita();
 
     public MbReporteProveedor() {
         encabezadoBusqueda = new ReporteProveedorEncabezado();
@@ -76,34 +73,25 @@ public class MbReporteProveedor implements Serializable {
             Mensajes.mensajeAlert("Se requiere una fecha final");
         } else if (fefin.compareTo(feini) < 0) {
             Mensajes.MensajeAlertP("La Fecha Final no Puede ser Menor a la Inicial");
-        } else{
+        } else {
             ok = true;
         }
         return ok;
     }
 
     public void generarReporte() {
-//        Connection cn = ds.getConnection();
-//        DAOReportesProveedor dao = new DAOReportesProveedor();
         try {
-            String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\comprarPorProveedor.jasper";
+            String ubicacionCompilado = "C:\\Carlos Pat\\Reportes\\comprasPvdAcum.jasper";
             JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(this.getLst());
             Map parametros = new HashMap();
-//            Map<String, Object> parametros = new HashMap<String, Object>();
-//            parametros.put("empresa", encabezado.getIdEmpresa());
-//            parametros.put("codigoProveedorInicial",encabezado.getCodigoProductoInicial());
-//            parametros.put("codigoProveedorFinal", encabezado.getCodigoProductoFinal());
-//            parametros.put("fechaInicial", encabezado.getFechaInicial());
-//            parametros.put("fechaFinal", encabezado.getFechaFinal());
-            
-            //parametros.put("empresa", encabezadoBusqueda.getIdEmpresa());
-            parametros.put("empresa",this.miniEmpresa.getEmpresa());
-            //parametros.put("codigoProveedorInicial",encabezadoBusqueda.getCodigoProductoInicial());
-            //parametros.put("codigoProveedorFinal", encabezadoBusqueda.getCodigoProductoFinal());
-            //parametros.put("fechaInicial", encabezadoBusqueda.getFechaInicial());
-            //parametros.put("fechaFinal", encabezadoBusqueda.getFechaFinal());
-            
-            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado); 
+
+            parametros.put("empresa", encabezadoBusqueda.getEmpresa());
+            parametros.put("codigoProveedorInicial", encabezadoBusqueda.getCodigoProductoInicial());
+            parametros.put("codigoProveedorFinal", encabezadoBusqueda.getCodigoProductoFinal());
+            parametros.put("fechaInicial", encabezadoBusqueda.getFechaInicial());
+            parametros.put("fechaFinal", encabezadoBusqueda.getFechaFinal());
+
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(ubicacionCompilado);
             JasperPrint jasperprint = JasperFillManager.fillReport(report, parametros, beanColDataSource);
             HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
             httpServletResponse.setContentType("application/pdf");
@@ -112,13 +100,27 @@ public class MbReporteProveedor implements Serializable {
             JasperExportManager.exportReportToPdfStream(jasperprint, servletOutputStream);
             FacesContext.getCurrentInstance().responseComplete();
 
-            //dao.generarReporte(encabezadoBusqueda);
             Mensajes.mensajeSucces("Reporte Generado");
         } catch (JRException ex) {
             Mensajes.mensajeAlert(ex.getMessage());
         } catch (IOException ex) {
             Logger.getLogger(MbReporteProveedor.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }
+    }
+
+    public void inicializar(int estatus) {
+        if (estatus == 1) {
+            System.out.println(estatus+"   estado es por proveedor ");
+            habilita.setDisabled(false);
+            habilita.setDisabledProd(true);
+        }
+        if (estatus == 2) {
+            System.out.println(estatus+"   estado es por producto ");
+            habilita.setDisabled(true);
+            habilita.setDisabledProd(false);
+        }
+        lst.removeAll(lst);
+        System.out.println("Entro  a limpiar");
     }
 
     public String salir() {
@@ -133,6 +135,7 @@ public class MbReporteProveedor implements Serializable {
             DAOReportesProveedor dao = new DAOReportesProveedor();
             try {
                 encabezadoBusqueda.setIdEmpresa(empresa.getIdEmpresa());
+                encabezadoBusqueda.setEmpresa(empresa.getNombreComercial());
                 lst = dao.dameInformacion(encabezadoBusqueda);
                 if (lst.isEmpty()) {
                     Mensajes.mensajeAlert("No hay Registros Para Procesar");
