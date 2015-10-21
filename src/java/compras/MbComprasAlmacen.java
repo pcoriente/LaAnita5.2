@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -35,8 +37,10 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import ordenesDeCompra.MbOrdenCompra;
+import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
+import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import proveedores.MbMiniProveedor;
 import usuarios.MbAcciones;
@@ -385,11 +389,7 @@ public class MbComprasAlmacen implements Serializable {
                     this.compras.add(this.convertir(to));
                 }
                 if (this.compras.isEmpty()) {
-//                    this.crearCompra();
                     Mensajes.mensajeAlert("No se encontraron compras !!!");
-//                } else if (this.compras.size() == 1) {
-//                    this.compra = this.compras.get(0);
-//                    this.editaCompra();
                 } else {
                     ok = true;
                 }
@@ -403,7 +403,57 @@ public class MbComprasAlmacen implements Serializable {
         context.addCallbackParam("okEntradas", ok);
     }
 
-    public void cargarOrdenDeCompraDetalle() {
+    public void crearNuevaCompra() {
+        this.compra = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
+        this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+        TOMovimientoAlmacen toCompra = this.convertir(this.compra);
+        this.detalle = new ArrayList<>();
+        try {
+            this.dao = new DAOComprasAlmacen();
+            this.daoMv = new DAOMovimientosAlmacen();
+            for (TOProductoCompraAlmacen d : this.dao.crearOrdenDeCompraDetalle(toCompra, false)) {
+                this.detalle.add(this.convertir(d));
+            }
+            this.compra.setIdMovtoAlmacen(toCompra.getIdMovtoAlmacen());
+            this.compra.setFecha(toCompra.getFecha());
+            this.compra.setIdUsuario(toCompra.getIdUsuario());
+            this.compra.setPropietario(toCompra.getPropietario());
+            this.compra.setEstatus(toCompra.getEstatus());
+            this.btnOrdenCompraIcono = "ui-icon-cancel";
+            this.btnOrdenCompraTitle = "Cambiar Orden de Compra";
+            this.modoEdicion = true;
+            this.producto = null;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
+    public void cargarOrdenesDeCompra() {
+        this.compra = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
+        if (this.compra.getAlmacen().getIdAlmacen() == 0) {
+            Mensajes.mensajeAlert("Se requiere un almacen !!!");
+        } else if (this.compra.getProveedor().getIdProveedor() == 0) {
+            Mensajes.mensajeAlert("Se requiere un proveedor !!!");
+        } else {
+            try {
+                this.mbOrdenCompra.cargaOrdenesEncabezadoAlmacen(this.compra.getProveedor().getIdProveedor(), 5);
+                if (this.mbOrdenCompra.getListaOrdenesEncabezado().isEmpty()) {
+                    Mensajes.mensajeAlert("No se encontraron ordenes de compra pendientes !!!");
+                } else {
+                    this.mbOrdenCompra.setOrdenElegida(null);
+                }
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+    }
+
+    public void cargarOrdenDeCompraDetalle(SelectEvent event) {
+        this.mbOrdenCompra.setOrdenElegida((OrdenCompraEncabezado) event.getObject());
         try {
             this.detalle = new ArrayList<>();
             this.dao = new DAOComprasAlmacen();

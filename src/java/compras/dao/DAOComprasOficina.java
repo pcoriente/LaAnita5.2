@@ -37,23 +37,23 @@ public class DAOComprasOficina {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
-    
+
     public ArrayList<TOProductoCompraOficina> obtenerComprobanteDetalle(int idComprobante) throws SQLException {
         String strSQL;
         ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
-                strSQL="SELECT S.cantOrdenada, S.cantOrdenadaSinCargo, S.costoOrdenado\n"
+                strSQL = "SELECT S.cantOrdenada, S.cantOrdenadaSinCargo, S.costoOrdenado\n"
                         + "     , M.folio AS idMovto, D.idEmpaque, D.cantFacturada, D.cantSinCargo, D.costoPromedio\n"
                         + "     , D.costo, D.desctoProducto1, D.desctoProducto2, D.desctoConfidencial, D.unitario\n"
                         + "     , D.idImpuestoGrupo, D.fecha, D.existenciaAnterior\n"
                         + "FROM movimientosDetalle D\n"
                         + "INNER JOIN movimientos M on M.idMovto=D.idMovto\n"
                         + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                        + "WHERE M.idComprobante="+idComprobante+" AND estatus=5\n"
+                        + "WHERE M.idComprobante=" + idComprobante + " AND estatus=7\n"
                         + "ORDER BY M.referencia, M.folio";
-                ResultSet rs=st.executeQuery(strSQL);
-                while(rs.next()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
                     detalle.add(this.construirProductoCompra(rs));
                 }
             }
@@ -62,7 +62,7 @@ public class DAOComprasOficina {
     }
 
     public void cerrarOrdenDeCompra(int idOrdenDeCompra) throws SQLException {
-        String strSQL = "UPDATE ordenCompra SET estado=6, fechaCierreOficina=GETDATE() WHERE idOrdenCompra=" + idOrdenDeCompra;
+        String strSQL = "UPDATE ordenCompra SET estado=7, fechaCierreOficina=GETDATE() WHERE idOrdenCompra=" + idOrdenDeCompra;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 st.executeUpdate(strSQL);
@@ -111,7 +111,7 @@ public class DAOComprasOficina {
                 toMov.setIdTipo(34);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setPropietario(0);
-                toMov.setEstatus(5);
+                toMov.setEstatus(7);
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, true);
 
                 strSQL = "INSERT INTO movimientosDetalle\n"
@@ -164,13 +164,13 @@ public class DAOComprasOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                toMov.setEstatus(5);
+                toMov.setEstatus(7);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
-                
+
                 movimientos.Movimientos.actualizaDetalleOficina(cn, toMov.getIdMovto(), toMov.getIdTipo(), true);
-                
+
                 if (toMov.getReferencia() != 0) {
                     strSQL = "UPDATE S\n"
                             + "SET surtidosOficina=S.surtidosOficina+D.cantFacturada\n"
@@ -182,7 +182,7 @@ public class DAOComprasOficina {
                             + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + toMov.getIdMovto();
                     st.executeUpdate(strSQL);
-                    
+
                     strSQL = "SELECT idEmpaque\n"
                             + "FROM ordenCompraSurtido\n"
                             + "WHERE idOrdenCompra=" + toMov.getReferencia() + "\n"
@@ -429,13 +429,13 @@ public class DAOComprasOficina {
 
                 strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + toMov.getIdMovto();
                 st.executeUpdate(strSQL);
-                
+
                 toMov.setDesctoComercial(0);
                 toMov.setDesctoProntoPago(0);
                 toMov.setTipoDeCambio(1);
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
-                
-                strSQL="UPDATE movimientos SET referencia=0 WHERE idMovto="+toMov.getIdMovto();
+
+                strSQL = "UPDATE movimientos SET referencia=0 WHERE idMovto=" + toMov.getIdMovto();
                 st.executeUpdate(strSQL);
 
                 cn.commit();
@@ -447,7 +447,7 @@ public class DAOComprasOficina {
             }
         }
     }
-    
+
     public void eliminarProducto(int idMovto, int idProducto) throws SQLException {
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
@@ -461,9 +461,9 @@ public class DAOComprasOficina {
                         + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
                 st.executeUpdate(strSQL);
-                
+
                 movimientos.Movimientos.eliminaProductoOficina(cn, idMovto, idProducto);
-                
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -479,12 +479,12 @@ public class DAOComprasOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                
+
                 strSQL = "UPDATE ordenCompraSurtido\n"
                         + "SET separadosOficinaSinCargo=separadosOficinaSinCargo-" + cantLiberar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantSinCargo=cantSinCargo+" + cantLiberar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -519,7 +519,7 @@ public class DAOComprasOficina {
                         + "SET separadosOficinaSinCargo=separadosOficinaSinCargo+" + cantSeparar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantSinCargo=cantSinCargo+" + cantSeparar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -545,7 +545,7 @@ public class DAOComprasOficina {
                         + "SET separadosOficina=separadosOficina-" + cantLiberar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantFacturada=cantFacturada-" + cantLiberar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -581,7 +581,7 @@ public class DAOComprasOficina {
                         + "SET separadosOficina=separadosOficina+" + cantSeparar + "\n"
                         + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE movimientosDetalle\n"
                         + "SET cantFacturada=cantFacturada+" + cantSeparar + "\n"
                         + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idEmpaque;
@@ -670,7 +670,7 @@ public class DAOComprasOficina {
                         + "      FROM movimientosDetalle DD \n"
                         + "      INNER JOIN movimientos MM ON MM.idMovto=DD.idMovto\n"
                         + "      WHERE MM.idEmpresa=" + rs.getInt("idEmpresa") + " AND MM.idTipo=1\n"
-                        + "                 AND MM.idReferencia=" + rs.getInt("idReferencia") + " AND MM.estatus=5\n"
+                        + "                 AND MM.idReferencia=" + rs.getInt("idReferencia") + " AND MM.estatus=7\n"
                         + "      GROUP BY DD.idEmpaque) UU\n"
                         + "RIGHT JOIN movimientosDetalle D ON D.idEmpaque=UU.idEmpaque\n"
                         + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
@@ -680,85 +680,112 @@ public class DAOComprasOficina {
             }
         }
     }
-
-    public ArrayList<TOProductoCompraOficina> cargarOrdenDeCompraDetalle(int idOrdenCompra, int idMovto) throws SQLException {
-        String strSQL = "";
+    
+    public ArrayList<TOProductoCompraOficina> crearOrdenDeCompraDetalle(TOMovimientoOficina toMov, boolean definitivo) throws SQLException {
         ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                strSQL = "SELECT TOP 1 * FROM ordenCompraSurtido WHERE idOrdenCompra=" + idOrdenCompra;
-                ResultSet rs = st.executeQuery(strSQL);
-                if (!rs.next()) {
-                    strSQL = "INSERT INTO ordenCompraSurtido (idOrdenCompra, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, costoOrdenado, surtidosOficina, separadosOficina, surtidosOficinaSinCargo, separadosOficinaSinCargo, surtidosAlmacen, separadosAlmacen)\n"
-                            + "SELECT idOrdenCompra, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, costoOrdenado, 0, 0, 0, 0, 0, 0\n"
-                            + "FROM ordenCompraDetalle\n"
-                            + "WHERE idOrdenCompra=" + idOrdenCompra;
-                    st.executeUpdate(strSQL);
-                }
-                strSQL = "UPDATE movimientos SET referencia=" + idOrdenCompra + " WHERE idMovto=" + idMovto;
+            try {
+                toMov.setEstatus(0);
+                toMov.setIdUsuario(this.idUsuario);
+                toMov.setPropietario(this.idUsuario);
+                movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, definitivo);
+                this.cargaOrdenDeCompraDetalle(cn, toMov.getReferencia(), toMov.getIdMovto());
+                detalle = this.obtenCompraDetalle(cn, toMov.getIdMovto());
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return detalle;
+    }
+
+    private void cargaOrdenDeCompraDetalle(Connection cn, int idOrdenCompra, int idMovto) throws SQLException {
+        String strSQL = "";
+        try (Statement st = cn.createStatement()) {
+            strSQL = "SELECT TOP 1 * FROM ordenCompraSurtido WHERE idOrdenCompra=" + idOrdenCompra;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (!rs.next()) {
+                strSQL = "INSERT INTO ordenCompraSurtido (idOrdenCompra, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, costoOrdenado, surtidosOficina, separadosOficina, surtidosOficinaSinCargo, separadosOficinaSinCargo, surtidosAlmacen, separadosAlmacen)\n"
+                        + "SELECT idOrdenCompra, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, costoOrdenado, 0, 0, 0, 0, 0, 0\n"
+                        + "FROM ordenCompraDetalle\n"
+                        + "WHERE idOrdenCompra=" + idOrdenCompra;
                 st.executeUpdate(strSQL);
+            }
+            strSQL = "UPDATE movimientos SET referencia=" + idOrdenCompra + " WHERE idMovto=" + idMovto;
+            st.executeUpdate(strSQL);
 
-                strSQL = "UPDATE M\n"
-                        + "SET desctoComercial=OC.desctoComercial, desctoProntoPago=OC.desctoProntoPago\n"
-                        + "FROM movimientos M\n"
-                        + "INNER JOIN ordenCompra OC ON OC.idOrdenCompra=M.referencia\n"
-                        + "WHERE M.idMovto=" + idMovto;
-                st.executeUpdate(strSQL);
+            strSQL = "UPDATE M\n"
+                    + "SET desctoComercial=OC.desctoComercial, desctoProntoPago=OC.desctoProntoPago\n"
+                    + "FROM movimientos M\n"
+                    + "INNER JOIN ordenCompra OC ON OC.idOrdenCompra=M.referencia\n"
+                    + "WHERE M.idMovto=" + idMovto;
+            st.executeUpdate(strSQL);
 
-                strSQL = "INSERT INTO movimientosDetalle\n"
-                        + "SELECT " + idMovto + " AS idMovto, OCD.idEmpaque\n"
-                        + "        , CASE WHEN DA.cantidad IS NULL THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
-                        + "               WHEN DA.cantidad + OCS.surtidosOficina + OCS.separadosOficina > OCS.cantOrdenada \n"
-                        + "                     THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
-                        + "               ELSE DA.cantidad END AS cantFacturada, 0 AS cantSinCargo\n"
-                        + "	   , 0 AS costoPromedio, OCD.costoOrdenado AS costo\n"
-                        + "	   , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
-                        + "	   , OCD.desctoConfidencial, 0 AS unitario, OCD.idImpuestosGrupo AS idImpuestoGrupo\n"
-                        + "	   , '' AS fecha, 0 AS existenciaAnterior\n"
-                        + "FROM (SELECT M.referencia, MAD.idEmpaque, SUM(MAD.cantidad) AS cantidad\n"
-                        + "      FROM movimientos M\n"
-                        + "      INNER JOIN movimientosAlmacen MA ON MA.idAlmacen=M.idAlmacen AND MA.idTipo=M.idTipo AND MA.idReferencia=M.idReferencia AND MA.referencia=M.referencia AND MA.idComprobante=M.idComprobante\n"
-                        + "      INNER JOIN movimientosDetalleAlmacen MAD ON MAD.idMovtoAlmacen=MA.idMovtoAlmacen\n"
-                        + "      WHERE M.idMovto=" + idMovto + "\n"
-                        + "      GROUP BY M.referencia, MAD.idEmpaque) DA\n"
-                        + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idOrdenCompra=DA.referencia AND OCD.idEmpaque=DA.idEmpaque\n"
-                        + "INNER JOIN ordenCompraSurtido OCS ON OCS.idOrdenCompra=OCD.idOrdenCompra AND OCS.idEmpaque=OCD.idEmpaque\n"
-                        + "WHERE OCD.idOrdenCompra=" + idOrdenCompra;
-                st.executeUpdate(strSQL);
+            strSQL = "INSERT INTO movimientosDetalle\n"
+                    + "SELECT " + idMovto + " AS idMovto, OCD.idEmpaque\n"
+                    + "        , CASE WHEN DA.cantidad IS NULL THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
+                    + "               WHEN DA.cantidad + OCS.surtidosOficina + OCS.separadosOficina > OCS.cantOrdenada \n"
+                    + "                     THEN OCD.cantOrdenada - OCS.surtidosOficina - OCS.separadosOficina\n"
+                    + "               ELSE DA.cantidad END AS cantFacturada, 0 AS cantSinCargo\n"
+                    + "	   , 0 AS costoPromedio, OCD.costoOrdenado AS costo\n"
+                    + "	   , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
+                    + "	   , OCD.desctoConfidencial, 0 AS unitario, OCD.idImpuestosGrupo AS idImpuestoGrupo\n"
+                    + "	   , '' AS fecha, 0 AS existenciaAnterior\n"
+                    + "FROM (SELECT M.referencia, MAD.idEmpaque, SUM(MAD.cantidad) AS cantidad\n"
+                    + "      FROM movimientos M\n"
+                    + "      INNER JOIN movimientosAlmacen MA ON MA.idAlmacen=M.idAlmacen AND MA.idTipo=M.idTipo AND MA.idReferencia=M.idReferencia AND MA.referencia=M.referencia AND MA.idComprobante=M.idComprobante\n"
+                    + "      INNER JOIN movimientosDetalleAlmacen MAD ON MAD.idMovtoAlmacen=MA.idMovtoAlmacen\n"
+                    + "      WHERE M.idMovto=" + idMovto + "\n"
+                    + "      GROUP BY M.referencia, MAD.idEmpaque) DA\n"
+                    + "RIGHT JOIN ordenCompraDetalle OCD ON OCD.idOrdenCompra=DA.referencia AND OCD.idEmpaque=DA.idEmpaque\n"
+                    + "INNER JOIN ordenCompraSurtido OCS ON OCS.idOrdenCompra=OCD.idOrdenCompra AND OCS.idEmpaque=OCD.idEmpaque\n"
+                    + "WHERE OCD.idOrdenCompra=" + idOrdenCompra;
+            st.executeUpdate(strSQL);
 
-                this.actualizaCostoUltimaCompraProveedor(cn, idMovto);
+            this.actualizaCostoUltimaCompraProveedor(cn, idMovto);
 
-                strSQL = "INSERT INTO movimientosDetalleImpuestos (idMovto, idEmpaque, idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable)\n"
-                        + "SELECT D.idMovto, D.idEmpaque, I.idImpuesto, I.impuesto, ID.valor, I.aplicable, I.modo, I.acreditable, 0 AS importe, I.acumulable\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN impuestosDetalle ID ON ID.idGrupo=D.idImpuestoGrupo AND ID.idZona=M.idImpuestoZona\n"
-                        + "INNER JOIN impuestos I ON I.idImpuesto=ID.idImpuesto\n"
-                        + "WHERE D.idMovto=" + idMovto + " AND CONVERT(date, GETDATE()) between ID.fechaInicial AND ID.fechaFinal";
-                st.executeUpdate(strSQL);
+            strSQL = "INSERT INTO movimientosDetalleImpuestos (idMovto, idEmpaque, idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable)\n"
+                    + "SELECT D.idMovto, D.idEmpaque, I.idImpuesto, I.impuesto, ID.valor, I.aplicable, I.modo, I.acreditable, 0 AS importe, I.acumulable\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "INNER JOIN impuestosDetalle ID ON ID.idGrupo=D.idImpuestoGrupo AND ID.idZona=M.idImpuestoZona\n"
+                    + "INNER JOIN impuestos I ON I.idImpuesto=ID.idImpuesto\n"
+                    + "WHERE D.idMovto=" + idMovto + " AND CONVERT(date, GETDATE()) between ID.fechaInicial AND ID.fechaFinal";
+            st.executeUpdate(strSQL);
 
-                strSQL = "UPDATE S\n"
-                        + "SET separadosOficina=S.separadosOficina+D.cantFacturada\n"
-                        + "     , separadosOficinaSinCargo=S.separadosOficinaSinCargo+D.cantSinCargo\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + idMovto;
-                st.executeUpdate(strSQL);
+            strSQL = "UPDATE S\n"
+                    + "SET separadosOficina=S.separadosOficina+D.cantFacturada\n"
+                    + "     , separadosOficinaSinCargo=S.separadosOficinaSinCargo+D.cantSinCargo\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+                    + "WHERE D.idMovto=" + idMovto;
+            st.executeUpdate(strSQL);
 
-                movimientos.Movimientos.calculaUnitario(cn, idMovto, 0);
+            movimientos.Movimientos.calculaUnitario(cn, idMovto, 0);
 
-//                strSQL = "UPDATE D\n"
-//                        + "SET costoPromedio=D.unitario*S.cantOrdenada/(S.cantOrdenada + S.cantOrdenadaSinCargo)\n"
-//                        + "FROM movimientosDetalle D\n"
-//                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-//                        + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-//                        + "WHERE D.idMovto=" + idMovto + " AND S.cantOrdenada+S.cantOrdenadaSinCargo > 0";
-//                st.executeUpdate(strSQL);
+//            strSQL = "UPDATE D\n"
+//                    + "SET costoPromedio=D.unitario*S.cantOrdenada/(S.cantOrdenada + S.cantOrdenadaSinCargo)\n"
+//                    + "FROM movimientosDetalle D\n"
+//                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                    + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+//                    + "WHERE D.idMovto=" + idMovto + " AND S.cantOrdenada+S.cantOrdenadaSinCargo > 0";
+//            st.executeUpdate(strSQL);
+        }
 
+    }
+
+    public ArrayList<TOProductoCompraOficina> cargarOrdenDeCompraDetalle(int idOrdenCompra, int idMovto) throws SQLException {
+        ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                this.cargaOrdenDeCompraDetalle(cn, idOrdenCompra, idMovto);
                 detalle = this.obtenCompraDetalle(cn, idMovto);
-
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

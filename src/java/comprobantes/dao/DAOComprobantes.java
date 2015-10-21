@@ -128,7 +128,7 @@ public class DAOComprobantes {
 
     public int agregar(TOComprobante to) throws SQLException {
         int idComprobante = 0;
-        to.setEstatus(5);
+        to.setEstatus(7);
         to.setIdUsuario(this.idUsuario);
         to.setPropietario(this.idUsuario);
         Date fechaFactura = new java.sql.Date(to.getFecha().getTime());

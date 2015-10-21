@@ -127,13 +127,13 @@ public class DAOFormulas {
             if (rs.next()) {
                 costoPromedio = rs.getDouble("costoUnitarioPromedio");
             }
-            if (costoPromedio == 0) {
-                throw new SQLException("No se puede incluir a la formula un insumo con costo cero !!!");
-            } else {
+//            if (costoPromedio == 0) {
+//                throw new SQLException("No se puede incluir a la formula un insumo con costo cero !!!");
+//            } else {
                 strSQL = "INSERT INTO formulasInsumos (idFormula, idProducto, cantidad, porcentVariacion, costoUnitarioPromedio, costoUnitario) "
                         + "VALUES (" + idFormula + ", " + to.getIdEmpaque() + ", " + to.getCantidad() + ", " + to.getPorcentVariacion() + ", " + costoPromedio + ", 0.00)";
                 st.executeUpdate(strSQL);
-            }
+//            }
             st.executeUpdate("commit Transaction");
         } catch (SQLException e) {
             st.executeUpdate("rollback Transaction");

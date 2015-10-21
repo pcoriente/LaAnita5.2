@@ -237,13 +237,10 @@ public class MbOrdenCompra implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
-
-    public void dameOrdenCompra(SelectEvent event) {
-        this.ordenElegida = (OrdenCompraEncabezado) event.getObject();
-
+    
+    public void dameOrdenCompra() {
         listaOrdenDetalle = new ArrayList<>();
         this.subtotalGeneral = 0;
-
         try {
             int idOC = ordenElegida.getIdOrdenCompra();
 
@@ -252,7 +249,8 @@ public class MbOrdenCompra implements Serializable {
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOC);
             for (OrdenCompraDetalle d : lista) {
                 d.setProducto(this.mbBuscar.obtenerProducto(d.getProducto().getIdProducto()));
-                d.getCotizacionDetalle().setProducto(this.mbBuscar.obtenerProducto(d.getCotizacionDetalle().getProducto().getIdProducto()));
+//                d.getCotizacionDetalle().setProducto(this.mbBuscar.obtenerProducto(d.getCotizacionDetalle().getProducto().getIdProducto()));
+                d.getCotizacionDetalle().setProducto(d.getProducto());
                 listaOrdenDetalle.add(d);
                 this.calculosOrdenCompra(d.getProducto().getIdProducto());
                 d.setNombreProducto(d.getProducto().toString());
@@ -260,6 +258,11 @@ public class MbOrdenCompra implements Serializable {
         } catch (NamingException | SQLException ex) {
             Logger.getLogger(MbOrdenCompra.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public void dameOrdenCompra(SelectEvent event) {
+        this.ordenElegida = (OrdenCompraEncabezado) event.getObject();
+        this.dameOrdenCompra();
     }
 
     public void calculosOrdenCompra(int idProd) throws NamingException {

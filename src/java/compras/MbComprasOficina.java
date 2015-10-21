@@ -35,7 +35,9 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import ordenesDeCompra.MbOrdenCompra;
+import ordenesDeCompra.dominio.OrdenCompraEncabezado;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import producto2.dominio.Producto;
 import proveedores.MbMiniProveedor;
@@ -281,7 +283,7 @@ public class MbComprasOficina implements Serializable {
         toCompra.setReferencia(compra.getIdOrdenCompra());
         return toCompra;
     }
-    
+
     public double sumaPiezasOficina() {
         double piezas = 0;
         for (ProductoCompraOficina p : this.detalle) {
@@ -671,13 +673,8 @@ public class MbComprasOficina implements Serializable {
                     this.compras.add(this.convertir(to));
                 }
                 if (this.compras.isEmpty()) {
-//                    this.nuevaCompra();
                     Mensajes.mensajeAlert("No se encontraron compras !!!");
-//                } else if (this.compras.size() == 1) {
-//                    this.compra = this.compras.get(0);
-//                    this.editaCompra();
                 } else {
-//                    this.modoEdicion = false;
                     ok = true;
                 }
             } catch (NamingException ex) {
@@ -690,7 +687,65 @@ public class MbComprasOficina implements Serializable {
         context.addCallbackParam("okEntradas", ok);
     }
 
-    public void cargarOrdenDeCompraDetalle() {
+    public void crearNuevaCompra() {
+        this.compra = new CompraOficina(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
+        if (this.compra.getComprobante().getMoneda().getIdMoneda() != this.mbOrdenCompra.getOrdenElegida().getMoneda().getIdMoneda()) {
+            Mensajes.mensajeAlert("NO corresponde la moneda de la orden con la del comprobante !!!");
+        } else {
+            this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
+            this.compra.setDesctoComercial(this.mbOrdenCompra.getOrdenElegida().getDesctoComercial());
+            this.compra.setDesctoProntoPago(this.mbOrdenCompra.getOrdenElegida().getDesctoProntoPago());
+            TOMovimientoOficina toCompra = this.convertir(this.compra);
+            this.detalle = new ArrayList<>();
+            try {
+                this.dao = new DAOComprasOficina();
+                this.daoMv = new DAOMovimientosOficina();
+                for (TOProductoCompraOficina d : this.dao.crearOrdenDeCompraDetalle(toCompra, false)) {
+                    this.detalle.add(this.convertir(d));
+                }
+                this.compra.setIdMovto(toCompra.getIdMovto());
+                this.compra.setFecha(toCompra.getFecha());
+                this.compra.setIdUsuario(toCompra.getIdUsuario());
+                this.compra.setPropietario(toCompra.getPropietario());
+                this.compra.setEstatus(toCompra.getEstatus());
+                this.cambiaPrecios();
+                this.btnOrdenCompraIcono = "ui-icon-cancel";
+                this.btnOrdenCompraTitle = "Cambiar Orden de Compra";
+                this.tipoDeCambio = 1;
+                this.modoEdicion = true;
+                this.producto = null;
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+    }
+
+    public void cargarOrdenesDeCompra() {
+        this.compra = new CompraOficina(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
+        if (this.compra.getAlmacen().getIdAlmacen() == 0) {
+            Mensajes.mensajeAlert("Se requiere un almacen !!!");
+        } else if (this.compra.getProveedor().getIdProveedor() == 0) {
+            Mensajes.mensajeAlert("Se requiere un proveedor !!!");
+        } else {
+            try {
+                this.mbOrdenCompra.cargaOrdenesEncabezado(this.compra.getProveedor().getIdProveedor(), 5);
+                if (this.mbOrdenCompra.getListaOrdenesEncabezado().isEmpty()) {
+                    Mensajes.mensajeAlert("No se encontraron ordenes de compra pendientes !!!");
+                } else {
+                    this.mbOrdenCompra.setOrdenElegida(null);
+                }
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+    }
+
+    public void cargarOrdenDeCompraDetalle(SelectEvent event) {
+        this.mbOrdenCompra.setOrdenElegida((OrdenCompraEncabezado) event.getObject());
         try {
             if (this.compra.getComprobante().getMoneda().equals(this.mbOrdenCompra.getOrdenElegida().getMoneda())) {
                 this.dao = new DAOComprasOficina();
@@ -820,7 +875,7 @@ public class MbComprasOficina implements Serializable {
         TOMovimientoOficina toCompra = this.convertir(this.compra);
         try {
             this.daoMv = new DAOMovimientosOficina();
-            daoMv.agregarMovimiento(toCompra, false);
+            this.daoMv.agregarMovimiento(toCompra, false);
             this.compra.setIdMovto(toCompra.getIdMovto());
             this.compra.setFecha(toCompra.getFecha());
             this.compra.setIdUsuario(toCompra.getIdUsuario());
