@@ -71,6 +71,7 @@ public class DAORepInventarios {
                         + "		+' '+CASE WHEN M.idComprobante=0 THEN '' WHEN C.serie='' THEN C.numero ELSE C.serie+'-'+C.numero END AS comprobante\n"
                         + "		, D.lote, D.existenciaAnterior, CASE WHEN T.suma=1 THEN '+' ELSE '-' END AS operacion, D.cantidad\n"
                         + "		, D.existenciaAnterior+CASE WHEN T.suma=1 THEN 1 ELSE -1 END*D.cantidad AS saldo\n"
+                        + "             , 0 AS costoPromedio\n"
                         + "FROM movimientosDetalleAlmacen D\n"
                         + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                         + "INNER JOIN movimientosTipos T ON T.idTipo=M.idTipo\n"
