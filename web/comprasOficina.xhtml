@@ -73,13 +73,15 @@
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnConsultaOC" icon="ui-icon-search" title="Ver Ordenes"
                                                      process="@this" actionListener="#{mbComprasOficina.cargarOrdenesDeCompra()}"
-                                                     update=":main:msgs :main:consultaOrdenes" oncomplete="PF('consultaOrdenesDlg').show();" />
+                                                     update=":main:msgs :main:consultaOrdenes :main:panelListaOrdenes" 
+                                                     oncomplete="PF('consultaOrdenesDlg').show();" />
                                     <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Nueva compra" 
                                                      process="@this comprobanteComplete" actionListener="#{mbComprasOficina.nuevaCompra()}" 
                                                      update="main" />
                                     <p:commandButton id="btnEditar" icon="ui-icon-pencil" title="Editar una Compra" 
                                                      process="@this comprobanteComplete" actionListener="#{mbComprasOficina.mttoCompra()}" 
-                                                     update=":main:msgs listaEntradas" oncomplete="handleListaEntradasDlg(xhr, status, args);" />
+                                                     update=":main:msgs :main:listaEntradas :main:btnCerrarComprobante :main:btnSeleccionarCompra :main:btnImprimirComprobante" 
+                                                     oncomplete="handleListaEntradasDlg(xhr, status, args);" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -113,7 +115,7 @@
                                     <h:outputLabel value="Fecha :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbComprasOficina.compra.comprobante.fecha}" maxlength="10" size="12" style="width: 70px;" readonly="true" >
+                                    <p:inputText value="#{mbComprasOficina.compra.comprobante.fechaFactura}" maxlength="10" size="12" style="width: 70px;" readonly="true" >
                                         <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbComprasOficina.zonaHoraria.ID}" />
                                     </p:inputText>
                                 </p:column>
@@ -145,7 +147,7 @@
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnBuscarOC" icon="#{mbComprasOficina.btnOrdenCompraIcono}" title="#{mbComprasOficina.btnOrdenCompraTitle}"
-                                                     disabled="#{mbComprasOficina.compra.estatus!=0}"
+                                                     disabled="#{mbComprasOficina.compra.estatus!=0 or true}"
                                                      process="@this" actionListener="#{mbComprasOficina.cargaOrdenes()}"
                                                      update=":main:msgs @this txtOrdenCompra txtTipoCambio txtDesctoComercial txtDesctoProntoPago detalleEntrada mttoEntradasTotales listaOrdenes panelListaOrdenes" 
                                                      oncomplete="handleListaOrdenesDeCompraDlg(xhr, status, args);" />
@@ -189,13 +191,17 @@
                                                          oncomplete="PF('buscarProductoDlg').show()" />
                                     </p:column>
                                     <p:column colspan="8" style="text-align: right;" >
-                                        <p:commandButton id="btnGrabarEntrada" icon="ui-icon-disk" title="Grabar Entrada"
+                                        <p:commandButton id="btnGrabarEntrada" icon="ui-icon-disk" title="Grabar Entrada por Compra"
                                                          disabled="#{mbComprasOficina.compra.estatus!=0}"
                                                          process="@this" actionListener="#{mbComprasOficina.grabarCompra()}" 
-                                                         update="@this :main:msgs :main:btnEquivalencias :main:btnCancelar :main:btnImprimir" />
-                                        <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelacion de Compra" 
-                                                         disabled="#{mbComprasOficina.compra.estatus==0 or mbComprasOficina.compra.estatus==7}"
-                                                         process="@this" actionListener="#{mbComprasOficina.cancelarCompra()}" 
+                                                         update="@this :main:msgs :main:btnEquivalencias :main:btnCancelar :main:btnEliminar :main:btnImprimir" />
+                                        <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Devolución de Compra" 
+                                                         disabled="#{mbComprasOficina.compra.estatus!=7}"
+                                                         process="@this" actionListener="#{mbComprasOficina.devolverCompra()}" 
+                                                         update="main" />
+                                        <p:commandButton id="btnEliminar" icon="ui-icon-trash" title="Eliminar Movimiento de Entrada" 
+                                                         disabled="#{mbComprasOficina.compra.estatus!=0}"
+                                                         process="@this" actionListener="#{mbComprasOficina.eliminarCompra()}" 
                                                          update="main" />
                                         <p:commandButton id="btnImprimir" icon="ui-icon-print" title="Imprimir una Compra" 
                                                          disabled="#{mbComprasOficina.compra.estatus==0}" 
@@ -583,6 +589,7 @@
                                 <p:row >
                                     <p:column >
                                         <p:commandButton icon="ui-icon-document" title="Crear una nueva entrada" 
+                                                         disabled="#{mbComprasOficina.compra.comprobante.cerradoOficina}"
                                                          process="@this" actionListener="#{mbComprasOficina.crearNuevaCompra()}"
                                                          update="main" />
                                     </p:column>
@@ -595,7 +602,7 @@
                                      var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" selection="#{mbComprasOficina.mbOrdenCompra.ordenElegida}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax event="rowSelect" update=":main:btnSeleccionaOC :main:btnCerrarOC" />
-                            
+
                             <p:column headerText="OC" style="width: 60px;" >
                                 <h:outputText value="#{orden.idOrdenCompra}" style="width: 60px;" />
                             </p:column>
@@ -624,12 +631,13 @@
                         </p:panelGrid>
                     </p:dialog>
                     <p:dialog id="listaEntradasDlg" widgetVar="listaEntradasDlg" header="Seleccione un movimiento" resizable="false" modal="true" closable="true" >
+                        <p:messages id="msgsListaEntradas" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
                         <p:panelGrid >
                             <p:row >
-                                <p:column >
+                                <p:column colspan="2" >
                                     <p:dataTable id="listaEntradas" value="#{mbComprasOficina.compras}" style="width: 350px;"
                                                  var="compra" rowKey="#{compra.idMovto}" selection="#{mbComprasOficina.compra}" selectionMode="single" >
-                                        <p:ajax event="rowSelect" listener="#{mbComprasOficina.editaCompra()}" update="main" />
+                                        <p:ajax event = "rowSelect" update=":main:btnCerrarComprobante :main:btnSeleccionarCompra :main:btnImprimirComprobante" />
 
                                         <p:column headerText="Folio" style="width: 50px;" >
                                             <h:outputText value="#{compra.folio}" />
@@ -651,7 +659,16 @@
                             <f:facet name="footer" >
                                 <p:row >
                                     <p:column >
+                                        <p:commandButton id="btnCerrarComprobante" icon="ui-icon-locked" title="Cerrar el comprobante"
+                                                         disabled="#{mbComprasOficina.mbComprobantes.comprobante.cerradoOficina}"
+                                                         process="@this" actionListener="#{mbComprasOficina.mbComprobantes.cerrarOficina()}" 
+                                                         update="@this :main:msgsListaEntradas" />
+                                    </p:column>
+                                    <p:column style="text-align: right;" >
+                                        <p:commandButton id="btnSeleccionarCompra" icon="ui-icon-check" title="Seleccionar el movimiento"
+                                                         process="@this" actionListener="#{mbComprasOficina.editaCompra()}" update="main" />
                                         <p:commandButton id="btnImprimirComprobante" icon="ui-icon-print" title="Imprimir un Comprobante" 
+                                                         disabled="#{not mbComprasOficina.mbComprobantes.comprobante.cerradoOficina}"
                                                          ajax="false" immediate="true" action="#{mbComprasOficina.imprimirComprobantePdf()}" />
                                     </p:column>
                                 </p:row>
@@ -662,10 +679,9 @@
                         <p:messages id="msgMttoComprobante" showDetail="true" autoUpdate="false" closable="true" />
                         <p:ajax event="close" listener="#{mbComprasOficina.mbComprobantes.liberar()}" update=":main:comprobanteComplete" />
                         <p:panelGrid id="mttoComprobante" >
-                            <p:row >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
                                 <p:column colspan="2" >
                                     <p:selectOneRadio id="selectTipoComprobante" value="#{mbComprasOficina.mbComprobantes.comprobante.tipo}" 
-                                                      disabled="#{mbComprasOficina.mbComprobantes.comprobante.idComprobante!=0}"
                                                       style="background-color: #ccc" >
                                         <f:selectItem itemLabel="Factura" itemValue="3" />
                                         <f:selectItem itemLabel="Remision" itemValue="2" />
@@ -674,46 +690,72 @@
                                     </p:selectOneRadio>
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column style="text-align: right;" >
                                     <h:outputLabel for="txtSerie" value="SERIE :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:inputText id="txtSerie" value="#{mbComprasOficina.mbComprobantes.comprobante.serie}" 
-                                                 disabled="#{mbComprasOficina.mbComprobantes.comprobante.tipo!='3'}"
                                                  maxlength="5" size="7" />
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column style="text-align: right;" >
                                     <h:outputLabel for="txtNumero" value="NUMERO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.comprobante.numero}" maxlength="20" size="20" />
+                                    <p:inputText id="txtNumero" value="#{mbComprasOficina.mbComprobantes.comprobante.numero}" 
+                                                 maxlength="20" size="20" />
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column style="text-align: right;" >
                                     <h:outputLabel for="txtFechaFactura" value="FECHA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtFechaFactura" value="#{mbComprasOficina.mbComprobantes.comprobante.fecha}" >
-                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbComprasOficina.zonaHoraria.ID}" />
-                                    </p:inputText>
+                                    <p:calendar id="txtFechaFactura" showOn="button" value="#{mbComprasOficina.mbComprobantes.comprobante.fechaFactura}" 
+                                                maxlength="8" size="15" placeholder="Fecha del comprobante" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" />
+                                    </p:calendar>
                                 </p:column>
                             </p:row>
-                            <p:row >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
                                 <p:column style="text-align: right;" >
-                                    <h:outputLabel value="Moneda :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:selectOneMenu id="cboMoneda" value="#{mbComprasOficina.mbComprobantes.comprobante.moneda}"
-                                                     disabled="#{mbComprasOficina.mbComprobantes.comprobante.idComprobante!=0}" 
                                                      style="width: 180px;" >
                                         <f:converter converterId="converters.Moneda" />
                                         <f:selectItems value="#{mbComprasOficina.mbComprobantes.mbMonedas.listaMonedas}" />
                                         <p:ajax event="change" process="@this" />
                                     </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column >
+                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputText value="#{mbComprasOficina.mbComprobantes.comprobante.toString()}" style="font-size: small; font-weight: bold;" />
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column style="text-align: right;" >
+                                    <h:outputLabel value="FECHA :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputText value="#{mbComprasOficina.mbComprobantes.comprobante.fechaFactura}" style="font-size: small; font-weight: bold;" >
+                                        <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbComprasOficina.zonaHoraria.ID}" />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                                <p:column style="text-align: right;" >
+                                    <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputText value="#{mbComprasOficina.mbComprobantes.comprobante.moneda.toString()}" style="font-size: small; font-weight: bold;" />
                                 </p:column>
                             </p:row>
                             <f:facet name="footer" >

@@ -10,6 +10,7 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
@@ -92,6 +93,34 @@ public class MbComprobantes implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okComprobante", ok);
     }
+    
+    public void cerrarAlmacen() {
+        try {
+            this.dao = new DAOComprobantes();
+            this.dao.cerrarComprobanteAlmacen(this.comprobante.getIdComprobante());
+            this.comprobante.setCerradoAlmacen(true);
+            this.comprobante.setEstatus(7);
+            Mensajes.mensajeSucces("El comprobante se cerró con exito !!!");
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+    
+    public void cerrarOficina() {
+        try {
+            this.dao = new DAOComprobantes();
+            this.dao.cerrarComprobanteOficina(this.comprobante.getIdComprobante());
+            this.comprobante.setCerradoOficina(true);
+            this.comprobante.setEstatus(7);
+            Mensajes.mensajeSucces("El comprobante se cerró con exito !!!");
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
 
     private TOComprobante convertir(Comprobante c) {
         TOComprobante to = new TOComprobante();
@@ -101,10 +130,12 @@ public class MbComprobantes implements Serializable {
         to.setTipo(Integer.parseInt(c.getTipo()));
         to.setSerie(c.getSerie());
         to.setNumero(c.getNumero());
-        to.setFecha(c.getFecha());
+        to.setFechaFactura(c.getFechaFactura());
         to.setIdMoneda(c.getMoneda().getIdMoneda());
         to.setIdUsuario(c.getIdUsuario());
         to.setPropietario(c.getPropietario());
+        to.setCerradoOficina(c.isCerradoOficina());
+        to.setCerradoAlmacen(c.isCerradoAlmacen());
         to.setEstatus(c.getEstatus());
         return to;
     }
@@ -120,14 +151,13 @@ public class MbComprobantes implements Serializable {
                 this.dao = new DAOComprobantes();
                 TOComprobante to = this.convertir(this.comprobante);
                 if (to.getIdComprobante() == 0) {
-                    to.setIdComprobante(this.dao.agregar(to));
+                    this.dao.agregar(to);
                     this.comprobante.setIdComprobante(to.getIdComprobante());
                     this.comprobante.setIdUsuario(to.getIdUsuario());
                     this.comprobante.setPropietario(to.getPropietario());
                     this.comprobante.setEstatus(to.getEstatus());
                 } else {
                     this.dao.modificar(to);
-//                    this.comprobante.setIdUsuario(to.getIdUsuario());
                 }
                 this.seleccion = to;
                 ok = true;
@@ -151,8 +181,9 @@ public class MbComprobantes implements Serializable {
             try {
                 this.dao = new DAOComprobantes();
                 if (this.dao.asegurarComprobante(this.seleccion.getIdComprobante())) {
-                    this.comprobante.setPropietario(this.comprobante.getIdUsuario());
+                    this.seleccion.setPropietario(this.seleccion.getIdUsuario());
                 }
+                this.comprobante=this.convertir(this.seleccion);
                 ok = true;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
@@ -189,10 +220,12 @@ public class MbComprobantes implements Serializable {
         c.setTipo(Integer.toString(to.getTipo()));
         c.setSerie(to.getSerie());
         c.setNumero(to.getNumero());
-        c.setFecha(to.getFecha());
+        c.setFechaFactura(to.getFechaFactura());
         c.setMoneda(this.mbMonedas.obtenerMoneda(to.getIdMoneda()));
         c.setIdUsuario(to.getIdUsuario());
         c.setPropietario(to.getPropietario());
+        c.setCerradoOficina(to.isCerradoOficina());
+        c.setCerradoAlmacen(to.isCerradoAlmacen());
         c.setEstatus(to.getEstatus());
         return c;
     }
