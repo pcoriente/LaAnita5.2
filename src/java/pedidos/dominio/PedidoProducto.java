@@ -11,7 +11,7 @@ public class PedidoProducto extends ProductoOficina {
     private int idPedido;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
-    private double cantOrdenadaTotal;
+//    private double cantOrdenadaTotal;
 
     public PedidoProducto() {
         super();
@@ -45,11 +45,11 @@ public class PedidoProducto extends ProductoOficina {
         this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
 
-    public double getCantOrdenadaTotal() {
-        return cantOrdenadaTotal;
-    }
-
-    public void setCantOrdenadaTotal(double cantOrdenadaTotal) {
-        this.cantOrdenadaTotal = cantOrdenadaTotal;
-    }
+//    public double getCantOrdenadaTotal() {
+//        return cantOrdenadaTotal;
+//    }
+//
+//    public void setCantOrdenadaTotal(double cantOrdenadaTotal) {
+//        this.cantOrdenadaTotal = cantOrdenadaTotal;
+//    }
 }

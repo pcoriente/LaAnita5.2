@@ -35,21 +35,15 @@ public class ProveedorProducto {
     private Producto equivalencia;
 
     public ProveedorProducto() {
-        this.idProducto=0;
         this.sku="";
-        this.diasEntrega=0;
         this.empaque=new Empaque();
-        this.piezas=0;
         this.marca=new Marca();
         this.producto="";
         this.presentacion=new Presentacion();
-        this.contenido=0;
         this.unidadMedida=new UnidadMedida(0, "", "");
         this.unidadMedida2=new UnidadMedida(0, "", "");
         this.impuestoGrupo=new ImpuestoGrupo(0, "");
-        this.idFactura=0;
         this.ultimaCompraFecha=null;
-        this.ultimaCompraPrecio=0.00;
         this.equivalencia=new Producto();
     }
 

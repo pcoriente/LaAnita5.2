@@ -168,7 +168,7 @@ public class DAOComprobantes {
         to.setPropietario(this.idUsuario);
         Date fechaFactura = new java.sql.Date(to.getFechaFactura().getTime());
         String strSQL = "INSERT INTO comprobantes (idTipoMovto, idReferencia, tipo, serie, numero, fechaFactura, idMoneda, idUsuario, propietario, cerradoOficina, cerradoAlmacen, estatus) "
-                + "VALUES (" + to.getIdTipoMovto() + ", " + to.getIdReferencia() + ", " + to.getTipo() + ", '" + to.getSerie() + "', '" + to.getNumero() + "', '" + fechaFactura.toString() + "', " + to.getIdMoneda() + ", " + to.getIdUsuario() + ", " + to.getPropietario() + ", "+to.isCerradoOficina()+", "+to.isCerradoAlmacen()+", " + to.getEstatus() + ")";
+                + "VALUES (" + to.getIdTipoMovto() + ", " + to.getIdReferencia() + ", " + to.getTipo() + ", '" + to.getSerie() + "', '" + to.getNumero() + "', '" + fechaFactura.toString() + "', " + to.getIdMoneda() + ", " + to.getIdUsuario() + ", " + to.getPropietario() + ", "+(to.isCerradoOficina()?1:0)+", "+(to.isCerradoAlmacen()?1:0)+", " + to.getEstatus() + ")";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {

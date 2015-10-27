@@ -9,22 +9,22 @@ import java.util.Date;
 public class ProveedorProductoPrecio {
     private String fechaLista;
     private double precioLista;
-    private double desctoComercial1;
-    private double desctoComercial2;
+    private double desctoProducto1;
+    private double desctoProducto2;
     private double desctoConfidencial;
     private double precioNeto;
-    private Date inicioVigencia;
+    private Date iniVigencia;
     private Date finVigencia;
     private boolean nuevo;
 
     public ProveedorProductoPrecio() {
         this.fechaLista="";
         this.precioLista=0.00;
-        this.desctoComercial1=0.00;
-        this.desctoComercial2=0.00;
+        this.desctoProducto1=0.00;
+        this.desctoProducto2=0.00;
         this.desctoConfidencial=0.00;
         this.precioNeto=0.00;
-        this.inicioVigencia=new Date();
+        this.iniVigencia=new Date();
         this.finVigencia=new Date();
         this.nuevo=true;
     }
@@ -53,20 +53,20 @@ public class ProveedorProductoPrecio {
         this.precioNeto = precioNeto;
     }
 
-    public double getDesctoComercial1() {
-        return desctoComercial1;
+    public double getDesctoProducto1() {
+        return desctoProducto1;
     }
 
-    public void setDesctoComercial1(double desctoComercial1) {
-        this.desctoComercial1 = desctoComercial1;
+    public void setDesctoProducto1(double desctoProducto1) {
+        this.desctoProducto1 = desctoProducto1;
     }
 
-    public double getDesctoComercial2() {
-        return desctoComercial2;
+    public double getDesctoProducto2() {
+        return desctoProducto2;
     }
 
-    public void setDesctoComercial2(double desctoComercial2) {
-        this.desctoComercial2 = desctoComercial2;
+    public void setDesctoProducto2(double desctoProducto2) {
+        this.desctoProducto2 = desctoProducto2;
     }
 
     public double getDesctoConfidencial() {
@@ -77,12 +77,12 @@ public class ProveedorProductoPrecio {
         this.desctoConfidencial = desctoConfidencial;
     }
 
-    public Date getInicioVigencia() {
-        return inicioVigencia;
+    public Date getIniVigencia() {
+        return iniVigencia;
     }
 
-    public void setInicioVigencia(Date inicioVigencia) {
-        this.inicioVigencia = inicioVigencia;
+    public void setIniVigencia(Date iniVigencia) {
+        this.iniVigencia = iniVigencia;
     }
 
     public Date getFinVigencia() {

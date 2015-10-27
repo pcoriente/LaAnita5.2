@@ -10,9 +10,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
 import org.primefaces.context.RequestContext;
-import proveedores.dao.DAOProveedoresProductosOfertas;
 import proveedores.dao.DAOProveedoresProductosPrecios;
-import proveedores.dominio.ProveedorProductoOferta;
 import proveedores.dominio.ProveedorProductoPrecio;
 
 /**
@@ -82,16 +80,16 @@ public class MbProveedorProductoPrecios implements Serializable {
         try {
             Date utilFecha;
             
-            if(this.precio.getInicioVigencia()==null) {
+            if(this.precio.getIniVigencia()==null) {
                 throw new Exception("Se requiere la fecha de inicio de vigencia");
             } else if(this.precio.isNuevo()) {
-                utilFecha=utilerias.Utilerias.addDays(this.precio.getInicioVigencia(), 1);
-                this.precio.setInicioVigencia(utilFecha);
+                utilFecha=utilerias.Utilerias.addDays(this.precio.getIniVigencia(), 1);
+                this.precio.setIniVigencia(utilFecha);
             }
             if(this.precio.getFinVigencia()!=null) {
                 utilFecha=utilerias.Utilerias.addDays(this.precio.getFinVigencia(), 1);
                 this.precio.setFinVigencia(utilFecha);
-                if(this.precio.getInicioVigencia().after(this.precio.getFinVigencia())) {
+                if(this.precio.getIniVigencia().after(this.precio.getFinVigencia())) {
                     throw new Exception("La fecha final no puede ser anterior a la fecha inicial");
                 }
             }
@@ -104,15 +102,15 @@ public class MbProveedorProductoPrecios implements Serializable {
                     if(pre.getFinVigencia()==null) {
                         if(this.precio.getFinVigencia()==null) {
                             throw new Exception("No se puede agregar un cambio sin fin de vigencia cuando ya existe una");
-                        } else if(!pre.getInicioVigencia().before(this.precio.getInicioVigencia())) {
+                        } else if(!pre.getIniVigencia().before(this.precio.getIniVigencia())) {
                             throw new Exception("El período de un cambio no puede iniciar dentro de otro ( sin fin de vigencia )");
                         } else if(!pre.getFinVigencia().before(this.precio.getFinVigencia())) {
                             throw new Exception("El período de un cambio no puede finalizar dentro de otro ( sin fin de vigencia )");
                         }
-                    } else if(!(this.precio.getInicioVigencia().before(pre.getInicioVigencia()) || this.precio.getInicioVigencia().after(pre.getFinVigencia()))) {
+                    } else if(!(this.precio.getIniVigencia().before(pre.getIniVigencia()) || this.precio.getIniVigencia().after(pre.getFinVigencia()))) {
                         throw new Exception("El período de un cambio no puede iniciar dentro de otro");
                     } else if(this.precio.getFinVigencia()!=null) {
-                        if(!(this.precio.getFinVigencia().before(pre.getInicioVigencia()) || this.precio.getFinVigencia().after(pre.getFinVigencia()))) {
+                        if(!(this.precio.getFinVigencia().before(pre.getIniVigencia()) || this.precio.getFinVigencia().after(pre.getFinVigencia()))) {
                             throw new Exception("El período de un cambio no puede finalizar dentro de otro");
                         }
                     }
@@ -127,7 +125,7 @@ public class MbProveedorProductoPrecios implements Serializable {
                             throw new Exception("El período de un cambio no puede finalizar dentro de otro ( sin fin de vigencia )");
                         }
                     } else if(this.precio.getFinVigencia()!=null) {
-                        if(!(this.precio.getFinVigencia().before(pre.getInicioVigencia()) || this.precio.getFinVigencia().after(pre.getFinVigencia()))) {
+                        if(!(this.precio.getFinVigencia().before(pre.getIniVigencia()) || this.precio.getFinVigencia().after(pre.getFinVigencia()))) {
                             throw new Exception("El período de un cambio no puede finalizar dentro de otro");
                         }
                     }
@@ -155,11 +153,11 @@ public class MbProveedorProductoPrecios implements Serializable {
     public void copia(ProveedorProductoPrecio precio) {
         this.precio=new ProveedorProductoPrecio();
         this.precio.setPrecioLista(precio.getPrecioLista());
-        this.precio.setDesctoComercial1(precio.getDesctoComercial1());
-        this.precio.setDesctoComercial2(precio.getDesctoComercial2());
+        this.precio.setDesctoProducto1(precio.getDesctoProducto1());
+        this.precio.setDesctoProducto2(precio.getDesctoProducto2());
         this.precio.setDesctoConfidencial(precio.getDesctoConfidencial());
         this.precio.setFechaLista(precio.getFechaLista());
-        this.precio.setInicioVigencia(precio.getInicioVigencia());
+        this.precio.setIniVigencia(precio.getIniVigencia());
         this.precio.setFinVigencia(precio.getFinVigencia());
         this.precio.setNuevo(precio.isNuevo());
     }

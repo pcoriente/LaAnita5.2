@@ -12,7 +12,7 @@ public class ProveedorProductoOferta {
     private double precioOferta;
     private int base;
     private int sinCargo;
-    private Date inicioVigencia;
+    private Date iniVigencia;
     private Date finVigencia;
     private boolean nuevo;
 
@@ -22,7 +22,7 @@ public class ProveedorProductoOferta {
         precioOferta=0.00;
         base=0;
         sinCargo=0;
-        inicioVigencia=new Date();
+        iniVigencia=new Date();
         finVigencia=new Date();
         nuevo=true;
     }
@@ -59,12 +59,12 @@ public class ProveedorProductoOferta {
         this.sinCargo = sinCargo;
     }
 
-    public Date getInicioVigencia() {
-        return inicioVigencia;
+    public Date getIniVigencia() {
+        return iniVigencia;
     }
 
-    public void setInicioVigencia(Date inicioVigencia) {
-        this.inicioVigencia = inicioVigencia;
+    public void setIniVigencia(Date iniVigencia) {
+        this.iniVigencia = iniVigencia;
     }
 
     public Date getFinVigencia() {

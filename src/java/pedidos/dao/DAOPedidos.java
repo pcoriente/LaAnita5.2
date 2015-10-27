@@ -402,12 +402,10 @@ public class DAOPedidos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-        String strSQL = "SELECT P.idPedidoOC, P.canceladoFecha, P.canceladoMotivo\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.canceladoFecha, P.canceladoMotivo\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
-                + "     , M.*, R.idMovtoAlmacen\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-                + "INNER JOIN movimientosRelacionados R ON R.idMovto=M.idMovto\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.referencia!=0\n"
                 + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "' AND M.estatus=" + estatus;

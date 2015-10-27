@@ -598,7 +598,7 @@
                         </p:dataTable>
                     </p:dialog>
                     <p:dialog id="consultaOrdenesDlg" widgetVar="consultaOrdenesDlg" header="LISTA DE ORDENES DE COMPRA" resizable="false" modal="true" closable="true" >
-                        <p:dataTable id="consultaOrdenes" widgetVar="consultaOrdenes" value="#{mbComprasOficina.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 350px;"
+                        <p:dataTable id="consultaOrdenes" widgetVar="consultaOrdenes" value="#{mbComprasOficina.mbOrdenCompra.listaOrdenesEncabezado}" style="border:solid 1px; width: 450px;"
                                      var="orden" rowKey="#{orden.idOrdenCompra}" selectionMode="single" selection="#{mbComprasOficina.mbOrdenCompra.ordenElegida}"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax event="rowSelect" update=":main:btnSeleccionaOC :main:btnCerrarOC" />
@@ -611,6 +611,11 @@
                             </p:column>
                             <p:column headerText="F. Entrega" style="width: 85px;" >
                                 <h:outputText value="#{orden.fechaEntrega}" />
+                            </p:column>
+                            <p:column headerText="Total" style="width: 100px;" >
+                                <h:outputText value="#{orden.importeTotal}" >
+                                    <f:convertNumber type="number" pattern="###,###,##0.00" />
+                                </h:outputText>
                             </p:column>
                         </p:dataTable>
                         <p:panelGrid id="panelListaOrdenes" style="width: 350px;" >

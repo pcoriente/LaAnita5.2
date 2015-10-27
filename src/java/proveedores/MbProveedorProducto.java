@@ -7,8 +7,6 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
@@ -53,6 +51,7 @@ import utilerias.Utilerias;
 @SessionScoped
 public class MbProveedorProducto implements Serializable {
 
+    private int idEmpresa;
     private int idProveedor;
     private ProveedorProducto producto;
     private DAOProveedoresProductos dao;
@@ -72,7 +71,8 @@ public class MbProveedorProducto implements Serializable {
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
 
-    public MbProveedorProducto(int idProveedor) {
+    public MbProveedorProducto(int idEmpresa, int idProveedor) {
+        this.idEmpresa = idEmpresa;
         this.idProveedor = idProveedor;
         this.producto = new ProveedorProducto();
         this.mbMarca = new MbMarca();
@@ -114,9 +114,9 @@ public class MbProveedorProducto implements Serializable {
             try {
                 this.dao = new DAOProveedoresProductos();
                 if (this.producto.getIdProducto() == 0) {
-                    this.producto.setIdProducto(this.dao.agregar(this.producto, this.idProveedor));
+                    this.producto.setIdProducto(this.dao.agregar(this.idEmpresa, this.idProveedor, this.producto));
                 } else {
-                    this.dao.modificar(this.producto, this.idProveedor);
+                    this.dao.modificar(this.idEmpresa, this.idProveedor, this.producto);
                 }
                 resultado = true;
             } catch (NamingException ex) {
@@ -148,14 +148,14 @@ public class MbProveedorProducto implements Serializable {
 //        return e;
 //    }
 
-    public ArrayList<ProveedorProducto> obtenerProductos(int idProveedor) {
+    public ArrayList<ProveedorProducto> obtenerProductos(int idEmpresa, int idProveedor) {
         boolean resultado=false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
-        ArrayList<ProveedorProducto> productos=new ArrayList<ProveedorProducto>();
+        ArrayList<ProveedorProducto> productos=new ArrayList<>();
         try {
             int idEquivalencia;
             this.dao = new DAOProveedoresProductos();
-            productos = this.dao.obtenerProductos(idProveedor);
+            productos = this.dao.obtenerProductos(idEmpresa, idProveedor);
 //            DAOEmpaques daoEpq=new DAOEmpaques();
 //            DAOProductos daoProds=new DAOProductos();
             for(ProveedorProducto pp: productos) {
@@ -275,7 +275,7 @@ public class MbProveedorProducto implements Serializable {
         boolean oki = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
 
-        this.listaMarcas = new ArrayList<SelectItem>();
+        this.listaMarcas = new ArrayList<>();
         Marca mark = new Marca(0, "SELECCIONE UNA MARCA", true);
         this.listaMarcas.add(new SelectItem(mark, mark.toString()));
         try {
@@ -298,7 +298,8 @@ public class MbProveedorProducto implements Serializable {
     }
 
     public void cargaUnidadesMedida() {
-        this.listaUnidadesMedida = new ArrayList<SelectItem>();
+        this.listaUnidadesMedida = new ArrayList<>();
+        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         UnidadMedida unid = new UnidadMedida(0, "SELECCIONE", "");
         this.listaUnidadesMedida.add(new SelectItem(unid, unid.toString()));
         try {
@@ -308,9 +309,11 @@ public class MbProveedorProducto implements Serializable {
                 this.listaUnidadesMedida.add(new SelectItem(u, u.toString()));
             }
         } catch (NamingException ex) {
-            Logger.getLogger(MbProveedorProducto.class.getName()).log(Level.SEVERE, null, ex);
+            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+            fMsg.setDetail(ex.getMessage());
         } catch (SQLException ex) {
-            Logger.getLogger(MbProveedorProducto.class.getName()).log(Level.SEVERE, null, ex);
+            fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
+            fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
 
@@ -318,7 +321,7 @@ public class MbProveedorProducto implements Serializable {
         boolean oki = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
 
-        this.listaEmpaques = new ArrayList<SelectItem>();
+        this.listaEmpaques = new ArrayList<>();
         Empaque unidad = new Empaque(0, "SELECCIONE UN EMPAQUE", "");
         this.listaEmpaques.add(new SelectItem(unidad, unidad.toString()));
 
@@ -447,6 +450,14 @@ public class MbProveedorProducto implements Serializable {
 
     public void setIdProveedor(int idProveedor) {
         this.idProveedor = idProveedor;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public MbEmpaques getMbEmpaques() {

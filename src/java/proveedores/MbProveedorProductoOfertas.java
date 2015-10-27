@@ -6,8 +6,6 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -103,16 +101,16 @@ public class MbProveedorProductoOfertas implements Serializable {
             Date utilFecha;
             //java.sql.Date sqlFecha;
             
-            if(this.oferta.getInicioVigencia()==null) {
+            if(this.oferta.getIniVigencia()==null) {
                 throw new Exception("Se requiere la fecha de inicio de vigencia");
             } else if(this.oferta.isNuevo()) {
-                utilFecha=utilerias.Utilerias.addDays(this.oferta.getInicioVigencia(), 1);
-                this.oferta.setInicioVigencia(utilFecha);
+                utilFecha=utilerias.Utilerias.addDays(this.oferta.getIniVigencia(), 1);
+                this.oferta.setIniVigencia(utilFecha);
             }
             if(this.oferta.getFinVigencia()!=null) {
                 utilFecha=utilerias.Utilerias.addDays(this.oferta.getFinVigencia(), 1);
                 this.oferta.setFinVigencia(utilFecha);
-                if(this.oferta.getInicioVigencia().after(this.oferta.getFinVigencia())) {
+                if(this.oferta.getIniVigencia().after(this.oferta.getFinVigencia())) {
                     throw new Exception("La fecha final no puede ser anterior a la fecha inicial");
                 }
             }
@@ -127,15 +125,15 @@ public class MbProveedorProductoOfertas implements Serializable {
                     if(ofer.getFinVigencia()==null) {
                         if(this.oferta.getFinVigencia()==null) {
                             throw new Exception("No se puede agregar una oferta sin fin de vigencia cuando ya existe una");
-                        } else if(!ofer.getInicioVigencia().before(this.oferta.getInicioVigencia())) {
+                        } else if(!ofer.getIniVigencia().before(this.oferta.getIniVigencia())) {
                             throw new Exception("El período de una oferta no puede iniciar dentro de otro ( sin fin de vigencia )");
                         } else if(!ofer.getFinVigencia().before(this.oferta.getFinVigencia())) {
                             throw new Exception("El período de una oferta no puede finalizar dentro de otro ( sin fin de vigencia )");
                         }
-                    } else if(!(this.oferta.getInicioVigencia().before(ofer.getInicioVigencia()) || this.oferta.getInicioVigencia().after(ofer.getFinVigencia()))) {
+                    } else if(!(this.oferta.getIniVigencia().before(ofer.getIniVigencia()) || this.oferta.getIniVigencia().after(ofer.getFinVigencia()))) {
                         throw new Exception("El período de una oferta no puede iniciar dentro de otro");
                     } else if(this.oferta.getFinVigencia()!=null) {
-                        if(!(this.oferta.getFinVigencia().before(ofer.getInicioVigencia()) || this.oferta.getFinVigencia().after(ofer.getFinVigencia()))) {
+                        if(!(this.oferta.getFinVigencia().before(ofer.getIniVigencia()) || this.oferta.getFinVigencia().after(ofer.getFinVigencia()))) {
                             throw new Exception("El período de una oferta no puede finalizar dentro de otro");
                         }
                     }
@@ -150,7 +148,7 @@ public class MbProveedorProductoOfertas implements Serializable {
                             throw new Exception("El período de una oferta no puede finalizar dentro de otro ( sin fin de vigencia )");
                         }
                     } else if(this.oferta.getFinVigencia()!=null) {
-                        if(!(this.oferta.getFinVigencia().before(ofer.getInicioVigencia()) || this.oferta.getFinVigencia().after(ofer.getFinVigencia()))) {
+                        if(!(this.oferta.getFinVigencia().before(ofer.getIniVigencia()) || this.oferta.getFinVigencia().after(ofer.getFinVigencia()))) {
                             throw new Exception("El período de una oferta no puede finalizar dentro de otro");
                         }
                     }
@@ -180,7 +178,7 @@ public class MbProveedorProductoOfertas implements Serializable {
         this.oferta.setBase(oferta.getBase());
         this.oferta.setFechaLista(oferta.getFechaLista());
         this.oferta.setFinVigencia(oferta.getFinVigencia());
-        this.oferta.setInicioVigencia(oferta.getInicioVigencia());
+        this.oferta.setIniVigencia(oferta.getIniVigencia());
         this.oferta.setPtjeOferta(oferta.getPtjeOferta());
         this.oferta.setPrecioOferta(oferta.getPrecioOferta());
         this.oferta.setSinCargo(oferta.getSinCargo());

@@ -1,11 +1,13 @@
 package proveedores;
 
+import empresas.MbMiniEmpresas;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.TimeZone;
 import javax.faces.bean.ManagedProperty;
+import org.primefaces.context.RequestContext;
 import proveedores.dominio.MiniProveedor;
 import proveedores.dominio.ProveedorProducto;
 import proveedores.dominio.ProveedorProductoLista;
@@ -33,6 +35,8 @@ public class MbProveedoresListas implements Serializable {
     private ArrayList<Accion> acciones;
     @ManagedProperty(value="#{mbAcciones}")
     private MbAcciones mbAcciones;
+    @ManagedProperty(value = "#{mbMiniEmpresas}")
+    private MbMiniEmpresas mbEmpresas;
     @ManagedProperty(value="#{mbMiniProveedor}")
     private MbMiniProveedor mbProveedor;
     @ManagedProperty(value="#{mbProveedorProducto}")
@@ -47,31 +51,30 @@ public class MbProveedoresListas implements Serializable {
     public MbProveedoresListas() {
         this.modoEdicion=false;
         this.productoLista=new ProveedorProductoLista();
+        this.mbEmpresas=new MbMiniEmpresas();
         this.mbProveedor=new MbMiniProveedor();
         this.mbAcciones=new MbAcciones();
-        this.mbProducto=new MbProveedorProducto(0);
+        this.mbProducto=new MbProveedorProducto(0, 0);
         this.mbOfertas=new MbProveedorProductoOfertas();
         this.mbPrecios=new MbProveedorProductoPrecios();
-//        this.mbBuscar=new MbProductosBuscar();
     }
-    
-//    public void actualizaProductoSeleccionado() {
-//        this.mbProducto.getProducto().setEquivalencia(this.mbBuscar.getProducto());
-//    }
     
     public void actualizaProductoSeleccionado() {
-//        this.mbProducto.getProducto().setEquivalencia(this.mbBuscar.getProducto());
+        boolean ok = false;
         this.mbProducto.getProducto().setEquivalencia(this.mbProducto.getMbBuscar().getProducto());
+        ok=true;
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okBuscar", ok);
     }
-
-//    public void buscar() {
-//        this.mbBuscar.buscarLista();
-//        // this.mbProducto.getMbBuscar().buscarLista();
-//    }
     
         public void buscar() {
-//        this.mbBuscar.buscarLista();
          this.mbProducto.getMbBuscar().buscarLista();
+         if(this.mbProducto.getMbBuscar().getProducto()!=null) {
+             this.actualizaProductoSeleccionado();
+         } else {
+             RequestContext context = RequestContext.getCurrentInstance();
+            context.addCallbackParam("okBuscar", false);
+         }
     }
     
     public void eliminarOferta() {
@@ -157,6 +160,7 @@ public class MbProveedoresListas implements Serializable {
     }
     
     public String terminar() {
+        this.mbEmpresas.inicializar();
         this.mbProveedor.setListaMiniProveedores(null);
         this.mbProveedor.setMiniProveedor(new MiniProveedor());
         this.listaProductos=null;
@@ -167,11 +171,13 @@ public class MbProveedoresListas implements Serializable {
     }
     
     public void cargaProductos() {
+        int idEmpresa=this.mbEmpresas.getEmpresa().getIdEmpresa();
+        this.mbProducto.setIdEmpresa(idEmpresa);
         int idProveedor=this.mbProveedor.getMiniProveedor().getIdProveedor();
         this.mbProducto.setIdProveedor(idProveedor);
         this.mbOfertas.setIdProveedor(idProveedor);
         this.mbPrecios.setIdProveedor(idProveedor);
-        this.listaProductos=this.mbProducto.obtenerProductos(idProveedor);
+        this.listaProductos=this.mbProducto.obtenerProductos(idEmpresa, idProveedor);
         this.listaFiltrados=null;
     }
 
@@ -189,6 +195,14 @@ public class MbProveedoresListas implements Serializable {
 
     public void setMbProveedor(MbMiniProveedor mbProveedor) {
         this.mbProveedor = mbProveedor;
+    }
+
+    public MbMiniEmpresas getMbEmpresas() {
+        return mbEmpresas;
+    }
+
+    public void setMbEmpresas(MbMiniEmpresas mbEmpresas) {
+        this.mbEmpresas = mbEmpresas;
     }
 
     public ArrayList<Accion> getAcciones() {

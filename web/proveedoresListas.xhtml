@@ -22,8 +22,17 @@
                         <p:messages id="msgs1" showDetail="true" showSummary="false" closable="true" />
                         <p:panelGrid >
                             <p:row>
-                                <p:column style="width: 700px;" >
-                                    <p:selectOneMenu id="proveedor" value="#{mbListas.mbProveedor.miniProveedor}" style="width: 300px" >
+                                <p:column style="width: 215px;" >
+                                    <p:selectOneMenu id="empresa" value="#{mbListas.mbEmpresas.empresa}" style="width: 200px;" >
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbListas.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" update="proveedor" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column style="width: 500px;" >
+                                    <p:selectOneMenu id="proveedor" style="width: 300px"
+                                                     disabled="#{mbListas.mbEmpresas.empresa.idEmpresa==0}"
+                                                     value="#{mbListas.mbProveedor.miniProveedor}" >
                                         <f:converter converterId="converters.miniProveedor" />
                                         <f:selectItems value="#{mbListas.mbProveedor.listaMiniProveedores}" />
                                         <p:ajax event="change" listener="#{mbListas.cargaProductos()}" 
@@ -124,11 +133,11 @@
                                                  readonly="true" maxlength="120" size="80" />
                                 </p:column>
                             </p:row>
-                            <p:row >
+                            <p:row rendered="false" >
                                 <p:column colspan="4" >
                                     <p:dataTable id="listaPrecios" value="#{mbListas.mbPrecios.precios}"
                                                  widgetVar="preciosTable" var="precio" style="border:solid 1px" 
-                                                 rowKey="#{precio.inicioVigencia}" selection="#{mbListas.precio}" selectionMode="single"
+                                                 rowKey="#{precio.iniVigencia}" selection="#{mbListas.precio}" selectionMode="single"
                                                  emptyMessage="No hay elementos que desplegar">
                                         <p:ajax event="rowSelect" update=":form:btnMttoPrecio" />
 
@@ -136,10 +145,10 @@
                                             <h:outputText value="#{precio.precioLista}" />
                                         </p:column>
                                         <p:column headerText="Descuento(1)" >
-                                            <h:outputText value="#{precio.desctoComercial1}" />
+                                            <h:outputText value="#{precio.desctoProducto1}" />
                                         </p:column>
                                         <p:column headerText="Descuento(2)" >
-                                            <h:outputText value="#{precio.desctoComercial2}" />
+                                            <h:outputText value="#{precio.desctoProducto2}" />
                                         </p:column>
                                         <p:column headerText="Confidencial" >
                                             <h:outputText value="#{precio.desctoConfidencial}" />
@@ -148,7 +157,7 @@
                                             <h:outputText value="#{precio.precioNeto}" />
                                         </p:column>
                                         <p:column headerText="Inicia" >
-                                            <h:outputText value="#{precio.inicioVigencia}" >
+                                            <h:outputText value="#{precio.iniVigencia}" >
                                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
                                             </h:outputText>
                                         </p:column>
@@ -170,10 +179,10 @@
                                                      update="msgs2 mttoPrecios" oncomplete="PF('mttoPreciosDlg').show()" />
                                 </p:column>
                             </p:row>
-                            <p:row >
+                            <p:row rendered="false" >
                                 <p:column colspan="4" >
                                     <p:dataTable id="listaOfertas" value="#{mbListas.mbOfertas.ofertas}"
-                                                 widgetVar="ofertasTable" var="oferta" style="border:solid 1px" rowKey="#{oferta.inicioVigencia}"
+                                                 widgetVar="ofertasTable" var="oferta" style="border:solid 1px" rowKey="#{oferta.iniVigencia}"
                                                  selection="#{mbListas.oferta}" selectionMode="single"
                                                  emptyMessage="No hay elementos que desplegar">
                                         <p:ajax event="rowSelect" update=":form:btnMttoOferta" />
@@ -191,7 +200,7 @@
                                             <h:outputText value="#{oferta.sinCargo}" />
                                         </p:column>
                                         <p:column headerText="Inicia" >
-                                            <h:outputText value="#{oferta.inicioVigencia}" >
+                                            <h:outputText value="#{oferta.iniVigencia}" >
                                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
                                             </h:outputText>
                                         </p:column>
@@ -517,7 +526,7 @@
                                     <h:outputLabel for="txtFechaInicial" value="Fecha Inicial :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtFechaInicial" value="#{mbListas.mbOfertas.oferta.inicioVigencia}" 
+                                    <p:inputText id="txtFechaInicial" value="#{mbListas.mbOfertas.oferta.iniVigencia}" 
                                                  readonly="#{not mbListas.mbOfertas.oferta.nuevo}"
                                                  maxlength="10" size="12" >
                                         <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
@@ -622,7 +631,7 @@
                                     <h:outputLabel for="txtFechaInicialPre" value="Fecha Inicial :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText id="txtFechaInicialPre" value="#{mbListas.mbPrecios.precio.inicioVigencia}" 
+                                    <p:inputText id="txtFechaInicialPre" value="#{mbListas.mbPrecios.precio.iniVigencia}" 
                                                  readonly="#{not mbListas.mbPrecios.precio.nuevo}"
                                                  maxlength="10" size="12" >
                                         <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDetalle.zonaHoraria.ID}" />
@@ -658,7 +667,7 @@
                                     <h:outputLabel for="txtDescto1" value="Descuento(1) :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column >
-                                    <pe:inputNumber id="txtDescto1" value="#{mbListas.mbPrecios.precio.desctoComercial1}"
+                                    <pe:inputNumber id="txtDescto1" value="#{mbListas.mbPrecios.precio.desctoProducto1}"
                                                     decimalPlaces="2" minValue="0" maxValue="99.99" >
                                     </pe:inputNumber>
                                     <!--
@@ -671,7 +680,7 @@
                                     <h:outputLabel for="txtDescto2" value="Descuento(2) :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column >
-                                    <pe:inputNumber id="txtDescto2" value="#{mbListas.mbPrecios.precio.desctoComercial2}"
+                                    <pe:inputNumber id="txtDescto2" value="#{mbListas.mbPrecios.precio.desctoProducto2}"
                                                     decimalPlaces="2" minValue="0" maxValue="99.99" >
                                     </pe:inputNumber>
                                     <!--
@@ -730,7 +739,8 @@
                                 <p:column rendered="#{mbListas.mbProducto.mbBuscar.tipoBuscar=='1'}" >
                                     <p:inputText id="opcionSKU" value="#{mbListas.mbProducto.mbBuscar.strBuscar}" maxlength="8" size="10" />
                                     <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
-                                                     process="@this opcionSKU" actionListener="#{mbListas.buscar()}" 
+                                                     process="@this opcionSKU" actionListener="#{mbListas.buscar()}"
+                                                     update=":form:messages0 :form:txtEquivalencia"
                                                      oncomplete="handleBuscar(xhr, status, args)" />
                                     <!--update=":main:mttoProductos"-->
                                 </p:column>
@@ -772,59 +782,59 @@
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">
-                    function handleBuscar(xhr, status, args) {
-                        if (!(args.validationFailed || !args.okBuscar)) {
-                            PF('buscarProductoDlg').hide();
-                        }
-                    }
+                                                             function handleBuscar(xhr, status, args) {
+                                                                 if (!(args.validationFailed || !args.okBuscar)) {
+                                                                     PF('buscarProductoDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handlePrecios(xhr, status, args) {
-                        if (args.validationFailed || !args.okPrecio) {
-                            PF('mttoPreciosDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoPreciosDlg').hide();
-                        }
-                    }
+                                                             function handlePrecios(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okPrecio) {
+                                                                     PF('mttoPreciosDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoPreciosDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handleOfertas(xhr, status, args) {
-                        if (args.validationFailed || !args.okOferta) {
-                            PF('mttoOfertasDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoOfertasDlg').hide();
-                        }
-                    }
+                                                             function handleOfertas(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okOferta) {
+                                                                     PF('mttoOfertasDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoOfertasDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handlePresentacion(xhr, status, args) {
-                        if (args.validationFailed || !args.okPresentacion) {
-                            PF('mttoPresentacionDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoPresentacionDlg').hide();
-                        }
-                    }
+                                                             function handlePresentacion(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okPresentacion) {
+                                                                     PF('mttoPresentacionDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoPresentacionDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handleMarca(xhr, status, args) {
-                        if (args.validationFailed || !args.okMarca) {
-                            PF('mttoMarcasDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoMarcasDlg').hide();
-                        }
-                    }
+                                                             function handleMarca(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okMarca) {
+                                                                     PF('mttoMarcasDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoMarcasDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handleUnidadEmpaque(xhr, status, args) {
-                        if (args.validationFailed || !args.okUnidadEmpaque) {
-                            PF('mttoUnidadesEmpaqueDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoUnidadesEmpaqueDlg').hide();
-                        }
-                    }
+                                                             function handleUnidadEmpaque(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okUnidadEmpaque) {
+                                                                     PF('mttoUnidadesEmpaqueDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoUnidadesEmpaqueDlg').hide();
+                                                                 }
+                                                             }
 
-                    function handleProveedorProducto(xhr, status, args) {
-                        if (args.validationFailed || !args.okProveedorProducto) {
-                            PF('mttoProdsDlg').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoProdsDlg').hide();
-                        }
-                    }
+                                                             function handleProveedorProducto(xhr, status, args) {
+                                                                 if (args.validationFailed || !args.okProveedorProducto) {
+                                                                     PF('mttoProdsDlg').jq.effect("shake", {times: 5}, 100);
+                                                                 } else {
+                                                                     PF('mttoProdsDlg').hide();
+                                                                 }
+                                                             }
                 </script>
             </div>
         </div>
