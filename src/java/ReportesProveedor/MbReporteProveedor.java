@@ -34,6 +34,8 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import producto2.MbProductosBuscar;
+import proveedores.MbMiniProveedor;
 import utilerias.Habilita;
 
 /**
@@ -46,6 +48,11 @@ public class MbReporteProveedor implements Serializable {
 
     @ManagedProperty(value = "#{miniEmpresa}")
     private MbMiniEmpresa miniEmpresa;
+    @ManagedProperty(value = "#{mbProductosBuscar}")
+    private MbProductosBuscar mbBuscar;
+    @ManagedProperty(value = "#{mbMiniProveedor}")
+    private MbMiniProveedor mbProveedores;
+    
     private ReporteProveedorEncabezado encabezadoBusqueda;
     private MiniEmpresa empresa = new MiniEmpresa();
     private ArrayList<ReporteProveedorDetalle> lst = new ArrayList<>();
@@ -179,6 +186,30 @@ public class MbReporteProveedor implements Serializable {
 
     public void setLst(ArrayList<ReporteProveedorDetalle> lst) {
         this.lst = lst;
+    }
+
+    public MbProductosBuscar getMbBuscar() {
+        return mbBuscar;
+    }
+
+    public void setMbBuscar(MbProductosBuscar mbBuscar) {
+        this.mbBuscar = mbBuscar;
+    }
+
+    public MbMiniProveedor getMbProveedores() {
+        return mbProveedores;
+    }
+
+    public void setMbProveedores(MbMiniProveedor mbProveedores) {
+        this.mbProveedores = mbProveedores;
+    }
+
+    public Habilita getHabilita() {
+        return habilita;
+    }
+
+    public void setHabilita(Habilita habilita) {
+        this.habilita = habilita;
     }
 
 }
