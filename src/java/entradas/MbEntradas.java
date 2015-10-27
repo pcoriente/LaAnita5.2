@@ -162,7 +162,7 @@ public class MbEntradas implements Serializable {
         parameters.put("proveedor", this.entrada.getProveedor().getProveedor());
 
         parameters.put("comprobante", this.entrada.getComprobante().toString());
-        parameters.put("comprobanteFecha", this.entrada.getComprobante().getFecha());
+        parameters.put("comprobanteFecha", this.entrada.getComprobante().getFechaFactura());
         parameters.put("capturaFolio", this.entrada.getFolio());
         parameters.put("capturaFecha", formatoFecha.format(this.entrada.getFecha()));
         parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));

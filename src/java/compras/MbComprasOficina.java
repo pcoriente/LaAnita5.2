@@ -126,7 +126,7 @@ public class MbComprasOficina implements Serializable {
             parameters.put("proveedor", this.compra.getProveedor().getProveedor());
 
             parameters.put("comprobante", this.compra.getComprobante().toString());
-            parameters.put("comprobanteFecha", this.compra.getComprobante().getFecha());
+            parameters.put("comprobanteFecha", this.compra.getComprobante().getFechaFactura());
 //        parameters.put("capturaFolio", this.compra.getFolio());
 //        parameters.put("capturaFecha", formatoFecha.format(this.compra.getFecha()));
 //        parameters.put("capturaHora", formatoHora.format(this.compra.getFecha()));
@@ -213,7 +213,7 @@ public class MbComprasOficina implements Serializable {
         parameters.put("proveedor", this.compra.getProveedor().getProveedor());
 
         parameters.put("comprobante", this.compra.getComprobante().toString());
-        parameters.put("comprobanteFecha", this.compra.getComprobante().getFecha());
+        parameters.put("comprobanteFecha", this.compra.getComprobante().getFechaFactura());
         parameters.put("capturaFolio", this.compra.getFolio());
         parameters.put("capturaFecha", formatoFecha.format(this.compra.getFecha()));
         parameters.put("capturaHora", formatoHora.format(this.compra.getFecha()));
@@ -259,12 +259,25 @@ public class MbComprasOficina implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-
-    public void cancelarCompra() {
+    
+    public void eliminarCompra() {
         try {
             this.dao = new DAOComprasOficina();
-            this.dao.cancelarCompra(this.compra.getIdMovto(), this.compra.getAlmacen().getIdAlmacen(), this.compra.getIdOrdenCompra());
-            this.compra.setEstatus(7);
+            this.dao.eliminarCompra(this.compra.getIdMovto());
+            this.modoEdicion = false;
+            Mensajes.mensajeSucces("El movimiento se elimino correctamente !!!");
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
+    public void devolverCompra() {
+        try {
+            this.dao = new DAOComprasOficina();
+            this.dao.devolverCompra(this.compra.getIdMovto(), this.compra.getIdOrdenCompra());
+            this.compra.setEstatus(8);
             this.modoEdicion = false;
             Mensajes.mensajeSucces("La compra se cancelo correctamente !!!");
         } catch (SQLException ex) {
@@ -910,8 +923,12 @@ public class MbComprasOficina implements Serializable {
     }
 
     public void nuevaCompra() {
-        if (validaCompra()) {
-            this.crearCompra();
+        if (this.validaCompra()) {
+            if(this.mbComprobantes.getSeleccion().isCerradoOficina()) {
+                Mensajes.mensajeAlert("El comprobante ya está cerrado !!!");
+            } else {
+                this.crearCompra();
+            }
         }
     }
 

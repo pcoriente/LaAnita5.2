@@ -99,6 +99,35 @@ public class DAOComprasAlmacen {
             }
         }
     }
+    
+    public void eliminarCompra(int idMovtoAlmacen) throws SQLException {
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE S\n"
+                        + "SET separadosAlmacen=S.separadosAlmacen-D.cantidad\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen;
+                st.executeUpdate(strSQL);
+
+                strSQL = "DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+                st.executeUpdate(strSQL);
+                
+                strSQL = "DELETE FROM movimientosAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+                st.executeUpdate(strSQL);
+                
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
 
     public void cancelarCompra(int idMovtoAlmacen, int idAlmacen, int idOrdenDeCompra) throws SQLException {
         String strSQL;

@@ -13,17 +13,19 @@ public class TOComprobante {
     private int tipo;
     private String serie;
     private String numero;
-    private Date fecha;
+    private Date fechaFactura;
     private int idMoneda;
     private int idUsuario;
     private int propietario;
+    private boolean cerradoOficina;
+    private boolean cerradoAlmacen;
     private int estatus;
 
     public TOComprobante() {
         this.tipo = 3;
         this.serie = "";
         this.numero = "";
-        this.fecha = new Date();
+        this.fechaFactura = new Date();
         this.idMoneda = 1;
     }
 
@@ -33,7 +35,7 @@ public class TOComprobante {
         this.tipo = 3;
         this.serie = "";
         this.numero = "";
-        this.fecha = new Date();
+        this.fechaFactura = new Date();
         this.idMoneda = 1;
     }
     
@@ -112,12 +114,12 @@ public class TOComprobante {
         this.numero = numero;
     }
 
-    public Date getFecha() {
-        return fecha;
+    public Date getFechaFactura() {
+        return fechaFactura;
     }
 
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
+    public void setFechaFactura(Date fechaFactura) {
+        this.fechaFactura = fechaFactura;
     }
 
     public int getIdMoneda() {
@@ -142,6 +144,22 @@ public class TOComprobante {
 
     public void setPropietario(int propietario) {
         this.propietario = propietario;
+    }
+
+    public boolean isCerradoOficina() {
+        return cerradoOficina;
+    }
+
+    public void setCerradoOficina(boolean cerradoOficina) {
+        this.cerradoOficina = cerradoOficina;
+    }
+
+    public boolean isCerradoAlmacen() {
+        return cerradoAlmacen;
+    }
+
+    public void setCerradoAlmacen(boolean cerradoAlmacen) {
+        this.cerradoAlmacen = cerradoAlmacen;
     }
 
     public int getEstatus() {
