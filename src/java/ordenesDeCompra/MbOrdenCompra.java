@@ -746,7 +746,7 @@ public class MbOrdenCompra implements Serializable {
         DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
         ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
         for (OrdenCompraEncabezado oced : listaD) {
-            oced.setImporteTotal(dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced));
+            //oced.setImporteTotal(dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced));
             listaOrdenesEncabezadoD.add(oced);
             totales = new TotalesOrdenCompra();
             subtotalGeneral = 0.00;
@@ -1013,7 +1013,7 @@ public class MbOrdenCompra implements Serializable {
             subtotalGeneral = 0;
             descuentoGeneralAplicado = 0;
             double costoConDescuentos;
-
+            DAOOrdenDeCompra daoTotOc = new DAOOrdenDeCompra();//para calculo de totales
             DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
             ArrayList<OrdenCompraDetalle> lista = daoOC.consultaOrdenCompra(idOrdenCompra);
             DAOMovimientosOld dao = new DAOMovimientosOld();
@@ -1050,6 +1050,8 @@ public class MbOrdenCompra implements Serializable {
             totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
             totales.setImpuesto(Redondear(impuestos));
             totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+            //aqui actualizo
+            //daoTotOc.actualizaTotal(idOrdenCompra, totales.getTotal());
         } catch (NamingException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         } catch (SQLException ex) {

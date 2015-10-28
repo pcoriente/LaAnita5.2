@@ -63,10 +63,10 @@
                             <p:outputLabel/>
                             <h:outputLabel value="Fecha Inicial :" style="color: black"/>
                             <p:calendar value="#{mbReporteProveedor.encabezadoBusqueda.fechaInicial}" 
-                                        id="fechaInicial" size="10" showOn="button" onchange="#{mbReporteProveedor.inicializar(1)}"/>
+                                        id="fechaInicial" size="10" showOn="button"/>
                             <h:outputLabel value="Fecha Final :" style="color: black"/>
                             <p:calendar  value="#{mbReporteProveedor.encabezadoBusqueda.fechaFinal}"
-                                         id="fechaFinal" size="10" showOn="button" onchange="#{mbReporteProveedor.inicializar(1)}"/>
+                                         id="fechaFinal" size="10" showOn="button"/>
                         </p:panelGrid>
                         <p:panelGrid columns="4" id="pgSelPvd" 
                                      style="width: 100%">
@@ -75,6 +75,7 @@
                                          style="width: 245px" 
                                          value="#{mbReporteProveedor.encabezadoBusqueda.codigoProductoInicial}"
                                          disabled="#{habilita.disabled}"/>
+                                     
                             <h:outputLabel value="Proveedor Final :" style="color: black"/>
                             <p:inputText id="txtCodigoFinal"
                                          style="width: 245px" 
