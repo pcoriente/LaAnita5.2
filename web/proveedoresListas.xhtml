@@ -58,13 +58,13 @@
                                      scrollable="true" scrollHeight="300" >
                             <p:ajax event="rowSelect" update=":form:lnkModifProductoProveedor" />
 
-                            <p:column filterBy="#{producto.sku}" filterMatchMode="contains" width="200" >
+                            <p:column filterBy="#{producto.sku}" filterMatchMode="contains" width="120" >
                                 <f:facet name="header" >
                                     <h:outputText value="SKU" />
                                 </f:facet>
                                 <h:outputText value="#{producto.sku}" />
                             </p:column>
-                            <p:column filterBy="#{producto.toString()}" filterMatchMode="contains" width="600" >
+                            <p:column filterBy="#{producto.toString()}" filterMatchMode="contains" width="300" >
                                 <f:facet name="header" >
                                     <h:outputText value="PRODUCTO" />
                                 </f:facet>
@@ -275,7 +275,7 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel for="txtProducto" value="PRODUCTO :" style="font-weight: bold; color: red; width: 120px;" />
+                                    <h:outputLabel for="txtProducto" value="DESCRIPCION :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column colspan="3">
                                     <p:inputText id="txtProducto" value="#{mbListas.mbProducto.producto.producto}" maxlength="80" size="85" />

@@ -406,11 +406,11 @@
                 <p:messages id="msgsNuevoPedido" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panelGrid id="nuevoPedido" >
                     <p:row >
-                        <p:column style="width: 80px;" >
+                        <p:column style="width: 70px;" >
                             <h:outputLabel for="grupo" value="GRUPO :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="3" >
-                            <p:selectOneMenu id="grupo" value="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado}" 
+                        <p:column >
+                            <p:selectOneMenu id="grupo" value="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado}" style="width: 340px;" 
                                              disabled="#{mbPedidos.mbFormatos.formatoSeleccion.idFormato!=0}" >
                                 <f:converter converterId="converters.ClientesGrupos" />
                                 <f:selectItems value="#{mbPedidos.mbGrupos.itemsClientesGrupos}" />
@@ -418,13 +418,11 @@
                                         update=":main:msgsNuevoPedido formato listaTiendas btnCrearPedido" />
                             </p:selectOneMenu>
                         </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column >
+                        <p:column style="width: 85px;" >
                             <h:outputLabel for="formato" value="FORMATO :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="3" >
-                            <p:selectOneMenu id="formato" value="#{mbPedidos.mbFormatos.formatoSeleccion}" 
+                        <p:column >
+                            <p:selectOneMenu id="formato" value="#{mbPedidos.mbFormatos.formatoSeleccion}" style="width: 330px;"
                                              disabled="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado.idGrupoCte==0}" >
                                 <f:converter converterId="converter.formatos" />
                                 <f:selectItems value="#{mbPedidos.mbFormatos.lstFormatos}" />
