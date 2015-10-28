@@ -480,45 +480,46 @@ public class DAOComprasOficina {
         return detalle;
     }
 
-    private void actualizaCostoUltimaCompraProveedor(Connection cn, int idMovto) throws SQLException {
-        String strSQL = "UPDATE D\n"
-                + "SET costo=DD.unitario\n"
-                + "FROM movimientosDetalle D\n"
-                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "INNER JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEquivalencia=D.idEmpaque\n"
-                + "INNER JOIN movimientosDetalle DD ON DD.idMovto=P.idMovtoUltimaCompra AND DD.idEmpaque=D.idEmpaque\n"
-                + "WHERE D.idMovto=" + idMovto;
-        try (Statement st = cn.createStatement()) {
-            st.executeUpdate(strSQL);
-        }
-    }
-
 //    private void actualizaCostoUltimaCompraProveedor(Connection cn, int idMovto) throws SQLException {
-//        String strSQL;
+//        String strSQL = "UPDATE D\n"
+//                + "SET costo=DD.unitario\n"
+//                + "FROM movimientosDetalle D\n"
+//                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                + "INNER JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEquivalencia=D.idEmpaque\n"
+//                + "INNER JOIN movimientosDetalle DD ON DD.idMovto=P.idMovtoUltimaCompra AND DD.idEmpaque=D.idEmpaque\n"
+//                + "WHERE D.idMovto=" + idMovto;
 //        try (Statement st = cn.createStatement()) {
-//            strSQL = "SELECT idEmpresa, idReferencia FROM movimientos WHERE idMovto=" + idMovto;
-//            ResultSet rs = st.executeQuery(strSQL);
-//            if (rs.next()) {
-//                strSQL = "UPDATE D\n"
-//                        + "SET costo=CASE WHEN M.referencia!=0 THEN D.costo\n"
-//                        + "               WHEN DD.costo IS NULL THEN 0\n"
-//                        + "               WHEN D.costo=ROUND(D.costoPromedio*M.tipoDeCambio, 6) THEN DD.costo\n"
-//                        + "               ELSE D.costo END\n"
-//                        + "     , costoPromedio=ISNULL(DD.costo, 0)\n"
-//                        + "FROM (SELECT MAX(DD.idMovto) AS idMovto, DD.idEmpaque\n"
-//                        + "      FROM movimientosDetalle DD \n"
-//                        + "      INNER JOIN movimientos MM ON MM.idMovto=DD.idMovto\n"
-//                        + "      WHERE MM.idEmpresa=" + rs.getInt("idEmpresa") + " AND MM.idTipo=1\n"
-//                        + "                 AND MM.idReferencia=" + rs.getInt("idReferencia") + " AND MM.estatus=7\n"
-//                        + "      GROUP BY DD.idEmpaque) UU\n"
-//                        + "RIGHT JOIN movimientosDetalle D ON D.idEmpaque=UU.idEmpaque\n"
-//                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-//                        + "INNER JOIN movimientosDetalle DD ON DD.idMovto=UU.idMovto AND DD.idEmpaque=UU.idEmpaque\n"
-//                        + "WHERE D.idMovto=" + idMovto;
-//                st.executeUpdate(strSQL);
-//            }
+//            st.executeUpdate(strSQL);
 //        }
 //    }
+
+    private void actualizaCostoUltimaCompraProveedor(Connection cn, int idMovto) throws SQLException {
+        String strSQL;
+        try (Statement st = cn.createStatement()) {
+            strSQL = "SELECT idEmpresa, idReferencia FROM movimientos WHERE idMovto=" + idMovto;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                strSQL = "UPDATE D\n"
+                        + "SET costo=CASE WHEN M.referencia!=0 THEN D.costo\n"
+                        + "               WHEN DD.costo IS NULL THEN 0\n"
+                        + "               WHEN D.costo=ROUND(D.costoPromedio*M.tipoDeCambio, 6) THEN DD.costo\n"
+                        + "               ELSE D.costo END\n"
+                        + "     , costoPromedio=ISNULL(DD.costo, 0)\n"
+                        + "FROM (SELECT MAX(DD.idMovto) AS idMovto, DD.idEmpaque\n"
+                        + "      FROM movimientosDetalle DD \n"
+                        + "      INNER JOIN movimientos MM ON MM.idMovto=DD.idMovto\n"
+                        + "      WHERE MM.idEmpresa=" + rs.getInt("idEmpresa") + " AND MM.idTipo=1\n"
+                        + "                 AND MM.idReferencia=" + rs.getInt("idReferencia") + " AND MM.estatus=7\n"
+                        + "      GROUP BY DD.idEmpaque) UU\n"
+                        + "RIGHT JOIN movimientosDetalle D ON D.idEmpaque=UU.idEmpaque\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN movimientosDetalle DD ON DD.idMovto=UU.idMovto AND DD.idEmpaque=UU.idEmpaque\n"
+                        + "WHERE D.idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+            }
+        }
+    }
+    
     public ArrayList<TOProductoCompraOficina> crearOrdenDeCompraDetalle(TOMovimientoOficina toMov, boolean definitivo) throws SQLException {
         ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {

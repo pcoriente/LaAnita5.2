@@ -143,7 +143,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenes(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda, oc.total \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -188,6 +188,7 @@ public class DAOOrdenDeCompra {
         oce.setNombreComercial(rs.getString("nombreComercial"));
         oce.setDesctoComercial(rs.getDouble("desctoComercial"));
         oce.setDesctoProntoPago(rs.getDouble("desctoProntoPago"));
+        oce.setImporteTotal(rs.getDouble("total"));
         DAOProveedores daoP = new DAOProveedores();
         int idProveedor = rs.getInt("idProveedor");
         if (idProveedor == 0) {
