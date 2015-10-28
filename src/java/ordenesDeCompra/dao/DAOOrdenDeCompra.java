@@ -290,7 +290,24 @@ public class DAOOrdenDeCompra {
             cn.close();
         }
     }
-
+// SOLAMENTE PARA ACTUALIZAR LA TABLA CUANDO ENTRE A CONSULTAR
+//    public void actualizaTotal(int idOrden, double totalOc) throws SQLException{
+//        Connection cn = this.ds.getConnection();
+//        Statement st = cn.createStatement();
+//        PreparedStatement ps2;
+//        try {
+//
+//            //CABECERO
+//            String strSQL2 = "UPDATE ordenCompra SET total="+ totalOc +"WHERE idOrdenCompra=" + idOrden;
+//            ps2 = cn.prepareStatement(strSQL2);
+//            ps2.executeUpdate();
+//        } catch (SQLException e) {
+//            throw (e);
+//        } finally {
+//            cn.close();
+//        }
+//
+//}
     public void cancelarOrdenCompra(int idOrden) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
@@ -352,9 +369,10 @@ public class DAOOrdenDeCompra {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
             String ordenEncabezado = "INSERT INTO ordenCompra(idCotizacion, fechaServidor, fechaCierreOficina, fechaCancelacion, estado, desctoComercial,"
-                    + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, idEmpresa) "
+                    + " desctoProntoPago, fechaEntrega, idMoneda, idProveedor, estadoAlmacen, total, idEmpresa) "
                     + "VALUES(0, GETDATE(), '','', 5, " + mp.getDesctoComercial() + ", "
-                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() + ", 5," + oced.getEmpresa().getIdEmpresa() + ")";
+                    + " " + mp.getDesctoProntoPago() + ", '" + fecha.toString() + "', " + oced.getMoneda().getIdMoneda() + ", " + mp.getIdProveedor() 
+                    + ", 5," + oced.getImporteTotal() + ","+ oced.getEmpresa().getIdEmpresa() + ")";
             st.executeUpdate(ordenEncabezado);
 
             ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEncabezado");
@@ -395,13 +413,24 @@ public class DAOOrdenDeCompra {
         try {
 
             String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaServidor, oc.fechaEntrega,\n"
-                    + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor\n"
+                    + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor,oc.total\n"
                     + "    from ordenCompra oc\n"
                     + "	   inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
                     + "	   inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
                     + "	   inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
                     + "	   where oc.idCotizacion=0 and oc.estado=5\n"
                     + "	   order by oc.idOrdenCompra desc";
+
+            //CARGAR TODAS LAS ORDENES DE COMPRA YA CON EL TOTAL CALCULADO
+//            String stringSQL = "Select oc.idOrdenCompra, eg.nombreComercial, c.contribuyente, oc.fechaServidor, oc.fechaEntrega,\n"
+//                    + "	   oc.desctoComercial, oc.desctoProntoPago, oc.estado, oc.idMoneda, oc.idEmpresa, oc.idProveedor,oc.total\n"
+//                    + "    from ordenCompra oc\n"
+//                    + "	   inner join proveedores p on  p.idProveedor = oc.idProveedor\n"
+//                    + "	   inner join contribuyentes c on c.idContribuyente =p.idContribuyente\n"
+//                    + "	   inner join empresasGrupo eg on eg.idEmpresa = oc.idEmpresa\n"
+//                    + "	   where oc.idCotizacion=0\n"
+//                    + "	   order by oc.idOrdenCompra desc";
+
             ResultSet rs = sentencia.executeQuery(stringSQL);
             while (rs.next()) {
                 listaD.add(construirOCEncabezadoD(rs));
@@ -451,6 +480,7 @@ public class DAOOrdenDeCompra {
             oced.getProveedor().setDireccionEntrega(daoD.obtener(idDireccionEntrega));
         }
         oced.setEstado(rs.getInt("estado"));
+        oced.setImporteTotal(rs.getDouble("total"));
         oced.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         return oced;
     }
@@ -460,11 +490,17 @@ public class DAOOrdenDeCompra {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
 
-        String sql = "SELECT top 1 (D.costo / tipoDeCambio) AS costo, D.fecha,idReferencia,idEmpaque\n"
-                + "FROM movimientosDetalle D\n"
-                + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "WHERE M.idEmpresa="+ idEmpresa +" AND M.idTipo=1 AND M.idReferencia="+ idProveedor +" and D.idEmpaque="+ idEmpaque
-                + " ORDER BY D.fecha DESC";
+//        String sql = "SELECT top 1 (D.costo / tipoDeCambio) AS costo, D.fecha,idReferencia,idEmpaque\n"
+//                + "FROM movimientosDetalle D\n"
+//                + "     INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                + "WHERE M.idEmpresa="+ idEmpresa +" AND M.idTipo=1 AND M.idReferencia="+ idProveedor +" and D.idEmpaque="+ idEmpaque
+//                + " ORDER BY D.fecha DESC";
+        
+        String sql = "SELECT TOP 1 OCD.costoOrdenado "
+                + "FROM ordenCompraDetalle OCD "
+                + "INNER JOIN ordenCompra OC ON OC.idOrdenCompra = OCD.idOrdenCompra "
+                + "WHERE OC.idEmpresa ="+idEmpresa+ " AND OC.idProveedor = "+idProveedor+" AND OCD.idEmpaque = "+idEmpaque+" AND OC.estado=7 "
+                + "ORDER BY OC.fechaServidor DESC";
         
 //        SELECT top 1 D.costo, D.fecha,idReferencia,idEmpaque
 //            FROM movimientosDetalle D
