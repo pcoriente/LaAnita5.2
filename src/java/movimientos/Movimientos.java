@@ -522,7 +522,7 @@ public class Movimientos {
     }
 
     public static void actualizaDetalleOficina(Connection cn, int idMovto, int idTipo, boolean suma) throws SQLException {
-        int regs, n;
+//        int regs, n;
         String strSQL;
         try (Statement st = cn.createStatement()) {
             strSQL = "DELETE I\n"
@@ -550,34 +550,49 @@ public class Movimientos {
                     + "WHERE D.idMovto=" + idMovto + " AND E.idEmpresa IS NULL";
             st.executeUpdate(strSQL);
 
-            regs = 0;
-            strSQL = "SELECT COUNT(*) AS regs FROM movimientosDetalle WHERE idMovto=" + idMovto;
-            ResultSet rs = st.executeQuery(strSQL);
-            if (rs.next()) {
-                regs = rs.getInt("regs");
-            }
+//            regs = 0;
+//            strSQL = "SELECT COUNT(*) AS regs FROM movimientosDetalle WHERE idMovto=" + idMovto;
+//            ResultSet rs = st.executeQuery(strSQL);
+//            if (rs.next()) {
+//                regs = rs.getInt("regs");
+//            }
             if (suma) {
                 if (idTipo == 1) { // Compra con o sin orden de compra
+//                    strSQL = "UPDATE D\n"
+//                            + "SET costoPromedio=CASE WHEN M.referencia=0\n"
+//                            + "                       THEN ROUND(D.unitario*D.cantFacturada/(D.cantFacturada+D.cantSinCargo), 6)\n"
+//                            + "                       ELSE ROUND(D.unitario*S.cantOrdenada/(S.cantOrdenada+S.cantOrdenadaSinCargo), 6) END\n"
+//                            + "FROM movimientosDetalle D\n"
+//                            + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                            + "LEFT JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+//                            + "WHERE D.idMovto=" + idMovto;
                     strSQL = "UPDATE D\n"
-                            + "SET costoPromedio=CASE WHEN M.referencia=0\n"
-                            + "                       THEN ROUND(D.unitario*D.cantFacturada/(D.cantFacturada+D.cantSinCargo), 6)\n"
-                            + "                       ELSE ROUND(D.unitario*S.cantOrdenada/(S.cantOrdenada+S.cantOrdenadaSinCargo), 6) END\n"
+                            + "SET costoPromedio=ROUND(D.unitario*D.cantFacturada/(D.cantFacturada+D.cantSinCargo), 6)\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                             + "LEFT JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
 
+                    strSQL = "INSERT INTO proveedoresProductos (idEmpresa, idProveedor, idEmpaque, sku, idUnidadEmpaque, piezas, idMarca, producto, idPresentacion, contenido, idUnidadMedida, idUnidadMedida2, idImpuestosGrupo, diasEntrega, idMovtoUltimaCompra)\n"
+                            + "SELECT M.idEmpresa, M.idReferencia, D.idEmpaque, '', 0, 0, 0, '', 0, 0, 0, 0, 0, 0, 0\n"
+                            + "FROM movimientosDetalle D\n"
+                            + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                            + "LEFT JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
+                            + "WHERE D.idMovto="+idMovto+" AND P.idEmpresa IS NULL";
+                    st.executeUpdate(strSQL);
+
                     strSQL = "UPDATE P\n"
                             + "SET idMovtoUltimaCompra=M.idMovto\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                            + "INNER JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEquivalencia=D.idEmpaque\n"
+                            + "INNER JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
-                    n=st.executeUpdate(strSQL);
-                    if(n!=regs) {
-                        throw new SQLException("No estan todos los productos dados de alta para el proveedor !!!");
-                    }
+//                    n = st.executeUpdate(strSQL);
+                    st.executeUpdate(strSQL);
+//                    if (n != regs) {
+//                        throw new SQLException("No estan todos los productos dados de alta para el proveedor !!!");
+//                    }
                 } else if (idTipo == 3 || idTipo == 18) {    // Entrada de producto terminado y semiterminado
                     strSQL = "UPDATE MD\n" // Toma el costo de la formula
                             + "SET MD.costoPromedio=F.costoUnitarioPromedio, MD.costo=F.costoUnitarioPromedio, MD.unitario=F.costoUnitarioPromedio\n"
@@ -586,7 +601,7 @@ public class Movimientos {
                             + "INNER JOIN formulas F ON F.idEmpresa=M.idEmpresa AND F.idEmpaque=MD.idEmpaque\n"
                             + "WHERE MD.idMovto=" + idMovto;
                 } else {    // Todos los demas movimientos, se actualizan con el costo de ultima compra de la empresa
-                            // No importa a cual proveedor
+                    // No importa a cual proveedor
 //                    double costo;
 //                    strSQL="UPDATE movimientosDetalle SET costo=?, unitario=?, costoPromedio=? WHERE idMovto=" + idMovto + " AND idEmpaque=?";
 //                    PreparedStatement ps = cn.prepareStatement(strSQL);
@@ -617,7 +632,8 @@ public class Movimientos {
                         + "FROM movimientosDetalle D\n"
                         + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto + " AND D.costo=0";
-                rs = st.executeQuery(strSQL);
+//                rs = st.executeQuery(strSQL);
+                ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     throw new SQLException("El empaque (sku=" + rs.getInt("cod_pro") + ") no tiene costo !!!");
                 }

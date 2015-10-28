@@ -403,7 +403,7 @@
                                             <h:outputText value="#{cmp.idOrdenCompra}" />
                                         </p:column>
                                         <p:column headerText="Estatus" style="width: 60px;" >
-                                            <h:outputText value="#{cmp.estatus==0?'Pendiente':cmp.estatus==5?'Terminada':'Devuelta'}" />
+                                            <h:outputText value="#{cmp.estatus==0?'Pendiente':cmp.estatus==7?'Terminada':'Devuelta'}" />
                                         </p:column>
                                     </p:dataTable>
                                 </p:column>
@@ -414,7 +414,7 @@
                                         <p:commandButton id="btnCerrarComprobante" icon="ui-icon-locked" title="Cerrar el comprobante"
                                                          disabled="#{mbComprasAlmacen.mbComprobantes.comprobante.cerradoAlmacen}"
                                                          process="@this" actionListener="#{mbComprasAlmacen.mbComprobantes.cerrarAlmacen()}" 
-                                                         update="@this :main:msgsListaEntradas" />
+                                                         update="@this :main:msgsListaEntradas :main:btnImprimirComprobante" />
                                     </p:column>
                                     <p:column style="text-align: right;" >
                                         <p:commandButton id="btnSeleccionarCompra" icon="ui-icon-check" title="Seleccionar el movimiento"
