@@ -156,10 +156,7 @@ public class MbAgentes implements Serializable {
                 } else {
                     Mensajes.mensajeAlert(error);
                 }
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
+            } catch (NamingException | SQLException ex) {
                 Mensajes.mensajeError(ex.getMessage());
                 Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
             } catch (NullPointerException ex) {

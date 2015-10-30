@@ -237,7 +237,7 @@ public class MbOrdenCompra implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
-    
+
     public void dameOrdenCompra() {
         listaOrdenDetalle = new ArrayList<>();
         this.subtotalGeneral = 0;
@@ -746,7 +746,9 @@ public class MbOrdenCompra implements Serializable {
         DAOOrdenDeCompra daoOC = new DAOOrdenDeCompra();
         ArrayList<OrdenCompraEncabezado> listaD = daoOC.listaOrdenesD();
         for (OrdenCompraEncabezado oced : listaD) {
-            //oced.setImporteTotal(dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced));
+            //quitar despues de carga
+            //oced.setImporteTotal(dameImporteOrdenCompra(oced.getIdOrdenCompra(), oced.getProveedor().getImpuestoZona().getIdZona(), oced));//calculo, quitar despues de asignar al registro
+
             listaOrdenesEncabezadoD.add(oced);
             totales = new TotalesOrdenCompra();
             subtotalGeneral = 0.00;
@@ -944,6 +946,9 @@ public class MbOrdenCompra implements Serializable {
         totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
         totales.setImpuesto(Redondear(impuestos));
         totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+        ordenCompraEncabezadoDirecta.setImporteTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+        //ordenCompraEncabezado.setImporteTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+        System.out.println("estoy en el refresh calcularImporte " + ordenCompraEncabezadoDirecta.getImporteTotal());
     }
 
     public void dameOrdenCompraDirectaV(SelectEvent event) {
@@ -957,7 +962,7 @@ public class MbOrdenCompra implements Serializable {
         subtotalGeneral = 0;
         descuentoGeneralAplicado = 0;
         double costoConDescuentos;
-        
+
         listaOrdenDetalleD = new ArrayList<>();
         try {
             int idOC = ordenElegidaD.getIdOrdenCompra();
@@ -972,7 +977,7 @@ public class MbOrdenCompra implements Serializable {
                 descuentoPP = ((d.getCantOrdenada() * d.getCostoOrdenado()) - descuentoC) * (ordenElegidaD.getDesctoProntoPago() / 100);
                 desctoProd1 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP)) * (d.getDescuentoProducto() / 100);
                 desctoProd2 = ((d.getCantOrdenada() * d.getCostoOrdenado()) - (descuentoC + descuentoPP + desctoProd1)) * (d.getDescuentoProducto2() / 100);
-                
+
                 costoConDescuentos = d.getCostoOrdenado() * ((1 - (ordenElegidaD.getDesctoComercial() / 100)) * (1 - (ordenElegidaD.getDesctoProntoPago() / 100)) * (1 - (d.getDescuentoProducto() / 100)) * (1 - (d.getDescuentoProducto2() / 100)));
 
                 double neto2 = sumaCostoCotizado - (descuentoC + descuentoPP + desctoProd1 + desctoProd2);
@@ -997,6 +1002,8 @@ public class MbOrdenCompra implements Serializable {
             totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
             totales.setImpuesto(Redondear(impuestos));
             totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+            ordenCompraEncabezado.setImporteTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+            System.out.println("estoy en el refresh del metodo dameOrdenCompraDirectaV  " + ordenCompraEncabezado.getImporteTotal());
         } catch (NamingException | SQLException ex) {
             Mensajes.MensajeErrorP(ex.getMessage());
         }
@@ -1050,6 +1057,8 @@ public class MbOrdenCompra implements Serializable {
             totales.setSubtotalBruto(Redondear(totales.getSubtotalGeneral() - totales.getSumaDescuentoTotales()));
             totales.setImpuesto(Redondear(impuestos));
             totales.setTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+            ordenCompraEncabezado.setImporteTotal(Redondear(totales.getImpuesto() + totales.getSubtotalBruto()));
+            System.out.println("estoy en el refresh del dameImporteOrdenCompra  " + ordenCompraEncabezado.getImporteTotal());
             //aqui actualizo
             //daoTotOc.actualizaTotal(idOrdenCompra, totales.getTotal());
         } catch (NamingException ex) {
