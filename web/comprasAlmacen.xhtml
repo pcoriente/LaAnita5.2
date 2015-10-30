@@ -414,7 +414,7 @@
                                         <p:commandButton id="btnCerrarComprobante" icon="ui-icon-locked" title="Cerrar el comprobante"
                                                          disabled="#{mbComprasAlmacen.mbComprobantes.comprobante.cerradoAlmacen}"
                                                          process="@this" actionListener="#{mbComprasAlmacen.mbComprobantes.cerrarAlmacen()}" 
-                                                         update="@this :main:msgsListaEntradas main:btnImprimirComprobante" />
+                                                         update="@this :main:msgsListaEntradas :main:btnImprimirComprobante" />
                                     </p:column>
                                     <p:column style="text-align: right;" >
                                         <p:commandButton id="btnSeleccionarCompra" icon="ui-icon-check" title="Seleccionar el movimiento"

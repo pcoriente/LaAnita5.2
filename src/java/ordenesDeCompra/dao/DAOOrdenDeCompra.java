@@ -81,7 +81,7 @@ public class DAOOrdenDeCompra {
         Statement sentencia = cn.createStatement();
         try {
 
-            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda \n"
+            String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estado, oc.idMoneda, oc.total \n"
                     + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                     + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(c.desctoComercial,0.00) as desctoComercial, isnull(c.desctoProntoPago,0.00) as desctoProntoPago\n"
                     + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
@@ -111,7 +111,7 @@ public class DAOOrdenDeCompra {
 
     public ArrayList<OrdenCompraEncabezado> listaOrdenesAlmacen(int idProveedor, int status) throws SQLException, NamingException {
         ArrayList<OrdenCompraEncabezado> lista = new ArrayList<>();
-        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda \n"
+        String stringSQL = "select oc.idOrdenCompra, oc.fechaServidor, oc.fechaCierreOficina, oc.fechaCierreAlmacen, oc.fechaCancelacion, oc.fechaEntrega, oc.estadoAlmacen as estado, oc.idMoneda, oc.total \n"
                 + "                                       , m.idMoneda, m.Moneda, m.codigoIso\n"
                 + "                                       , isnull(c.idCotizacion, 0) as idCotizacion, isnull(c.idRequisicion,0) as idRequisicion, isnull(oc.desctoComercial,0.00) as desctoComercial, isnull(oc.desctoProntoPago,0.00) as desctoProntoPago\n"
                 + "                                       , isnull(c.idProveedor,0) as idProveedor, isnull(c.idDireccionEntrega,0) as idDireccionEntrega\n"
