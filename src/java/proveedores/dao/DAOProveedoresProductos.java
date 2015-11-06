@@ -15,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import producto2.dominio.Empaque;
 import producto2.dominio.Marca;
+import producto2.dominio.Parte;
 import producto2.dominio.Presentacion;
 import producto2.dominio.Producto;
 import proveedores.dominio.ProveedorProducto;
@@ -44,64 +45,54 @@ public class DAOProveedoresProductos {
     }
 
     public void modificar(int idEmpresa, int idProveedor, ProveedorProducto pp) throws SQLException {
-        Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
         String strSQL = "UPDATE proveedoresProductos\n"
                 + "SET sku='" + pp.getSku() + "'"
-                + ", diasEntrega=" + pp.getDiasEntrega()
                 + ", idUnidadEmpaque=" + pp.getEmpaque().getIdEmpaque()
                 + ", piezas=" + pp.getPiezas()
                 + ", idMarca=" + pp.getMarca().getIdMarca()
-                + ", producto='" + pp.getProducto() + "'"
+                + ", idParte=" + pp.getParte().getIdParte()
+                + ", descripcion='" + pp.getDescripcion() + "'"
                 + ", idPresentacion=" + pp.getPresentacion().getIdPresentacion()
                 + ", contenido=" + pp.getContenido()
                 + ", idUnidadMedida=" + pp.getUnidadMedida().getIdUnidadMedida()
                 + ", idUnidadMedida2=" + pp.getUnidadMedida2().getIdUnidadMedida()
                 + ", idImpuestosGrupo=" + pp.getImpuestoGrupo().getIdGrupo()
-                + ", idEquivalencia=" + pp.getEquivalencia().getIdProducto() + "\n"
-                + "WHERE idEmpresa=" + idEmpresa + " AND idProveedor=" + idProveedor + " AND idProducto=" + pp.getIdProducto();
-        try {
+                + ", diasEntrega=" + pp.getDiasEntrega() + "\n"
+                + "WHERE idEmpresa=" + idEmpresa + " AND idProveedor=" + idProveedor + " AND idEmpaque=" + pp.getEquivalencia().getIdProducto();
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
             st.executeUpdate(strSQL);
         } finally {
             cn.close();
         }
     }
 
-    public int agregar(int idEmpresa, int idProveedor, ProveedorProducto pp) throws SQLException {
-        int idProducto = 0;
-        String strSQL = "INSERT INTO proveedoresProductos (idEmpresa, idProveedor, sku, diasEntrega, idUnidadEmpaque, piezas, idMarca, producto, idPresentacion, contenido, idUnidadMedida, idUnidadMedida2, idImpuestosGrupo, idEquivalencia) "
-                + "     VALUES (" + idEmpresa + ", " + idProveedor + ", '" + pp.getSku() + "', " + pp.getDiasEntrega() + ", " + pp.getEmpaque().getIdEmpaque() + ", " + pp.getPiezas() + ", " + pp.getMarca().getIdMarca() + ""
-                + "             , '" + pp.getProducto() + "', " + pp.getPresentacion().getIdPresentacion() + ", " + pp.getContenido() + ""
-                + "             , " + pp.getUnidadMedida().getIdUnidadMedida() + ", " + pp.getUnidadMedida2().getIdUnidadMedida() + ", " + pp.getImpuestoGrupo().getIdGrupo() + ", " + pp.getEquivalencia().getIdProducto() + ")";
+    public void agregar(int idEmpresa, int idProveedor, ProveedorProducto pp) throws SQLException {
+        String strSQL = "INSERT INTO proveedoresProductos (idEmpresa, idProveedor, idEmpaque, sku, idUnidadEmpaque, piezas, idMarca, idParte, descripcion, idPresentacion, contenido, idUnidadMedida, idUnidadMedida2, idImpuestosGrupo, diasEntrega) "
+                + "     VALUES (" + idEmpresa + ", " + idProveedor + ", " + pp.getEquivalencia().getIdProducto() + ", '" + pp.getSku() + "', " + pp.getEmpaque().getIdEmpaque() + ", " + pp.getPiezas() + ", " + pp.getMarca().getIdMarca() + ""
+                + "             , " + pp.getParte().getIdParte() + ", '" + pp.getDescripcion() + "', " + pp.getPresentacion().getIdPresentacion() + ", " + pp.getContenido() + ""
+                + "             , " + pp.getUnidadMedida().getIdUnidadMedida() + ", " + pp.getUnidadMedida2().getIdUnidadMedida() + ", " + pp.getImpuestoGrupo().getIdGrupo() + ", " + pp.getDiasEntrega() + ")";
         Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
-            st.executeUpdate("begin transaction");
+        try (Statement st = cn.createStatement()) {
             st.executeUpdate(strSQL);
-            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idProducto");
-            if (rs.next()) {
-                idProducto = rs.getInt("idProducto");
-            }
-            st.executeUpdate("commit transaction");
-        } catch (SQLException ex) {
-            st.executeUpdate("rollback transaction");
-            throw (ex);
+            pp.setNuevo(false);
         } finally {
             cn.close();
         }
-        return idProducto;
     }
 
     public ArrayList<ProveedorProducto> obtenerProductos(int idEmpresa, int idProveedor) throws SQLException {
         ArrayList<ProveedorProducto> lista = new ArrayList<>();
 
         Connection cn = ds.getConnection();
-        String strSQL = this.sqlProducto() + " WHERE p.idEmpresa="+idEmpresa+" AND p.idProveedor=" + idProveedor + " ORDER BY p.sku";
+        String strSQL = this.sqlProducto() + "\n"
+                + "WHERE p.idEmpresa=" + idEmpresa + " AND p.idProveedor=" + idProveedor + "\n"
+                + "ORDER BY p.sku";
         try {
             Statement sentencia = cn.createStatement();
             ResultSet rs = sentencia.executeQuery(strSQL);
             while (rs.next()) {
-                lista.add(construir(rs));
+                lista.add(this.construir(rs));
             }
         } finally {
             cn.close();
@@ -113,12 +104,13 @@ public class DAOProveedoresProductos {
         ProveedorProducto p = null;
 
         Connection cn = ds.getConnection();
-        String strSQL = this.sqlProducto() + " WHERE p.idEmpresa=" + idEmpresa + " AND p.idProveedor=" + idProveedor + " AND idProducto=" + idProducto;
+        String strSQL = this.sqlProducto() + "\n"
+                + "WHERE p.idEmpresa=" + idEmpresa + " AND p.idProveedor=" + idProveedor + " AND p.idEmpaque=" + idProducto;
         try {
             Statement sentencia = cn.createStatement();
             ResultSet rs = sentencia.executeQuery(strSQL);
             if (rs.next()) {
-                p = construir(rs);
+                p = this.construir(rs);
             }
         } finally {
             cn.close();
@@ -128,44 +120,49 @@ public class DAOProveedoresProductos {
 
     private ProveedorProducto construir(ResultSet rs) throws SQLException {
         ProveedorProducto pp = new ProveedorProducto();
-        pp.setIdProducto(rs.getInt("idProducto"));
+        pp.setNuevo(false);
+        pp.setEquivalencia(new Producto());
+        pp.getEquivalencia().setIdProducto(rs.getInt("idEmpaque"));
         pp.setSku(rs.getString("sku"));
         pp.setDiasEntrega(rs.getInt("diasEntrega"));
-        pp.setUltimaCompraFecha(rs.getDate("ultimaCompraFecha"));
-        pp.setUltimaCompraPrecio(rs.getDouble("ultimaCompraPrecio"));
         pp.setEmpaque(new Empaque(rs.getInt("idUnidad"), rs.getString("unidad"), rs.getString("unidAbrev")));
         pp.setPiezas(rs.getInt("piezas"));
         pp.setMarca(new Marca(rs.getInt("idMarca"), rs.getString("marca"), false));
-        pp.setProducto(rs.getString("producto"));
+        pp.setParte(new Parte(rs.getInt("idParte"), rs.getString("parte")));
+        pp.setDescripcion(rs.getString("descripcion"));
         pp.setPresentacion(new Presentacion(rs.getInt("idPresentacion"), rs.getString("presentacion"), rs.getString("presAbrev")));
         pp.setContenido(rs.getDouble("contenido"));
         pp.setUnidadMedida(new UnidadMedida(rs.getInt("idUnidadMedida1"), rs.getString("unidadMedida1"), rs.getString("abreviatura1")));
         pp.setUnidadMedida2(new UnidadMedida(rs.getInt("idUnidadMedida2"), rs.getString("unidadMedida2"), rs.getString("abreviatura2")));
         pp.setImpuestoGrupo(new ImpuestoGrupo(rs.getInt("idGrupo"), rs.getString("grupo")));
-        pp.setEquivalencia(new Producto());
-        pp.getEquivalencia().setIdProducto(rs.getInt("idEquivalencia"));
+        pp.setUltimaCompraFecha(new java.util.Date(rs.getTimestamp("ultimaCompraFecha").getTime()));
+        pp.setUltimaCompraPrecio(rs.getDouble("ultimaCompraPrecio"));
         return pp;
     }
 
     private String sqlProducto() {
-        return "select p.idProducto, p.sku, p.diasEntrega\n"
-                + " , ISNULL(d.fecha, '1900-01-01') AS ultimaCompraFecha, ISNULL(d.unitario, 0) AS ultimaCompraPrecio, p.idEquivalencia\n"
+        return "select p.idEmpaque\n"
+                + " , p.sku\n"
                 + " , u.idUnidad, u.unidad, u.abreviatura as unidAbrev\n"
                 + " , p.piezas\n"
                 + " , isnull(m.idMarca, 0) as idMarca, isnull(m.marca, '') as marca\n"
-                + " , p.producto\n"
+                + " , isnull(ppt.idParte, 0) as idParte, isnull(ppt.parte, '') as parte\n"
+                + " , p.descripcion\n"
                 + " , pp.idPresentacion, pp.presentacion, pp.abreviatura as presAbrev\n"
                 + " , p.contenido\n"
                 + " , um1.idUnidadMedida as idUnidadMedida1, um1.unidadMedida as unidadMedida1, um1.abreviatura as abreviatura1\n"
                 + " , isnull(um2.idUnidadMedida, 0) as idUnidadMedida2, isnull(um2.unidadMedida, '') as unidadMedida2, isnull(um2.abreviatura, '') as abreviatura2\n"
-                + " , i.idGrupo, i.grupo \n"
+                + " , i.idGrupo, i.grupo\n"
+                + " , p.diasEntrega\n"
+                + " , isnull(d.fecha, '1900-01-01') as ultimaCompraFecha, isnull(d.unitario, 0.00) as ultimaCompraPrecio\n"
                 + "from proveedoresProductos p\n"
                 + "inner join empaquesUnidades u on u.idUnidad=p.idUnidadEmpaque\n"
                 + "left join productosMarcas m on m.idMarca=p.idMarca\n"
+                + "inner join productosPartes ppt on ppt.idParte=p.idParte\n"
                 + "inner join productosPresentaciones pp on pp.idPresentacion=p.idPresentacion\n"
                 + "inner join unidadesMedida um1 on um1.idUnidadMedida=p.idUnidadMedida\n"
                 + "left join unidadesMedida um2 on um2.idUnidadMedida=p.idUnidadMedida2\n"
                 + "inner join impuestosGrupos i on i.idGrupo=p.idImpuestosGrupo\n"
-                + "left join movimientosDetalle d on d.idMovto=p.idMovtoUltimaCompra and d.idEmpaque=p.idEquivalencia";
+                + "left join movimientosDetalle d on d.idMovto=p.idMovtoUltimaCompra and d.idEmpaque=p.idEmpaque\n";
     }
 }

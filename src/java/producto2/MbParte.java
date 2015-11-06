@@ -28,6 +28,10 @@ public class MbParte implements Serializable {
         this.parte=new Parte();
     }
     
+    public void copia(Parte parte) {
+        this.parte=new Parte(parte.getIdParte(), parte.getParte());
+    }
+    
     public void nueva() {
         if(this.parte!=null) {
             this.parte.setIdParte(0);

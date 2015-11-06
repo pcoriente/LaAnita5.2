@@ -5,8 +5,6 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -101,7 +99,7 @@ public class MbClasificaciones implements Serializable {
     
     public ArrayList<Clasificacion> obtenerClasificaciones() {
         boolean ok = false;
-        ArrayList<Clasificacion> lstClasificaciones=new ArrayList<Clasificacion>();
+        ArrayList<Clasificacion> lstClasificaciones=new ArrayList<>();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         try {
             this.dao=new DAOClasificaciones();
@@ -206,7 +204,7 @@ public class MbClasificaciones implements Serializable {
     
     public ArrayList<SubClasificacion> obtenerSubClasificaciones(int idClasificacion) {
         boolean ok = false;
-        ArrayList<SubClasificacion> lstSubClasificaciones=new ArrayList<SubClasificacion>();
+        ArrayList<SubClasificacion> lstSubClasificaciones=new ArrayList<>();
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         try {
             this.dao=new DAOClasificaciones();

@@ -15,12 +15,14 @@ import javax.naming.NamingException;
 import org.primefaces.context.RequestContext;
 import producto2.MbEmpaques;
 import producto2.MbMarca;
+import producto2.MbParte;
 import producto2.MbPresentacion;
 import producto2.MbProductosBuscar;
 import producto2.dao.DAOEmpaques;
 import producto2.dao.DAOMarcas;
 import producto2.dominio.Empaque;
 import producto2.dominio.Marca;
+import producto2.dominio.Parte;
 import producto2.dominio.Presentacion;
 //import productos.MbMarca;
 //import productos.MbProducto;
@@ -61,6 +63,9 @@ public class MbProveedorProducto implements Serializable {
     private ArrayList<SelectItem> listaEmpaques;
     @ManagedProperty(value = "#{mbEmpaques}")
     private MbEmpaques mbEmpaques;
+    @ManagedProperty(value = "#{mbParte}")
+    private MbParte mbParte;
+//    private ArrayList<SelectItem> listaPartes;
     @ManagedProperty(value = "#{mbPresentacion}")
     private MbPresentacion mbPresentacion;
     private ArrayList<SelectItem> listaUnidadesMedida;
@@ -76,6 +81,7 @@ public class MbProveedorProducto implements Serializable {
         this.idProveedor = idProveedor;
         this.producto = new ProveedorProducto();
         this.mbMarca = new MbMarca();
+        this.mbParte = new MbParte();
         this.mbEmpaques = new MbEmpaques();
         this.mbPresentacion = new MbPresentacion();
         this.mbUnidadMedida = new MbUnidadMedida();
@@ -99,8 +105,8 @@ public class MbProveedorProducto implements Serializable {
             fMsg.setDetail("Se requiere la unidad de empaque del producto");
         } else if (this.producto.getPiezas() < 1) {
             fMsg.setDetail("Las piezas deben ser un número mayor o igual a 1");
-        } else if (this.producto.getProducto().isEmpty()) {
-            fMsg.setDetail("Se requiere la descripción del producto");
+        } else if (this.producto.getParte().getIdParte()==0) {
+            fMsg.setDetail("Se requiere el genérico del producto");
         } else if (this.producto.getPresentacion().getIdPresentacion() == 0) {
             fMsg.setDetail("Se requiere la presentación del producto");
 //        } else if (this.producto.getPresentacion().getIdPresentacion() > 1 && (this.producto.getContenido() <= 0 || this.producto.getContenido() >= 1000)) {
@@ -113,8 +119,8 @@ public class MbProveedorProducto implements Serializable {
         } else {
             try {
                 this.dao = new DAOProveedoresProductos();
-                if (this.producto.getIdProducto() == 0) {
-                    this.producto.setIdProducto(this.dao.agregar(this.idEmpresa, this.idProveedor, this.producto));
+                if (this.producto.isNuevo()) {
+                    this.dao.agregar(this.idEmpresa, this.idProveedor, this.producto);
                 } else {
                     this.dao.modificar(this.idEmpresa, this.idProveedor, this.producto);
                 }
@@ -201,6 +207,28 @@ public class MbProveedorProducto implements Serializable {
         } else {
             this.mbPresentacion.copia(this.producto.getPresentacion());
 //            this.mbPresentacion.setPresentacion(this.mbPresentacion.copia(this.producto.getPresentacion()));
+        }
+    }
+    
+    public void eliminarParte() {
+        if(this.mbParte.eliminar(this.producto.getParte().getIdParte())) {
+            this.producto.setParte(null);
+//            this.listaPartes = null;
+        }
+    }
+    
+    public void grabarParte() {
+        if(this.mbParte.grabar()) {
+            this.producto.setParte(this.mbParte.getParte());
+//            this.listaPartes = null;
+        }
+    }
+    
+    public void mttoPartes() {
+        if(this.producto.getParte()==null) {
+            this.mbParte.setParte(new Parte(0, ""));
+        } else {
+            this.mbParte.copia(this.producto.getParte());
         }
     }
 
@@ -296,6 +324,23 @@ public class MbProveedorProducto implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
+    
+//    public void cargaPartes() {
+//        this.listaPartes = new ArrayList<>();
+//        try {
+//            Parte p0 = new Parte(0, "SELECCIONE UNA PARTE");
+//            this.listaPartes.add(new SelectItem(p0, p0.toString()));
+//            
+//            DAOPartes daoPartes = new DAOPartes();
+//            for (Parte p : daoPartes.obtenerPartes()) {
+//                this.listaPartes.add(new SelectItem(p, p.toString()));
+//            }
+//        } catch (NamingException ex) {
+//            Mensajes.mensajeError(ex.getMessage());
+//        } catch (SQLException ex) {
+//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+//        }
+//    }
 
     public void cargaUnidadesMedida() {
         this.listaUnidadesMedida = new ArrayList<>();
@@ -346,29 +391,22 @@ public class MbProveedorProducto implements Serializable {
 
     private void copia(ProveedorProducto producto) {
         this.producto = new ProveedorProducto();
-        this.producto.setIdProducto(producto.getIdProducto());
-        this.producto.setProducto(producto.getProducto());
-        this.producto.setDiasEntrega(producto.getDiasEntrega());
-        Marca m = new Marca();
-        m.setIdMarca(producto.getMarca().getIdMarca());
-        m.setMarca(producto.getMarca().getMarca());
-        m.setProduccion(producto.getMarca().isProduccion());
-        this.producto.setMarca(m);
-        this.producto.setPiezas(producto.getPiezas());
-        this.producto.setContenido(producto.getContenido());
-        this.producto.setSku(producto.getSku());
-        Empaque unidadEmpaque = new Empaque();
-        unidadEmpaque.setIdEmpaque(producto.getEmpaque().getIdEmpaque());
-        unidadEmpaque.setEmpaque(producto.getEmpaque().getEmpaque());
-        unidadEmpaque.setAbreviatura(producto.getEmpaque().getAbreviatura());
-        this.producto.setEmpaque(unidadEmpaque);
-        UnidadMedida unidadMedida = new UnidadMedida(producto.getUnidadMedida().getIdUnidadMedida(), producto.getUnidadMedida().getUnidadMedida(), producto.getUnidadMedida().getAbreviatura());
-        this.producto.setUnidadMedida(unidadMedida);
-        UnidadMedida unidadMedida2 = new UnidadMedida(producto.getUnidadMedida2().getIdUnidadMedida(), producto.getUnidadMedida2().getUnidadMedida(), producto.getUnidadMedida2().getAbreviatura());
-        this.producto.setUnidadMedida2(unidadMedida2);
-        this.producto.setPresentacion(new Presentacion(producto.getPresentacion().getIdPresentacion(), producto.getPresentacion().getPresentacion(), producto.getPresentacion().getAbreviatura()));
-        this.producto.setImpuestoGrupo(new ImpuestoGrupo(producto.getImpuestoGrupo().getIdGrupo(), producto.getImpuestoGrupo().getGrupo()));
+        this.producto.setNuevo(producto.isNuevo());
         this.producto.setEquivalencia(producto.getEquivalencia());
+        this.producto.setSku(producto.getSku());
+        this.producto.setMarca(new Marca(producto.getMarca().getIdMarca(), producto.getMarca().getMarca(), producto.getMarca().isProduccion()));
+        this.producto.setParte(new Parte(producto.getParte().getIdParte(), producto.getParte().getParte()));
+        this.producto.setDescripcion(producto.getDescripcion());
+        this.producto.setPiezas(producto.getPiezas());
+        this.producto.setPresentacion(new Presentacion(producto.getPresentacion().getIdPresentacion(), producto.getPresentacion().getPresentacion(), producto.getPresentacion().getAbreviatura()));
+        this.producto.setContenido(producto.getContenido());
+        this.producto.setEmpaque(new Empaque(producto.getEmpaque().getIdEmpaque(), producto.getEmpaque().getEmpaque(), producto.getEmpaque().getAbreviatura()));
+        this.producto.setUnidadMedida(new UnidadMedida(producto.getUnidadMedida().getIdUnidadMedida(), producto.getUnidadMedida().getUnidadMedida(), producto.getUnidadMedida().getAbreviatura()));
+        this.producto.setUnidadMedida2(new UnidadMedida(producto.getUnidadMedida2().getIdUnidadMedida(), producto.getUnidadMedida2().getUnidadMedida(), producto.getUnidadMedida2().getAbreviatura()));
+        this.producto.setImpuestoGrupo(new ImpuestoGrupo(producto.getImpuestoGrupo().getIdGrupo(), producto.getImpuestoGrupo().getGrupo()));
+        this.producto.setDiasEntrega(producto.getDiasEntrega());
+        this.producto.setUltimaCompraFecha(producto.getUltimaCompraFecha());
+        this.producto.setUltimaCompraPrecio(producto.getUltimaCompraPrecio());
     }
 
     public ProveedorProducto getProducto() {
@@ -404,6 +442,25 @@ public class MbProveedorProducto implements Serializable {
 
     public void setMbPresentacion(MbPresentacion mbPresentacion) {
         this.mbPresentacion = mbPresentacion;
+    }
+
+//    public ArrayList<SelectItem> getListaPartes() {
+//        if(this.listaPartes == null) {
+//            this.cargaPartes();
+//        }
+//        return listaPartes;
+//    }
+//
+//    public void setListaPartes(ArrayList<SelectItem> listaPartes) {
+//        this.listaPartes = listaPartes;
+//    }
+
+    public MbParte getMbParte() {
+        return mbParte;
+    }
+
+    public void setMbParte(MbParte mbParte) {
+        this.mbParte = mbParte;
     }
 
     public ArrayList<SelectItem> getListaUnidadesMedida() {

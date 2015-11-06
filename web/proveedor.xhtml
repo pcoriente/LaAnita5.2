@@ -192,7 +192,7 @@
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnMttoTelefonos" icon="ui-icon-pencil" title="Mtto.Teléfonos" 
-                                                     disabled="#{mbProveedores.contacto.idContacto==0}"
+                                                     disabled="#{mbProveedores.contacto==null or mbProveedores.contacto.idContacto==0}"
                                                      process="@this telefono" actionListener="#{mbProveedores.mttoTelefono()}" 
                                                      update="msgs mttoTelefonos" oncomplete="PF('mttoTelefonosDialog').show()" />
                                 </p:column>
@@ -245,6 +245,7 @@
                                     <p:selectOneMenu id="impuestoZona" value="#{mbProveedores.proveedor.impuestoZona}" style="margin: 0px;" >
                                         <f:converter converterId="converters.ImpuestoZona" />
                                         <f:selectItems value="#{mbProveedores.mbImpuestoZona.listaZonas}" />
+                                        <p:ajax event="change" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column colspan="2" >
@@ -272,8 +273,9 @@
                             <f:facet name="footer" >
                                 <p:row >
                                     <p:column colspan="6" style="text-align: right;" >
-                                        <p:commandButton icon="ui-icon-disk" title="Grabar" actionListener="#{mbProveedores.grabar()}" 
-                                                         update="msgs" />
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar" 
+                                                         process="@this nombreComercial" actionListener="#{mbProveedores.grabar()}" 
+                                                         update="msgs :main:btnMttoContactos :main:btnMttoTelefonos" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                          action="#{mbProveedores.salir()}" ajax="false" immediate="true" />
                                     </p:column>

@@ -12,7 +12,7 @@ public class Contribuyente implements Serializable {
     private String contribuyente;
     private int idRfc;
     private String rfc;
-    private Direccion direccion = new Direccion();
+    private Direccion direccion;
     private String curp;
     
     public Contribuyente(int idRfc, String rfc) {
@@ -24,9 +24,7 @@ public class Contribuyente implements Serializable {
     }
 
     public Contribuyente() {
-        this.idContribuyente = 0;
         this.contribuyente = "";
-        this.idRfc = 0;
         this.rfc = "";
         this.curp = "";
         this.direccion = new Direccion();

@@ -133,8 +133,8 @@ public class MbProveedoresListas implements Serializable {
     
     public void modificarProductoLista() {
         this.modoEdicion=true;
-        this.mbOfertas.setIdProducto(this.producto.getIdProducto());
-        this.mbPrecios.setIdProducto(this.producto.getIdProducto());
+        this.mbOfertas.setIdProducto(0);
+        this.mbPrecios.setIdProducto(0);
         this.productoLista.setProducto(this.producto);
         this.mbPrecios.setPrecios(null);
         this.mbOfertas.setOfertas(null);
@@ -154,6 +154,7 @@ public class MbProveedoresListas implements Serializable {
         this.listaProductos=null;
         this.listaFiltrados=null;
         this.producto=null;
+        this.mbProducto.getMbParte().nueva();
         this.mbOfertas.setOfertas(null);
         this.mbPrecios.setPrecios(null);
         return "proveedoresListas.xhtml";

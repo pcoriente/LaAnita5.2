@@ -15,7 +15,7 @@
     <body>
         <div id="wrapper" align="center">
             <ui:include src="wrapper.xhtml" />
-            <div id="content" align="left"  >
+            <div id="content" align="left" >
                 <h:form id="form" >
                     <p:panel id="listas" header="LISTAS DE PROVEEDORES" styleClass="quitaCuadro" 
                              rendered="#{not empty mbListas.acciones and not mbListas.modoEdicion}">
@@ -54,7 +54,7 @@
                         </p:panelGrid>
                         <p:dataTable id="listaProductos" widgetVar="productosTable" style="border:solid 1px"
                                      value="#{mbListas.listaProductos}" filteredValue="#{mbListas.listaFiltrados}" emptyMessage="No hay elementos que desplegar"
-                                     var="producto" rowKey="#{producto.idProducto}" selectionMode="single" selection="#{mbListas.producto}"
+                                     var="producto" rowKey="#{producto.equivalencia.idProducto}" selectionMode="single" selection="#{mbListas.producto}"
                                      scrollable="true" scrollHeight="300" >
                             <p:ajax event="rowSelect" update=":form:lnkModifProductoProveedor" />
 
@@ -171,7 +171,7 @@
                                 <p:column >
                                     <p:commandButton id="btnNuevoPrecio" icon="ui-icon-document" title="Nuevo cambio de precio" 
                                                      process="@this" actionListener="#{mbListas.mantenimientoPrecio(true)}" 
-                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevoPrecio') or mbListas.productoLista.producto.idProducto==0}"
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevoPrecio') or mbListas.productoLista.producto.nuevo}"
                                                      update="msgs2 mttoPrecios" oncomplete="PF('mttoPreciosDlg').show()" />
                                     <p:commandButton id="btnMttoPrecio" icon="ui-icon-pencil" title="Modificar cambio de precio" 
                                                      disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoPrecio') or mbListas.precio==null}"
@@ -214,7 +214,7 @@
                                 <p:column >
                                     <p:commandButton id="btnNuevaOferta" icon="ui-icon-document" title="Nueva Oferta" 
                                                      process="@this" actionListener="#{mbListas.mantenimientoOferta(true)}" 
-                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevaOferta') or mbListas.productoLista.producto.idProducto==0}"
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnNuevaOferta') or mbListas.productoLista.producto.nuevo}"
                                                      update="msgs2 mttoOfertas" oncomplete="PF('mttoOfertasDlg').show()" />
                                     <p:commandButton id="btnMttoOferta" icon="ui-icon-pencil" title="Modificar Oferta" 
                                                      disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoOferta') or mbListas.oferta==null}"
@@ -235,6 +235,22 @@
                     <p:dialog header="MANTENIMIENTO DE PRODUCTOS" widgetVar="mttoProdsDlg" resizable="false" style="width: 500px;" modal="true" >
                         <p:messages id="messages0" showDetail="true" closable="true" />
                         <p:panelGrid id="mttoProductos" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtEquivalencia" value="EQUIVALENCIA :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="txtEquivalencia" value="#{mbListas.mbProducto.producto.equivalencia.toString()}" 
+                                                 readonly="true" maxlength="120" size="80" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnEquivalencias" icon="ui-icon-search" title="Buscar Productos" 
+                                                     process="@this" actionListener="#{mbListas.mbProducto.mbBuscar.inicializar()}" 
+                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnEquivalencias')}"
+                                                     update="buscarProductos listaBuscarProductos" 
+                                                     oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
                             <p:row >
                                 <p:column >
                                     <h:outputLabel for="txtSKU" value="SKU :" style="font-weight: bold; color: red; width: 120px;" />
@@ -275,14 +291,6 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel for="txtProducto" value="DESCRIPCION :" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column colspan="3">
-                                    <p:inputText id="txtProducto" value="#{mbListas.mbProducto.producto.producto}" maxlength="80" size="85" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
                                     <h:outputLabel for="marca" value="MARCA :" style="font-weight: bold; color: red; width: 120px;" />
                                 </p:column>
                                 <p:column style="width: 150px;" >
@@ -297,6 +305,30 @@
                                                      disabled="#{not mbListas.mbAcciones.validarAccion('btnMttoMarcas')}"
                                                      process="@this marca" update="mttoMarcas" 
                                                      oncomplete="PF('mttoMarcasDlg').show()" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="generico" value="GENERICO :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column style="width: 150px;" >
+                                    <p:autoComplete id="generico" value="#{mbListas.mbProducto.producto.parte}"
+                                                    completeMethod="#{mbListas.mbProducto.mbParte.completePartes}" maxlength="40" size="38"
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" forceSelection="true" >
+                                    </p:autoComplete>
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnMttoParte" icon="ui-icon-pencil" title="Agregar o Editar el generico seleccionado" 
+                                                     process="@this generico" actionListener="#{mbListas.mbProducto.mttoPartes()}" 
+                                                     update="generico" oncomplete="PF('mttoGenericosDlg').show();" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtDescripcion" value="DESCRIPCION :" style="font-weight: bold; color: red; width: 120px;" />
+                                </p:column>
+                                <p:column colspan="3">
+                                    <p:inputText id="txtDescripcion" value="#{mbListas.mbProducto.producto.descripcion}" maxlength="80" size="85" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -362,22 +394,6 @@
                                     </pe:inputNumber>
                                 </p:column>
                             </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel for="txtEquivalencia" value="EQUIVALENCIA :" style="font-weight: bold; color: red; width: 120px;" />
-                                </p:column>
-                                <p:column colspan="2" >
-                                    <p:inputText id="txtEquivalencia" value="#{mbListas.mbProducto.producto.equivalencia.toString()}" 
-                                                 readonly="true" maxlength="120" size="80" />
-                                </p:column>
-                                <p:column >
-                                    <p:commandButton id="btnEquivalencias" icon="ui-icon-search" title="Buscar Productos" 
-                                                     process="@this" actionListener="#{mbListas.mbProducto.mbBuscar.inicializar()}" 
-                                                     disabled="#{not mbListas.mbAcciones.validarAccion('btnEquivalencias')}"
-                                                     update="buscarProductos listaBuscarProductos" 
-                                                     oncomplete="PF('buscarProductoDlg').show()" />
-                                </p:column>
-                            </p:row>
                             <f:facet name="footer" >
                                 <p:row >
                                     <p:column colspan="4" style="text-align: right;" >
@@ -385,6 +401,35 @@
                                                          actionListener="#{mbListas.grabarProducto()}" 
                                                          update="messages0 panelProductoLista" 
                                                          oncomplete="handleProveedorProducto(xhr, status, args)" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="MANTENIMIENTO DE GENERICOS" widgetVar="mttoGenericosDlg" resizable="false" style="width: 350px;" modal="true" >
+                        <p:messages id="msgPartes" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="mttoPartes" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="txtGenerico" value="GENERICO :" 
+                                                   style="font-weight: bold; color: red; width: 100px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="txtGenerico" value="#{mbListas.mbProducto.mbParte.parte.parte}" 
+                                                 maxlength="30" size="35" />
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column style="text-align: left;" >
+                                        <p:commandButton icon="ui-icon-trash" title="Eliminar" 
+                                                         process="@this" actionListener="#{mbListas.mbProducto.eliminarParte()}" 
+                                                         update="generico" oncomplete="PF('mttoGenericoDlg').hide();" />
+                                    </p:column>
+                                    <p:column style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-disk" title="Grabar" 
+                                                         process="@this txtGenerico" actionListener="#{mbListas.mbProducto.grabarParte()}" 
+                                                         update="generico" oncomplete="PF('mttoGenericoDlg').hide();" />
                                     </p:column>
                                 </p:row>
                             </f:facet>

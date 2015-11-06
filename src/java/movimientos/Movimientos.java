@@ -574,8 +574,8 @@ public class Movimientos {
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
 
-                    strSQL = "INSERT INTO proveedoresProductos (idEmpresa, idProveedor, idEmpaque, sku, idUnidadEmpaque, piezas, idMarca, producto, idPresentacion, contenido, idUnidadMedida, idUnidadMedida2, idImpuestosGrupo, diasEntrega, idMovtoUltimaCompra)\n"
-                            + "SELECT M.idEmpresa, M.idReferencia, D.idEmpaque, '', 0, 0, 0, '', 0, 0, 0, 0, 0, 0, 0\n"
+                    strSQL = "INSERT INTO proveedoresProductos (idEmpresa, idProveedor, idEmpaque, sku, idUnidadEmpaque, piezas, idMarca, idParte, descripcion, idPresentacion, contenido, idUnidadMedida, idUnidadMedida2, idImpuestosGrupo, diasEntrega, idMovtoUltimaCompra)\n"
+                            + "SELECT M.idEmpresa, M.idReferencia, D.idEmpaque, '', 0, 0, 0, 0, '', 0, 0, 0, 0, 0, 0, 0\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                             + "LEFT JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
