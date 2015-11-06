@@ -22,6 +22,7 @@ import monedas.DAOMonedas;
 import monedas.Moneda;
 import ordenesDeCompra.dominio.OrdenCompraDetalle;
 import ordenesDeCompra.dominio.OrdenCompraEncabezado;
+import ordenesDeCompra.dominio.TotalesOrdenCompra;
 import producto2.dominio.Producto;
 import proveedores.dao.DAOProveedores;
 import proveedores.dominio.MiniProveedor;
@@ -175,6 +176,7 @@ public class DAOOrdenDeCompra {
 
     private OrdenCompraEncabezado construirOCEncabezado(ResultSet rs) throws SQLException, NamingException {
         OrdenCompraEncabezado oce = new OrdenCompraEncabezado();
+        TotalesOrdenCompra oct = new TotalesOrdenCompra();
         Moneda moneda = new Moneda();
         moneda.setIdMoneda(rs.getInt("idMoneda"));
         moneda.setMoneda(rs.getString("moneda"));
@@ -212,6 +214,7 @@ public class DAOOrdenDeCompra {
         oce.setEstado(rs.getInt("estado"));
         oce.setStatus(DameEstados.dameEstado(rs.getInt("estado")));
         oce.setMoneda(moneda);
+        
         return oce;
     }
 
@@ -289,24 +292,24 @@ public class DAOOrdenDeCompra {
             cn.close();
         }
     }
-// SOLAMENTE PARA ACTUALIZAR LA TABLA CUANDO ENTRE A CONSULTAR
-//    public void actualizaTotal(int idOrden, double totalOc) throws SQLException{
-//        Connection cn = this.ds.getConnection();
-//        Statement st = cn.createStatement();
-//        PreparedStatement ps2;
-//        try {
-//
-//            //CABECERO
-//            String strSQL2 = "UPDATE ordenCompra SET total="+ totalOc +"WHERE idOrdenCompra=" + idOrden;
-//            ps2 = cn.prepareStatement(strSQL2);
-//            ps2.executeUpdate();
-//        } catch (SQLException e) {
-//            throw (e);
-//        } finally {
-//            cn.close();
-//        }
-//
-//}
+// SOLAMENTE PARA ACTUALIZAR LA TABLA CUANDO ENTRE A CONSULTAR, COMENTAR CUANDO SE ACTUALIZE
+    public void actualizaTotal(int idOrden, double totalOc) throws SQLException{
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
+        PreparedStatement ps2;
+        try {
+
+            //CABECERO
+            String strSQL2 = "UPDATE ordenCompra SET total="+ totalOc +"WHERE idOrdenCompra=" + idOrden;
+            ps2 = cn.prepareStatement(strSQL2);
+            ps2.executeUpdate();
+        } catch (SQLException e) {
+            throw (e);
+        } finally {
+            cn.close();
+        }
+
+}
     public void cancelarOrdenCompra(int idOrden) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
@@ -363,7 +366,7 @@ public class DAOOrdenDeCompra {
         String ordenDetalle;
 
         java.sql.Date fecha = new java.sql.Date(oced.getFechaEntregaDirectas().getTime());
-
+System.out.println("ante de guardar los datos totales "+oced.getImporteTotal());
         try {
             st.executeUpdate("BEGIN TRANSACTION");
             //CABECERO
@@ -495,7 +498,7 @@ public class DAOOrdenDeCompra {
 //                + "WHERE M.idEmpresa="+ idEmpresa +" AND M.idTipo=1 AND M.idReferencia="+ idProveedor +" and D.idEmpaque="+ idEmpaque
 //                + " ORDER BY D.fecha DESC";
         
-        String sql = "SELECT TOP 1 OCD.costoOrdenado "
+        String sql = "SELECT TOP 1 OCD.costoOrdenado AS costo "
                 + "FROM ordenCompraDetalle OCD "
                 + "INNER JOIN ordenCompra OC ON OC.idOrdenCompra = OCD.idOrdenCompra "
                 + "WHERE OC.idEmpresa ="+idEmpresa+ " AND OC.idProveedor = "+idProveedor+" AND OCD.idEmpaque = "+idEmpaque+" AND OC.estado=7 "

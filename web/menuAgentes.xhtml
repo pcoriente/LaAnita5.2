@@ -88,20 +88,15 @@
                               closable="false">
                         <center>
 
-                            <h:panelGrid columns="3" 
-                                         id="panelNuevoAgente">
+                            <h:panelGrid columns="3" id="panelNuevoAgente">
                                 <h:outputText  value="Contribuyente:" />
                                 <p:inputText id="txtAgenteContribuyente" 
-                                             value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
-                                             disabled="true"
-                                             style="background-color: white"/>
-                                <p:commandButton icon="ui-icon-plusthick"
-                                                 title="Datos del Contribuyente"
-                                                 oncomplete="PF('dlgContribuyente').show();"
-                                                 process="@this"
-                                                 actionListener="#{mbAgentes.dameContribuyente()}"
-                                                 update="growl panelContribuyente"
-                                                 />
+                                             value="#{mbAgentes.mbBuscarContribuyente.strBuscar}" 
+                                             maxlength="13" size="15" />
+                                <p:commandButton icon="ui-icon-search" 
+                                                 title="Buscar Contribuyente" 
+                                                 actionListener="#{mbAgentes.buscar()}" 
+                                                 update="growl panelContribuyente"/>
                                 <h:outputText value="Codigo:"/>
                                 <p:inputText id="txtCodigo" value="#{mbAgentes.agente.codigo}"/>
                                 <h:outputText />
@@ -140,6 +135,7 @@
                                                  process="@this"
                                                  actionListener="#{mbAgentes.respaldoDireccionAgente()}"
                                                  update="cboPaises asentamientos cboAsentamientos localidad municipio estado gln calle  noExterior noInterior referencia :form:codigoPostal "/>
+
                                 <h:outputText id="lblContacto" value="Contactos :" rendered="#{mbAgentes.actualizar==1}" />
                                 <p:selectOneMenu style="width: 167px"
                                                  value="#{mbAgentes.mbContactos.contacto}"
@@ -157,6 +153,7 @@
                                             listener="#{mbAgentes.cargarTelefonos()}"/>
                                 </p:selectOneMenu>
                                 <h:outputLabel rendered="#{mbAgentes.actualizar==1}"/>
+
                                 <h:outputText id="lblCorreos" value="Correo :" rendered="#{mbAgentes.actualizar==1}" />
                                 <p:selectOneMenu style="width: 167px"
                                                  value="#{mbAgentes.mbContactos.correo}"
@@ -174,6 +171,7 @@
                                                  update=":form:txtCorreoA"
                                                  process="@this"
                                                  oncomplete="PF('dlgCorreos').show();"/>
+
                                 <h:outputText id="lblTelefonos" value="Telefonos :" rendered="#{mbAgentes.actualizar==1}"/>
                                 <p:selectOneMenu style="width: 167px"
                                                  value="#{mbAgentes.mbContactos.mbTelefonos.telefono}"
