@@ -23,7 +23,7 @@
                                 <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="almacen" value="#{mbVentas.mbAlmacenes.almacen}" >
+                                <p:selectOneMenu id="almacen" value="#{mbVentas.mbAlmacenes.toAlmacen}" >
                                     <f:converter converterId="converters.MiniAlmacenConverter" />
                                     <f:selectItems value="#{mbVentas.mbAlmacenes.listaAlmacenes}" />
                                     <p:ajax event="change" listener="#{mbVentas.obtenerPedidosAlmacen()}" 
@@ -41,7 +41,7 @@
                             </p:column>
                             <p:column >
                                 <p:calendar id="fechaInicial" value="#{mbVentas.fechaInicial}" readonly="#{!mbVentas.todos}" 
-                                            readonlyInput="true" disabled="#{mbVentas.mbAlmacenes.almacen.idAlmacen==0}"
+                                            readonlyInput="true" disabled="#{mbVentas.mbAlmacenes.toAlmacen.idAlmacen==0}"
                                             locale="es" navigator="true" pattern="dd/MM/yyyy" >
                                     <p:ajax event="dateSelect" process="@this" listener="#{mbVentas.obtenerPedidosAlmacen()}" 
                                             update=":main:msgsVenta :main:listaDePedidos" />

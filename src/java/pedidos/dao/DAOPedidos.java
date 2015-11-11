@@ -150,7 +150,7 @@ public class DAOPedidos {
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE movimientos\n"
-                        + "SET desctoComercial=" + toPed.getDesctoComercial() + ", propietario=0, estatus=1\n"
+                        + "SET desctoComercial=" + toPed.getDesctoComercial() + ", propietario=0, estatus=5\n"
                         + "WHERE idMovto=" + toPed.getIdMovto();
                 st.executeUpdate(strSQL);
 
@@ -168,12 +168,12 @@ public class DAOPedidos {
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE movimientosAlmacen\n"
-                        + "SET propietario=0, estatus=1\n"
+                        + "SET propietario=0, estatus=5\n"
                         + "WHERE idMovtoAlmacen=" + toPed.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE pedidos\n"
-                        + "SET idUsuario=" + this.idUsuario + ", fecha=GETDATE(), estatus=1\n"
+                        + "SET idUsuario=" + this.idUsuario + ", fecha=GETDATE(), estatus=5\n"
                         + "WHERE idPedido=" + toPed.getReferencia();
                 st.executeUpdate(strSQL);
 
@@ -276,9 +276,9 @@ public class DAOPedidos {
         }
     }
 
-    private void actualizaProductoPedido(Connection cn, TOPedido toMov, TOProductoPedido to) throws SQLException {
-        movimientos.Movimientos.actualizaProductoPrecio(cn, toMov, to);
-        this.actualizaProductoCantidadPedido(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), to.getIdPedido(), to);
+    private void actualizaProductoPedido(Connection cn, TOPedido toMov, TOProductoPedido toProd) throws SQLException {
+        movimientos.Movimientos.actualizaProductoPrecio(cn, toMov, toProd);
+        this.actualizaProductoCantidadPedido(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdPedido(), toProd);
     }
 
 //    public void actualizarPedido(int idEmpresa, TOPedido toMov, ArrayList<TOProductoPedido> tos) throws SQLException {
@@ -320,7 +320,9 @@ public class DAOPedidos {
                     toPed.setEstatus(rs.getInt("estatus"));
                     toPed.setPropietario(rs.getInt("propietario"));
                     if (toPed.getPropietario() == 0) {
-                        strSQL = "UPDATE movimientos SET propietario=" + this.idUsuario + " WHERE idMovto=" + toPed.getIdMovto();
+                        toPed.setPropietario(this.idUsuario);
+                        strSQL = "UPDATE movimientos SET propietario=" + this.idUsuario + "\n"
+                                + "WHERE idMovto=" + toPed.getIdMovto();
                         st.executeUpdate(strSQL);
                     }
                 } else {

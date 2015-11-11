@@ -662,18 +662,9 @@ public class MbComprasOficina implements Serializable {
 
     public CompraOficina convertir(TOMovimientoOficina toMov) throws SQLException {
         CompraOficina mov = new CompraOficina(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-        mov.setIdMovto(toMov.getIdMovto());
-        mov.setAlmacen(this.mbAlmacenes.getToAlmacen());
-        mov.setFolio(toMov.getFolio());
         mov.setComprobante(this.mbComprobantes.obtenerComprobante(toMov.getIdComprobante()));
-        mov.setTipoDeCambio(toMov.getTipoDeCambio());
-        mov.setDesctoComercial(toMov.getDesctoComercial());
-        mov.setDesctoProntoPago(toMov.getDesctoProntoPago());
-        mov.setFecha(toMov.getFecha());
-        mov.setIdUsuario(toMov.getIdUsuario());
-        mov.setProveedor(this.mbProveedores.getMiniProveedor());
+        movimientos.Movimientos.convertir(toMov, mov);
         mov.setIdOrdenCompra(toMov.getReferencia());
-        mov.setEstatus(toMov.getEstatus());
         return mov;
     }
 
@@ -941,6 +932,7 @@ public class MbComprasOficina implements Serializable {
         this.mbComprobantes.setIdTipoMovto(1);
         this.mbComprobantes.setIdReferencia(this.mbProveedores.getMiniProveedor().getIdProveedor());
         this.mbComprobantes.setComprobante(null);
+        this.mbComprobantes.setSeleccion(null);
     }
 
     public void salir() {

@@ -150,7 +150,7 @@ public class DAOMovimientos {
                 if (n == 0) {
                     strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
                             + "VALUES (" + idMovtoAlmacen + ", " + idProducto + ", '" + lote + "', " + cantSeparar + ", '', 0)";
-                    st.executeUpdate(strSQL);
+                    st1.executeUpdate(strSQL);
                 }
                 cantSolicitada -= cantSeparar;
                 if (cantSolicitada == 0) {

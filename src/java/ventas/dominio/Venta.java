@@ -1,167 +1,124 @@
 package ventas.dominio;
 
-import almacenes.dominio.MiniAlmacen;
+import almacenes.to.TOAlmacenJS;
 import clientes.to.TOCliente;
+import comprobantes.dominio.Comprobante;
 import formatos.dominio.ClienteFormato;
 import java.util.Date;
-import monedas.Moneda;
+import movimientos.dominio.MovimientoOficina;
+import movimientos.dominio.MovimientoTipo;
 import tiendas.to.TOTienda;
 
 /**
  *
  * @author jesc
  */
-public class Venta {
-    private int idMovto;
-    private int idTipo;
-    private MiniAlmacen almacen;
-    private int folio;
-    private double desctoComercial;
-    private Date fecha;
-    private int idUsuario;
-    private Moneda moneda;
-    private double tipoCambio;
+public class Venta extends MovimientoOficina {
+    private int idPedidoOC;
+    private String ordenDeCompra;
+    private Date ordenDeCompraFecha;
+    private String canceladoMotivo;
+    private Date canceladoFecha;
+    private Comprobante comprobante;
     private TOTienda tienda;
     private ClienteFormato formato;
     private TOCliente cliente;
     private int idPedido;
-    private int status;
-//    /////////////////////////////////
-//    private String remision;
-//    private Date fechaComprobante;
-//    /////////////////////////////////
-    private int idMovtoAlmacen;
-//    private Date fechaAlmacen;
-//    private int idUsuarioAlmacen;
-//    private int statusAlmacen;
-    /////////////////////////////////
-    private double cantArticulos;
-    private double subTotal;
-    private double descuento;
-    private double impuesto;
-    private double total;
     
     public Venta() {
-        this.idTipo=28;
-        this.almacen=new MiniAlmacen();
-        this.fecha=new Date();
-        this.moneda=new Moneda();
-        this.tipoCambio=1;
+        super(new MovimientoTipo(28, "VENTA"));
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
+        this.canceladoMotivo="";
+        this.canceladoFecha=new Date();
+        this.comprobante=new Comprobante();
         this.tienda=new TOTienda();
         this.formato=new ClienteFormato();
         this.cliente=new TOCliente();
-//        this.remision="";
-//        this.fechaComprobante=new Date();
-//        this.fechaAlmacen=new Date();
     }
     
-    public Venta(MiniAlmacen almacen, TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
-        this.idTipo=28;
-        this.almacen=almacen;
-        this.desctoComercial=cliente.getDesctoComercial();
-        this.fecha=new Date();
-        this.moneda=new Moneda();
-        this.tipoCambio=1;
+    public Venta(TOAlmacenJS almacen, TOTienda tienda) {
+        super(new MovimientoTipo(28, "VENTA"), almacen);
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
+        this.canceladoMotivo="";
+        this.canceladoFecha=new Date();
+        this.comprobante=new Comprobante();
+        this.tienda=tienda;
+        this.formato=new ClienteFormato();
+        this.cliente=new TOCliente();
+    }
+    
+    public Venta(TOAlmacenJS almacen, TOTienda tienda, ClienteFormato formato, TOCliente cliente) {
+        super(new MovimientoTipo(28, "VENTA"), almacen);
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
+        this.canceladoMotivo="";
+        this.canceladoFecha=new Date();
+        this.comprobante=new Comprobante();
         this.tienda=tienda;
         this.formato=formato;
         this.cliente=cliente;
-//        this.remision="";
-//        this.fechaComprobante=new Date();
-//        this.fechaAlmacen=new Date();
+    }
+    
+    public Venta(TOAlmacenJS almacen, Comprobante comprobante, TOTienda tienda) {
+        super(new MovimientoTipo(28, "VENTA"), almacen);
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
+        this.canceladoMotivo="";
+        this.canceladoFecha=new Date();
+        this.comprobante=comprobante;
+        this.tienda=tienda;
+        this.formato=new ClienteFormato();
+        this.cliente=new TOCliente();
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 47 * hash + this.idMovto;
-        return hash;
+    public int getIdPedidoOC() {
+        return idPedidoOC;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Venta other = (Venta) obj;
-        if (this.idMovto != other.idMovto) {
-            return false;
-        }
-        return true;
+    public void setIdPedidoOC(int idPedidoOC) {
+        this.idPedidoOC = idPedidoOC;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public String getOrdenDeCompra() {
+        return ordenDeCompra;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setOrdenDeCompra(String ordenDeCompra) {
+        this.ordenDeCompra = ordenDeCompra;
     }
 
-    public int getIdTipo() {
-        return idTipo;
+    public Date getOrdenDeCompraFecha() {
+        return ordenDeCompraFecha;
     }
 
-    public void setIdTipo(int idTipo) {
-        this.idTipo = idTipo;
+    public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
+        this.ordenDeCompraFecha = ordenDeCompraFecha;
     }
 
-    public MiniAlmacen getAlmacen() {
-        return almacen;
+    public String getCanceladoMotivo() {
+        return canceladoMotivo;
     }
 
-    public void setAlmacen(MiniAlmacen almacen) {
-        this.almacen = almacen;
+    public void setCanceladoMotivo(String canceladoMotivo) {
+        this.canceladoMotivo = canceladoMotivo;
     }
 
-    public int getFolio() {
-        return folio;
+    public Date getCanceladoFecha() {
+        return canceladoFecha;
     }
 
-    public void setFolio(int folio) {
-        this.folio = folio;
+    public void setCanceladoFecha(Date canceladoFecha) {
+        this.canceladoFecha = canceladoFecha;
     }
 
-    public double getDesctoComercial() {
-        return desctoComercial;
+    public Comprobante getComprobante() {
+        return comprobante;
     }
 
-    public void setDesctoComercial(double desctoComercial) {
-        this.desctoComercial = desctoComercial;
-    }
-
-    public Date getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(Date fecha) {
-        this.fecha = fecha;
-    }
-
-    public int getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    public Moneda getMoneda() {
-        return moneda;
-    }
-
-    public void setMoneda(Moneda moneda) {
-        this.moneda = moneda;
-    }
-
-    public double getTipoCambio() {
-        return tipoCambio;
-    }
-
-    public void setTipoCambio(double tipoCambio) {
-        this.tipoCambio = tipoCambio;
+    public void setComprobante(Comprobante comprobante) {
+        this.comprobante = comprobante;
     }
 
     public TOTienda getTienda() {
@@ -194,101 +151,5 @@ public class Venta {
 
     public void setIdPedido(int idPedido) {
         this.idPedido = idPedido;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-//    public String getRemision() {
-//        return remision;
-//    }
-//
-//    public void setRemision(String remision) {
-//        this.remision = remision;
-//    }
-//
-//    public Date getFechaComprobante() {
-//        return fechaComprobante;
-//    }
-//
-//    public void setFechaComprobante(Date fechaComprobante) {
-//        this.fechaComprobante = fechaComprobante;
-//    }
-
-    public int getIdMovtoAlmacen() {
-        return idMovtoAlmacen;
-    }
-
-    public void setIdMovtoAlmacen(int idMovtoAlmacen) {
-        this.idMovtoAlmacen = idMovtoAlmacen;
-    }
-
-//    public Date getFechaAlmacen() {
-//        return fechaAlmacen;
-//    }
-//
-//    public void setFechaAlmacen(Date fechaAlmacen) {
-//        this.fechaAlmacen = fechaAlmacen;
-//    }
-//
-//    public int getIdUsuarioAlmacen() {
-//        return idUsuarioAlmacen;
-//    }
-//
-//    public void setIdUsuarioAlmacen(int idUsuarioAlmacen) {
-//        this.idUsuarioAlmacen = idUsuarioAlmacen;
-//    }
-//
-//    public int getStatusAlmacen() {
-//        return statusAlmacen;
-//    }
-//
-//    public void setStatusAlmacen(int statusAlmacen) {
-//        this.statusAlmacen = statusAlmacen;
-//    }
-
-    public double getSubTotal() {
-        return subTotal;
-    }
-
-    public void setSubTotal(double subTotal) {
-        this.subTotal = subTotal;
-    }
-
-    public double getDescuento() {
-        return descuento;
-    }
-
-    public void setDescuento(double descuento) {
-        this.descuento = descuento;
-    }
-
-    public double getImpuesto() {
-        return impuesto;
-    }
-
-    public void setImpuesto(double impuesto) {
-        this.impuesto = impuesto;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public void setTotal(double total) {
-        this.total = total;
-    }
-
-    public double getCantArticulos() {
-        return cantArticulos;
-    }
-
-    public void setCantArticulos(double cantArticulos) {
-        this.cantArticulos = cantArticulos;
     }
 }

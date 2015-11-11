@@ -383,6 +383,7 @@ public class MbComprasAlmacen implements Serializable {
 
     private CompraAlmacen convertir(TOMovimientoAlmacen to) {
         CompraAlmacen c = new CompraAlmacen(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
+        c.setComprobante(this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
         c.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         c.setIdOrdenCompra(to.getReferencia());
         c.setFolio(to.getFolio());
@@ -628,6 +629,7 @@ public class MbComprasAlmacen implements Serializable {
         this.mbComprobantes.setIdTipoMovto(1);
         this.mbComprobantes.setIdReferencia(this.mbProveedores.getMiniProveedor().getIdProveedor());
         this.mbComprobantes.setComprobante(null);
+        this.mbComprobantes.setSeleccion(null);
     }
 
     public void salir() {

@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import movimientos.dominio.ProductoAlmacen;
 import movimientos.dominio.MovimientoAlmacen;
 import movimientos.dominio.MovimientoOficina;
@@ -394,6 +396,166 @@ public class Movimientos {
         mov.setTotal(mov.getTotal() + Math.round(suma * 1000000.00) / 1000000.00);          // Suma el importe al total
     }
 
+    public static void liberar(Connection cn, TOMovimientoOficina toMov, int idProducto, double cantSolicitada) throws SQLException {
+        String lote;
+        double cantLiberar;
+        double cantLiberada = 0;
+        String strSQL = "SELECT D.lote, D.cantidad, ISNULL(A.separados, 0) AS separados\n"
+                + "FROM movimientosDetalleAlmacen D\n"
+                + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                + "WHERE D.idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND D.idEmpaque=" + idProducto + "\n"
+                + "ORDER BY A.fechaCaducidad DESC";
+        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                lote = rs.getString("lote");
+                if (rs.getDouble("separados") < rs.getDouble("cantidad")) {
+                    throw new SQLException("Inconsistencia: lote separados menor que producto cantidad. Producto (id=" + idProducto + "), lote: " + lote + " !!!");
+                }
+                cantLiberar = cantSolicitada;
+                if (rs.getDouble("cantidad") <= cantSolicitada) {
+                    cantLiberar = rs.getDouble("cantidad");
+
+                    strSQL = "DELETE FROM movimientosDetalleAlmacen\n"
+                            + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                } else {
+                    strSQL = "UPDATE movimientosDetalleAlmacen\n"
+                            + "SET cantidad=cantidad-" + cantLiberar + "\n"
+                            + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                }
+                st1.executeUpdate(strSQL);
+
+                strSQL = "UPDATE almacenesLotes\n"
+                        + "SET separados=separados-" + cantLiberar + "\n"
+                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                st1.executeUpdate(strSQL);
+
+                cantSolicitada -= cantLiberar;
+                cantLiberada += cantLiberar;
+                if (cantSolicitada == 0) {
+                    break;
+                }
+            }
+            if (cantSolicitada != 0) {
+                throw new SQLException("Inconsistencia de separados para liberar producto (id=" + idProducto + ") almacen !!!");
+            }
+            strSQL = "SELECT separados\n"
+                    + "FROM almacenesEmpaques\n"
+                    + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+            rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                if (rs.getDouble("separados") < cantLiberada) {
+                    throw new SQLException("Inconsistencia de separados para liberar en el producto (id=" + idProducto + ") oficina !!!");
+                }
+                strSQL = "UPDATE almacenesEmpaques\n"
+                        + "SET separados=separados-" + cantLiberada + "\n"
+                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+                st1.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalle\n"
+                        + "SET cantFacturada=cantFacturada-" + cantLiberada + "\n"
+                        + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+            } else {
+                throw new SQLException("No se encontro producto (id=" + idProducto + ") en almacenesEmpaques !!!");
+            }
+            cn.commit();
+        } catch (SQLException ex) {
+            cn.rollback();
+            throw ex;
+        } finally {
+            cn.setAutoCommit(true);
+        }
+    }
+
+    public static double separar(Connection cn, TOMovimientoOficina toMov, int idProducto, double cantSolicitada, boolean total) throws SQLException, Exception {
+        int n;
+        String lote;
+        double disponibles, cantSeparar;
+        String strSQL = "SELECT E.idAlmacen, E.idEmpaque\n"
+                + "     , E.existencia-E.separados AS disponiblesOficina\n"
+                + "     , L.disponibles AS disponiblesAlmacen\n"
+                + "FROM (SELECT idAlmacen, idEmpaque, SUM(existencia-separados) AS disponibles\n"
+                + "		FROM almacenesLotes\n"
+                + "		WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + "\n"
+                + "		GROUP BY idAlmacen, idEmpaque) L\n"
+                + "INNER JOIN almacenesEmpaques E ON E.idAlmacen=L.idAlmacen AND E.idEmpaque=L.idEmpaque";
+        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                disponibles = rs.getDouble("disponiblesOficina");
+                if (rs.getDouble("disponiblesAlmacen") < disponibles) {
+                    disponibles = rs.getDouble("disponiblesAlmacen");
+                }
+            } else {
+                throw new Exception("No hay existencia disponible !!!");
+            }
+            if (disponibles > 0) {
+                if (disponibles < cantSolicitada) {
+                    if (total) {
+                        throw new Exception("No hay existencia total disponible !!!");
+                    }
+                    cantSolicitada = disponibles;
+                }
+            } else {
+                throw new SQLException("No hay existencia disponible !!!");
+            }
+//            this.separa(cn, idMovto, idMovtoAlmacen, idAlmacen, idProducto, cantSolicitada);
+//            El metodo separa se encuentra en DAOMovimientos;
+            strSQL = "UPDATE almacenesEmpaques\n"
+                    + "SET separados=separados+" + cantSolicitada + "\n"
+                    + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE movimientosDetalle\n"
+                    + "SET cantFacturada=cantFacturada+" + cantSolicitada + "\n"
+                    + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idProducto;
+            st.executeUpdate(strSQL);
+
+            strSQL = "SELECT lote, existencia-separados AS disponibles\n"
+                    + "FROM almacenesLotes\n"
+                    + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND existencia > separados\n"
+                    + "ORDER BY fechaCaducidad";
+            rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                lote = rs.getString("lote");
+                cantSeparar = rs.getDouble("disponibles");
+                if (cantSolicitada < cantSeparar) {
+                    cantSeparar = cantSolicitada;
+                }
+                strSQL = "UPDATE almacenesLotes\n"
+                        + "SET separados=separados+" + cantSeparar + "\n"
+                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                st1.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalleAlmacen\n"
+                        + "SET cantidad=cantidad+" + cantSeparar + "\n"
+                        + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                n = st1.executeUpdate(strSQL);
+                if (n == 0) {
+                    strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
+                            + "VALUES (" + toMov.getIdMovtoAlmacen() + ", " + idProducto + ", '" + lote + "', " + cantSeparar + ", '', 0)";
+                    st1.executeUpdate(strSQL);
+                }
+                cantSolicitada -= cantSeparar;
+                if (cantSolicitada == 0) {
+                    break;
+                }
+            }
+            cn.commit();
+        } catch (SQLException ex) {
+            cn.rollback();
+            throw ex;
+        } catch (Exception ex) {
+            cn.rollback();
+            throw ex;
+        } finally {
+            cn.setAutoCommit(true);
+        }
+        return disponibles;
+    }
+
     public static void convertir(TOMovimientoOficina toMov, MovimientoOficina mov) {
         mov.setIdMovto(toMov.getIdMovto());
         mov.setFolio(toMov.getFolio());
@@ -579,7 +741,7 @@ public class Movimientos {
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                             + "LEFT JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
-                            + "WHERE D.idMovto="+idMovto+" AND P.idEmpresa IS NULL";
+                            + "WHERE D.idMovto=" + idMovto + " AND P.idEmpresa IS NULL";
                     st.executeUpdate(strSQL);
 
                     strSQL = "UPDATE P\n"
