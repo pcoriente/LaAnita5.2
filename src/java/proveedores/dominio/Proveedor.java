@@ -21,7 +21,7 @@ public class Proveedor implements Serializable {
     private TipoOperacion tipoOperacion;
     private TipoTercero tipoTercero;
     private ImpuestoZona impuestoZona;
-    private Direccion direccionFiscal;
+//    private Direccion direccionFiscal;
     private Direccion direccionEntrega;
     private int diasCredito;
     private double limiteCredito;
@@ -39,7 +39,7 @@ public class Proveedor implements Serializable {
         this.subClasificacion = new SubClasificacion();
         this.tipoOperacion = new TipoOperacion();
         this.tipoTercero = new TipoTercero();
-        this.contactos = new ArrayList<Contacto>();
+        this.contactos = new ArrayList<>();
         this.impuestoZona = new ImpuestoZona(0, "");
         this.direccionEntrega = new Direccion();
         this.diasCredito = 0;
@@ -104,13 +104,13 @@ public class Proveedor implements Serializable {
         this.impuestoZona = impuestoZona;
     }
 
-    public Direccion getDireccionFiscal() {
-        return direccionFiscal;
-    }
-
-    public void setDireccionFiscal(Direccion direccionFiscal) {
-        this.direccionFiscal = direccionFiscal;
-    }
+//    public Direccion getDireccionFiscal() {
+//        return direccionFiscal;
+//    }
+//
+//    public void setDireccionFiscal(Direccion direccionFiscal) {
+//        this.direccionFiscal = direccionFiscal;
+//    }
 
     public Direccion getDireccionEntrega() {
         return direccionEntrega;

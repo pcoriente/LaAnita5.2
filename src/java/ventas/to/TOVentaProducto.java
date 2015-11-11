@@ -1,18 +1,17 @@
-package ventas.dominio;
+package ventas.to;
 
-import movimientos.dominio.ProductoOficina;
-import producto2.dominio.Producto;
+import movimientos.to.TOProductoOficina;
 
 /**
  *
  * @author jesc
  */
-public class VentaProducto extends ProductoOficina {
+public class TOVentaProducto extends TOProductoOficina {
     private int idPedido;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     
-    public VentaProducto() {
+    public TOVentaProducto() {
         super();
     }
 
@@ -22,10 +21,6 @@ public class VentaProducto extends ProductoOficina {
 
     public void setIdPedido(int idPedido) {
         this.idPedido = idPedido;
-    }
-    
-    public VentaProducto(Producto producto) {
-        super(producto);
     }
 
     public double getCantOrdenada() {

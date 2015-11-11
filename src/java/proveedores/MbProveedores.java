@@ -27,7 +27,6 @@ import proveedores.dominio.TipoOperacion;
 import proveedores.dominio.TipoTercero;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
-import utilerias.Utilerias;
 
 /**
  *
@@ -45,20 +44,19 @@ public class MbProveedores implements Serializable {
     @ManagedProperty(value = "#{mbContribuyentesJS}")
     private MbContribuyentesJS mbContribuyentes;
     private ArrayList<SelectItem> listaContribuyentes;
-    @ManagedProperty(value="#{mbBuscarContribuyente}")
+    @ManagedProperty(value = "#{mbBuscarContribuyente}")
     private MbBuscarContribuyente mbBuscarContribuyente;
-    @ManagedProperty(value="#{mbClasificaciones}")
+    @ManagedProperty(value = "#{mbClasificaciones}")
     private MbClasificaciones mbClasificaciones;
-    @ManagedProperty(value="#{mbTipoTerceros}")
+    @ManagedProperty(value = "#{mbTipoTerceros}")
     private MbTipoTerceros mbTipoTerceros;
-    @ManagedProperty(value="#{mbTipoOperacion}")
+    @ManagedProperty(value = "#{mbTipoOperacion}")
     private MbTipoOperacion mbTipoOperacion;
-    @ManagedProperty(value="#{mbContactos}")
+    @ManagedProperty(value = "#{mbContactos}")
     private MbContactos mbContactos;
-    @ManagedProperty(value="#{mbZonas}")
+    @ManagedProperty(value = "#{mbZonas}")
     private MbZonas mbImpuestoZona;
-
-    private int idTipo=1;
+    private int idTipo = 1;
     private Clasificacion clasificacion;
     private ArrayList<SelectItem> listaClasificaciones;
     private ArrayList<SelectItem> listaSubClasificaciones;
@@ -72,64 +70,64 @@ public class MbProveedores implements Serializable {
     private DAOProveedores dao;
 
     public MbProveedores() {
-        this.mbBuscarContribuyente=new MbBuscarContribuyente();
+        this.mbBuscarContribuyente = new MbBuscarContribuyente();
         this.mbContribuyentes = new MbContribuyentesJS();
         this.mbDireccion = new MbDireccion();
         this.mbAcciones = new MbAcciones();
-        this.mbClasificaciones=new MbClasificaciones();
-        this.mbTipoTerceros=new MbTipoTerceros();
-        this.mbTipoOperacion=new MbTipoOperacion();
-        this.mbContactos=new MbContactos();
-        this.mbImpuestoZona=new MbZonas();
-        
+        this.mbClasificaciones = new MbClasificaciones();
+        this.mbTipoTerceros = new MbTipoTerceros();
+        this.mbTipoOperacion = new MbTipoOperacion();
+        this.mbContactos = new MbContactos();
+        this.mbImpuestoZona = new MbZonas();
+
         this.obtenerListaTipoTerceros();
 //        this.obtenerListaTipoOperaciones();
 //        this.cargaClasificaciones();
-        
-        this.listaProveedores=new ArrayList<>();
-        this.clasificacion=new Clasificacion();
+
+        this.listaProveedores = new ArrayList<>();
+        this.clasificacion = new Clasificacion();
         this.listaContribuyentes = new ArrayList<>();
         this.listaFiltrados = new ArrayList<>();
     }
 
     public void eliminarTelefonoTipo() {
-        if(this.mbContactos.getMbTelefonos().eliminarTipo(this.mbContactos.getMbTelefonos().getTipo().getIdTipo())) {
+        if (this.mbContactos.getMbTelefonos().eliminarTipo(this.mbContactos.getMbTelefonos().getTipo().getIdTipo())) {
             this.mbContactos.getMbTelefonos().getTelefono().setTipo(new TelefonoTipo(this.mbContactos.getMbTelefonos().isCelular()));
             this.mbContactos.getMbTelefonos().cargaTipos();
         }
     }
-    
+
     public void grabarTelefonoTipo() {
-        if(this.mbContactos.getMbTelefonos().grabarTipo()) {
+        if (this.mbContactos.getMbTelefonos().grabarTipo()) {
             this.mbContactos.getMbTelefonos().getTelefono().setTipo(this.mbContactos.getMbTelefonos().getTipo());
             this.mbContactos.getMbTelefonos().cargaTipos();
         }
     }
-    
+
     public void mttoTelefonoTipo() {
-        if(this.mbContactos.getMbTelefonos().getTelefono().getTipo().getIdTipo()==0) {
+        if (this.mbContactos.getMbTelefonos().getTelefono().getTipo().getIdTipo() == 0) {
             this.mbContactos.getMbTelefonos().setTipo(new TelefonoTipo(this.mbContactos.getMbTelefonos().isCelular()));
         } else {
             this.mbContactos.getMbTelefonos().setTipo(this.mbContactos.getMbTelefonos().copiaTipo(this.mbContactos.getMbTelefonos().getTelefono().getTipo()));
         }
     }
-    
+
     public void eliminarTelefono() {
-        if(this.mbContactos.getMbTelefonos().eliminar(this.mbContactos.getMbTelefonos().getTelefono().getIdTelefono())) {
-            this.telefono=new Telefono();
+        if (this.mbContactos.getMbTelefonos().eliminar(this.mbContactos.getMbTelefonos().getTelefono().getIdTelefono())) {
+            this.telefono = new Telefono();
             this.mbContactos.getMbTelefonos().cargaTelefonos(this.contacto.getIdContacto());
         }
     }
-    
+
     public void grabarTelefono() {
-        if(this.mbContactos.getMbTelefonos().grabar(this.contacto.getIdContacto())) {
-            this.telefono=this.mbContactos.getMbTelefonos().getTelefono();
+        if (this.mbContactos.getMbTelefonos().grabar(this.contacto.getIdContacto())) {
+            this.telefono = this.mbContactos.getMbTelefonos().getTelefono();
             this.mbContactos.getMbTelefonos().cargaTelefonos(this.contacto.getIdContacto());
         }
     }
-    
+
     public void mttoTelefono() {
-        if(this.telefono.getIdTelefono()==0) {
+        if (this.telefono.getIdTelefono() == 0) {
             this.mbContactos.getMbTelefonos().setTelefono(new Telefono());
         } else {
             this.mbContactos.getMbTelefonos().setTelefono(this.mbContactos.getMbTelefonos().copia(this.telefono));
@@ -137,33 +135,33 @@ public class MbProveedores implements Serializable {
         this.mbContactos.getMbTelefonos().setCelular(this.mbContactos.getMbTelefonos().getTelefono().getTipo().isCelular());
         this.mbContactos.getMbTelefonos().cargaTipos();
     }
-    
+
     public void cargarTelefonos() {
         this.mbContactos.getMbTelefonos().cargaTelefonos(this.contacto.getIdContacto());
     }
-    
+
     public void eliminarContacto() {
-        if(this.mbContactos.eliminar(this.contacto.getIdContacto())) {
-            this.contacto=new Contacto();
+        if (this.mbContactos.eliminar(this.contacto.getIdContacto())) {
+            this.contacto = new Contacto();
             this.mbContactos.cargaContactos(this.idTipo, this.proveedor.getIdProveedor());
         }
     }
-    
+
     public void grabarContacto() {
-        if(this.mbContactos.grabar(this.idTipo, this.proveedor.getIdProveedor())) {
-            this.contacto=this.mbContactos.getContacto();
+        if (this.mbContactos.grabar(this.idTipo, this.proveedor.getIdProveedor())) {
+            this.contacto = this.mbContactos.getContacto();
             this.mbContactos.cargaContactos(this.idTipo, this.proveedor.getIdProveedor());
         }
     }
-    
+
     public void mttoContacto() {
-        if(this.contacto.getIdContacto()==0) {
+        if (this.contacto.getIdContacto() == 0) {
             this.mbContactos.setContacto(new Contacto());
         } else {
             this.mbContactos.setContacto(this.mbContactos.copia(this.contacto));
         }
     }
-    
+
     public void obtenerDireccionContribuyente() {
         int idDireccion = this.proveedor.getContribuyente().getDireccion().getIdDireccion();
         this.proveedor.getContribuyente().setDireccion(this.mbDireccion.obtener(idDireccion));
@@ -183,10 +181,10 @@ public class MbProveedores implements Serializable {
                     this.listaContribuyentes.add(new SelectItem(this.proveedor.getContribuyente(), this.proveedor.getContribuyente().getContribuyente()));
                 }
             }
-            this.listaContribuyentes=new ArrayList<>();
-            for(Contribuyente c: this.mbContribuyentes.obtenerContribuyentesRfc(this.proveedor.getContribuyente().getRfc())) {
-                this.listaContribuyentes.add(new SelectItem(c, c.getContribuyente()));
-            }
+//            this.listaContribuyentes = new ArrayList<>();
+//            for (Contribuyente c : this.mbContribuyentes.obtenerContribuyentesRfc(this.proveedor.getContribuyente().getRfc())) {
+//                this.listaContribuyentes.add(new SelectItem(c, c.getContribuyente()));
+//            }
         }
     }
 
@@ -222,16 +220,15 @@ public class MbProveedores implements Serializable {
 //            this.listaContribuyentes.add(new SelectItem(c, c.toString()));
 //        }
 //    }
-    
     public void mttoDireccionFisica() {
 //        Direccion d=this.mbDireccion.obtener(this.proveedor.getDireccionEntrega().getIdDireccion());
         this.mbDireccion.setDireccion(this.proveedor.getDireccionEntrega());
 //        this.proveedor.setDireccionEntrega(d);
         this.mbDireccion.setActualiza(":main:txtAreaDirFisica");
     }
-    
+
     public void mttoDireccionFiscal() {
-        Direccion d=this.mbDireccion.obtener(this.proveedor.getContribuyente().getDireccion().getIdDireccion());
+        Direccion d = this.mbDireccion.obtener(this.proveedor.getContribuyente().getDireccion().getIdDireccion());
         this.mbDireccion.setDireccion(d);
         this.proveedor.getContribuyente().setDireccion(d);
         this.mbDireccion.setActualiza(":main:direccionFiscal");
@@ -265,172 +262,172 @@ public class MbProveedores implements Serializable {
     }
 
     public void eliminarTipoOperacion() {
-        if(this.mbTipoOperacion.eliminar()) {
+        if (this.mbTipoOperacion.eliminar()) {
             this.proveedor.setTipoOperacion(new TipoOperacion());
             this.listaTipoOperaciones.clear();
-            for(TipoOperacion t: this.mbTipoOperacion.getTipoOperaciones()) {
+            for (TipoOperacion t : this.mbTipoOperacion.getTipoOperaciones()) {
                 this.listaTipoOperaciones.add(new SelectItem(t, t.toString()));
             }
         }
     }
-    
+
     public void grabarTipoOperacion() {
-        if(this.mbTipoOperacion.grabar()) {
+        if (this.mbTipoOperacion.grabar()) {
             this.proveedor.setTipoOperacion(this.mbTipoOperacion.getTipoOperacion());
             this.listaTipoOperaciones.clear();
-            for(TipoOperacion t: this.mbTipoOperacion.getTipoOperaciones()) {
+            for (TipoOperacion t : this.mbTipoOperacion.getTipoOperaciones()) {
                 this.listaTipoOperaciones.add(new SelectItem(t, t.toString()));
             }
         }
     }
-    
+
     public void mttoTipoOperacion() {
-        if(this.proveedor.getTipoOperacion().getIdTipoOperacion()==0) {
+        if (this.proveedor.getTipoOperacion().getIdTipoOperacion() == 0) {
             this.mbTipoOperacion.setTipoOperacion(new TipoOperacion());
         } else {
             this.mbTipoOperacion.setTipoOperacion(this.mbTipoOperacion.copia(this.proveedor.getTipoOperacion()));
         }
     }
-    
+
     private void obtenerListaTipoOperaciones() {
-        this.listaTipoOperaciones=new ArrayList<>();
-        
-        TipoOperacion tt=new TipoOperacion(0, "00", "Nuevo Tipo de Operación");
+        this.listaTipoOperaciones = new ArrayList<>();
+
+        TipoOperacion tt = new TipoOperacion(0, "00", "Nuevo Tipo de Operación");
         this.listaTipoOperaciones.add(new SelectItem(tt, tt.toString()));
-        
-        ArrayList<TipoOperacion> ts=this.mbTipoOperacion.obtenerTipoOperaciones();
-        for(TipoOperacion t: ts) {
+
+        ArrayList<TipoOperacion> ts = this.mbTipoOperacion.obtenerTipoOperaciones();
+        for (TipoOperacion t : ts) {
             this.listaTipoOperaciones.add(new SelectItem(t, t.toString()));
         }
     }
-    
+
     public void eliminarTipoTercero() {
-        if(this.mbTipoTerceros.eliminar()) {
+        if (this.mbTipoTerceros.eliminar()) {
             this.proveedor.setTipoTercero(new TipoTercero());
             this.listaTipoTerceros.clear();
-            for(TipoTercero t: this.mbTipoTerceros.getTipoTerceros()) {
+            for (TipoTercero t : this.mbTipoTerceros.getTipoTerceros()) {
                 this.listaTipoTerceros.add(new SelectItem(t, t.toString()));
             }
         }
     }
-    
+
     public void grabarTipoTercero() {
-        if(this.mbTipoTerceros.grabar()) {
+        if (this.mbTipoTerceros.grabar()) {
             this.proveedor.setTipoTercero(this.mbTipoTerceros.getTipoTercero());
             this.listaTipoTerceros.clear();
-            for(TipoTercero t: this.mbTipoTerceros.getTipoTerceros()) {
+            for (TipoTercero t : this.mbTipoTerceros.getTipoTerceros()) {
                 this.listaTipoTerceros.add(new SelectItem(t, t.toString()));
             }
         }
     }
-    
+
     public void mttoTipoTercero() {
-        if(this.proveedor.getTipoTercero().getIdTipoTercero()==0) {
+        if (this.proveedor.getTipoTercero().getIdTipoTercero() == 0) {
             this.mbTipoTerceros.setTipoTercero(new TipoTercero());
         } else {
             this.mbTipoTerceros.setTipoTercero(this.mbTipoTerceros.copia(this.proveedor.getTipoTercero()));
         }
     }
-    
+
     private void obtenerListaTipoTerceros() {
-        this.listaTipoTerceros=new ArrayList<>();
-        
-        TipoTercero tt=new TipoTercero(0, "00", "Nuevo Tipo de Tercero");
+        this.listaTipoTerceros = new ArrayList<>();
+
+        TipoTercero tt = new TipoTercero(0, "00", "Nuevo Tipo de Tercero");
         this.listaTipoTerceros.add(new SelectItem(tt, tt.toString()));
-        
-        ArrayList<TipoTercero> ts=this.mbTipoTerceros.obtenerTipoTerceros();
-        for(TipoTercero t: ts) {
+
+        ArrayList<TipoTercero> ts = this.mbTipoTerceros.obtenerTipoTerceros();
+        for (TipoTercero t : ts) {
             this.listaTipoTerceros.add(new SelectItem(t, t.toString()));
         }
     }
-    
+
     public void cargaSubClasificaciones() {
-        this.listaSubClasificaciones=new ArrayList<>();
-        
-        SubClasificacion sc=new SubClasificacion(0, "Nueva SubClasificacion");
+        this.listaSubClasificaciones = new ArrayList<>();
+
+        SubClasificacion sc = new SubClasificacion(0, "Nueva SubClasificacion");
         this.listaSubClasificaciones.add(new SelectItem(sc, sc.toString()));
-        
-        ArrayList<SubClasificacion> scs=this.mbClasificaciones.obtenerSubClasificaciones(this.proveedor.getClasificacion().getIdClasificacion());
-        for(SubClasificacion s: scs) {
+
+        ArrayList<SubClasificacion> scs = this.mbClasificaciones.obtenerSubClasificaciones(this.proveedor.getClasificacion().getIdClasificacion());
+        for (SubClasificacion s : scs) {
             this.listaSubClasificaciones.add(new SelectItem(s, s.toString()));
         }
     }
-    
+
     public void eliminarSubClasificacion() {
-        if(this.mbClasificaciones.eliminarSubClasificacion(this.proveedor.getClasificacion().getIdClasificacion())) {
+        if (this.mbClasificaciones.eliminarSubClasificacion(this.proveedor.getClasificacion().getIdClasificacion())) {
             this.proveedor.setSubClasificacion(new SubClasificacion());
             this.cargaSubClasificaciones();
         }
     }
-    
+
     public void grabarSubClasificacion() {
-        if(this.mbClasificaciones.grabarSubClasificacion(this.proveedor.getClasificacion().getIdClasificacion())) {
+        if (this.mbClasificaciones.grabarSubClasificacion(this.proveedor.getClasificacion().getIdClasificacion())) {
             this.proveedor.setSubClasificacion(this.mbClasificaciones.getSubClasificacion());
             this.cargaSubClasificaciones();
         }
     }
-    
+
     public void mttoSubClasificacion() {
-        if(this.proveedor.getSubClasificacion().getIdSubClasificacion()==0) {
+        if (this.proveedor.getSubClasificacion().getIdSubClasificacion() == 0) {
             this.mbClasificaciones.setSubClasificacion(new SubClasificacion());
         } else {
             this.mbClasificaciones.setSubClasificacion(this.mbClasificaciones.copia(this.proveedor.getSubClasificacion()));
         }
     }
-    
+
     public void eliminarClasificacion() {
-        if(this.mbClasificaciones.eliminar()) {
+        if (this.mbClasificaciones.eliminar()) {
             this.proveedor.setClasificacion(new Clasificacion());
             this.cargaClasificaciones();
             this.cargaSubClasificaciones();
         }
     }
-    
+
     public void grabarClasificacion() {
-        if(this.mbClasificaciones.grabar()) {
+        if (this.mbClasificaciones.grabar()) {
             this.proveedor.setClasificacion(this.mbClasificaciones.getClasificacion());
             this.cargaClasificaciones();
             this.cargaSubClasificaciones();
         }
     }
-    
+
     public void mttoClasificacion() {
-        if(this.proveedor.getClasificacion().getIdClasificacion()==0) {
+        if (this.proveedor.getClasificacion().getIdClasificacion() == 0) {
             this.mbClasificaciones.setClasificacion(new Clasificacion());
         } else {
             this.mbClasificaciones.setClasificacion(this.mbClasificaciones.copia(this.proveedor.getClasificacion()));
         }
     }
-    
+
     private void cargaClasificaciones() {
-        this.listaClasificaciones=new ArrayList<>();
-        
-        Clasificacion cl=new Clasificacion(0, "Nueva Clasificación");
+        this.listaClasificaciones = new ArrayList<>();
+
+        Clasificacion cl = new Clasificacion(0, "Nueva Clasificación");
         this.listaClasificaciones.add(new SelectItem(cl, cl.toString()));
-        
-        ArrayList<Clasificacion> cs=this.mbClasificaciones.obtenerClasificaciones();
-        for(Clasificacion c: cs) {
+
+        ArrayList<Clasificacion> cs = this.mbClasificaciones.obtenerClasificaciones();
+        for (Clasificacion c : cs) {
             this.listaClasificaciones.add(new SelectItem(c, c.toString()));
         }
     }
-    
+
     public void seleccionaContribuyente() {
         this.proveedor.setContribuyente(this.mbBuscarContribuyente.getContribuyente());
-        int idDireccion=this.proveedor.getContribuyente().getDireccion().getIdDireccion();
+        int idDireccion = this.proveedor.getContribuyente().getDireccion().getIdDireccion();
         this.proveedor.getContribuyente().setDireccion(this.mbDireccion.obtener(idDireccion));
-        this.listaContribuyentes=new ArrayList<>();
-        for(Contribuyente c: this.mbContribuyentes.obtenerContribuyentesRfc(this.proveedor.getContribuyente().getRfc())) {
+        this.listaContribuyentes = new ArrayList<>();
+        for (Contribuyente c : this.mbContribuyentes.obtenerContribuyentesRfc(this.proveedor.getContribuyente().getRfc())) {
             this.listaContribuyentes.add(new SelectItem(c, c.getContribuyente()));
         }
     }
-    
+
     public void buscar() {
         this.mbBuscarContribuyente.buscar();
-        if(this.mbBuscarContribuyente.getContribuyente()!=null) {
+        if (this.mbBuscarContribuyente.getContribuyente() != null) {
             this.proveedor.setContribuyente(this.mbBuscarContribuyente.getContribuyente());
         }
     }
-    
+
     public void eliminar() {
         // Probar buscar contribuyente cuando solo se encuentra un contribuyente por rfc 
         // y tambien cuando se encuentran varios y se selecciona de la lista
@@ -480,15 +477,18 @@ public class MbProveedores implements Serializable {
     public String salir() {
         if (this.proveedor.getIdProveedor() == 0 && this.proveedor.getDireccionEntrega().getIdDireccion() > 0) {
             mbDireccion.eliminar(this.proveedor.getDireccionEntrega().getIdDireccion());
+        } else if(this.proveedor.getIdProveedor() != 0) {
+            this.setClasificacion(this.proveedor.getClasificacion());
         }
+        this.listaProveedores=null;
         return "proveedor.salir";
     }
 
     public String terminar() {
         this.listaProveedores = null;
-        this.listaClasificaciones=null;
-        this.listaTipoTerceros=null;
-        this.listaTipoOperaciones=null;
+        this.listaClasificaciones = null;
+        this.listaTipoTerceros = null;
+        this.listaTipoOperaciones = null;
         this.acciones = null;
         return "menuProveedores.terminar";
     }
@@ -496,6 +496,38 @@ public class MbProveedores implements Serializable {
     private Proveedor obtenerProveedor(int idProveedor) throws NamingException, SQLException {
         this.dao = new DAOProveedores();
         return this.convertir(this.dao.obtenerProveedor(idProveedor));
+    }
+
+    public String mantenimiento() {
+        String destino = null;
+        this.setListaContribuyentes(new ArrayList<SelectItem>());
+            int idDireccion;
+//            this.proveedor = this.obtenerProveedor(this.proveedor.getIdProveedor());
+            for (Contribuyente c : this.mbContribuyentes.obtenerContribuyentesRfc(this.proveedor.getContribuyente().getRfc())) {
+                idDireccion = c.getDireccion().getIdDireccion();
+                c.setDireccion(this.mbDireccion.obtener(idDireccion));
+                this.listaContribuyentes.add(new SelectItem(c, c.getContribuyente()));
+            }
+            this.cargaSubClasificaciones();
+//            this.contacto = new Contacto();
+            this.mbContactos.cargaContactos(this.idTipo, this.proveedor.getIdProveedor());
+            this.mbContactos.nuevoContacto();
+            this.cargarTelefonos();
+            destino = "proveedor.mantenimiento";
+        return destino;
+    }
+
+    public String nuevoProveedor() {
+        String destino = "proveedor.mantenimiento";
+        this.proveedor = new Proveedor();
+        this.proveedor.setClasificacion(this.clasificacion);
+        this.cargaSubClasificaciones();
+        this.contacto=new Contacto();
+        this.mbContactos.setListaContactos(new ArrayList<SelectItem>());
+        this.telefono=new Telefono();
+        this.mbContactos.getMbTelefonos().setListaTelefonos(new ArrayList<SelectItem>());
+        this.listaContribuyentes = new ArrayList<>();
+        return destino;
     }
 
     public String mantenimiento(int idProveedor) {
@@ -517,7 +549,7 @@ public class MbProveedores implements Serializable {
                 }
                 this.cargaSubClasificaciones();
             }
-            this.contacto=new Contacto();
+            this.contacto = new Contacto();
             this.mbContactos.cargaContactos(this.idTipo, this.proveedor.getIdProveedor());
             this.cargarTelefonos();
             destino = "proveedor.mantenimiento";
@@ -529,29 +561,6 @@ public class MbProveedores implements Serializable {
         return destino;
     }
 
-    public ArrayList<Proveedor> getListaProveedores() {
-        if (listaProveedores == null) {
-            this.cargaProveedores(this.clasificacion.getIdClasificacion());
-        }
-        return listaProveedores;
-    }
-
-    public void cargaProveedores(int idClasificacion) {
-        this.listaProveedores = new ArrayList<>();
-        try {
-            this.dao = new DAOProveedores();
-            for (Proveedor p : this.dao.obtenerProveedores(idClasificacion)) {
-                this.listaProveedores.add(convertir(p));
-            }
-//            this.listaFiltrados = this.listaProveedores;
-            this.listaFiltrados = null;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-    }
-
     private Proveedor convertir(Proveedor proveedor) throws NamingException, SQLException {
         int idDireccion;
         idDireccion = proveedor.getContribuyente().getDireccion().getIdDireccion();
@@ -560,6 +569,28 @@ public class MbProveedores implements Serializable {
         proveedor.setDireccionEntrega(this.mbDireccion.obtener(idDireccion));
         proveedor.setContactos(this.mbContactos.obtenerContactos(1, proveedor.getIdProveedor()));
         return proveedor;
+    }
+
+    public void cargaProveedores() {
+        this.listaProveedores = new ArrayList<>();
+        try {
+            this.dao = new DAOProveedores();
+            for (Proveedor p : this.dao.obtenerProveedores(this.clasificacion.getIdClasificacion())) {
+                this.listaProveedores.add(convertir(p));
+            }
+            this.listaFiltrados = null;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+
+    public ArrayList<Proveedor> getListaProveedores() {
+        if (this.listaProveedores == null) {
+            this.cargaProveedores();
+        }
+        return listaProveedores;
     }
 
     public void setListaProveedores(ArrayList<Proveedor> listaProveedores) {
@@ -589,9 +620,9 @@ public class MbProveedores implements Serializable {
     public void setMbBuscarContribuyente(MbBuscarContribuyente mbBuscarContribuyente) {
         this.mbBuscarContribuyente = mbBuscarContribuyente;
     }
-    
+
     public ArrayList<SelectItem> getListaClasificaciones() {
-        if(this.listaClasificaciones==null) {
+        if (this.listaClasificaciones == null) {
             this.cargaClasificaciones();
         }
         return listaClasificaciones;
@@ -608,8 +639,9 @@ public class MbProveedores implements Serializable {
     public void setMbClasificaciones(MbClasificaciones mbClasificaciones) {
         this.mbClasificaciones = mbClasificaciones;
     }
+
     public ArrayList<SelectItem> getListaTipoTerceros() {
-        if(this.listaTipoTerceros==null) {
+        if (this.listaTipoTerceros == null) {
             this.obtenerListaTipoTerceros();
         }
         return listaTipoTerceros;
@@ -626,7 +658,7 @@ public class MbProveedores implements Serializable {
     public void setMbTipoTerceros(MbTipoTerceros mbTipoTerceros) {
         this.mbTipoTerceros = mbTipoTerceros;
     }
-    
+
     public MbTipoOperacion getMbTipoOperacion() {
         return mbTipoOperacion;
     }
@@ -636,7 +668,7 @@ public class MbProveedores implements Serializable {
     }
 
     public ArrayList<SelectItem> getListaTipoOperaciones() {
-        if(this.listaTipoOperaciones==null) {
+        if (this.listaTipoOperaciones == null) {
             this.obtenerListaTipoOperaciones();
         }
         return listaTipoOperaciones;
@@ -645,7 +677,7 @@ public class MbProveedores implements Serializable {
     public void setListaTipoOperaciones(ArrayList<SelectItem> listaTipoOperaciones) {
         this.listaTipoOperaciones = listaTipoOperaciones;
     }
-    
+
     public MbZonas getMbImpuestoZona() {
         return mbImpuestoZona;
     }
@@ -653,7 +685,7 @@ public class MbProveedores implements Serializable {
     public void setMbImpuestoZona(MbZonas mbImpuestoZona) {
         this.mbImpuestoZona = mbImpuestoZona;
     }
-    
+
     public MbContribuyentesJS getMbContribuyentes() {
         return mbContribuyentes;
     }
@@ -677,7 +709,7 @@ public class MbProveedores implements Serializable {
     public void setListaSubClasificaciones(ArrayList<SelectItem> listaSubClasificaciones) {
         this.listaSubClasificaciones = listaSubClasificaciones;
     }
-    
+
     public Contacto getContacto() {
         return contacto;
     }
@@ -693,7 +725,7 @@ public class MbProveedores implements Serializable {
     public void setTelefono(Telefono telefono) {
         this.telefono = telefono;
     }
-    
+
     public MbContactos getMbContactos() {
         return mbContactos;
     }
@@ -701,7 +733,7 @@ public class MbProveedores implements Serializable {
     public void setMbContactos(MbContactos mbContactos) {
         this.mbContactos = mbContactos;
     }
-    
+
     public ArrayList<Accion> getAcciones() {
         if (this.acciones == null) {
             this.acciones = this.mbAcciones.obtenerAcciones(5);
@@ -728,6 +760,7 @@ public class MbProveedores implements Serializable {
     public void setListaFiltrados(ArrayList<Proveedor> listaFiltrados) {
         this.listaFiltrados = listaFiltrados;
     }
+
     public Clasificacion getClasificacion() {
         return clasificacion;
     }

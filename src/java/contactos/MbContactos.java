@@ -209,6 +209,10 @@ public class MbContactos implements Serializable {
 //        }
         return c;
     }
+    
+    public void nuevoContacto() {
+        this.contacto = new Contacto();
+    }
 
     public Contacto getContacto() {
         return contacto;
@@ -235,7 +239,7 @@ public class MbContactos implements Serializable {
     }
 
     public MbTelefonos getMbTelefonos() {
-        this.listaContactos = listaContactos;
+//        this.listaContactos = listaContactos;
         return mbTelefonos;
     }
 

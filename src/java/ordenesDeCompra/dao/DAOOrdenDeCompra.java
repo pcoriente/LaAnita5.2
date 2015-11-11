@@ -6,7 +6,6 @@ import direccion.dao.DAODirecciones;
 import empresas.dao.DAOEmpresas;
 import enumEstatus.DameEstados;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -201,7 +200,7 @@ public class DAOOrdenDeCompra {
         int idDireccion = oce.getProveedor().getContribuyente().getDireccion().getIdDireccion(); //correcion daap
         DAODirecciones daoD = new DAODirecciones();
         if (idDireccion != 0) {
-            oce.getProveedor().setDireccionFiscal(daoD.obtener(idDireccion)); // correcion daap
+            oce.getProveedor().getContribuyente().setDireccion(daoD.obtener(idDireccion)); // correcion daap
         }
         int idDireccionEntrega = oce.getProveedor().getDireccionEntrega().getIdDireccion();
         if (idDireccionEntrega != 0) {
@@ -476,7 +475,7 @@ System.out.println("ante de guardar los datos totales "+oced.getImporteTotal());
         int idDireccion = oced.getProveedor().getContribuyente().getDireccion().getIdDireccion(); //correcion daap
         DAODirecciones daoD = new DAODirecciones();
         if (idDireccion != 0) {
-            oced.getProveedor().setDireccionFiscal(daoD.obtener(idDireccion)); // correcion daap
+            oced.getProveedor().getContribuyente().setDireccion(daoD.obtener(idDireccion)); // correcion daap
         }
         int idDireccionEntrega = oced.getProveedor().getDireccionEntrega().getIdDireccion();
         if (idDireccionEntrega != 0) {

@@ -255,7 +255,6 @@ public class MbPedidos implements Serializable {
         if ((idx = this.detalle.indexOf(this.producto)) != -1) {
             this.producto = this.detalle.get(idx);
         } else {
-            this.producto.setIdPedido(this.pedido.getIdPedido());
             try {
                 TOPedido toPed = this.convertir(this.pedido);
                 TOProductoPedido toProd = new TOProductoPedido();
@@ -266,7 +265,8 @@ public class MbPedidos implements Serializable {
 
                 this.dao = new DAOPedidos();
                 this.dao.agregarProductoPedido(toPed, toProd);
-                this.producto = this.convertir(toProd);
+                this.producto.setIdMovto(toProd.getIdMovto());
+                this.producto.setIdPedido(toProd.getIdPedido());
                 this.detalle.add(this.producto);
                 ok = true;
             } catch (NamingException ex) {
@@ -450,7 +450,7 @@ public class MbPedidos implements Serializable {
         try {   // Segun fecha y status
             this.pedidos = new ArrayList<>();
             this.dao = new DAOPedidos();
-            for (TOPedido to : this.dao.obtenerPedidos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 0 : 1), this.fechaInicial)) {
+            for (TOPedido to : this.dao.obtenerPedidos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 0 : 5), this.fechaInicial)) {
                 this.pedidos.add(this.convertir(to));
             }
         } catch (SQLException ex) {

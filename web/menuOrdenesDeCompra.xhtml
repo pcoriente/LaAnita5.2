@@ -244,34 +244,34 @@
                             </p:row>
 
                             <p:row>
-                                <p:column    rowspan="2" >
+                                <p:column rowspan="2" >
                                     <h:outputLabel value="Proveedor: " styleClass="textoEtiquetas" /> 
                                 </p:column>
                                 <p:column    rowspan="2" >
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.contribuyente.contribuyente}" style="color: black; font-size: 10px; "  />
                                 </p:column>
-                                <p:column   >
+                                <p:column >
                                     <h:outputLabel value="Dirección: " styleClass="textoEtiquetas"    /> 
                                 </p:column>
-                                <p:column   colspan="4">
-                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.direccionFiscal.referencia}"
+                                <p:column colspan="4">
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.contribuyente.direccion.referencia}"
                                                     style="color: black; font-size: 10px;" /> 
                                 </p:column>
                             </p:row>
                             <p:row>
-                                <p:column   >
+                                <p:column >
                                     <h:outputLabel value="Descuentos: " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column     >
+                                <p:column >
                                     <h:outputLabel value="Comercial (%): " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column     >
+                                <p:column >
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.desctoComercial}" style="color: black; font-size: 10px;"  />
                                 </p:column>
-                                <p:column   >
+                                <p:column >
                                     <h:outputLabel value="Pronto Pago (%): " styleClass="textoEtiquetas" /> 
                                 </p:column>
-                                <p:column    >
+                                <p:column >
                                     <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.desctoProntoPago}" style="color: black; font-size: 10px;"  />
                                 </p:column>
                             </p:row>
@@ -280,9 +280,7 @@
                         <p:dataTable id="OCDetalle"
                                      scrollable="true" scrollHeight="200" style="width: 900px; margin:0 auto; font-size: 12px;" styleClass="sinBorde"
                                      value="#{mbOrdenCompra.listaOrdenDetalleD}"
-                                     var="det"
-
-                                     >
+                                     var="det" >
                             <p:column headerText="Producto" width="300" >
                                 #{det.producto.toString()}
                             </p:column>
@@ -1018,7 +1016,7 @@
                                     <h:outputLabel  value="Dirección: " styleClass="textoEtiquetas"    /> 
                                 </p:column>
                                 <p:column    colspan="3" >
-                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.direccionFiscal.referencia}"
+                                    <h:outputLabel  value="#{mbOrdenCompra.ordenElegidaD.proveedor.contribuyente.direccion.referencia}"
                                                     style="color: black; font-size: 10px;" /> 
                                 </p:column>
 

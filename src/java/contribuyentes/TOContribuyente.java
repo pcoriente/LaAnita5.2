@@ -7,14 +7,15 @@ package contribuyentes;
 public class TOContribuyente {
     private int idContribuyente;
     private String contribuyente;
+    private int idRfc;
     private String rfc;
     private int idDireccion;
+    private String curp;
 
     public TOContribuyente() {
-        this.idContribuyente=0;
         this.contribuyente="";
         this.rfc="";
-        this.idDireccion=0;
+        this.curp="";
     }
 
     public int getIdContribuyente() {
@@ -33,6 +34,14 @@ public class TOContribuyente {
         this.contribuyente = contribuyente;
     }
 
+    public int getIdRfc() {
+        return idRfc;
+    }
+
+    public void setIdRfc(int idRfc) {
+        this.idRfc = idRfc;
+    }
+
     public String getRfc() {
         return rfc;
     }
@@ -47,5 +56,13 @@ public class TOContribuyente {
 
     public void setIdDireccion(int idDireccion) {
         this.idDireccion = idDireccion;
+    }
+
+    public String getCurp() {
+        return curp;
+    }
+
+    public void setCurp(String curp) {
+        this.curp = curp;
     }
 }

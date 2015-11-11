@@ -1,6 +1,5 @@
 package proveedores.to;
 
-import contribuyentes.Contribuyente;
 import contribuyentes.TOContribuyente;
 import impuestos.dominio.ImpuestoZona;
 import proveedores.dominio.Clasificacion;

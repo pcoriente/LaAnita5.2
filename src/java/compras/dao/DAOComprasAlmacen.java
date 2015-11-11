@@ -99,7 +99,7 @@ public class DAOComprasAlmacen {
             }
         }
     }
-    
+
     public void eliminarCompra(int idMovtoAlmacen) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
@@ -115,10 +115,10 @@ public class DAOComprasAlmacen {
 
                 strSQL = "DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "DELETE FROM movimientosAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
                 st.executeUpdate(strSQL);
-                
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -340,7 +340,7 @@ public class DAOComprasAlmacen {
         }
         return cantSeparar;
     }
-    
+
     public ArrayList<TOProductoCompraAlmacen> crearOrdenDeCompraDetalle(TOMovimientoAlmacen toMov, boolean definitivo) throws SQLException {
         ArrayList<TOProductoCompraAlmacen> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
