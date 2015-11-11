@@ -63,7 +63,7 @@ public class DaoAgentes {
         ResultSet rs = st.executeQuery(sql);
         while (rs.next()) {
             Agente agentes = new Agente();
-            agentes.setIdAgente(rs.getInt("idAgente"));
+            agentes.setIdAgente(rs.getInt("codigoAgente"));
             agentes.setAgente(rs.getString("agente"));
             agentes.getContribuyente().setIdContribuyente(rs.getInt("idContribuyente"));
             agentes.getDireccionAgente().setIdDireccion(rs.getInt("idDireccion"));

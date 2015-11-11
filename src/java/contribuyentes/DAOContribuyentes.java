@@ -160,6 +160,7 @@ public class DAOContribuyentes {
     }
 
     private Contribuyente construir(ResultSet rs) throws SQLException {
+        System.out.print("va el RFC LEIDO "+rs.getString("contribuyente"));
         Contribuyente contribuyente = new Contribuyente();
         contribuyente.setIdContribuyente(rs.getInt("idContribuyente"));
         contribuyente.setContribuyente(rs.getString("contribuyente"));
@@ -345,7 +346,7 @@ public class DAOContribuyentes {
         Statement st = cn.createStatement();
         String sql = "select *\n"
                 + "from contribuyentes cr\n"
-                + "inner join contribuyentesRfc crR on cr.idContribuyente = crR.idRfc\n"
+                + "inner join contribuyentesRfc crR on cr.idRfc = crR.idRfc\n"
                 + "inner join direcciones dir on cr.idDireccion = dir.idDireccion\n"
                 + "where crR.rfc ='" + rfc + "';";
         try {
@@ -354,6 +355,8 @@ public class DAOContribuyentes {
                 contribuyente = new Contribuyente();
                 contribuyente.setContribuyente(rs.getString("contribuyente"));
                 contribuyente.setRfc(rs.getString("rfc"));
+                contribuyente.setIdRfc(rs.getInt("idRfc"));
+                contribuyente.setIdContribuyente(rs.getInt("idContribuyente"));
                 contribuyente.getDireccion().setIdDireccion(rs.getInt("idDireccion"));
                 contribuyente.getDireccion().setCalle(rs.getString("calle"));
                 contribuyente.getDireccion().setNumeroExterior(rs.getString("numeroExterior"));

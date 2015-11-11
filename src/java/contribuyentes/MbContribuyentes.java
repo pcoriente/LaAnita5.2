@@ -139,6 +139,7 @@ public class MbContribuyentes implements Serializable {
         this.contribuyente.setRfc(contribuyente.getRfc());
         this.contribuyente.setCurp(contribuyente.getCurp());
         this.contribuyente.setDireccion(contribuyente.getDireccion());
+        System.out.println("va el contribuyente "+this.contribuyente.getContribuyente());
     }
 
     public void mttoContribuyente(Contribuyente contribuyente) {
@@ -264,7 +265,7 @@ public class MbContribuyentes implements Serializable {
 //        }
 //    }
 
-    public String buscarContribuyente(String rfc) {
+    public Contribuyente buscarContribuyente(String rfc) {
         String mensaje = "";
         try {
             Utilerias utilerias = new Utilerias();
@@ -281,7 +282,8 @@ public class MbContribuyentes implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
             Logger.getLogger(MbContribuyentes.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return mensaje;
+        return contribuyente;
+//        return mensaje;
     }
 
     public List<String> completarClientes(String rfc) {

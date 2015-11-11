@@ -50,10 +50,10 @@ public class MbAgentes implements Serializable {
     private MbBuscarContribuyente mbBuscarContribuyente = new MbBuscarContribuyente();
     @ManagedProperty(value = "#{mbContactos}")
     private MbContactos mbContactos = new MbContactos();
-    @ManagedProperty(value = "#{mbAgente}")
+    @ManagedProperty(value = "#{mbAgentes}")
     private MbContribuyentes mbContribuyente = new MbContribuyentes();
     @ManagedProperty(value = "#{mbDireccion}")
-    private MbDireccion mbDireccion = new MbDireccion();
+    private MbDireccion mbDireccion;
     private Agente seleccionListaAgente = null;
     private Agente agente = new Agente();
     private ArrayList<Agente> listaAgente;
@@ -80,6 +80,8 @@ public class MbAgentes implements Serializable {
     private int valorSupervisor;
 
     public MbAgentes() {
+        this.mbDireccion = new MbDireccion();
+        this.mbContribuyente = new MbContribuyentes();
         titleCancelar = "Cancelar Contacto";
         lblCancelar = "ui-icon-arrowreturnthick-1-w";
         lblnuevoAgente = "ui-icon-disk";
@@ -136,23 +138,36 @@ public class MbAgentes implements Serializable {
     }
 
     public void buscar() {
+        Contribuyente contribuyente;
         mbContribuyente.getContribuyente().setDireccion(new Direccion());
-        if (mbContribuyente.getContribuyente().getRfc().trim().length() == 12 || mbContribuyente.getContribuyente().getRfc().trim().length() == 13) {
-            mbBuscarContribuyente.setTipoBuscar("1");
-            this.mbBuscarContribuyente.setStrBuscar(mbContribuyente.getContribuyente().getRfc().toUpperCase());
+        String rfc = mbContribuyente.getContribuyente().getRfc().toUpperCase().trim();
+//        if (mbContribuyente.getContribuyente().getRfc().trim().length() == 12 || mbContribuyente.getContribuyente().getRfc().trim().length() == 13) {
+        if (rfc.length() == 12 || rfc.length() == 13){
             try {
                 Utilerias utilerias = new Utilerias();
                 String error = utilerias.verificarRfc(mbContribuyente.getContribuyente().getRfc().toUpperCase());
                 if (error.equals("")) {
-                    mbContribuyente.setContribuyente(this.mbBuscarContribuyente.buscarRfc());
-                    if (mbContribuyente.getContribuyente().getContribuyente() == "") {
-                        this.buscadorContribuyentes = false;
-                    } else {
-                        DAODireccion daoDireccion = new DAODireccion();
-                        agente.getContribuyente().setDireccion(daoDireccion.obtenerDireccion(mbBuscarContribuyente.getContribuyente().getDireccion().getIdDireccion()));
-                        this.buscadorContribuyentes = true;
-                        personaFisica = 0;
+                    //mbContribuyente.setContribuyente(this.mbBuscarContribuyente.buscarRfc());
+                    DAOContribuyentes dao1 = new DAOContribuyentes();
+                    contribuyente = dao1.buscarContribuyente(rfc);
+                    if (contribuyente != null) {
+                        mbContribuyente.copia(contribuyente);
+                        mbContribuyente.setContribuyente(contribuyente);
+                       
+                        this.mbContribuyente.getContribuyente().getContribuyente();
+                        System.out.print("vine a hacer la copia  ");
+                    }else{
+                    System.out.print("no vine hacer la copia ");
                     }
+                   
+                    //contribuyente = mbContribuyente.buscarContribuyente(rfc);
+                    //cs=mbContribuyente.setContribuyente(mbContribuyente.obtenerContribuyentesRfc(rfc));
+                    //System.out.print(this.mbContribuyente.buscarContribuyente(rfc));
+//                    if (!"".equals(mbContribuyente.getContribuyente().getRfc())) {
+//                        DAODireccion daoDireccion = new DAODireccion();
+//                        agente.getContribuyente().setDireccion(daoDireccion.obtenerDireccion(mbBuscarContribuyente.getContribuyente().getDireccion().getIdDireccion()));
+//                        //agente.getContribuyente().setDireccion(daoDireccion.obtenerDireccion(mbBuscarContribuyente.getContribuyente().getDireccion().getIdDireccion()));
+//                    }
                 } else {
                     Mensajes.mensajeAlert(error);
                 }
@@ -160,11 +175,9 @@ public class MbAgentes implements Serializable {
                 Mensajes.mensajeError(ex.getMessage());
                 Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
             } catch (NullPointerException ex) {
-                this.buscadorContribuyentes = false;
                 mbContribuyente.setContribuyente(new Contribuyente());
             }
         } else {
-            buscadorContribuyentes = false;
             Mensajes.mensajeAlert("Error! la longitud del rfc no es correcta");
             mbContribuyente.setContribuyente(new Contribuyente());
             agente.getContribuyente().setDireccion(new Direccion());
@@ -385,7 +398,9 @@ public class MbAgentes implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
         }
         this.getMbContactos().cargaContactos(3, agente.getIdAgente());
         DAOContactos dao = null;
@@ -411,7 +426,9 @@ public class MbAgentes implements Serializable {
                     dao = new DAOContactos();
                 } catch (NamingException ex) {
                     Mensajes.mensajeError(ex.getMessage());
-                    Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger
+                            .getLogger(MbAgentes.class
+                                    .getName()).log(Level.SEVERE, null, ex);
                 }
                 if (mbContactos.getContacto().getIdContacto() == 0) {
                     dao.agregar(mbContactos.getContacto(), agente.getIdAgente(), 3);
@@ -423,7 +440,9 @@ public class MbAgentes implements Serializable {
                 this.getMbContactos().cargaContactos(3, agente.getIdAgente());
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getMessage());
-                Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                Logger
+                        .getLogger(MbAgentes.class
+                                .getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -610,10 +629,14 @@ public class MbAgentes implements Serializable {
             this.getMbContactos().obtenerCorreo(mbContactos.getContacto().getIdContacto());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -630,10 +653,14 @@ public class MbAgentes implements Serializable {
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+            Logger
+                    .getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -699,11 +726,15 @@ public class MbAgentes implements Serializable {
                     DAOContribuyentes dao = new DAOContribuyentes();
                     dao.actualizarContribuyente(mbContribuyente.getContribuyente());
                     Mensajes.mensajeSucces("Contribuyente Actualizado");
+
                 } catch (NamingException ex) {
-                    Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 } catch (SQLException ex) {
                     Mensajes.mensajeError(ex.getMessage());
-                    Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger
+                            .getLogger(MbAgentes.class
+                                    .getName()).log(Level.SEVERE, null, ex);
                 }
             } else {
                 try {
@@ -713,9 +744,11 @@ public class MbAgentes implements Serializable {
                         Mensajes.mensajeAlert("Este Rfc ya esta asignado a un contribuyente");
                     } else {
                         Mensajes.mensajeSucces("Exito !! Datos de Contribuyente correctos");
+
                     }
                 } catch (NamingException ex) {
-                    Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(MbAgentes.class
+                            .getName()).log(Level.SEVERE, null, ex);
                 } catch (SQLException ex) {
                     System.err.println(ex.getMessage());
                     Mensajes.mensajeError(ex.getMessage());
@@ -727,18 +760,31 @@ public class MbAgentes implements Serializable {
         }
     }
 
+//    public void dameContribuyente() {
+//        if (seleccionListaAgente != null && seleccionListaAgente.getContribuyente().getIdContribuyente() > 0) {
+//            System.out.print("ya estoy en dar contribuyente");
+//            try {
+//                DAOContribuyentes daoContribuyente = new DAOContribuyentes();
+//                mbContribuyente.setContribuyente(daoContribuyente.obtenerContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente()));
+//                DAODireccion dao = new DAODireccion();
+//                agente.getContribuyente().setDireccion(dao.obtenerDireccion(mbContribuyente.getContribuyente().getDireccion().getIdDireccion()));
+//            } catch (NamingException | SQLException ex) {
+//                Mensajes.mensajeError(ex.getMessage());
+//            }
+//        }
+//        else
+//            System.out.print("no fui al dao");
+//    }
     public void dameContribuyente() {
-        if (seleccionListaAgente != null && seleccionListaAgente.getContribuyente().getIdContribuyente() > 0) {
-            try {
-                DAOContribuyentes daoContribuyente = new DAOContribuyentes();
-                mbContribuyente.setContribuyente(daoContribuyente.obtenerContribuyente(seleccionListaAgente.getContribuyente().getIdContribuyente()));
-                DAODireccion dao = new DAODireccion();
-                agente.getContribuyente().setDireccion(dao.obtenerDireccion(mbContribuyente.getContribuyente().getDireccion().getIdDireccion()));
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-            }
+        try {
+            DAOContribuyentes daoContribuyente = new DAOContribuyentes();
+            daoContribuyente.obtenerContribuyenteRfc(mbContribuyente.getContribuyente().getRfc().toUpperCase());
+            DAODireccion dao = new DAODireccion();
+            agente.getContribuyente().setDireccion(dao.obtenerDireccion(mbContribuyente.getContribuyente().getDireccion().getIdDireccion()));
+
+        } catch (NamingException | SQLException ex) {
+            Logger.getLogger(MbAgentes.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
     }
 

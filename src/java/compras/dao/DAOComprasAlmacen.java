@@ -305,21 +305,21 @@ public class DAOComprasAlmacen {
 
     public double separar(int idMovtoAlmacen, int idEmpaque, String lote, double cantSeparar, int idOrdenCompra) throws SQLException {
         String strSQL = "";
-        double disponibles = 0;
+//        double disponibles = 0;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 if (idOrdenCompra != 0) {
-                    strSQL = "SELECT cantOrdenada + cantOrdenadaSinCargo - surtidosAlmacen - separadosAlmacen AS disponibles\n"
-                            + "FROM ordenCompraSurtido \n"
-                            + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
-                    ResultSet rs = st.executeQuery(strSQL);
-                    if (rs.next()) {
-                        disponibles = rs.getDouble("disponibles");
-                    }
-                    if (disponibles < cantSeparar) {
-                        cantSeparar = disponibles;
-                    }
+//                    strSQL = "SELECT cantOrdenada + cantOrdenadaSinCargo - surtidosAlmacen - separadosAlmacen AS disponibles\n"
+//                            + "FROM ordenCompraSurtido \n"
+//                            + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
+//                    ResultSet rs = st.executeQuery(strSQL);
+//                    if (rs.next()) {
+//                        disponibles = rs.getDouble("disponibles");
+//                    }
+//                    if (disponibles < cantSeparar) {
+//                        cantSeparar = disponibles;
+//                    }
                     strSQL = "UPDATE ordenCompraSurtido\n"
                             + "SET separadosAlmacen=separadosAlmacen+" + cantSeparar + "\n"
                             + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;

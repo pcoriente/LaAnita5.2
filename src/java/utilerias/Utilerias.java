@@ -163,13 +163,13 @@ public class Utilerias {
             case 12:
                 comprobar = Pattern.matches("\\D{3}[0-9]{6}\\w{3}+", rfc);
                 if (comprobar == false) {
-                    mensaje = "El RFC no es válido";
+                    mensaje = "El RFC Persona Moral No es válido";
                 }
                 break;
             case 13:
                 comprobar = Pattern.matches("\\D{4}[0-9]{6}\\w{3}+", rfc);
                 if (comprobar == false) {
-                    mensaje = "El RFC no es válido";
+                    mensaje = "El RFC Persona Fisica No es válido";
                 }
                 break;
             default:
