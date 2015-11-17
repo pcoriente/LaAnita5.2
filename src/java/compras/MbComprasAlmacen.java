@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -627,6 +625,7 @@ public class MbComprasAlmacen implements Serializable {
 
     public void actualizaComprobanteProveedor() {
         this.mbComprobantes.setIdTipoMovto(1);
+        this.mbComprobantes.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
         this.mbComprobantes.setIdReferencia(this.mbProveedores.getMiniProveedor().getIdProveedor());
         this.mbComprobantes.setComprobante(null);
         this.mbComprobantes.setSeleccion(null);

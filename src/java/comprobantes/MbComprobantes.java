@@ -10,7 +10,6 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
@@ -28,6 +27,7 @@ public class MbComprobantes implements Serializable {
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
     private int idTipoMovto;
+    private int idEmpresa;
     private int idReferencia;
     private Comprobante comprobante;
     private TOComprobante seleccion;
@@ -82,7 +82,7 @@ public class MbComprobantes implements Serializable {
                 this.dao = new DAOComprobantes();
                 this.dao.eliminar(this.comprobante.getIdComprobante());
             }
-            this.comprobante = new Comprobante(this.idTipoMovto, this.idReferencia);
+            this.comprobante = new Comprobante(this.idTipoMovto, this.idEmpresa, this.idReferencia);
             this.seleccion = null;
             ok = true;
         } catch (NamingException ex) {
@@ -126,6 +126,7 @@ public class MbComprobantes implements Serializable {
         TOComprobante to = new TOComprobante();
         to.setIdComprobante(c.getIdComprobante());
         to.setIdTipoMovto(c.getIdTipoMovto());
+        to.setIdEmpresa(c.getIdEmpresa());
         to.setIdReferencia(c.getIdReferencia());
         to.setTipo(Integer.parseInt(c.getTipo()));
         to.setSerie(c.getSerie());
@@ -175,7 +176,7 @@ public class MbComprobantes implements Serializable {
     public void mttoComprobante() {
         boolean ok = false;
         if (this.seleccion == null) {
-            this.comprobante = new Comprobante(this.idTipoMovto, this.idReferencia);
+            this.comprobante = new Comprobante(this.idTipoMovto, this.idEmpresa, this.idReferencia);
             ok = true;
         } else {
             try {
@@ -199,7 +200,7 @@ public class MbComprobantes implements Serializable {
         ArrayList<TOComprobante> lstComprobantes = null;
         try {
             this.dao = new DAOComprobantes();
-            lstComprobantes = this.dao.completeComprobantes(this.idTipoMovto, this.idReferencia, query);
+            lstComprobantes = this.dao.completeComprobantes(this.idTipoMovto, this.idEmpresa, this.idReferencia, query);
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
@@ -216,6 +217,7 @@ public class MbComprobantes implements Serializable {
         Comprobante c = new Comprobante();
         c.setIdComprobante(to.getIdComprobante());
         c.setIdTipoMovto(to.getIdTipoMovto());
+        c.setIdEmpresa(to.getIdEmpresa());
         c.setIdReferencia(to.getIdReferencia());
         c.setTipo(Integer.toString(to.getTipo()));
         c.setSerie(to.getSerie());
@@ -270,6 +272,14 @@ public class MbComprobantes implements Serializable {
 
     public void setIdTipoMovto(int idTipoMovto) {
         this.idTipoMovto = idTipoMovto;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public int getIdReferencia() {

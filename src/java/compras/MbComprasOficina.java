@@ -930,6 +930,7 @@ public class MbComprasOficina implements Serializable {
 
     public void actualizaComprobanteProveedor() {
         this.mbComprobantes.setIdTipoMovto(1);
+        this.mbComprobantes.setIdEmpresa(this.mbAlmacenes.getToAlmacen().getIdEmpresa());
         this.mbComprobantes.setIdReferencia(this.mbProveedores.getMiniProveedor().getIdProveedor());
         this.mbComprobantes.setComprobante(null);
         this.mbComprobantes.setSeleccion(null);
