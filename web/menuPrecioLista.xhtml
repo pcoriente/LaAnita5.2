@@ -32,18 +32,33 @@
                                          immediate="true"/>
 
                     </div>
-                    <p:panel header="Grupo de Cliente" 
+                    <p:panel header="Lista de Precios Ideal" 
                              styleClass="quitaCuadro">
                         <p:dataTable value="#{mbListaPrecioIdeal.lstListaPrecioTable}"
                                      var="listaPrecioIdeal"
+                                     scrollHeight="300"
+                                     scrollable="true"
                                      id="tablePrecioIdeal"
-                                     paginator="true"
-                                     rows="10"
                                      filteredValue="#{mbListaPrecioIdeal.filterLstPrecioIdeal}">
+                            <p:column headerText="SKU" 
+                                      style="width: 50px;" 
+                                      sortBy="#{listaPrecioIdeal.producto.cod_pro}" >
+                                <h:outputText
+                                    value="#{listaPrecioIdeal.producto.cod_pro}"
+                                    />
+                            </p:column>
+                            <p:column headerText="Grupo Producto"  
+                                      style="width: 150px;" 
+                                      filterBy="#{listaPrecioIdeal.producto.articulo.grupo.grupo}" 
+                                      sortBy="#{listaPrecioIdeal.producto.articulo.grupo.grupo}">
+                                <h:outputText
+                                    value="#{listaPrecioIdeal.producto.articulo.grupo.grupo}" />  
+                            </p:column>
                             <p:column headerText="Producto"
                                       filterBy="#{listaPrecioIdeal.producto}"
                                       filterMatchMode="contains">
-                                #{listaPrecioIdeal.producto}
+                                <h:outputText
+                                    value="#{listaPrecioIdeal.producto}" />
                             </p:column>
                             <p:column headerText="Precio"
                                       style="width: 210px"
@@ -60,7 +75,7 @@
                                                         value="#{listaPrecioIdeal.precioLista}"
                                                         emptyValue="zero"
                                                         decimalPlaces="6"
-                                                        style="width: 100px"
+                                                        style="width: 80px"
                                                         symbol="$">
                                         </pe:inputNumber> 
                                     </p:inplace>
