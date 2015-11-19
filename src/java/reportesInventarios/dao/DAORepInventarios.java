@@ -127,7 +127,8 @@ public class DAORepInventarios {
         toProd.setSaldo(rs.getDouble("existenciaAnterior"));
         toProd.setOperacion(rs.getString("operacion"));
         toProd.setCantidad(rs.getDouble("cantidad"));
-        toProd.setCostoPromedio(rs.getDouble("saldo"));
+//        toProd.setSaldo(rs.getDouble("saldo"));
+        toProd.setCostoPromedio(rs.getDouble("costoPromedio"));
         return toProd;
     }
 
