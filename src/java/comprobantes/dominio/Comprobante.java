@@ -10,6 +10,7 @@ import monedas.Moneda;
 public class Comprobante {
     private int idComprobante;
     private int idTipoMovto;
+    private int idEmpresa;
     private int idReferencia;
     private String tipo;
     private String serie;
@@ -30,9 +31,10 @@ public class Comprobante {
         this.moneda = new Moneda();
     }
     
-    public Comprobante(int idTipoMovto, int idReferencia) {
-        this.idReferencia=idReferencia;
+    public Comprobante(int idTipoMovto, int idEmpresa, int idReferencia) {
         this.idTipoMovto = idTipoMovto;
+        this.idEmpresa = idEmpresa;
+        this.idReferencia=idReferencia;
         this.tipo = "3";
         this.serie="";
         this.numero="";
@@ -86,6 +88,14 @@ public class Comprobante {
 
     public void setIdTipoMovto(int idTipoMovto) {
         this.idTipoMovto = idTipoMovto;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public int getIdReferencia() {

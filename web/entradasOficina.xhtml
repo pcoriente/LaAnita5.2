@@ -23,12 +23,26 @@
                                 <p:column >
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="2" >
+                                <p:column >
                                     <p:selectOneMenu id="almacen" value="#{mbEntradasOficina.mbAlmacenes.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbEntradasOficina.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
+                                                             style="font-weight: bold; color: black;"
+                                                             value="#{mbEntradasOficina.chkPendientes}" >
+                                        <p:ajax event="change" process="@this" update="fechaInicial" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column >
+                                    <p:calendar id="fechaInicial" value="#{mbEntradasOficina.fechaInicial}"
+                                                disabled="#{mbEntradasOficina.chkPendientes}"
+                                                readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" />
+                                    </p:calendar>
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -42,7 +56,7 @@
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
-                                <p:column >
+                                <p:column colspan="2" style="text-align: right;" >
                                     <p:commandButton id="btnEditar" icon="ui-icon-document" title="Nueva entrada" 
                                                      process="@this" actionListener="#{mbEntradasOficina.capturar()}" update="main" />
                                     <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar entradas pendientes" 
@@ -135,11 +149,18 @@
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasOficina.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
-                            <p:column headerText="ALMACEN" style="width: 150px;" >
-                                <h:outputText value="#{entrada.almacen}" style="width: 150px;" />
+                            
+                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{entrada.almacen}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 60px;" >
-                                <h:outputText value="#{entrada.fecha}" style="width: 150px;" >
+                            <p:column headerText="TIPO" style="width: 300px;" >
+                                <h:outputText value="#{entrada.tipo}" />
+                            </p:column>
+                            <p:column headerText="FOLIO" style="width: 45px;" >
+                                <h:outputText value="#{entrada.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 55px;" >
+                                <h:outputText value="#{entrada.fecha}" >
                                     <f:convertDateTime pattern="dd/MM/yyyy" />
                                 </h:outputText>
                             </p:column>

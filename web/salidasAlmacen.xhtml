@@ -23,12 +23,26 @@
                                 <p:column >
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="2" >
+                                <p:column >
                                     <p:selectOneMenu id="almacen" value="#{mbSalidasAlmacen.mbAlmacenes.toAlmacen}" style="width: 450px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSalidasAlmacen.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
+                                                             style="font-weight: bold; color: black;"
+                                                             value="#{mbSalidasAlmacen.chkPendientes}" >
+                                        <p:ajax event="change" process="@this" update="fechaInicial" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column >
+                                    <p:calendar id="fechaInicial" value="#{mbSalidasAlmacen.fechaInicial}"
+                                                disabled="#{mbSalidasAlmacen.chkPendientes}"
+                                                readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" />
+                                    </p:calendar>
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -42,7 +56,7 @@
                                         <p:ajax event="change" update=":main:msgs" />
                                     </p:selectOneMenu>
                                 </p:column>
-                                <p:column >
+                                <p:column colspan="2" style="text-align: right;" >
                                     <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
                                                      process="@this" actionListener="#{mbSalidasAlmacen.capturar()}" update="main" />
                                     <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
@@ -135,7 +149,7 @@
                             </p:row>
                         </p:panelGrid>
                     </p:dialog>
-                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="300" >
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="350" >
                         <p:messages id="msgs1" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
                         <p:ajax event="close" update=":main:detalleSalida"  />
                         
@@ -204,14 +218,17 @@
                             <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasAlmacen.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
                             
-                            <p:column headerText="ALMACEN" style="width: 150px;" >
-                                <h:outputText value="#{salida.almacen}" style="width: 150px;" />
+                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{salida.almacen}" />
                             </p:column>
-                            <p:column headerText="TIPO" style="width: 150px;" >
-                                <h:outputText value="#{salida.tipo}" style="width: 150px;" />
+                            <p:column headerText="TIPO" style="width: 300px;" >
+                                <h:outputText value="#{salida.tipo}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 60px;" >
-                                <h:outputText value="#{salida.fecha}" style="width: 150px;" >
+                            <p:column headerText="FOLIO" style="width: 45px;" >
+                                <h:outputText value="#{salida.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 55px;" >
+                                <h:outputText value="#{salida.fecha}" >
                                     <f:convertDateTime pattern="dd/MM/yyyy" />
                                 </h:outputText>
                             </p:column>

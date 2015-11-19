@@ -131,7 +131,7 @@ public class MbMonedas implements Serializable {
         if (lstMoneda == null) {
             lstMoneda = new ArrayList<>();
             try {
-                DAOMonedas dao = new DAOMonedas();
+                this.dao = new DAOMonedas();
                 lstMoneda = dao.obtenerMonedas();
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());

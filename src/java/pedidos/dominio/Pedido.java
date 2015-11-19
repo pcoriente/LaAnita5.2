@@ -2,6 +2,7 @@ package pedidos.dominio;
 
 import almacenes.to.TOAlmacenJS;
 import java.util.Date;
+import monedas.Moneda;
 import movimientos.dominio.MovimientoOficina;
 import movimientos.dominio.MovimientoTipo;
 import tiendas.to.TOTienda;
@@ -11,6 +12,7 @@ import tiendas.to.TOTienda;
  * @author jesc
  */
 public class Pedido extends MovimientoOficina {
+    private Moneda moneda;
     private int idPedidoOC;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
@@ -30,6 +32,7 @@ public class Pedido extends MovimientoOficina {
         this.tienda=new TOTienda();
 //        this.formato=new ClienteFormato();
 //        this.cliente=new TOCliente();
+        this.moneda = new Moneda();
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
 //        this.fecha=new Date();
@@ -43,6 +46,7 @@ public class Pedido extends MovimientoOficina {
         this.tienda = tienda;
 //        this.formato = formato;
 //        this.cliente = cliente;
+        this.moneda = new Moneda();
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
         this.cancelacionMotivo="";
@@ -158,6 +162,14 @@ public class Pedido extends MovimientoOficina {
 //    public void setDesctoProntoPago(double desctoProntoPago) {
 //        this.desctoProntoPago = desctoProntoPago;
 //    }
+
+    public Moneda getMoneda() {
+        return moneda;
+    }
+
+    public void setMoneda(Moneda moneda) {
+        this.moneda = moneda;
+    }
 
     public String getOrdenDeCompra() {
         return ordenDeCompra;

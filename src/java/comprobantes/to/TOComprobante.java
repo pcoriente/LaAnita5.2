@@ -9,6 +9,7 @@ import java.util.Date;
 public class TOComprobante {
     private int idComprobante;
     private int idTipoMovto;
+    private int idEmpresa;
     private int idReferencia;
     private int tipo;
     private String serie;
@@ -80,6 +81,14 @@ public class TOComprobante {
 
     public void setIdTipoMovto(int idTipoMovto) {
         this.idTipoMovto = idTipoMovto;
+    }
+
+    public int getIdEmpresa() {
+        return idEmpresa;
+    }
+
+    public void setIdEmpresa(int idEmpresa) {
+        this.idEmpresa = idEmpresa;
     }
 
     public int getIdReferencia() {

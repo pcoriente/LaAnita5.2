@@ -65,6 +65,8 @@ public class MbSalidasAlmacen implements Serializable {
     private ArrayList<ProductoLotes> detalle;
     private ProductoLotes producto;
     private ProductoAlmacen lote;
+    private boolean chkPendientes;
+    private Date fechaInicial;
     private DAOMovimientosAlmacen dao;
 
     public MbSalidasAlmacen() throws NamingException {
@@ -306,11 +308,11 @@ public class MbSalidasAlmacen implements Serializable {
             for (TOProductoLotes to : this.dao.obtenerDetalle(idMovtoAlmacen)) {
                 this.detalle.add(this.convertirProductoAlmacen(to));
             }
-            for(ProductoLotes prod: this.detalle) {
-                for(ProductoAlmacen l: prod.getLotes()) {
-                    prod.setCantidad(prod.getCantidad()+l.getCantidad());
-                }
-            }
+//            for(ProductoLotes prod: this.detalle) {
+//                for(ProductoAlmacen l: prod.getLotes()) {
+//                    prod.setCantidad(prod.getCantidad()+l.getCantidad());
+//                }
+//            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -333,15 +335,19 @@ public class MbSalidasAlmacen implements Serializable {
 
     public void pendientes() {
         boolean ok = false;
+        int estatus = 0;
         if (this.tipo.getIdTipo() == 0) {
             Mensajes.mensajeAlert("Se requiere seleccionar un concepto");
         } else if (this.mbAlmacenes.getToAlmacen().getIdAlmacen() == 0) {
             Mensajes.mensajeAlert("Se requiere seleccionar un almacen !!!");
         } else {
             this.pendientes = new ArrayList<>();
+            if(!this.chkPendientes) {
+                estatus=7;
+            }
             try {
                 this.dao = new DAOMovimientosAlmacen();
-                for (TOMovimientoAlmacen to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), 0, new Date())) {
+                for (TOMovimientoAlmacen to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), estatus, this.fechaInicial)) {
                     this.pendientes.add(this.convertir(to));
                 }
                 ok = true;
@@ -412,6 +418,8 @@ public class MbSalidasAlmacen implements Serializable {
         this.listaMovimientosTipos = null;
         this.detalle = new ArrayList<>();
         this.lote = new ProductoAlmacen();
+        this.chkPendientes=true;
+        this.fechaInicial=new Date();
     }
 
     private void inicializa() {
@@ -456,6 +464,22 @@ public class MbSalidasAlmacen implements Serializable {
 
     public void setProducto(ProductoLotes producto) {
         this.producto = producto;
+    }
+
+    public boolean isChkPendientes() {
+        return chkPendientes;
+    }
+
+    public void setChkPendientes(boolean chkPendientes) {
+        this.chkPendientes = chkPendientes;
+    }
+
+    public Date getFechaInicial() {
+        return fechaInicial;
+    }
+
+    public void setFechaInicial(Date fechaInicial) {
+        this.fechaInicial = fechaInicial;
     }
 
     public MovimientoTipo getTipo() {

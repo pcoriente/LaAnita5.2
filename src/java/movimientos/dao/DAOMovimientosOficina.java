@@ -40,14 +40,14 @@ public class DAOMovimientosOficina {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
-    
+
     public void cancelarProducto(int idMovto, int idProducto, boolean suma) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                if(!suma) {
-                    strSQL="UPDATE A\n"
+                if (!suma) {
+                    strSQL = "UPDATE A\n"
                             + "SET separados=A.separados-(D.cantFacturada+D.cantSinCargo)\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
@@ -76,8 +76,8 @@ public class DAOMovimientosOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                if(!suma) {
-                    strSQL="UPDATE A\n"
+                if (!suma) {
+                    strSQL = "UPDATE A\n"
                             + "SET separados=A.separados-(D.cantFacturada+D.cantSinCargo)\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
@@ -123,7 +123,7 @@ public class DAOMovimientosOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                toMov.setEstatus(5);
+                toMov.setEstatus(7);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
@@ -139,11 +139,11 @@ public class DAOMovimientosOficina {
             }
         }
     }
-    
+
     public void liberar(int idAlmacen, TOProductoOficina toProd, double separados) throws SQLException {
         String strSQL = "";
         double cantLiberar = separados - toProd.getCantFacturada();
-        if(cantLiberar < 0) {
+        if (cantLiberar < 0) {
             throw new SQLException("No se puede liberar una cantidad menor que cero !!!");
         }
         try (Connection cn = this.ds.getConnection()) {
@@ -153,8 +153,8 @@ public class DAOMovimientosOficina {
                         + "SET separados=separados-" + cantLiberar + "\n"
                         + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
-                
-                toProd.setCantFacturada(separados-cantLiberar);
+
+                toProd.setCantFacturada(separados - cantLiberar);
                 movimientos.Movimientos.grabaProductoCantidad(cn, toProd);
 
                 cn.commit();
@@ -170,7 +170,7 @@ public class DAOMovimientosOficina {
     public double separar(int idAlmacen, TOProductoOficina toProd, double separados) throws SQLException {
         double disponibles = 0;
         double cantSeparar = toProd.getCantFacturada() - separados;
-        if(cantSeparar < 0) {
+        if (cantSeparar < 0) {
             throw new SQLException("No se puede separar una cantidad menor que cero !!!");
         }
         String strSQL = "SELECT existencia-separados AS disponibles\n"
@@ -194,8 +194,8 @@ public class DAOMovimientosOficina {
                         + "SET separados=separados+" + cantSeparar + "\n"
                         + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
-                
-                toProd.setCantFacturada(separados+cantSeparar);
+
+                toProd.setCantFacturada(separados + cantSeparar);
                 movimientos.Movimientos.grabaProductoCantidad(cn, toProd);
 
                 cn.commit();
@@ -272,10 +272,6 @@ public class DAOMovimientosOficina {
     }
 
     public ArrayList<TOMovimientoOficina> obtenerMovimientos(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
-        String condicion = "=0 ";
-        if (estatus != 0) {
-            condicion = "!=0 ";
-        }
         if (fechaInicial == null) {
             fechaInicial = new Date();
         }
@@ -283,9 +279,15 @@ public class DAOMovimientosOficina {
         ArrayList<TOMovimientoOficina> tos = new ArrayList<>();
         String strSQL = "SELECT M.*\n"
                 + "FROM movimientos M\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus" + condicion + "\n"
-                + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'\n"
-                + "ORDER BY M.fecha DESC";
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo;
+        if (estatus == 0) {
+            strSQL += " AND M.estatus=0\n";
+        } else if (estatus == 7) {
+            strSQL += " AND M.estatus>=7\n"
+                    + "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
+        }
+        strSQL += "ORDER BY M.fecha DESC";
+
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);

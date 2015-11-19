@@ -62,6 +62,8 @@ public class MbSalidasOficina implements Serializable {
     private ArrayList<ProductoOficina> detalle;
     private MovimientoOficina salida;
     private ArrayList<MovimientoOficina> pendientes;
+    private boolean chkPendientes;
+    private Date fechaInicial;
     private DAOMovimientosOficina dao;
 
     public MbSalidasOficina() throws NamingException {
@@ -279,15 +281,19 @@ public class MbSalidasOficina implements Serializable {
 
     public void pendientes() {
         boolean ok = false;
+        int estatus=0;
         if (this.tipo.getIdTipo() == 0) {
             Mensajes.mensajeAlert("Se requiere seleccionar un concepto");
         } else if (this.mbAlmacenes.getToAlmacen().getIdAlmacen() == 0) {
             Mensajes.mensajeAlert("Se requiere seleccionar un almacen !!!");
         } else {
             this.pendientes = new ArrayList<>();
+            if(!this.chkPendientes) {
+                estatus=7;
+            }
             try {
                 this.dao = new DAOMovimientosOficina();
-                for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.tipo.getIdTipo(), 0, new Date())) {
+                for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.tipo.getIdTipo(), estatus, this.fechaInicial)) {
                     this.pendientes.add(this.convertir(to));
                 }
                 ok = true;
@@ -357,6 +363,8 @@ public class MbSalidasOficina implements Serializable {
         this.modoEdicion = false;
         this.listaMovimientosTipos = null;
         this.detalle = new ArrayList<>();
+        this.chkPendientes=true;
+        this.fechaInicial=new Date();
     }
 
     private void inicializa() {
@@ -422,6 +430,22 @@ public class MbSalidasOficina implements Serializable {
 
     public void setTipo(MovimientoTipo tipo) {
         this.tipo = tipo;
+    }
+    
+    public boolean isChkPendientes() {
+        return chkPendientes;
+    }
+
+    public void setChkPendientes(boolean chkPendientes) {
+        this.chkPendientes = chkPendientes;
+    }
+
+    public Date getFechaInicial() {
+        return fechaInicial;
+    }
+
+    public void setFechaInicial(Date fechaInicial) {
+        this.fechaInicial = fechaInicial;
     }
 
     public ProductoOficina getProducto() {

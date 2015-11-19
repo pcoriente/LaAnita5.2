@@ -346,9 +346,9 @@ public class Movimientos {
 
     public static void actualizaProductoPrecio(Connection cn, TOMovimientoOficina toMov, TOProductoOficina toProd) throws SQLException {
         ArrayList<Double> precio = obtenerPrecioUnitario(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toMov.getDesctoComercial(), toProd.getIdProducto());
-        toProd.setUnitario(precio.get(0));
-        toProd.setDesctoProducto1(precio.get(1));
-        toProd.setCosto(precio.get(2));
+        toProd.setUnitario((double) Math.round(precio.get(0) * 1000000) / 1000000);
+        toProd.setDesctoProducto1((double) Math.round(precio.get(1) * 1000000000) / 1000000000);
+        toProd.setCosto((double) Math.round(precio.get(2) * 1000000) / 1000000);
 
         grabaProductoCambios(cn, toProd);
         calculaUnitario(cn, toMov.getIdMovto(), toProd.getIdProducto());
@@ -851,6 +851,21 @@ public class Movimientos {
                 st.executeUpdate(strSQL);
             }
         }
+    }
+
+    public static ArrayList<ImpuestosProducto> obtenerImpuestosProducto(Connection cn, int idImpuestoGrupo, int idZona) throws SQLException {
+        ArrayList<ImpuestosProducto> impuestos = new ArrayList<>();
+        String strSQL = "SELECT id.idImpuesto, i.impuesto, id.valor, i.aplicable, i.modo, i.acreditable, 0.00 as importe, i.acumulable\n"
+                + "FROM impuestosDetalle id\n"
+                + "INNER JOIN impuestos i ON i.idImpuesto=id.idImpuesto\n"
+                + "WHERE id.idGrupo=" + idImpuestoGrupo + " and id.idZona=" + idZona + " and GETDATE() between fechaInicial and fechaFinal";
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                impuestos.add(construirImpuestosProducto(rs));
+            }
+        }
+        return impuestos;
     }
 
     public static ImpuestosProducto construirImpuestosProducto(ResultSet rs) throws SQLException {

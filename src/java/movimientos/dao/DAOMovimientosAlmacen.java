@@ -76,7 +76,7 @@ public class DAOMovimientosAlmacen {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                toMov.setEstatus(5);
+                toMov.setEstatus(7);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
@@ -278,6 +278,7 @@ public class DAOMovimientosAlmacen {
                 while (rs.next()) {
                     toProd = this.construir(rs);
                     toProd.setLotes(this.obtenDetalleProducto(cn, toProd.getIdMovtoAlmacen(), toProd.getIdProducto()));
+                    detalle.add(toProd);
                 }
             } catch (SQLException ex) {
                 cn.rollback();
@@ -313,7 +314,6 @@ public class DAOMovimientosAlmacen {
 //        }
 //        return detalle;
 //    }
-
     public void agregarProducto(TOProductoAlmacen toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
@@ -321,10 +321,6 @@ public class DAOMovimientosAlmacen {
     }
 
     public ArrayList<TOMovimientoAlmacen> obtenerMovimientos(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
-        String condicion = "=0 ";
-        if (estatus != 0) {
-            condicion = "!=0 ";
-        }
         if (fechaInicial == null) {
             fechaInicial = new Date();
         }
@@ -332,9 +328,15 @@ public class DAOMovimientosAlmacen {
         ArrayList<TOMovimientoAlmacen> tos = new ArrayList<>();
         String strSQL = "SELECT M.*\n"
                 + "FROM movimientosAlmacen M\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus" + condicion + "\n"
-                + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'\n"
-                + "ORDER BY M.fecha DESC";
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo;
+        if (estatus == 0) {
+            strSQL += " AND M.estatus=0\n";
+        } else if (estatus == 7) {
+            strSQL += " AND M.estatus>=7\n"
+                    + "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
+        }
+        strSQL += "ORDER BY M.fecha DESC";
+
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
