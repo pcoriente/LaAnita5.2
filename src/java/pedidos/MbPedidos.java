@@ -173,6 +173,7 @@ public class MbPedidos implements Serializable {
         to.setIdProducto(p.getProducto().getIdProducto());
         to.setCantOrdenada(p.getCantOrdenada());
         to.setCantOrdenadaSinCargo(p.getCantOrdenadaSinCargo());
+        to.setSimilar(p.isSimilar());
         to.setCantFacturada(p.getCantFacturada());
         to.setCantSinCargo(p.getCantSinCargo());
         to.setCosto(p.getCosto());
@@ -184,25 +185,39 @@ public class MbPedidos implements Serializable {
 
     public void actualizaProducto() {
         boolean ok = false;
-//        double cantOrdenadaOld = this.producto.getCantOrdenadaTotal() - this.producto.getCantOrdenadaSinCargo();
         try {
-//            if (this.producto.getCantOrdenada() != cantOrdenadaOld) {
             if (this.producto.getCantOrdenada() != this.producto.getCantFacturada()) {
                 TOPedido toPed = this.convertir(this.pedido);
                 TOProductoPedido toProd = this.convertir(this.producto);
-//                this.producto.setCantOrdenada(cantOrdenadaOld);
                 this.producto.setCantOrdenada(this.producto.getCantFacturada());
 
                 this.dao = new DAOPedidos();
-                this.dao.grabarPedidoDetalle(toPed, toProd);
-                this.totalResta(this.producto);
-
-                this.producto.setCantOrdenada(toProd.getCantOrdenada());
-                this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-//                this.producto.setCantOrdenadaTotal(toProd.getCantOrdenada() + toProd.getCantOrdenadaSinCargo());
-                this.producto.setCantFacturada(this.producto.getCantOrdenada());
-                this.producto.setCantSinCargo(this.producto.getCantOrdenadaSinCargo());
-                this.totalSuma(this.producto);
+                ArrayList<TOProductoPedido> listaSimilares = this.dao.grabarPedidoDetalle(toPed, toProd);
+//                if (listaSimilares.isEmpty()) {
+                if (listaSimilares.size()<=1) {
+                    this.totalResta(this.producto);
+                    this.producto.setCantOrdenada(toProd.getCantOrdenada());
+                    this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+                    this.producto.setCantFacturada(this.producto.getCantOrdenada());
+                    this.producto.setCantSinCargo(this.producto.getCantOrdenadaSinCargo());
+                    this.totalSuma(this.producto);
+                } else {
+                    int idx;
+                    PedidoProducto prod;
+                    for (TOProductoPedido to : listaSimilares) {
+                        prod = this.convertir(to);
+                        if ((idx = this.detalle.indexOf(prod)) != -1) {
+                            if (prod.equals(this.producto)) {
+                                this.setProducto(prod);
+                            }
+                            this.totalResta(this.detalle.get(idx));
+                            this.detalle.set(idx, prod);
+                        } else {
+                            this.detalle.add(prod);
+                        }
+                        this.totalSuma(prod);
+                    }
+                }
             }
             ok = true;
         } catch (NamingException ex) {
@@ -326,7 +341,7 @@ public class MbPedidos implements Serializable {
         prod.setIdPedido(toProd.getIdPedido());
         prod.setCantOrdenada(toProd.getCantOrdenada());
         prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-//        prod.setCantOrdenadaTotal(toProd.getCantOrdenada() + toProd.getCantOrdenadaSinCargo());
+        prod.setSimilar(toProd.isSimilar());
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         movimientos.Movimientos.convertir(toProd, prod);
         prod.setCantFacturada(prod.getCantOrdenada());
@@ -337,7 +352,7 @@ public class MbPedidos implements Serializable {
 
     public void obtenerDetalle(SelectEvent event) {
         this.pedido = (Pedido) event.getObject();
-        
+
         boolean ok = false;
         PedidoProducto prod;
         this.pedido.setSubTotal(0);
@@ -357,7 +372,7 @@ public class MbPedidos implements Serializable {
             this.pedido.setIdUsuario(toPed.getIdUsuario());
             this.pedido.setPropietario(toPed.getPropietario());
             this.pedido.setEstatus(toPed.getEstatus());
-            this.asegurado=false;
+            this.asegurado = false;
             if (this.pedido.getIdUsuario() == this.pedido.getPropietario()) {
                 this.asegurado = true;
             }
@@ -402,7 +417,7 @@ public class MbPedidos implements Serializable {
 
     public void crearPedido() {
         boolean ok = false;
-        if (this. validar()) {
+        if (this.validar()) {
             this.pedido = new Pedido(new MovimientoTipo(28, "Pedido"), this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda());
             this.pedido.setMoneda(this.mbMonedas.getSeleccionMoneda());
             this.pedido.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
@@ -518,8 +533,10 @@ public class MbPedidos implements Serializable {
         boolean ok = false;
         this.similares = new ArrayList<>();
         try {
+            this.similar = null;
+            this.cantTraspasar = 0;
             this.dao = new DAOPedidos();
-            for (TOProductoPedido to : dao.obtenerSimilaresPedido(this.producto.getIdPedido(), this.producto.getProducto().getIdProducto())) {
+            for (TOProductoPedido to : this.dao.obtenerSimilares(this.producto.getIdMovto(), this.producto.getProducto().getIdProducto())) {
                 this.similares.add(this.convertir(to));
             }
             ok = true;
@@ -535,21 +552,25 @@ public class MbPedidos implements Serializable {
     public void actualizaTraspasoSimilar() {
         int idx;
         PedidoProducto prod;
+        PedidoProducto prodOld;
         boolean okSimilares = false;
         try {
             if (this.cantTraspasar > 0 && this.cantTraspasar <= this.producto.getCantSinCargo()) {
+                TOPedido toPed = this.convertir(this.pedido);
                 TOProductoPedido toProd = this.convertir(this.producto);
                 TOProductoPedido toSimilar = this.convertir(this.similar);
 
                 this.dao = new DAOPedidos();
-                this.dao.trasferirSinCargo(toProd, toSimilar, this.pedido.getTienda().getIdImpuestoZona(), this.cantTraspasar);
-                for (TOProductoPedido to : this.dao.obtenerPedidoSimilares(toProd.getIdPedido(), toProd.getIdProducto())) {
+                for (TOProductoPedido to : this.dao.trasferirSinCargo(toPed, toProd, toSimilar, this.pedido.getTienda().getIdImpuestoZona(), this.cantTraspasar)) {
                     prod = this.convertir(to);
                     if ((idx = this.detalle.indexOf(prod)) != -1) {
+                        prodOld = this.detalle.get(idx);
+                        this.totalResta(prodOld);
                         this.detalle.set(idx, prod);
                     } else {
                         this.detalle.add(prod);
                     }
+                    this.totalSuma(prod);
                 }
                 okSimilares = true;
             }

@@ -12,9 +12,10 @@ public class TOProductoKardexDetalle {
     private int folio;
     private String comprobante;
     private String lote;
-    private double saldo;
+    private double existenciaAnterior;
     private String operacion;
     private double cantidad;
+    private double saldo;
     private double costoPromedio;
     
     public TOProductoKardexDetalle() {
@@ -63,12 +64,12 @@ public class TOProductoKardexDetalle {
         this.lote = lote;
     }
 
-    public double getSaldo() {
-        return saldo;
+    public double getExistenciaAnterior() {
+        return existenciaAnterior;
     }
 
-    public void setSaldo(double saldo) {
-        this.saldo = saldo;
+    public void setExistenciaAnterior(double existenciaAnterior) {
+        this.existenciaAnterior = existenciaAnterior;
     }
 
     public String getOperacion() {
@@ -85,6 +86,14 @@ public class TOProductoKardexDetalle {
 
     public void setCantidad(double cantidad) {
         this.cantidad = cantidad;
+    }
+    
+    public double getSaldo() {
+        return saldo;
+    }
+
+    public void setSaldo(double saldo) {
+        this.saldo = saldo;
     }
 
     public double getCostoPromedio() {

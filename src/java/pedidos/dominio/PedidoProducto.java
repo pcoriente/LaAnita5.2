@@ -11,6 +11,7 @@ public class PedidoProducto extends ProductoOficina {
     private int idPedido;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
+    private boolean similar;
 //    private double cantOrdenadaTotal;
 
     public PedidoProducto() {
@@ -52,4 +53,12 @@ public class PedidoProducto extends ProductoOficina {
 //    public void setCantOrdenadaTotal(double cantOrdenadaTotal) {
 //        this.cantOrdenadaTotal = cantOrdenadaTotal;
 //    }
+
+    public boolean isSimilar() {
+        return similar;
+    }
+
+    public void setSimilar(boolean similar) {
+        this.similar = similar;
+    }
 }

@@ -98,7 +98,7 @@
                             <p:column >
                                 <h:outputLabel value="PRODUCTO :" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column colspan="3" >
+                            <p:column colspan="4" >
                                 <h:outputText value="#{mbPedidos.producto.toString()}" />
                             </p:column>
                         </p:row>
@@ -111,22 +111,28 @@
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
                                     <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
-                                            update=":main:msgsEdicion :main:totales" 
-                                            oncomplete="handleEdicion(xhr, status, args);" />
+                                            update=":main:msgsEdicion txtCantSinCargo btnSimilares :main:detallePedido :main:totales" />
                                 </p:inputText>
                             </p:column>
                             <p:column >
                                 <h:outputLabel value="CANT.SIN CARGO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <h:outputText value="#{mbPedidos.producto.cantOrdenadaSinCargo}" >
+                                <h:outputText id="txtCantSinCargo" value="#{mbPedidos.producto.cantOrdenadaSinCargo}" >
                                     <f:convertNumber pattern="###,##0.0000" />
                                 </h:outputText>
+                            </p:column>
+                            <p:column >
+                                <p:commandButton id="btnSimilares" icon="ui-icon-transfer-e-w" title="Traspasar sin cargo a similar"
+                                                 disabled="#{mbPedidos.producto.cantOrdenadaSinCargo==0}"
+                                                 process="@this" actionListener="#{mbPedidos.traspasoSimilar()}" 
+                                                 update=":main:panelSimilares :main:detalleSimilares"
+                                                 oncomplete="PF('similaresDlg').show();" />
                             </p:column>
                         </p:row>
                         <f:facet name="footer" >
                             <p:row >
-                                <p:column colspan="4" style="text-align: right;" >
+                                <p:column colspan="5" style="text-align: right;" >
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
                                                      immediate="true" onclick="PF('EdicionDlg').hide();" />
                                 </p:column>
@@ -486,7 +492,7 @@
                     </p:panelGrid>
                 </p:dialog>
                 <!-- vvvvvvvvvvvvvvvvvvvvvvvvvv NO SE USA vvvvvvvvvvvvvvvvvvvvvvv -->
-                <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 600px;" modal="true" >
+                <p:dialog header="Similares" widgetVar="similaresDlg" closable="true" resizable="false" style="width: 600px;" modal="true" >
                     <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
                         <p:row >
@@ -502,18 +508,16 @@
                                 <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <pe:inputNumber id="txtCantTraspasar" value="#{mbPedidos.cantTraspasar}" style="width: 120px;" 
-                                                maxlength="14" decimalPlaces="4" emptyValue="0" 
-                                                minValue="0" maxValue="#{mbPedidos.producto.cantSinCargo}" >
-                                    <p:ajax event="change" process="@this" update=":main:msgsSimilares" />
-                                </pe:inputNumber>
+                                <p:inputText id="txtCantTraspasar" value="#{mbPedidos.cantTraspasar}" style="width: 120px;" >
+                                    <p:ajax event="change" process="@this" update=":main:detalleSimilares:btnSeleccion" />
+                                </p:inputText>
                             </p:column>
                         </p:row>
                     </p:panelGrid>
                     <p:dataTable id="detalleSimilares" value="#{mbPedidos.similares}" 
-                                 var="similar" scrollable="true" scrollHeight="200" style="width: 570px;"
+                                 var="similar" scrollable="true" scrollHeight="200" style="width: 650px;"
                                  rowKey="#{similar.producto}" selectionMode="single" selection="#{mbPedidos.similar}" >
-                        <p:ajax event = "rowSelect" update="seleccion" />
+                        <p:ajax event = "rowSelect" update="btnSeleccion" />
 
                         <f:facet name="header">Seleccione un similar</f:facet>
 
@@ -525,14 +529,20 @@
                             <h:outputText value="#{similar.producto.toString()}" />
                         </p:column>
 
-                        <p:column headerText="Con Cargo" >
+                        <p:column headerText="Facturada" >
                             <h:outputText value="#{similar.cantFacturada}" >
-                                <f:convertNumber pattern="###,##0.0000" />
+                                <f:convertNumber pattern="##,###,##0.000" />
+                            </h:outputText>
+                        </p:column>
+                        
+                        <p:column headerText="Sin Cargo" >
+                            <h:outputText value="#{similar.cantSinCargo}" >
+                                <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
 
                         <f:facet name="footer">
-                            <p:commandButton id="seleccion" value="Seleccionar" 
+                            <p:commandButton id="btnSeleccion" value="Seleccionar" 
                                              disabled="#{mbPedidos.similar==null || mbPedidos.cantTraspasar==0}"
                                              process="@this" actionListener="#{mbPedidos.actualizaTraspasoSimilar()}"
                                              update=":main:msgsSimilares :main:detallePedido" 
@@ -547,13 +557,13 @@
         <script type="text/javascript" >
                 function handleSimilares(xhr, status, args) {
                     if (!(args.validationFailed || !args.okSimilares)) {
-                        PF('SimilaresDlg').hide();
+                        PF('similaresDlg').hide();
                         PF('EdicionDlg').hide();
                     }
                 }
                 function handleAbrirSimilares(xhr, status, args) {
                     if (!(args.validationFailed || !args.okSimilares)) {
-                        PF('SimilaresDlg').show();
+                        PF('similaresDlg').show();
                     }
                 }
                 function handleEdicion(xhr, status, args) {
