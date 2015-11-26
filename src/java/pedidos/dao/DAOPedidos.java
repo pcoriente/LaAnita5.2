@@ -224,7 +224,7 @@ public class DAOPedidos {
             cn.setAutoCommit(false);
             try {
                 this.actualizaProductoCantidadPedido(cn, toPed, toProd);
-                similares=this.obtenSimilares(cn, toProd.getIdMovto(), toProd.getIdProducto());
+                similares = this.obtenSimilares(cn, toProd.getIdMovto(), toProd.getIdProducto());
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -452,8 +452,8 @@ public class DAOPedidos {
                 }
 //                strSQL = "INSERT INTO pedidos (idPedidoOC, fecha, idUsuario, propietario, canceladoMotivo, canceladoFecha, estatus)\n"
 //                        + "VALUES (" + toPed.getIdPedidoOC() + ", GETDATE(), "+toPed.getIdUsuario()+", "+toPed.getPropietario()+", '', '1900-01-01', 0)";
-                strSQL = "INSERT INTO pedidos (idMoneda, idPedidoOC, fecha, canceladoMotivo, canceladoFecha, estatus)\n"
-                        + "VALUES (" + toPed.getIdMoneda() + ", " + toPed.getIdPedidoOC() + ", GETDATE(), '', '1900-01-01', 0)";
+                strSQL = "INSERT INTO pedidos (idTienda, idMoneda, idPedidoOC, fecha, canceladoMotivo, canceladoFecha, estatus)\n"
+                        + "VALUES (" + toPed.getIdTienda() + ", "+toPed.getIdMoneda()+", " + toPed.getIdPedidoOC() + ", GETDATE(), '', '1900-01-01', 0)";
                 st.executeUpdate(strSQL);
 
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
@@ -475,8 +475,8 @@ public class DAOPedidos {
 
     private TOPedido construirPedido(ResultSet rs) throws SQLException {
         TOPedido to = new TOPedido();
-        to.setIdMoneda(rs.getInt("idMoneda"));
         to.setIdPedidoOC(rs.getInt("idPedidoOC"));
+        to.setIdMoneda(rs.getInt("idMoneda"));
         to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
         to.setCanceladoMotivo(rs.getString("canceladoMotivo"));
@@ -486,18 +486,22 @@ public class DAOPedidos {
     }
 
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
+        String condicion="=0";
+        if(estatus!=0) {
+            condicion="!=0";
+        }
         if (fechaInicial == null) {
             fechaInicial = new Date();
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-        String strSQL = "SELECT M.*, P.idMoneda, P.idPedidoOC, P.canceladoFecha, P.canceladoMotivo\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.canceladoFecha, P.canceladoMotivo\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.referencia!=0\n"
-                + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "' AND M.estatus=" + estatus;
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus" + condicion + "\n"
+                + "         AND CONVERT(date, P.fecha) >= '" + format.format(fechaInicial) + "'";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

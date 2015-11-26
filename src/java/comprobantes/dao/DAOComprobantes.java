@@ -163,20 +163,12 @@ public class DAOComprobantes {
     }
 
     public void agregar(TOComprobante to) throws SQLException {
-        to.setEstatus(5);
         to.setIdUsuario(this.idUsuario);
         to.setPropietario(this.idUsuario);
-        Date fechaFactura = new java.sql.Date(to.getFechaFactura().getTime());
-        String strSQL = "INSERT INTO comprobantes (idTipoMovto, idEmpresa, idReferencia, tipo, serie, numero, fechaFactura, idMoneda, idUsuario, propietario, cerradoOficina, cerradoAlmacen, estatus) "
-                + "VALUES (" + to.getIdTipoMovto() + ", "+to.getIdEmpresa()+", " + to.getIdReferencia() + ", " + to.getTipo() + ", '" + to.getSerie() + "', '" + to.getNumero() + "', '" + fechaFactura.toString() + "', " + to.getIdMoneda() + ", " + to.getIdUsuario() + ", " + to.getPropietario() + ", " + (to.isCerradoOficina() ? 1 : 0) + ", " + (to.isCerradoAlmacen() ? 1 : 0) + ", " + to.getEstatus() + ")";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                st.executeUpdate(strSQL);
-                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idComprobante");
-                if (rs.next()) {
-                    to.setIdComprobante(rs.getInt("idComprobante"));
-                }
+            try {
+                comprobantes.Comprobantes.agregar(cn, to);
                 cn.commit();
             } catch (SQLException e) {
                 cn.rollback();

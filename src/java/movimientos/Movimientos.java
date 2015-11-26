@@ -460,12 +460,12 @@ public class Movimientos {
             } else {
                 throw new SQLException("No se encontro producto (id=" + idProducto + ") en almacenesEmpaques !!!");
             }
-            cn.commit();
-        } catch (SQLException ex) {
-            cn.rollback();
-            throw ex;
-        } finally {
-            cn.setAutoCommit(true);
+//            cn.commit();
+//        } catch (SQLException ex) {
+//            cn.rollback();
+//            throw ex;
+//        } finally {
+//            cn.setAutoCommit(true);
         }
     }
 
@@ -543,15 +543,15 @@ public class Movimientos {
                     break;
                 }
             }
-            cn.commit();
-        } catch (SQLException ex) {
-            cn.rollback();
-            throw ex;
-        } catch (Exception ex) {
-            cn.rollback();
-            throw ex;
-        } finally {
-            cn.setAutoCommit(true);
+//            cn.commit();
+//        } catch (SQLException ex) {
+//            cn.rollback();
+//            throw ex;
+//        } catch (Exception ex) {
+//            cn.rollback();
+//            throw ex;
+//        } finally {
+//            cn.setAutoCommit(true);
         }
         return disponibles;
     }

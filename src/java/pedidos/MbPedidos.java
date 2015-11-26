@@ -3,6 +3,7 @@ package pedidos;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
+import comprobantes.MbComprobantes;
 import formatos.MbFormatos;
 import impuestos.dominio.ImpuestosProducto;
 import javax.inject.Named;
@@ -16,7 +17,6 @@ import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
 import monedas.MbMonedas;
-import movimientos.dominio.MovimientoTipo;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import pedidos.dao.DAOPedidos;
@@ -52,8 +52,8 @@ public class MbPedidos implements Serializable {
     private MbMiniTiendas mbTiendas;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    @ManagedProperty(value = "#{mbMonedas}")
-    private MbMonedas mbMonedas;
+    @ManagedProperty(value = "#{mbComprobantes}")
+    private MbComprobantes mbComprobantes;
     private Pedido pedido;
     private ArrayList<Pedido> pedidos;
     private ArrayList<ImpuestosProducto> impuestosTotales;
@@ -79,14 +79,14 @@ public class MbPedidos implements Serializable {
         this.mbFormatos = new MbFormatos();
         this.mbTiendas = new MbMiniTiendas();
         this.mbBuscar = new MbProductosBuscar();
-        this.mbMonedas = new MbMonedas();
+        this.mbComprobantes = new MbComprobantes();
 
         this.inicializa();
     }
 
     public void cancelarPedido() {
         boolean ok = false;
-        if (this.pedido.getCancelacionMotivo().isEmpty()) {
+        if (this.pedido.getCanceladoMotivo().isEmpty()) {
             Mensajes.mensajeAlert("Se requiere el motivo de cancelacion !!!");
         } else {
             TOPedido toPed = this.convertir(this.pedido);
@@ -386,19 +386,20 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
-    private TOPedido convertir(Pedido p) {
-        TOPedido to = new TOPedido();
-        to.setIdMoneda(p.getMoneda().getIdMoneda());
-        to.setIdPedidoOC(p.getIdPedidoOC());
-        to.setOrdenDeCompra(p.getOrdenDeCompra());
-        to.setOrdenDeCompraFecha(p.getOrdenDeCompraFecha());
-        to.setCanceladoMotivo(p.getCancelacionMotivo());
-        to.setCanceladoFecha(p.getCancelacionFecha());
-        movimientos.Movimientos.convertir(p, to);
-        to.setIdImpuestoZona(p.getTienda().getIdImpuestoZona());
-        to.setIdReferencia(p.getTienda().getIdTienda());
-        to.setReferencia(p.getIdPedido());
-        return to;
+    private TOPedido convertir(Pedido pedido) {
+        TOPedido toMov = new TOPedido();
+        toMov.setIdPedidoOC(pedido.getIdPedidoOC());
+        toMov.setIdMoneda(pedido.getComprobante().getMoneda().getIdMoneda());
+        toMov.setOrdenDeCompra(pedido.getOrdenDeCompra());
+        toMov.setOrdenDeCompraFecha(pedido.getOrdenDeCompraFecha());
+        toMov.setCanceladoMotivo(pedido.getCanceladoMotivo());
+        toMov.setCanceladoFecha(pedido.getCanceladoFecha());
+        movimientos.Movimientos.convertir(pedido, toMov);
+        toMov.setIdComprobante(pedido.getComprobante().getIdComprobante());
+        toMov.setIdImpuestoZona(pedido.getTienda().getIdImpuestoZona());
+        toMov.setIdReferencia(pedido.getTienda().getIdTienda());
+        toMov.setReferencia(pedido.getIdPedido());
+        return toMov;
     }
 
     private boolean validar() {
@@ -407,7 +408,7 @@ public class MbPedidos implements Serializable {
             Mensajes.mensajeAlert("Debe seleccionar un almacen !!!");
         } else if (this.mbTiendas.getTienda() == null) {
             Mensajes.mensajeAlert("Debe seleccionar una tienda !!!");
-        } else if (this.mbMonedas.getSeleccionMoneda() == null) {
+        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null) {
             Mensajes.mensajeAlert("Debe seleccionar una moneda !!!");
         } else {
             ok = true;
@@ -418,8 +419,7 @@ public class MbPedidos implements Serializable {
     public void crearPedido() {
         boolean ok = false;
         if (this.validar()) {
-            this.pedido = new Pedido(new MovimientoTipo(28, "Pedido"), this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda());
-            this.pedido.setMoneda(this.mbMonedas.getSeleccionMoneda());
+            this.pedido = new Pedido(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbComprobantes.getMbMonedas().getSeleccionMoneda());
             this.pedido.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
             this.pedido.setOrdenDeCompra(this.ordenDeCompra);
             this.pedido.setOrdenDeCompraFecha(this.ordenDeCompraFecha);
@@ -468,17 +468,13 @@ public class MbPedidos implements Serializable {
     }
 
     private Pedido convertir(TOPedido to) {
-        Pedido p = new Pedido();
-        p.setMoneda(this.mbMonedas.obtenerMoneda(to.getIdMoneda()));
+        Pedido p = new Pedido(this.mbAlmacenes.obtenerAlmacen(to.getIdAlmacen()), this.mbTiendas.obtenerTienda(to.getIdReferencia()), this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
         p.setIdPedidoOC(to.getIdPedidoOC());
         p.setOrdenDeCompra(to.getOrdenDeCompra());
         p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
-        p.setCancelacionFecha(to.getCanceladoFecha());
-        p.setCancelacionMotivo(to.getCanceladoMotivo());
-
-        p.setAlmacen(this.mbAlmacenes.getToAlmacen());
+        p.setCanceladoMotivo(to.getCanceladoMotivo());
+        p.setCanceladoFecha(to.getCanceladoFecha());
         movimientos.Movimientos.convertir(to, p);
-        p.setTienda(this.mbTiendas.obtenerTienda(to.getIdReferencia()));
         this.mbClientes.setCliente(this.mbClientes.obtenerCliente(p.getTienda().getIdCliente()));
         // Si el pedido todavia esta pendiente, se actualiza con datos del cliente
         // Si ya esta cerrada, se queda con lo que se leyo de la base
@@ -518,8 +514,10 @@ public class MbPedidos implements Serializable {
         this.mbAlmacenes.inicializaAlmacen();
 
         this.mbGrupos.inicializar();
+        this.mbClientes.inicializar();
+        this.mbFormatos.inicializar();
         this.mbBuscar.inicializar();
-        this.mbMonedas.setListaMonedas(null);
+        this.mbComprobantes.getMbMonedas().setListaMonedas(null);
 
         this.pendientes = true;
         this.fechaInicial = new Date();
@@ -696,12 +694,12 @@ public class MbPedidos implements Serializable {
         this.zonaHoraria = zonaHoraria;
     }
 
-    public MbMonedas getMbMonedas() {
-        return mbMonedas;
+    public MbComprobantes getMbComprobantes() {
+        return mbComprobantes;
     }
 
-    public void setMbMonedas(MbMonedas mbMonedas) {
-        this.mbMonedas = mbMonedas;
+    public void setMbComprobantes(MbComprobantes mbComprobantes) {
+        this.mbComprobantes = mbComprobantes;
     }
 
     public MbProductosBuscar getMbBuscar() {

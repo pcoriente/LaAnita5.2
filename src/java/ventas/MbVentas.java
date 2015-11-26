@@ -3,6 +3,7 @@ package ventas;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
+import comprobantes.MbComprobantes;
 import entradas.dao.DAOMovimientos1;
 import formatos.MbFormatos;
 import impuestos.dominio.ImpuestosProducto;
@@ -58,10 +59,12 @@ public class MbVentas implements Serializable {
     private MbMiniTiendas mbTiendas;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
+    @ManagedProperty(value = "#{mbComprobantes}")
+    private MbComprobantes mbComprobantes;
     private DAOMovimientos1 dao1;
     private DAOMovimientosOld daoMv;
     private DAOVentas dao;
-    private ArrayList<Venta> ventas;
+    private ArrayList<Venta> ventas, pedidos;
     private Venta venta;
     private boolean ventaAsegurada;
     private ArrayList<VentaProducto> detalle, similares;
@@ -73,6 +76,7 @@ public class MbVentas implements Serializable {
     private Date fechaInicial;
     private TimeZone zonaHoraria = TimeZone.getDefault();
     private double cantTraspasar;
+    private String listaTitulo;
 
     public MbVentas() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -83,34 +87,9 @@ public class MbVentas implements Serializable {
         this.mbFormatos = new MbFormatos();
         this.mbTiendas = new MbMiniTiendas();
         this.mbBuscar = new MbProductosBuscar();
+        this.mbComprobantes = new MbComprobantes();
 
         this.inicializa();
-    }
-
-    public void surtirFincado() {
-        VentaProducto prod;
-        boolean completo = true;
-        TOVenta toMov = this.convertir(this.venta);
-        try {
-            this.dao = new DAOVentas();
-            for (TOVentaProducto to : this.dao.surtirFincado(toMov)) {
-                prod = this.convertir(to);
-                if (prod.getCantOrdenada() + prod.getCantOrdenadaSinCargo() != prod.getCantFacturada() + prod.getCantSinCargo()) {
-                    completo = false;
-                }
-                this.detalle.add(prod);
-            }
-            this.actualizaTotales();
-            if (!completo) {
-                Mensajes.mensajeAlert("El pedido no se surtio completo !!!");
-            } else {
-                Mensajes.mensajeSucces("El pedido se surtio correctamente");
-            }
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
     }
 
     public void cerrarPedidoAlmacenRelacionado() {
@@ -245,64 +224,6 @@ public class MbVentas implements Serializable {
 //        }
 //    }
     // *************************** Ventas Oficina ******************************* //
-    public void eliminarPedidoRelacionado() {
-        boolean ok = false;
-        this.ventaAsegurada = false;
-        try {
-            this.dao1 = new DAOMovimientos1();
-            this.dao1.eliminarMovtoSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen());
-            this.ventas.remove(this.venta);
-            this.venta = null;
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
-    }
-
-    public void liberarMovtoRelacionado() {
-        boolean ok = false;
-        if (this.venta == null) {
-            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
-        } else if (this.ventaAsegurada) {
-            try {
-                this.ventaAsegurada = false;
-                this.dao1 = new DAOMovimientos1();
-                ok = this.dao1.liberarMovtoRelacionado(this.venta.getIdMovto());
-            } catch (NamingException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-            } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-            } catch (Exception ex) {
-                Mensajes.mensajeAlert(ex.getMessage());
-            }
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
-    }
-
-    public void cerrarPedidoRelacionado() {
-        boolean ok = false;
-        try {
-            this.dao1 = new DAOMovimientos1();
-            int folio = this.dao1.cerrarMovtoSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), 28);
-            this.venta.setFolio(folio);
-            this.venta.setEstatus(1);
-//            this.venta.setStatusAlmacen(1);
-            Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
-    }
-
     public void actualizaTraspasoSimilar() {
 //        boolean ok = false;
 //        TOVentaProducto toOrigen = this.convertir(this.producto);
@@ -361,75 +282,121 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okSimilares", ok);
     }
 
-    public void capturar() {
-//        if (this.mbClientes.getCliente().getIdContribuyente() == 0) {
-//            Mensajes.mensajeAlert("Se requiere seleccionar un cliente");
-//        } else if (this.mbTiendas.getTienda().getIdTienda() == 0) {
-//            Mensajes.mensajeAlert("Se requiere seleccionar una tienda");
-//        } else {
-//            this.venta = new Venta();
-//            try {
-//                TOMovimientoOficina to = this.convertir(this.venta);
-//                this.dao1 = new DAOMovimientos1();
-//                this.dao1.agregarMovimientoRelacionado(to);
-//
-//                this.dao = new DAOVentas();
-//                this.venta = this.convertir(this.dao.obtenerVenta(to.getIdMovto()));
-//                this.detalle = new ArrayList<>();
-//                this.producto = new VentaProducto();
-//            } catch (SQLException ex) {
-//                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-//            } catch (NamingException ex) {
-//                Mensajes.mensajeError(ex.getMessage());
-//            }
-//        }
-    }
-
-    public String terminar() {
-        this.acciones = null;
-        this.inicializar();
-        return "index.xhtml";
-    }
-
-    private void inicializa() {
-        this.inicializar();
-    }
-
-    public void inicializar() {
-        this.mbAlmacenes.setListaAlmacenes(null);
-
-        this.mbGrupos.inicializar();
-        this.mbClientes.inicializar();
-        this.mbFormatos.inicializar();
-        this.mbBuscar.inicializar();
-
-        this.pendientes = true;
-        this.fechaInicial = new Date();
-        this.ventas = new ArrayList<>();
-        this.venta = new Venta();
-        this.detalle = new ArrayList<>();
-    }
-
-    private void totalResta(VentaProducto prod) {
-        int index;
-        ImpuestosProducto nuevo;
-        movimientos.Movimientos.restaTotales(prod, this.venta);
-        for (ImpuestosProducto impuesto : prod.getImpuestos()) {
-            if ((index = this.impuestosTotales.indexOf(impuesto)) == -1) {
-                nuevo = new ImpuestosProducto();
-                nuevo.setAcreditable(impuesto.isAcreditable());
-                nuevo.setAcumulable(impuesto.isAcumulable());
-                nuevo.setAplicable(impuesto.isAplicable());
-                nuevo.setIdImpuesto(impuesto.getIdImpuesto());
-                nuevo.setImporte(impuesto.getImporte() * prod.getCantOrdenada());
-                nuevo.setImpuesto(impuesto.getImpuesto());
-                nuevo.setModo(impuesto.getModo());
-                nuevo.setValor(impuesto.getValor());
-                this.impuestosTotales.add(nuevo);
-            } else {
-                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() - impuesto.getImporte() * prod.getCantOrdenada());
-            }
+    private void actualizaTotales() {
+        this.venta.setSubTotal(0);
+        this.venta.setDescuento(0);
+        this.venta.setImpuesto(0);
+        this.venta.setTotal(0);
+        this.impuestosTotales = new ArrayList<>();
+        for (VentaProducto prod : this.detalle) {
+            this.totalSuma(prod);
         }
+    }
+
+    public void surtirFincado() {
+        VentaProducto prod;
+        boolean completo = true;
+        TOVenta toMov = this.convertir(this.venta);
+        this.detalle = new ArrayList<>();
+        try {
+            this.dao = new DAOVentas();
+            for (TOVentaProducto to : this.dao.surtirFincado(toMov)) {
+                prod = this.convertir(to);
+                if (prod.getCantOrdenada() + prod.getCantOrdenadaSinCargo() != prod.getCantFacturada() + prod.getCantSinCargo()) {
+                    completo = false;
+                }
+                this.detalle.add(prod);
+            }
+            this.actualizaTotales();
+            if (!completo) {
+                Mensajes.mensajeAlert("El pedido no se surtio completo !!!");
+            } else {
+                Mensajes.mensajeSucces("El pedido se surtio correctamente");
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (Exception ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
+        }
+    }
+
+    public void eliminarVenta() {
+        boolean ok = false;
+        this.ventaAsegurada = false;
+        try {
+            TOVenta toMov = this.convertir(this.venta);
+
+            this.dao = new DAOVentas();
+            this.dao.eliminarVenta(toMov);
+            this.ventas.remove(this.venta);
+            this.venta = null;
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
+    }
+
+    public void cerrarVenta() {
+        boolean ok = false;
+        try {
+            TOVenta toMov = this.convertir(this.venta);
+
+            this.dao = new DAOVentas();
+            this.dao.cerrarVenta(toMov);
+            this.venta.setFolio(toMov.getFolio());
+            this.venta.setEstatus(toMov.getEstatus());
+            this.venta.getComprobante().setTipo("2");
+            this.venta.getComprobante().setNumero(String.valueOf(toMov.getFolio()));
+            Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
+    }
+
+    public void generarPedidoVenta() {
+        boolean ok = false;
+        VentaProducto prod;
+        try {
+            TOVenta toMov = this.convertir(this.venta);
+            
+            this.dao = new DAOVentas();
+            ArrayList<TOVentaProducto> det = this.dao.generarPedidoVenta(toMov);
+            this.venta = this.convertir(toMov);
+            this.venta.setSubTotal(0);
+            this.venta.setDescuento(0);
+            this.venta.setImpuesto(0);
+            this.venta.setTotal(0);
+            this.impuestosTotales = new ArrayList<>();
+            this.detalle = new ArrayList<>();
+            for (TOVentaProducto to : det) {
+                prod = this.convertir(to);
+                this.totalSuma(prod);
+                this.detalle.add(prod);
+            }
+            this.venta.setIdUsuario(toMov.getIdUsuario());
+            this.venta.setPropietario(toMov.getPropietario());
+            this.ventaAsegurada = (this.venta.getIdUsuario() == this.venta.getPropietario());
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (Exception ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
     }
 
     public void actualizarProductoSinCargo() {
@@ -457,6 +424,36 @@ public class MbVentas implements Serializable {
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okEdicion", ok);
+    }
+
+    private void totalResta(VentaProducto prod) {
+        int index;
+        ImpuestosProducto nuevo;
+        movimientos.Movimientos.restaTotales(prod, this.venta);
+        for (ImpuestosProducto impuesto : prod.getImpuestos()) {
+            if ((index = this.impuestosTotales.indexOf(impuesto)) == -1) {
+                nuevo = new ImpuestosProducto();
+                nuevo.setAcreditable(impuesto.isAcreditable());
+                nuevo.setAcumulable(impuesto.isAcumulable());
+                nuevo.setAplicable(impuesto.isAplicable());
+                nuevo.setIdImpuesto(impuesto.getIdImpuesto());
+                nuevo.setImporte(impuesto.getImporte() * prod.getCantFacturada());
+                nuevo.setImpuesto(impuesto.getImpuesto());
+                nuevo.setModo(impuesto.getModo());
+                nuevo.setValor(impuesto.getValor());
+                this.impuestosTotales.add(nuevo);
+            } else {
+                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() - impuesto.getImporte() * prod.getCantFacturada());
+            }
+        }
+    }
+
+    private TOVentaProducto convertir(VentaProducto prod) {
+        TOVentaProducto toProd = new TOVentaProducto();
+        toProd.setCantOrdenada(prod.getCantOrdenada());
+        toProd.setCantOrdenadaSinCargo(prod.getCantOrdenadaSinCargo());
+        movimientos.Movimientos.convertir(prod, toProd);
+        return toProd;
     }
 
     public void actualizarProductoCantidad() {
@@ -489,62 +486,38 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okEdicion", ok);
     }
 
-//    private void respalda() {
-//        this.respaldo = new VentaProducto();
-//        this.respaldo.setProducto(this.producto.getProducto());
-//        this.respaldo.setCantOrdenada(this.producto.getCantOrdenada());
-//        this.respaldo.setCantOrdenadaSinCargo(this.producto.getCantOrdenadaSinCargo());
-//        this.respaldo.setCantFacturada(this.producto.getCantFacturada());
-//        this.respaldo.setCantSinCargo(this.producto.getCantSinCargo());
-//        this.respaldo.setSeparados(this.producto.getSeparados());
-//        this.respaldo.setCosto(this.producto.getCosto());
-//        this.respaldo.setDesctoProducto1(this.producto.getDesctoProducto1());
-//        this.respaldo.setImpuestos(this.producto.getImpuestos());
-//        this.respaldo.setNeto(this.producto.getNeto());
-//    }
-    private void actualizaTotales() {
-        int index;
-        double importe;
-        ImpuestosProducto nuevo;
-        this.venta.setSubTotal(0);
-        this.venta.setDescuento(0);
-        this.impuestosTotales = new ArrayList<>();
-        this.venta.setTotal(0);
-        for (VentaProducto prod : this.detalle) {
-            this.venta.setSubTotal(this.venta.getSubTotal() + prod.getCosto() * prod.getCantFacturada());
-            this.venta.setDescuento(this.venta.getDescuento() + (prod.getCosto() - prod.getUnitario()) * prod.getCantFacturada());
-            for (ImpuestosProducto impuesto : prod.getImpuestos()) {
-                importe = impuesto.getImporte() * prod.getCantFacturada();
-                if ((index = this.impuestosTotales.indexOf(impuesto)) == -1) {
-                    nuevo = new ImpuestosProducto();
-                    nuevo.setAcreditable(impuesto.isAcreditable());
-                    nuevo.setAcumulable(impuesto.isAcumulable());
-                    nuevo.setAplicable(impuesto.isAplicable());
-                    nuevo.setIdImpuesto(impuesto.getIdImpuesto());
-                    nuevo.setImporte(importe);
-                    nuevo.setImpuesto(impuesto.getImpuesto());
-                    nuevo.setModo(impuesto.getModo());
-                    nuevo.setValor(impuesto.getValor());
-                    this.impuestosTotales.add(nuevo);
-                } else {
-                    this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + importe);
-                }
-            }
-            this.venta.setTotal(this.venta.getTotal() + (prod.getNeto() * prod.getCantFacturada()));
-        }
-    }
-
     public void modificarProducto(SelectEvent event) {
         if (this.venta.getEstatus() >= 7) {
             Mensajes.mensajeAlert("La venta ya esta cerrada, no se puede modificar !!!");
         } else if (this.ventaAsegurada) {
             this.producto = (VentaProducto) event.getObject();
-//            this.respalda();
         } else {
             Mensajes.mensajeAlert("La venta esta en modo lectura, no se puede modificar !!!");
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okEdicion", this.ventaAsegurada);
+    }
+
+    public void liberarVenta() {
+        boolean ok = false;
+        if (this.venta == null) {
+            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
+        } else if (this.ventaAsegurada) {
+            try {
+
+                this.dao = new DAOVentas();
+                this.dao.liberarVenta(this.venta.getIdMovto());
+                this.ventaAsegurada = false;
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (Exception ex) {
+                Mensajes.mensajeAlert(ex.getMessage());
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
     }
 
     private void totalSuma(VentaProducto prod) {
@@ -558,48 +531,15 @@ public class MbVentas implements Serializable {
                 nuevo.setAcumulable(impuesto.isAcumulable());
                 nuevo.setAplicable(impuesto.isAplicable());
                 nuevo.setIdImpuesto(impuesto.getIdImpuesto());
-                nuevo.setImporte(impuesto.getImporte() * prod.getCantOrdenada());
+                nuevo.setImporte(impuesto.getImporte() * prod.getCantFacturada());
                 nuevo.setImpuesto(impuesto.getImpuesto());
                 nuevo.setModo(impuesto.getModo());
                 nuevo.setValor(impuesto.getValor());
                 this.impuestosTotales.add(nuevo);
             } else {
-                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantOrdenada());
+                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantFacturada());
             }
         }
-    }
-
-    public void obtenerDetalle(SelectEvent event) {
-        this.venta = (Venta) event.getObject();
-
-        boolean ok = false;
-        this.detalle = new ArrayList<>();
-        this.impuestosTotales = new ArrayList<>();
-        try {
-            this.venta.setSubTotal(0);
-            this.venta.setDescuento(0);
-            this.venta.setImpuesto(0);
-            this.venta.setTotal(0);
-            TOVenta toMov = this.convertir(this.venta);
-
-            VentaProducto prod;
-            this.dao = new DAOVentas();
-            for (TOVentaProducto to : (toMov.getReferencia() != 0 ? this.dao.obtenerDetalleVenta(toMov) : this.dao.obtenerDetalleFincado(toMov))) {
-                prod = this.convertir(to);
-                this.totalSuma(prod);
-                this.detalle.add(prod);
-            }
-            this.venta.setIdUsuario(toMov.getIdUsuario());
-            this.venta.setPropietario(toMov.getPropietario());
-            this.ventaAsegurada = (this.venta.getIdUsuario() == this.venta.getPropietario());
-            ok = true;
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
     }
 
     private VentaProducto convertir(TOVentaProducto toProd) throws SQLException {
@@ -613,12 +553,38 @@ public class MbVentas implements Serializable {
         return prod;
     }
 
-    private TOVentaProducto convertir(VentaProducto prod) {
-        TOVentaProducto toProd = new TOVentaProducto();
-        toProd.setCantOrdenada(prod.getCantOrdenada());
-        toProd.setCantOrdenadaSinCargo(prod.getCantOrdenadaSinCargo());
-        movimientos.Movimientos.convertir(prod, toProd);
-        return toProd;
+    public void obtenerDetalle(SelectEvent event) {
+        this.venta = (Venta) event.getObject();
+
+        boolean ok = false;
+        VentaProducto prod;
+        this.detalle = new ArrayList<>();
+        this.impuestosTotales = new ArrayList<>();
+        try {
+            this.venta.setSubTotal(0);
+            this.venta.setDescuento(0);
+            this.venta.setImpuesto(0);
+            this.venta.setTotal(0);
+            TOVenta toMov = this.convertir(this.venta);
+
+            this.dao = new DAOVentas();
+            for (TOVentaProducto to : (toMov.getReferencia() != 0 ? this.dao.obtenerDetalleFincado(toMov) : this.dao.obtenerDetalleVenta(toMov))) {
+                prod = this.convertir(to);
+                this.totalSuma(prod);
+                this.detalle.add(prod);
+            }
+            this.venta.setEstatus(toMov.getEstatus());
+            this.venta.setIdUsuario(toMov.getIdUsuario());
+            this.venta.setPropietario(toMov.getPropietario());
+            this.ventaAsegurada = (this.venta.getIdUsuario() == this.venta.getPropietario());
+            ok = true;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okPedido", ok);
     }
 
     public void actualizaProductoSeleccionado() {
@@ -667,35 +633,57 @@ public class MbVentas implements Serializable {
         this.mbBuscar.setUpdate(update);
     }
 
-    private TOVenta convertir(Venta mov) {
+    private TOVenta convertir(Venta venta) {
         TOVenta toMov = new TOVenta();
-        movimientos.Movimientos.convertir(mov, toMov);
-        toMov.setIdComprobante(mov.getComprobante().getIdComprobante());
-        toMov.setIdImpuestoZona(mov.getTienda().getIdImpuestoZona());
-        toMov.setIdReferencia(mov.getTienda().getIdTienda());
-        toMov.setReferencia(mov.getIdPedido());
+        toMov.setIdPedidoOC(venta.getIdPedidoOC());
+        toMov.setOrdenDeCompra(venta.getOrdenDeCompra());
+        toMov.setOrdenDeCompraFecha(venta.getOrdenDeCompraFecha());
+        toMov.setCanceladoMotivo(venta.getCanceladoMotivo());
+        toMov.setCanceladoFecha(venta.getCanceladoFecha());
+        movimientos.Movimientos.convertir(venta, toMov);
+        toMov.setIdComprobante(venta.getComprobante()==null?0:venta.getComprobante().getIdComprobante());
+        toMov.setIdImpuestoZona(venta.getTienda().getIdImpuestoZona());
+        toMov.setIdReferencia(venta.getTienda().getIdTienda());
+        toMov.setReferencia(venta.getIdPedido());
         return toMov;
+    }
+
+    private boolean validar() {
+        boolean ok = false;
+        if (this.mbAlmacenes.getToAlmacen() == null) {
+            Mensajes.mensajeAlert("Debe seleccionar un almacen !!!");
+        } else if (this.mbTiendas.getTienda() == null) {
+            Mensajes.mensajeAlert("Debe seleccionar una tienda !!!");
+        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null) {
+            Mensajes.mensajeAlert("Debe seleccionar una moneda !!!");
+        } else {
+            ok = true;
+        }
+        return ok;
     }
 
     public void crearVenta() {
         boolean ok = false;
-        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(this.mbTiendas.getTienda().getIdCliente()));
-        this.venta = new Venta(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbFormatos.getFormatoSeleccion(), this.mbClientes.getCliente());
-        TOVenta to = this.convertir(this.venta);
-        try {
-            this.dao = new DAOVentas();
-            this.dao.agregarVenta(to);
-            this.venta.setIdMovto(to.getIdMovto());
-            this.venta.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-            this.ventas.add(this.venta);
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        if (this.validar()) {
+            this.mbClientes.setCliente(this.mbClientes.obtenerCliente(this.mbTiendas.getTienda().getIdCliente()));
+            this.venta = new Venta(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbComprobantes.getMbMonedas().getSeleccionMoneda());
+            this.venta.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
+            TOVenta to = this.convertir(this.venta);
+            try {
+                this.dao = new DAOVentas();
+                this.dao.agregarVenta(to, 1);
+                this.venta.setIdMovto(to.getIdMovto());
+                this.venta.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
+                this.ventas.add(this.venta);
+                ok = true;
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            }
+            this.detalle = new ArrayList<>();
+            this.impuestosTotales = new ArrayList<>();
         }
-        this.detalle = new ArrayList<>();
-        this.impuestosTotales = new ArrayList<>();
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
@@ -705,24 +693,41 @@ public class MbVentas implements Serializable {
         this.cambioDeGrupo();
     }
 
-    public void regresarFechaActual() {
-        this.fechaInicial = new Date();
-        this.obtenerVentas();
+//    public void regresarFechaActual() {
+//        this.fechaInicial = new Date();
+//        this.obtenerVentas();
+//    }
+    public void obtenerPedidos() {
+        try {   // Segun fecha y status
+            this.venta = null;
+            this.pedidos = new ArrayList<>();
+            this.dao = new DAOVentas();
+            for (TOVenta to : this.dao.obtenerPedidos(this.mbAlmacenes.getToAlmacen().getIdAlmacen())) {
+                this.pedidos.add(this.convertir(to));
+            }
+            this.listaTitulo = "Lista de pedidos pendientes";
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     private Venta convertir(TOVenta toMov) {
-        Venta mov = new Venta(this.mbAlmacenes.obtenerAlmacen(toMov.getIdAlmacen()), this.mbTiendas.obtenerTienda(toMov.getIdReferencia()));
-        mov.setFormato(this.mbFormatos.obtenerFormato(mov.getTienda().getIdFormato()));
-        mov.setCliente(this.mbClientes.obtenerCliente(mov.getTienda().getIdCliente()));
+        Venta mov = new Venta(this.mbAlmacenes.obtenerAlmacen(toMov.getIdAlmacen()), this.mbTiendas.obtenerTienda(toMov.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toMov.getIdComprobante()));
         mov.setIdPedidoOC(toMov.getIdPedidoOC());
         mov.setOrdenDeCompra(toMov.getOrdenDeCompra());
         mov.setOrdenDeCompraFecha(toMov.getOrdenDeCompraFecha());
         mov.setCanceladoMotivo(toMov.getCanceladoMotivo());
         mov.setCanceladoFecha(toMov.getCanceladoFecha());
-        if (toMov.getIdComprobante() != 0) {
-            // Se buscará el comprobante
-        }
         movimientos.Movimientos.convertir(toMov, mov);
+        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(mov.getTienda().getIdCliente()));
+        // Si la venta todavia esta pendiente, se actualiza con datos del cliente
+        // Si ya esta cerrada, se queda con lo que se leyo de la base
+        if (toMov.getEstatus() == 0) {
+            mov.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
+            mov.setDesctoProntoPago(0);
+        }
         mov.setIdPedido(toMov.getReferencia());
         return mov;
     }
@@ -734,6 +739,7 @@ public class MbVentas implements Serializable {
             for (TOVenta to : this.dao.obtenerVentas(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 0 : 7), this.fechaInicial)) {
                 this.ventas.add(this.convertir(to));
             }
+            this.listaTitulo = this.pendientes ? "Lista de ventas pendientes" : "Lista de ventas";
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -749,6 +755,50 @@ public class MbVentas implements Serializable {
     public void cambioDeGrupo() {
         this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
         this.mbTiendas.inicializar();
+    }
+
+    public String terminar() {
+        this.acciones = null;
+        this.inicializar();
+        return "index.xhtml";
+    }
+
+    public void inicializar() {
+        this.mbAlmacenes.setListaAlmacenes(null);
+
+        this.mbGrupos.inicializar();
+        this.mbClientes.inicializar();
+        this.mbFormatos.inicializar();
+        this.mbBuscar.inicializar();
+        this.mbComprobantes.getMbMonedas().setListaMonedas(null);
+
+        this.pendientes = true;
+        this.fechaInicial = new Date();
+        this.ventas = new ArrayList<>();
+        this.pedidos = new ArrayList<>();
+        this.venta = new Venta();
+        this.detalle = new ArrayList<>();
+        this.listaTitulo = "Lista de Ventas pendientes";
+    }
+
+    private void inicializa() {
+        this.inicializar();
+    }
+
+    public ArrayList<Venta> getPedidos() {
+        return pedidos;
+    }
+
+    public void setPedidos(ArrayList<Venta> pedidos) {
+        this.pedidos = pedidos;
+    }
+
+    public String getListaTitulo() {
+        return listaTitulo;
+    }
+
+    public void setListaTitulo(String listaTitulo) {
+        this.listaTitulo = listaTitulo;
     }
 
     public ArrayList<ImpuestosProducto> getImpuestosTotales() {
@@ -931,6 +981,14 @@ public class MbVentas implements Serializable {
 
     public void setMbTiendas(MbMiniTiendas mbTiendas) {
         this.mbTiendas = mbTiendas;
+    }
+
+    public MbComprobantes getMbComprobantes() {
+        return mbComprobantes;
+    }
+
+    public void setMbComprobantes(MbComprobantes mbComprobantes) {
+        this.mbComprobantes = mbComprobantes;
     }
 
     public MbProductosBuscar getMbBuscar() {

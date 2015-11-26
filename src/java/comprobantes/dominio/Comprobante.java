@@ -42,6 +42,17 @@ public class Comprobante {
         this.moneda = new Moneda();
     }
     
+    public Comprobante(int idTipoMovto, int idEmpresa, int idReferencia, Moneda moneda) {
+        this.idTipoMovto = idTipoMovto;
+        this.idEmpresa = idEmpresa;
+        this.idReferencia=idReferencia;
+        this.moneda = moneda;
+        this.tipo = "3";
+        this.serie="";
+        this.numero="";
+        this.fechaFactura=new Date();
+    }
+    
     @Override
     public String toString() {
 //        return (this.tipo.equals("3")?"Factura: "+this.serie+"-":(this.tipo.equals("2")?"Remision: ":"Interno: "))+this.numero;

@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
         <h:outputStylesheet library="css" name="main.css"/>
@@ -174,10 +173,10 @@
                                 </p:inputText>
                             </p:column>
                             <p:column style="width: 90px;" >
-                                <h:outputLabel for="txtMoneda" value="MONEDA:" style="font-weight: bold; color: black;" />
+                                <h:outputLabel for="moneda" value="MONEDA:" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column style="width: 190px; text-align: right;" >
-                                <p:inputText id="txtMoneda" value="#{mbPedidos.pedido.moneda.moneda}" readonly="true" size="22" />
+                                <p:inputText id="moneda" value="#{mbPedidos.pedido.comprobante.moneda.moneda}" readonly="true" size="22" />
                             </p:column>
                         </p:row>
                         <p:row >
@@ -330,7 +329,7 @@
                             </p:column>
                             <p:column >
                                 <p:inputTextarea id="motivo" rows="5" cols="50" 
-                                                 value="#{mbPedidos.pedido.cancelacionMotivo}" />
+                                                 value="#{mbPedidos.pedido.canceladoMotivo}" />
                             </p:column>
                         </p:row>
                         <f:facet name="footer" >
@@ -467,10 +466,10 @@
                                 <h:outputLabel for="cboMoneda" value="MONEDA :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column colspan="3" >
-                                <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbMonedas.seleccionMoneda}"
+                                <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbComprobantes.mbMonedas.seleccionMoneda}"
                                                  style="width: 240px;" >
                                     <f:converter converterId="converters.Moneda" />
-                                    <f:selectItems value="#{mbPedidos.mbMonedas.listaMonedas}" />
+                                    <f:selectItems value="#{mbPedidos.mbComprobantes.mbMonedas.listaMonedas}" />
                                     <p:ajax event="change" process="@this" />
                                 </p:selectOneMenu>
                             </p:column>

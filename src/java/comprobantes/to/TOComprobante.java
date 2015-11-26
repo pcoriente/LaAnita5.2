@@ -30,14 +30,25 @@ public class TOComprobante {
         this.idMoneda = 1;
     }
 
-    public TOComprobante(int idTipoMovto, int idReferencia) {
-        this.idReferencia = idReferencia;
+//    public TOComprobante(int idTipoMovto, int idReferencia) {
+//        this.idTipoMovto = idTipoMovto;
+//        this.idReferencia = idReferencia;
+//        this.tipo = 3;
+//        this.serie = "";
+//        this.numero = "";
+//        this.fechaFactura = new Date();
+//        this.idMoneda = 1;
+//    }
+    
+    public TOComprobante(int idTipoMovto, int idEmpresa, int idReferencia, int idMoneda) {
         this.idTipoMovto = idTipoMovto;
+        this.idEmpresa = idEmpresa;
+        this.idReferencia = idReferencia;
         this.tipo = 3;
         this.serie = "";
         this.numero = "";
         this.fechaFactura = new Date();
-        this.idMoneda = 1;
+        this.idMoneda = idMoneda;
     }
     
     @Override
