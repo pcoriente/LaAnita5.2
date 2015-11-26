@@ -121,25 +121,30 @@ public class MbComprobantes implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-
-    private TOComprobante convertir(Comprobante c) {
-        TOComprobante to = new TOComprobante();
-        to.setIdComprobante(c.getIdComprobante());
-        to.setIdTipoMovto(c.getIdTipoMovto());
-        to.setIdEmpresa(c.getIdEmpresa());
-        to.setIdReferencia(c.getIdReferencia());
-        to.setTipo(Integer.parseInt(c.getTipo()));
-        to.setSerie(c.getSerie());
-        to.setNumero(c.getNumero());
-        to.setFechaFactura(c.getFechaFactura());
-        to.setIdMoneda(c.getMoneda().getIdMoneda());
-        to.setIdUsuario(c.getIdUsuario());
-        to.setPropietario(c.getPropietario());
-        to.setCerradoOficina(c.isCerradoOficina());
-        to.setCerradoAlmacen(c.isCerradoAlmacen());
-        to.setEstatus(c.getEstatus());
-        return to;
+    
+    public TOComprobante convertir(Comprobante c) {
+//        return this.convierte(c);
+        return comprobantes.Comprobantes.convertir(c);
     }
+
+//    private TOComprobante convierte(Comprobante c) {
+//        TOComprobante to = new TOComprobante();
+//        to.setIdComprobante(c.getIdComprobante());
+//        to.setIdTipoMovto(c.getIdTipoMovto());
+//        to.setIdEmpresa(c.getIdEmpresa());
+//        to.setIdReferencia(c.getIdReferencia());
+//        to.setTipo(Integer.parseInt(c.getTipo()));
+//        to.setSerie(c.getSerie());
+//        to.setNumero(c.getNumero());
+//        to.setFechaFactura(c.getFechaFactura());
+//        to.setIdMoneda(c.getMoneda().getIdMoneda());
+//        to.setIdUsuario(c.getIdUsuario());
+//        to.setPropietario(c.getPropietario());
+//        to.setCerradoOficina(c.isCerradoOficina());
+//        to.setCerradoAlmacen(c.isCerradoAlmacen());
+//        to.setEstatus(c.getEstatus());
+//        return to;
+//    }
 
     public boolean grabar() {
         boolean ok = false;
@@ -150,7 +155,8 @@ public class MbComprobantes implements Serializable {
                 Mensajes.mensajeAlert("Se requiere una moneda !!!");
             } else {
                 this.dao = new DAOComprobantes();
-                TOComprobante to = this.convertir(this.comprobante);
+//                TOComprobante to = this.convierte(this.comprobante);
+                TOComprobante to = comprobantes.Comprobantes.convertir(this.comprobante);
                 if (to.getIdComprobante() == 0) {
                     this.dao.agregar(to);
                     this.comprobante.setIdComprobante(to.getIdComprobante());

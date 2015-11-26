@@ -9,6 +9,7 @@ import movimientos.to.TOMovimientoOficina;
  */
 public class TOVenta extends TOMovimientoOficina {
     private int idPedidoOC;
+    private int idMoneda;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private Date canceladoFecha;
@@ -36,6 +37,14 @@ public class TOVenta extends TOMovimientoOficina {
 
     public void setIdPedidoOC(int idPedidoOC) {
         this.idPedidoOC = idPedidoOC;
+    }
+
+    public int getIdMoneda() {
+        return idMoneda;
+    }
+
+    public void setIdMoneda(int idMoneda) {
+        this.idMoneda = idMoneda;
     }
 
     public String getOrdenDeCompra() {
