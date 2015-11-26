@@ -100,7 +100,7 @@ public class DAOListaPrecio {
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
-            String sql = "UPDATE listaPrecios set precioLista = '" + lstListaPrecioIdeal.getPrecioLista() + "' WHERE idProducto = '" + lstListaPrecioIdeal.getProducto().getIdProducto() + "' ";
+            String sql = "UPDATE listaPrecios set precioLista = '" + lstListaPrecioIdeal.getPrecioLista() + "' WHERE idEmpaque = '" + lstListaPrecioIdeal.getProducto().getIdProducto() + "' ";
             st.executeUpdate(sql);
         } finally {
             cn.close();

@@ -103,16 +103,21 @@ public class MbListaPrecioIdeal implements Serializable {
     }
 
     public void actualizarPrecioLista(ListaPrecioIdeal ls) {
-        FacesContext context = FacesContext.getCurrentInstance();
+//        System.out.println(ls.getPrecioLista());
+        
+//        FacesContext context = FacesContext.getCurrentInstance();
         try {
             DAOListaPrecio dao = new DAOListaPrecio();
             dao.actualizar(ls);
-            context.addMessage(null, new FacesMessage("Exito", "Lista de Precio Actualizado "));
+            Mensajes.mensajeSucces("Lista de precio actualizada");
+//            context.addMessage(null, new FacesMessage("Exito", "Lista de Precio Actualizado "));
         } catch (NamingException ex) {
-            context.addMessage(null, new FacesMessage("Error", ex.getMessage()));
+            Mensajes.mensajeError(ex.getMessage());
+//            context.addMessage(null, new FacesMessage("Error", ex.getMessage()));
             Logger.getLogger(MbListaPrecioIdeal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
-            context.addMessage(null, new FacesMessage("Error", ex.getMessage()));
+            Mensajes.mensajeError(ex.getMessage());
+//            context.addMessage(null, new FacesMessage("Error", ex.getMessage()));
             Logger.getLogger(MbListaPrecioIdeal.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

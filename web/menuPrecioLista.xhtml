@@ -64,23 +64,36 @@
                                       style="width: 210px"
                                       filterBy="#{listaPrecioIdeal.precioLista}"
                                       filterMatchMode="contains">
-                                <center>
-                                    <p:inplace id="ajaxInplace" 
-                                               editor="true"
-                                               >  
-                                        <p:ajax event="save" 
-                                                listener="#{mbListaPrecioIdeal.actualizarPrecioLista(listaPrecioIdeal)}"/>
+                                <pe:inputNumber id="precio"
+                                    value="#{listaPrecioIdeal.precioLista}"
+                                    style="width: 80px"
+                                    decimalPlaces="6"  
+                                    minValue="0" 
+                                    
+                                    >
+                                    <p:ajax event="blur" 
+                                            listener="#{mbListaPrecioIdeal.actualizarPrecioLista(listaPrecioIdeal)}"
+                                            update=":form:growl"/>
+                                </pe:inputNumber>
 
-                                        <pe:inputNumber id="precio"
-                                                        value="#{listaPrecioIdeal.precioLista}"
-                                                        emptyValue="zero"
-                                                        decimalPlaces="6"
-                                                        style="width: 80px"
-                                                        symbol="$">
-                                        </pe:inputNumber> 
-                                    </p:inplace>
-                                </center>
                             </p:column>
+                            <!-- <center>
+                                <p:inplace id="ajaxInplace" 
+                                           editor="true"
+                                           >  
+                                    <p:ajax event="save" 
+                                            listener="#{mbListaPrecioIdeal.actualizarPrecioLista(listaPrecioIdeal)}"/>
+
+                                    <pe:inputNumber id="precio"
+                                                    value="#{listaPrecioIdeal.precioLista}"
+                                                    emptyValue="zero"
+                                                    decimalPlaces="6"
+                                                style="width: 80px"
+                                                    symbol="$">
+                                    </pe:inputNumber> 
+                                </p:inplace>
+                            </center> -->
+
                             <f:facet name="footer">
                                 Cantidad de Productos : #{mbListaPrecioIdeal.lstListaPrecioTable.size()}
                             </f:facet>
