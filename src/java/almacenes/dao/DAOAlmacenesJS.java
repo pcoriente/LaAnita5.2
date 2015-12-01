@@ -76,7 +76,7 @@ public class DAOAlmacenesJS {
 
     public TOAlmacenJS obtenerAlmacen(int idAlmacen) throws SQLException {
         TOAlmacenJS almacen = null;
-        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
+        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, e.empresa, a.idDireccion "
                 + "FROM almacenes a "
                 + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
                 + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
@@ -94,7 +94,7 @@ public class DAOAlmacenesJS {
 
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idEmpresa) throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
-        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
+        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, e.empresa, a.idDireccion "
                 + "FROM almacenes a "
                 + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
                 + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
@@ -114,7 +114,7 @@ public class DAOAlmacenesJS {
 
     public ArrayList<TOAlmacenJS> obtenerAlmacenesEmpresa(int idCedis, int idEmpresa) throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
-        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
+        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, e.empresa, a.idDireccion "
                 + "FROM almacenes a "
                 + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
                 + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
@@ -131,10 +131,23 @@ public class DAOAlmacenesJS {
         }
         return lista;
     }
+    
+    private TOAlmacenJS construir(ResultSet rs) throws SQLException {
+        TOAlmacenJS to = new TOAlmacenJS();
+        to.setIdAlmacen(rs.getInt("idAlmacen"));
+        to.setAlmacen(rs.getString("almacen"));
+        to.setIdCedis(rs.getInt("idCedis"));
+        to.setCedis(rs.getString("cedis"));
+        to.setIdEmpresa(rs.getInt("idEmpresa"));
+        to.setNombreComercial(rs.getString("nombreComercial"));
+        to.setEmpresa(rs.getString("empresa"));
+        to.setIdDireccion(rs.getInt("idDireccion"));
+        return to;
+    }
 
     public ArrayList<TOAlmacenJS> obtenerAlmacenes() throws SQLException {
         ArrayList<TOAlmacenJS> lista = new ArrayList<>();
-        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, a.idDireccion "
+        String stringSQL = "SELECT a.idAlmacen, a.almacen, a.idCedis, c.cedis, a.idEmpresa, e.nombreComercial, e.empresa, a.idDireccion "
                 + "FROM almacenes a "
                 + "INNER JOIN cedis c ON c.idCedis=a.idCedis "
                 + "INNER JOIN empresasGrupo e ON e.idEmpresa=a.idEmpresa "
@@ -150,17 +163,5 @@ public class DAOAlmacenesJS {
             cn.close();
         }
         return lista;
-    }
-
-    private TOAlmacenJS construir(ResultSet rs) throws SQLException {
-        TOAlmacenJS to = new TOAlmacenJS();
-        to.setIdAlmacen(rs.getInt("idAlmacen"));
-        to.setAlmacen(rs.getString("almacen"));
-        to.setIdCedis(rs.getInt("idCedis"));
-        to.setCedis(rs.getString("cedis"));
-        to.setIdEmpresa(rs.getInt("idEmpresa"));
-        to.setEmpresa(rs.getString("nombreComercial"));
-        to.setIdDireccion(rs.getInt("idDireccion"));
-        return to;
     }
 }
