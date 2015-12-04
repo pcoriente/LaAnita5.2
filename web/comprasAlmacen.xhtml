@@ -154,7 +154,7 @@
                                                          update="@this :main:msgs :main:btnEquivalencias :main:btnCancelar :main:btnEliminar :main:btnImprimir" />
                                         <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelacion de Compra" 
                                                          disabled="#{mbComprasAlmacen.compra.estatus!=7}"
-                                                         process="@this" actionListener="#{mbComprasAlmacen.cancelarCompra()}" 
+                                                         process="@this" actionListener="#{mbComprasAlmacen.devolverCompra()}" 
                                                          update="main" />
                                         <p:commandButton id="btnEliminar" icon="ui-icon-trash" title="Eliminar Movimiento de Entrada" 
                                                          disabled="#{mbComprasAlmacen.compra.estatus!=0}"

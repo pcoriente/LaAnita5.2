@@ -225,52 +225,55 @@ public class MbVentas implements Serializable {
 //    }
     // *************************** Ventas Oficina ******************************* //
     public void actualizaTraspasoSimilar() {
-//        boolean ok = false;
-//        TOVentaProducto toOrigen = this.convertir(this.producto);
-//        TOVentaProducto toDestino = new TOVentaProducto();
-//        toDestino.setIdMovto(this.similar.getIdMovto());
-//        toDestino.setIdProducto(this.similar.getProducto().getIdProducto());
-//        toDestino.setIdImpuestoGrupo(this.similar.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
-//        toDestino.setCantSinCargo(this.similar.getCantSinCargo());
-//        try {
-//            this.daoMv = new DAOMovimientosOld();
-//            this.daoMv.tranferirSinCargo(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen(), toOrigen, toDestino, this.cantTraspasar, this.venta.getTienda().getIdImpuestoZona());
-//            this.producto.setCantSinCargo(toOrigen.getCantSinCargo());
-//            this.producto.setSeparados(this.producto.getCantFacturada() + this.producto.getCantSinCargo());
-//            if (this.similar.getIdMovto() == 0) {
-//                this.detalle.add(this.convertir(toDestino));
-//            } else {
-//                int idx = this.detalle.indexOf(this.similar);
-//                this.similar = this.detalle.get(idx);
-//                this.similar.setCantSinCargo(toDestino.getCantSinCargo());
-//                this.similar.setSeparados(this.similar.getCantFacturada() + this.similar.getCantSinCargo());
-//            }
-//            this.actualizaTotales();
-//            ok = true;
-//        } catch (NamingException ex) {
-//            Mensajes.mensajeError(ex.getMessage());
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-//        }
-//        RequestContext context = RequestContext.getCurrentInstance();
-//        context.addCallbackParam("okSimilares", ok);
+//        int idx;
+//        VentaProducto prod;
+//        VentaProducto prodOld;
+        boolean okSimilares = false;
+        try {
+            if (this.cantTraspasar > 0 && this.cantTraspasar <= this.producto.getCantSinCargo()) {
+                TOVenta toVta = this.convertir(this.venta);
+                TOVentaProducto toProd = this.convertir(this.producto);
+                TOVentaProducto toSimilar = this.convertir(this.similar);
+
+                this.dao = new DAOVentas();
+//                Si el movimiento es solo de prod a similar, proque transferirSinCargo devuelve un arreglo con todos los similares ????;
+
+//                for (TOVentaProducto to : this.dao.tranferirSinCargo(toVta, toProd, toSimilar, this.venta.getTienda().getIdImpuestoZona(), this.cantTraspasar)) {
+//                    prod = this.convertir(to);
+//                    if ((idx = this.detalle.indexOf(prod)) != -1) {
+//                        prodOld = this.detalle.get(idx);
+//                        this.totalResta(prodOld);
+//                        this.detalle.set(idx, prod);
+//                    } else {
+//                        this.detalle.add(prod);
+//                    }
+//                    this.totalSuma(prod);
+//                }
+                this.dao.tranferirSinCargo(toVta, toProd, toSimilar, this.venta.getTienda().getIdTienda(), this.cantTraspasar);
+                this.producto.setCantSinCargo(this.producto.getCantSinCargo() - this.cantTraspasar);
+                this.detalle.add(this.convertir(toSimilar));
+                okSimilares = true;
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (Exception ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okSimilares", okSimilares);
     }
 
     public void traspasoSimilar() {
-        int idx;
         boolean ok = false;
-        this.similar = null;
-        VentaProducto prod;
-        this.cantTraspasar = 0;
         this.similares = new ArrayList<>();
         try {
-            for (Producto p : this.mbBuscar.obtenerSimilares(this.producto.getProducto().getIdProducto())) {
-                prod = new VentaProducto(p);
-                if ((idx = this.detalle.indexOf(prod)) != -1) {
-                    prod.setIdMovto(this.detalle.get(idx).getIdMovto());
-                    prod.setCantSinCargo(this.detalle.get(idx).getCantSinCargo());
-                }
-                this.similares.add(prod);
+            this.similar = null;
+            this.cantTraspasar = 0;
+            this.dao = new DAOVentas();
+            for (TOVentaProducto to : this.dao.obtenerSimilares(this.producto.getIdMovto(), this.producto.getProducto().getIdProducto())) {
+                this.similares.add(this.convertir(to));
             }
             ok = true;
         } catch (NamingException ex) {
@@ -369,7 +372,7 @@ public class MbVentas implements Serializable {
         VentaProducto prod;
         try {
             TOVenta toMov = this.convertir(this.venta);
-            
+
             this.dao = new DAOVentas();
             ArrayList<TOVentaProducto> det = this.dao.generarPedidoVenta(toMov);
             this.venta = this.convertir(toMov);
@@ -462,7 +465,7 @@ public class MbVentas implements Serializable {
             Mensajes.mensajeAlert("La cantidad facturada no debe ser menor que cero !!!");
         } else if (this.venta.getIdPedido() != 0 && this.producto.getCantFacturada() > this.producto.getCantOrdenada()) {
             Mensajes.mensajeAlert("La cantidad facturada no debe ser mayor a la cantidad ordenada !!!");
-        } else {
+        } else if (this.producto.getCantFacturada() + this.producto.getCantSinCargo() != this.producto.getSeparados()) {
             TOVenta toMov = this.convertir(this.venta);
             TOVentaProducto toProd = this.convertir(this.producto);
             this.producto.setCantFacturada(this.producto.getSeparados() - this.producto.getCantSinCargo());
@@ -480,6 +483,8 @@ public class MbVentas implements Serializable {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
+            } catch (Exception ex) {
+                Mensajes.mensajeAlert(ex.getMessage());
             }
         }
         RequestContext context = RequestContext.getCurrentInstance();
@@ -568,7 +573,7 @@ public class MbVentas implements Serializable {
             TOVenta toMov = this.convertir(this.venta);
 
             this.dao = new DAOVentas();
-            for (TOVentaProducto to : (toMov.getReferencia() != 0 ? this.dao.obtenerDetalleFincado(toMov) : this.dao.obtenerDetalleVenta(toMov))) {
+            for (TOVentaProducto to : this.dao.obtenerDetalle(toMov)) {
                 prod = this.convertir(to);
                 this.totalSuma(prod);
                 this.detalle.add(prod);
@@ -641,7 +646,7 @@ public class MbVentas implements Serializable {
         toMov.setCanceladoMotivo(venta.getCanceladoMotivo());
         toMov.setCanceladoFecha(venta.getCanceladoFecha());
         movimientos.Movimientos.convertir(venta, toMov);
-        toMov.setIdComprobante(venta.getComprobante()==null?0:venta.getComprobante().getIdComprobante());
+        toMov.setIdComprobante(venta.getComprobante() == null ? 0 : venta.getComprobante().getIdComprobante());
         toMov.setIdImpuestoZona(venta.getTienda().getIdImpuestoZona());
         toMov.setIdReferencia(venta.getTienda().getIdTienda());
         toMov.setReferencia(venta.getIdPedido());

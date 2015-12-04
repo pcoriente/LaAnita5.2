@@ -125,8 +125,8 @@
                                 <p:commandButton id="btnSimilares" icon="ui-icon-transfer-e-w" title="Traspasar sin cargo a similar"
                                                  disabled="#{mbPedidos.producto.cantOrdenadaSinCargo==0}"
                                                  process="@this" actionListener="#{mbPedidos.traspasoSimilar()}" 
-                                                 update=":main:panelSimilares :main:detalleSimilares"
-                                                 oncomplete="PF('similaresDlg').show();" />
+                                                 update=":main:msgsPedidos :main:panelSimilares :main:detalleSimilares"
+                                                 oncomplete="handleAbrirSimilares(xhr, status, args);" />
                             </p:column>
                         </p:row>
                         <f:facet name="footer" >

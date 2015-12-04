@@ -220,10 +220,10 @@ public class MbComprasAlmacen implements Serializable {
         }
     }
 
-    public void cancelarCompra() {
+    public void devolverCompra() {
         try {
             this.dao = new DAOComprasAlmacen();
-            this.dao.cancelarCompra(this.compra.getIdMovtoAlmacen(), this.compra.getAlmacen().getIdAlmacen(), this.compra.getIdOrdenCompra());
+            this.dao.devolverCompra(this.compra.getIdMovtoAlmacen(), this.compra.getAlmacen().getIdAlmacen(), this.compra.getIdOrdenCompra());
             this.compra.setEstatus(8);
             this.modoEdicion = false;
             Mensajes.mensajeSucces("La compra de Almacen se cancelo correctamente !!!");
