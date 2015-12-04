@@ -10,6 +10,7 @@ public class TOVentaProducto extends TOProductoOficina {
     private int idPedido;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
+//    private boolean similar;
     
     public TOVentaProducto() {
         super();
@@ -38,4 +39,12 @@ public class TOVentaProducto extends TOProductoOficina {
     public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
         this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
+
+//    public boolean isSimilar() {
+//        return similar;
+//    }
+//
+//    public void setSimilar(boolean similar) {
+//        this.similar = similar;
+//    }
 }

@@ -218,7 +218,7 @@ public class DAOPedidos {
         }
     }
 
-    public ArrayList<TOProductoPedido> grabarPedidoDetalle(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+    public ArrayList<TOProductoPedido> grabarProductoCantidad(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         ArrayList<TOProductoPedido> similares = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -271,6 +271,27 @@ public class DAOPedidos {
         return importeImpuestos;
     }
 
+//    private void actualizaProductoPedido1(Connection cn, TOPedido toMov, TOProductoPedido toProd) throws SQLException {
+//        movimientos.Movimientos.actualizaProductoPrecio(cn, toMov, toProd);
+//        this.actualizaProductoCantidadPedido(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdPedido(), toProd);
+//    }
+//    public void actualizarPedido(int idEmpresa, TOPedido toMov, ArrayList<TOProductoPedido> tos) throws SQLException {
+//        try (Connection cn = this.ds.getConnection()) {
+//            cn.setAutoCommit(false);
+//            try {
+//                for (TOProductoPedido toProd : tos) {
+//                    this.actualizaProductoPedido(cn, toMov, toProd);
+//                }
+//                cn.commit();
+//            } catch (SQLException ex) {
+//                cn.rollback();
+//                throw ex;
+//            } finally {
+//                cn.setAutoCommit(true);
+//            }
+//        }
+//    }
+//    
     private void actualizaProductoCantidadPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         String strSQL;
         ArrayList<Double> boletin = movimientos.Movimientos.obtenerBoletinSinCargo(cn, toPed.getIdEmpresa(), toPed.getIdReferencia(), toProd.getIdProducto());
@@ -349,28 +370,8 @@ public class DAOPedidos {
             }
         }
     }
-
-//    private void actualizaProductoPedido1(Connection cn, TOPedido toMov, TOProductoPedido toProd) throws SQLException {
-//        movimientos.Movimientos.actualizaProductoPrecio(cn, toMov, toProd);
-//        this.actualizaProductoCantidadPedido(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdPedido(), toProd);
-//    }
-//    public void actualizarPedido(int idEmpresa, TOPedido toMov, ArrayList<TOProductoPedido> tos) throws SQLException {
-//        try (Connection cn = this.ds.getConnection()) {
-//            cn.setAutoCommit(false);
-//            try {
-//                for (TOProductoPedido toProd : tos) {
-//                    this.actualizaProductoPedido(cn, toMov, toProd);
-//                }
-//                cn.commit();
-//            } catch (SQLException ex) {
-//                cn.rollback();
-//                throw ex;
-//            } finally {
-//                cn.setAutoCommit(true);
-//            }
-//        }
-//    }
-    public TOProductoPedido construirProductoPedido(ResultSet rs) throws SQLException {
+    
+    public TOProductoPedido construirProducto(ResultSet rs) throws SQLException {
         TOProductoPedido to = new TOProductoPedido();
         to.setIdPedido(rs.getInt("idPedido"));
         to.setCantOrdenada(rs.getDouble("cantOrdenada"));
@@ -380,48 +381,54 @@ public class DAOPedidos {
         return to;
     }
 
-    public ArrayList<TOProductoPedido> obtenerPedidoDetalle(TOPedido toPed) throws SQLException {
+    private ArrayList<TOProductoPedido> obtenDetalle(Connection cn, TOPedido toPed) throws SQLException {
         String strSQL;
-        TOProductoPedido toProd;
-        toPed.setPropietario(0);
-        toPed.setIdUsuario(this.idUsuario);
-        ArrayList<TOProductoPedido> productos = new ArrayList<>();
+        int propietario = 0;
+        ArrayList<TOProductoPedido> detalle = new ArrayList<>();
+        try (Statement st = cn.createStatement()) {
+            strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada\n"
+                    + "         , ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo, ISNULL(PD.similar, 0) AS similar, D.*\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                    + "WHERE D.idMovto=" + toPed.getIdMovto();
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                detalle.add(this.construirProducto(rs));
+            }
+            strSQL = "SELECT propietario, estatus FROM movimientos WHERE idMovto=" + toPed.getIdMovto();
+            rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                toPed.setEstatus(rs.getInt("estatus"));
+                propietario = rs.getInt("propietario");
+                if (propietario == 0) {
+                    strSQL = "UPDATE movimientos SET propietario=" + this.idUsuario + "\n"
+                            + "WHERE idMovto=" + toPed.getIdMovto();
+                    st.executeUpdate(strSQL);
+                    toPed.setPropietario(this.idUsuario);
+                } else {
+                    toPed.setPropietario(propietario);
+                }
+                toPed.setIdUsuario(this.idUsuario);
+            } else {
+                throw new SQLException("No se encontro el movimiento !!!");
+            }
+        }
+        return detalle;
+    }
+
+    public ArrayList<TOProductoPedido> obtenerDetalle(TOPedido toPed) throws SQLException {
+        ArrayList<TOProductoPedido> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                int propietario;
-                strSQL = "SELECT propietario, estatus FROM movimientos WHERE idMovto=" + toPed.getIdMovto();
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    toPed.setEstatus(rs.getInt("estatus"));
-                    toPed.setPropietario(rs.getInt("propietario"));
-                    propietario = toPed.getPropietario();
-                    if (propietario == 0) {
-                        propietario = this.idUsuario;
-                        strSQL = "UPDATE movimientos SET propietario=" + this.idUsuario + "\n"
-                                + "WHERE idMovto=" + toPed.getIdMovto();
-                        st.executeUpdate(strSQL);
-                    }
-                } else {
-                    throw new SQLException("No se encontro el movimiento !!!");
-                }
-                strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada\n"
-                        + "         , ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo, ISNULL(PD.similar, 0) AS similar, D.*\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + toPed.getIdMovto();
-                rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    toProd = this.construirProductoPedido(rs);
-                    if (toPed.getIdUsuario() == propietario && toPed.getEstatus() == 0) {
-//                        this.actualizaProductoPedido(cn, toPed, toProd);
+            try {
+                detalle = this.obtenDetalle(cn, toPed);
+                if (toPed.getIdUsuario() == toPed.getIdUsuario() && toPed.getEstatus() == 0) {
+                    for (TOProductoPedido toProd : detalle) {
                         movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
                         this.actualizaProductoCantidadPedido(cn, toPed, toProd);
                     }
-                    productos.add(toProd);
                 }
-                toPed.setPropietario(propietario);
                 cn.commit();
             } catch (SQLException ex) {
                 toPed.setPropietario(0);
@@ -431,7 +438,7 @@ public class DAOPedidos {
                 cn.setAutoCommit(true);
             }
         }
-        return productos;
+        return detalle;
     }
 
     public void agregarPedido(TOPedido toPed) throws SQLException {
@@ -453,7 +460,7 @@ public class DAOPedidos {
 //                strSQL = "INSERT INTO pedidos (idPedidoOC, fecha, idUsuario, propietario, canceladoMotivo, canceladoFecha, estatus)\n"
 //                        + "VALUES (" + toPed.getIdPedidoOC() + ", GETDATE(), "+toPed.getIdUsuario()+", "+toPed.getPropietario()+", '', '1900-01-01', 0)";
                 strSQL = "INSERT INTO pedidos (idTienda, idMoneda, idPedidoOC, fecha, canceladoMotivo, canceladoFecha, estatus)\n"
-                        + "VALUES (" + toPed.getIdTienda() + ", "+toPed.getIdMoneda()+", " + toPed.getIdPedidoOC() + ", GETDATE(), '', '1900-01-01', 0)";
+                        + "VALUES (" + toPed.getIdTienda() + ", " + toPed.getIdMoneda() + ", " + toPed.getIdPedidoOC() + ", GETDATE(), '', '1900-01-01', 0)";
                 st.executeUpdate(strSQL);
 
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
@@ -486,9 +493,9 @@ public class DAOPedidos {
     }
 
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
-        String condicion="=0";
-        if(estatus!=0) {
-            condicion="!=0";
+        String condicion = "=0";
+        if (estatus != 0) {
+            condicion = "!=0";
         }
         if (fechaInicial == null) {
             fechaInicial = new Date();
@@ -514,10 +521,63 @@ public class DAOPedidos {
     }
 
 //    vvvvvvvvvvvvvvvvvvvvvvvvvvv NO SE USAN vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    private ArrayList<TOProductoPedido> obtenSimilares(Connection cn, int idMovto, int idProducto) throws SQLException {
+        ArrayList<TOProductoPedido> similares = new ArrayList<>();
+        String strSQL = "SELECT PD.idPedido, PD.cantOrdenada, PD.cantOrdenadaSinCargo, PD.similar, D.*\n"
+                + "FROM movimientosDetalle D\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "INNER JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
+                + "WHERE M.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                similares.add(this.construirProducto(rs));
+            }
+        }
+        return similares;
+    }
+
+    public ArrayList<TOProductoPedido> trasferirSinCargo(TOPedido toPed, TOProductoPedido toProd, TOProductoPedido toSimilar, int idImpuestoZona, double cantidad) throws SQLException {
+        String strSQL;
+        ArrayList<TOProductoPedido> similares = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                if (toSimilar.isSimilar()) {
+                    toSimilar.setIdPedido(toProd.getIdPedido());
+                    toSimilar.setIdMovto(toProd.getIdMovto());
+                    toSimilar.setCantOrdenadaSinCargo(cantidad);
+                    toSimilar.setSimilar(false);
+                    this.agregaProducto(cn, toPed, toSimilar);
+                } else {
+                    toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
+
+                    strSQL = "UPDATE pedidosDetalle\n"
+                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + cantidad + "\n"
+                            + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toSimilar.getIdProducto();
+                    st.executeUpdate(strSQL);
+                }
+                strSQL = "UPDATE pedidosDetalle\n"
+                        + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo-" + cantidad + "\n"
+                        + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                similares = this.obtenSimilares(cn, toProd.getIdMovto(), toProd.getIdProducto());
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.close();
+            }
+        }
+        return similares;
+    }
+
     public ArrayList<TOProductoPedido> obtenerSimilares(int idMovto, int idProducto) throws SQLException {
         ArrayList<TOProductoPedido> productos = new ArrayList<>();
         String strSQL = "SELECT ISNULL(D.cantOrdenada, 0) AS cantOrdenada, ISNULL(D.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
-                + "     , ISNULL(D.similar, 1) AS similar\n"
                 + "     , ISNULL(D.idMovto, 0) AS idMovto, ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idEmpaque, S.idSimilar) AS idEmpaque\n"
                 + "     , ISNULL(D.cantFacturada, 0) AS cantFacturada, ISNULL(D.cantSinCargo, 0) AS cantSinCargo\n"
                 + "	, ISNULL(D.costoPromedio, 0) AS costoPromedio, ISNULL(D.costo, 0) AS costo\n"
@@ -536,81 +596,11 @@ public class DAOPedidos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    productos.add(this.construirProductoPedido(rs));
+                    productos.add(this.construirProducto(rs));
                 }
             }
         }
         return productos;
-    }
-
-//    public ArrayList<TOProductoPedido> obtenerPedidoSimilares(int idPedido, int idProducto) throws SQLException {
-//        ArrayList<TOProductoPedido> productos = new ArrayList<>();
-//        String strSQL = "SELECT D.*\n"
-//                + "FROM empaquesSimilares S\n"
-//                + "INNER JOIN pedidosDetalle D ON D.idEmpaque=S.idEmpaque\n"
-//                + "WHERE D.idPedido=" + idPedido + " AND D.idEmpaque=" + idProducto;
-//        try (Connection cn = this.ds.getConnection()) {
-//            try (Statement st = cn.createStatement()) {
-//                ResultSet rs = st.executeQuery(strSQL);
-//                while (rs.next()) {
-//                    productos.add(this.construirProductoPedido(rs));
-//                }
-//            }
-//        }
-//        return productos;
-//    }
-    private ArrayList<TOProductoPedido> obtenSimilares(Connection cn, int idMovto, int idProducto) throws SQLException {
-        ArrayList<TOProductoPedido> similares = new ArrayList<>();
-        String strSQL = "SELECT PD.idPedido, PD.cantOrdenada, PD.cantOrdenadaSinCargo, PD.similar, D.*\n"
-                + "FROM movimientosDetalle D\n"
-                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "INNER JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
-                + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
-                + "WHERE M.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto;
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                similares.add(this.construirProductoPedido(rs));
-            }
-        }
-        return similares;
-    }
-
-    public ArrayList<TOProductoPedido> trasferirSinCargo(TOPedido toPed, TOProductoPedido toProdOrigen, TOProductoPedido toProdSimilar, int idImpuestoZona, double cantidad) throws SQLException {
-        String strSQL;
-        ArrayList<TOProductoPedido> similares = new ArrayList<>();
-        try (Connection cn = this.ds.getConnection()) {
-            cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                if (toProdSimilar.isSimilar()) {
-                    toProdSimilar.setIdPedido(toProdOrigen.getIdPedido());
-                    toProdSimilar.setIdMovto(toProdOrigen.getIdMovto());
-                    toProdSimilar.setCantOrdenadaSinCargo(cantidad);
-                    toProdSimilar.setSimilar(false);
-                    this.agregaProducto(cn, toPed, toProdSimilar);
-                } else {
-                    toProdSimilar.setCantSinCargo(toProdSimilar.getCantSinCargo() + cantidad);
-
-                    strSQL = "UPDATE pedidosDetalle\n"
-                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + cantidad + "\n"
-                            + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProdSimilar.getIdProducto();
-                    st.executeUpdate(strSQL);
-                }
-                strSQL = "UPDATE pedidosDetalle\n"
-                        + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo-" + cantidad + "\n"
-                        + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProdOrigen.getIdProducto();
-                st.executeUpdate(strSQL);
-
-                similares = this.obtenSimilares(cn, toProdOrigen.getIdMovto(), toProdOrigen.getIdProducto());
-                cn.commit();
-            } catch (SQLException ex) {
-                cn.rollback();
-                throw ex;
-            } finally {
-                cn.close();
-            }
-        }
-        return similares;
     }
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ NO SE USAN ^^^^^^^^^^^^^^^^^^^^^^^^^^
 }

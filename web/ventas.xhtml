@@ -86,6 +86,64 @@
                     </p:column>
                 </p:dataTable>
             </p:panel>
+            <p:dialog header="Similares" widgetVar="similaresDlg" closable="true" resizable="false" style="width: 600px;" modal="true" >
+                <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtOriginalSinCargo" value="Cant.Sin Cargo :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtOriginalSinCargo" value="#{mbVentas.producto.cantSinCargo}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.0000" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtCantTraspasar" value="#{mbVentas.cantTraspasar}" style="width: 120px;" >
+                                <p:ajax event="change" process="@this" update=":main:detalleSimilares:btnSeleccion" />
+                            </p:inputText>
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="detalleSimilares" value="#{mbVentas.similares}" 
+                             var="similar" scrollable="true" scrollHeight="200" style="width: 650px;"
+                             rowKey="#{similar.producto}" selectionMode="single" selection="#{mbVentas.similar}" >
+                    <p:ajax event = "rowSelect" update="btnSeleccion" />
+
+                    <f:facet name="header">Seleccione un similar</f:facet>
+
+                    <p:column headerText="SKU" style="width: 50px;" >
+                        <h:outputText value="#{similar.producto.cod_pro}" />
+                    </p:column>
+
+                    <p:column headerText="Producto" style="width: 420px;" >
+                        <h:outputText value="#{similar.producto.toString()}" />
+                    </p:column>
+
+                    <p:column headerText="Facturada" >
+                        <h:outputText value="#{similar.cantFacturada}" >
+                            <f:convertNumber pattern="##,###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="Sin Cargo" >
+                        <h:outputText value="#{similar.cantSinCargo}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <p:commandButton id="btnSeleccion" value="Seleccionar" 
+                                         disabled="#{mbVentas.similar==null || mbVentas.cantTraspasar==0}"
+                                         process="@this" actionListener="#{mbVentas.actualizaTraspasoSimilar()}"
+                                         update=":main:msgsSimilares :main:detalleVenta" 
+                                         oncomplete="handleSimilares(xhr, status, args);" />
+                    </f:facet>
+                </p:dataTable>
+            </p:dialog>
             <p:dialog header="Edicion" widgetVar="EdicionDlg" closable="false" resizable="false" style="width: 600px;" modal="true" >
                 <p:ajax event="close" update=":main:detalleVenta :main:totales" />
                 <p:messages id="msgsEdicion" showDetail="true" closable="true" />

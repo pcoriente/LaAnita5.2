@@ -129,34 +129,51 @@ public class DAOComprasAlmacen {
         }
     }
 
-    public void cancelarCompra(int idMovtoAlmacen, int idAlmacen, int idOrdenDeCompra) throws SQLException {
+    public void devolverCompra(int idMovtoAlmacenCompra, int idAlmacen, int idOrdenDeCompra) throws SQLException {
         String strSQL;
-        TOMovimientoAlmacen toMov;
+        TOMovimientoAlmacen toDevolucion;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                this.validarExistenciaAlmacen(cn, idMovtoAlmacen);
+                this.validarExistenciaAlmacen(cn, idMovtoAlmacenCompra);
 
-                strSQL = "UPDATE movimientosAlmacen SET estatus=8 WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+                strSQL = "UPDATE movimientosAlmacen SET estatus=8 WHERE idMovtoAlmacen=" + idMovtoAlmacenCompra;
                 st.executeUpdate(strSQL);
 
-                toMov = movimientos.Movimientos.obtenMovimientoAlmacen(cn, idMovtoAlmacen);
+                toDevolucion = movimientos.Movimientos.obtenMovimientoAlmacen(cn, idMovtoAlmacenCompra);
 
-                toMov.setFolio(0);
-                toMov.setIdTipo(34);
-                toMov.setIdUsuario(this.idUsuario);
-                toMov.setPropietario(0);
-                toMov.setEstatus(7);
-                movimientos.Movimientos.agregaMovimientoAlmacen(cn, toMov, true);
+                toDevolucion.setFolio(0);
+                toDevolucion.setIdTipo(34);
+                toDevolucion.setIdUsuario(this.idUsuario);
+                toDevolucion.setPropietario(0);
+                toDevolucion.setEstatus(7);
+                movimientos.Movimientos.agregaMovimientoAlmacen(cn, toDevolucion, true);
 
                 strSQL = "INSERT INTO movimientosDetalleAlmacen\n"
-                        + "SELECT " + toMov.getIdMovtoAlmacen() + ", idEmpaque, lote, cantidad, '', 0\n"
-                        + "FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacen;
+                        + "SELECT " + toDevolucion.getIdMovtoAlmacen() + ", idEmpaque, lote, cantidad, '', 0\n"
+                        + "FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + idMovtoAlmacenCompra;
                 st.executeUpdate(strSQL);
 
-                movimientos.Movimientos.actualizaDetalleAlmacen(cn, toMov.getIdMovtoAlmacen(), false);
+                strSQL = "UPDATE L\n"
+                        + "SET separados=L.separados + D.cantidad\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=D.idEmpaque AND L.lote=D.lote\n"
+                        + "WHERE D.idMovtoAlmacen=" + toDevolucion.getIdMovtoAlmacen();
+                st.executeUpdate(strSQL);
 
-                strSQL = "INSERT INTO devolucionesAlmacen (idMovtoAlmacen, idDevolucion) VALUES (" + idMovtoAlmacen + ", " + toMov.getIdMovtoAlmacen() + ")";
+                strSQL = "SELECT D.idEmpaque, D.lote\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=D.idEmpaque AND L.lote=D.lote\n"
+                        + "WHERE D.idMovtoAlmacen=" + toDevolucion.getIdMovtoAlmacen() + " AND L.existencia < L.separados";
+                ResultSet rs = st.executeQuery(strSQL);
+                if(rs.next()) {
+                    throw new SQLException("No hay existencia suficiente para la devolución !!!");
+                }
+                movimientos.Movimientos.actualizaDetalleAlmacen(cn, toDevolucion.getIdMovtoAlmacen(), false);
+
+                strSQL = "INSERT INTO devolucionesAlmacen (idMovtoAlmacen, idDevolucion) VALUES (" + idMovtoAlmacenCompra + ", " + toDevolucion.getIdMovtoAlmacen() + ")";
                 st.executeUpdate(strSQL);
 
                 if (idOrdenDeCompra != 0) {
@@ -165,14 +182,14 @@ public class DAOComprasAlmacen {
                             + "FROM movimientosDetalleAlmacen D\n"
                             + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                             + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                            + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen;
+                            + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacenCompra;
                     st.executeUpdate(strSQL);
 
                     strSQL = "SELECT idEmpaque\n"
                             + "FROM ordenCompraSurtido\n"
                             + "WHERE idOrdenCompra=" + idOrdenDeCompra + "\n"
                             + "         AND (surtidosAlmacen < cantOrdenada + cantOrdenadaSinCargo)";
-                    ResultSet rs = st.executeQuery(strSQL);
+                    rs = st.executeQuery(strSQL);
                     if (rs.next()) {
                         strSQL = "UPDATE ordenCompra SET estadoAlmacen=5, fechaCierreAlmacen='' WHERE idOrdenCompra=" + idOrdenDeCompra;
                         st.executeUpdate(strSQL);
