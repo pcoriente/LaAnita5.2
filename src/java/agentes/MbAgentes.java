@@ -183,6 +183,14 @@ public class MbAgentes implements Serializable {
             agente.getContribuyente().setDireccion(new Direccion());
         }
     }
+    
+    
+    public void buscarDireccion(){
+        mbDireccion.getDireccion().setCodigoPostal(mbContribuyente.getContribuyente().getDireccion().getCodigoPostal());
+        mbDireccion.buscarAsentamientos();
+    
+    }
+    
 
     public void agregarNuevoAgente() {
         RequestContext context = RequestContext.getCurrentInstance();
