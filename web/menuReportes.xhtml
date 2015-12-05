@@ -16,6 +16,7 @@
                 <br></br>
                 <h:form id="main">
                     <p:blockUI id="block" block="tablaExistencias" 
+
                                trigger=":main:cmbAlmacenes">
                         Buscando...<br/>
                         <p:graphicImage name="images/big-roller.gif"/>
@@ -33,13 +34,14 @@
                         <p:panelGrid style="float: left" columns="2">
                             <h:outputText value="Almacenes:"/>
                             <p:selectOneMenu id="cmbAlmacenes"
+
                                              value="#{mbReportes.mbAlmacenesJS.toAlmacen}">
                                 <f:selectItems value="#{mbReportes.mbAlmacenesJS.listaAlmacenes}"/>
                                 <f:converter converterId="converters.TOAlmacenJSConverter"/>
-                                <p:ajax event="change" 
-                                        process=":main:block"
-                                        listener="#{mbReportes.busquedaDeExistencia()}"
-                                        update=":main:growl tablaExistencias :main:block"/>
+                                <p:ajax listener="#{mbReportes.busquedaDeExistencia()}"
+                                        update=":main:growl tablaExistencias"
+                                        
+                                        />
                             </p:selectOneMenu>
                         </p:panelGrid>
                     </p:panel>
@@ -79,7 +81,13 @@
                             #{listaReportes.existenciaMaxima}
                         </p:column>
                         <p:column headerText="POR PEDIR">
-                            #{listaReportes.porPedir}
+
+                            <h:outputText value="#{listaReportes.porPedir}">
+                                <f:convertNumber  type="currency" locale="en-US"   />
+                            </h:outputText>
+
+
+
                         </p:column>
                         <f:facet name="footer" >#{mbReportes.lst.size()} Registros encontrados.</f:facet>
                     </p:dataTable>

@@ -80,7 +80,7 @@
                         </p:dataTable>
                     </p:panel>
                     <!--- Dialog de nuevos Agentes. -->
-                    <p:dialog modal="true"  
+                    <p:dialog modal="true"
                               widgetVar="dlg" 
                               header="Nuevo Agente"
                               style="height: auto"
@@ -92,13 +92,13 @@
                                 <h:outputText  value="Contribuyente:" />
                                 <p:inputText id="txtAgenteContribuyente" 
                                              value="#{mbAgentes.mbContribuyente.contribuyente.rfc}" 
-                                             maxlength="13" size="15" />
+                                             maxlength="13"/>
                                 <p:commandButton icon="ui-icon-search" 
                                                  title="Buscar Contribuyente"
                                                  process="panelNuevoAgente"
                                                  actionListener="#{mbAgentes.buscar()}" 
                                                  update="growl panelContribuyente"
-                                                 oncomplete="PF('dlgContribuyente').show();"/>
+                                                 />
                                 <h:outputText value="Codigo:"/>
                                 <p:inputText id="txtCodigo" value="#{mbAgentes.agente.codigo}"/>
                                 <h:outputText />
@@ -195,10 +195,10 @@
                             </h:panelGrid>
                             <p:commandButton  icon="#{mbAgentes.lblnuevoAgente}" 
                                               title="Guardar Agente"
-                                              process="@this txtNombreAgente cmbCedis direccionAgente cmbNivel txtCodigo"
+                                              process="@this txtAgenteContribuyente txtNombreAgente cmbCedis direccionAgente cmbNivel txtCodigo"
                                               actionListener="#{mbAgentes.agregarNuevoAgente()}"
                                               oncomplete="nuevoContribuyente(xhr, status, args)"
-                                              update="growl listaAgentes actualizar"/>
+                                              update="growl listaAgentes actualizar panelContribuyente"/>
                             <p:commandButton  icon="ui-icon-arrowreturnthick-1-w"
                                               title="Cancelar Agente"
                                               update=":form:listaAgentes 
@@ -208,28 +208,30 @@
                                               oncomplete="PF('dlg').hide()"/>
                         </center>
                     </p:dialog>
-
+                    <!--Dialog contribuyente-->
                     <p:dialog widgetVar="dlgContribuyente"
                               modal="true"
+                              resizable="false"
                               closable="false"
                               header="Datos del contribuyente">
                         <h:panelGrid columns="3" id="panelContribuyente">
+                            <p:outputLabel style="color: black"  value="Rfc:"/>
+                            <p:inputText id="rfc" 
+                                         value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
+                                         disabled="true"/> 
+                            
+                            <p:outputLabel/>
                             <p:outputLabel style="color: black" value="Contribuyente:"/>
                             <p:inputText id="contribuyente" 
                                          value="#{mbAgentes.mbContribuyente.contribuyente.contribuyente}"/>
                             <p:outputLabel/>
-                            <p:outputLabel style="color: black"  value="Rfc:"/>
-                            <p:inputText id="rfc" 
-                                         value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
-                                         disabled="#{mbAgentes.seleccionListaAgente !=null 
-                                                     and 
-                                                     mbAgentes.seleccionListaAgente.contribuyente.idContribuyente != 0 }"
-                                         />
-                            <p:outputLabel/>
+
+                           
                             <p:outputLabel style="color: black"  value="Direccion:"/>
                             <p:inputTextarea value="#{mbAgentes.mbContribuyente.contribuyente.direccion}" 
                                              id="direccionContribuyente"
                                              style="width: 168px"
+                                             rows="8"
                                              disabled="true"
                                              />
                             <p:commandButton icon="ui-icon-plus" 
@@ -252,7 +254,7 @@
                                           oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)"/>
                         <p:commandButton title="Salir"
                                          icon="ui-icon-arrowreturnthick-1-w"
-                                          onclick="PF('confirmCancelar').show();"
+                                         onclick="PF('confirmCancelar').show();"
                                          />
                     </p:dialog>
 
@@ -295,12 +297,12 @@
                             <h:outputLabel value="Código Postal:" for="codigoPostal" styleClass="colorLetra"  />
                             <h:panelGroup>
                                 <h:panelGrid columns="3">
-                                    <p:inputText id="codigoPostal" 
+                                    <p:inputText id="codigoPostal"
                                                  value="#{mbAgentes.mbContribuyente.contribuyente.direccion.codigoPostal}"/>
-                                    <p:commandButton  
+                                    <p:commandButton
                                         title="Buscar Codigo Postal"
                                         icon="ui-icon-search"
-                                        action="#{mbAgentes.mbDireccion.buscarAsentamientos()}" 
+                                        action="#{mbAgentes.buscarAsentamientos()}" 
                                         process="@this cboPaises codigoPostal" 
                                         update="cboAsentamientos asentamientos"
                                         style="height: 30px"/>
@@ -529,7 +531,7 @@
                     </p:dialog>
 
 
-                    <p:dialog header="BUSCADOR DE PROVEEDORES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
+                    <p:dialog header="BUSCADOR DE CONTRIBUYENTES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="messages4" showDetail="true" closable="true" />
                         <p:panelGrid id="buscarProveedores" styleClass="sinBorde" >
                             <p:row >

@@ -21,6 +21,7 @@ import javax.naming.NamingException;
 import menuReportesExistencias.DAO.DAOReportesExistencias;
 import menuReportesExistencias.dominio.TOExistencias;
 import net.sf.jasperreports.engine.JRException;
+import org.primefaces.context.RequestContext;
 import producto2.MbProductosBuscar;
 
 /**
@@ -48,6 +49,9 @@ public class MbReportes implements Serializable {
     }
 
     public void busquedaDeExistencia() {
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        context.execute("PF('block').show();");
+
         lst.removeAll(lst);
         try {
             DAOReportesExistencias dao = new DAOReportesExistencias();
