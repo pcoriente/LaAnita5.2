@@ -37,9 +37,9 @@
                                 <f:selectItems value="#{mbReportes.mbAlmacenesJS.listaAlmacenes}"/>
                                 <f:converter converterId="converters.TOAlmacenJSConverter"/>
                                 <p:ajax event="change" 
-                                        process=":main:block"
+                                        
                                         listener="#{mbReportes.busquedaDeExistencia()}"
-                                        update=":main:growl tablaExistencias :main:block"/>
+                                        update=":main:growl tablaExistencias"/>
                             </p:selectOneMenu>
                         </p:panelGrid>
                     </p:panel>
