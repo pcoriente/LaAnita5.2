@@ -266,6 +266,12 @@ public class MbDireccion implements Serializable {
     }
 
     public void buscarAsentamientos() {
+        editarAsentamiento = true;
+        System.out.println("--------------------------------");
+        System.out.println("entro a buscar el asentamiento");
+        System.out.println("--------------------------------");
+        
+        System.out.println(direccion.getCodigoPostal());
         if(this.editarAsentamiento) {
             String codigoPostal = this.direccion.getCodigoPostal();
             if (!codigoPostal.isEmpty() && this.direccion.getPais().getIdPais() == 1) {

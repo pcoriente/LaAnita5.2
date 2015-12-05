@@ -146,6 +146,14 @@ public class MbAgentes implements Serializable {
             Mensajes.mensajeAlert("Error! la longitud del rfc no es correcta");
         }
     }
+    
+    
+    public void buscarDireccion(){
+        mbDireccion.getDireccion().setCodigoPostal(mbContribuyente.getContribuyente().getDireccion().getCodigoPostal());
+        mbDireccion.buscarAsentamientos();
+    
+    }
+    
 
     public void agregarNuevoAgente() {
         boolean ok = false;

@@ -73,7 +73,7 @@ public class MbReportes implements Serializable {
 
     public void generarReporte() {
         try {
-            menuReportesExistencias.reportes.Reportes.generarReporteArrayList(lst, "C:\\Carlos Pat\\reporteExistencias.jasper", "ReporteExistencias");
+            menuReportesExistencias.reportes.Reportes.generarReporteArrayList(lst, "C:\\Carlos Pat\\Reportes\\reporteExistencias.jasper", "ReporteExistencias");
             Mensajes.mensajeSucces("Reporte generado correctamente");
         } catch (JRException ex) {
             Mensajes.mensajeError(ex.getMessage());

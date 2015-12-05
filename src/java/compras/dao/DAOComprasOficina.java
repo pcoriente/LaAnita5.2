@@ -127,39 +127,56 @@ public class DAOComprasOficina {
         }
     }
 
-    public void devolverCompra(int idMovto, int idOrdenDeCompra) throws SQLException {
+    public void devolverCompra(int idMovtoCompra, int idOrdenDeCompra) throws SQLException {
         String strSQL;
-        TOMovimientoOficina toMov;
+        TOMovimientoOficina toDevolucion;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                this.validarExistenciaOficina(cn, idMovto);
+                this.validarExistenciaOficina(cn, idMovtoCompra);
 
-                strSQL = "UPDATE movimientos SET estatus=8 WHERE idMovto=" + idMovto;
+                strSQL = "UPDATE movimientos SET estatus=8 WHERE idMovto=" + idMovtoCompra;
                 st.executeUpdate(strSQL);
 
-                toMov = movimientos.Movimientos.obtenMovimientoOficina(cn, idMovto);
+                toDevolucion = movimientos.Movimientos.obtenMovimientoOficina(cn, idMovtoCompra);
 
-                toMov.setFolio(0);
-                toMov.setIdTipo(34);
-                toMov.setIdUsuario(this.idUsuario);
-                toMov.setPropietario(0);
-                toMov.setEstatus(7);
-                movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, true);
+                toDevolucion.setFolio(0);
+                toDevolucion.setIdTipo(34);
+                toDevolucion.setIdUsuario(this.idUsuario);
+                toDevolucion.setPropietario(0);
+                toDevolucion.setEstatus(7);
+                movimientos.Movimientos.agregaMovimientoOficina(cn, toDevolucion, true);
 
                 strSQL = "INSERT INTO movimientosDetalle\n"
-                        + "SELECT " + toMov.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, 0, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0\n"
-                        + "FROM movimientosDetalle WHERE idMovto=" + idMovto;
+                        + "SELECT " + toDevolucion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0\n"
+                        + "FROM movimientosDetalle WHERE idMovto=" + idMovtoCompra;
                 st.executeUpdate(strSQL);
 
                 strSQL = "INSERT INTO movimientosDetalleImpuestos\n"
-                        + "SELECT " + toMov.getIdMovto() + ", idEmpaque, idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable\n"
-                        + "FROM movimientosDetalleImpuestos WHERE idMovto=" + idMovto;
+                        + "SELECT " + toDevolucion.getIdMovto() + ", idEmpaque, idImpuesto, impuesto, valor, aplicable, modo, acreditable, importe, acumulable\n"
+                        + "FROM movimientosDetalleImpuestos WHERE idMovto=" + idMovtoCompra;
                 st.executeUpdate(strSQL);
 
-                movimientos.Movimientos.actualizaDetalleOficina(cn, toMov.getIdMovto(), toMov.getIdTipo(), false);
+                strSQL = "UPDATE E\n"
+                        + "SET separados=E.separados + D.cantFacturada + D.cantSinCargo\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN almacenesEmpaques E ON E.idAlmacen=M.idAlmacen AND E.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toDevolucion.getIdMovto();
+                st.executeUpdate(strSQL);
 
-                strSQL = "INSERT INTO devoluciones (idMovto, idDevolucion) VALUES (" + idMovto + ", " + toMov.getIdMovto() + ")";
+                strSQL = "SELECT D.idEmpaque\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN almacenesEmpaques E ON E.idAlmacen=M.idAlmacen AND E.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toDevolucion.getIdMovto() + " AND E.existencia < E.separados";
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    throw new SQLException("No hay exiustencia suficiente para devolución !!!");
+                }
+                movimientos.Movimientos.actualizaDetalleOficina(cn, toDevolucion.getIdMovto(), toDevolucion.getIdTipo(), false);
+
+                strSQL = "INSERT INTO devoluciones (idMovto, idDevolucion) VALUES (" + idMovtoCompra + ", " + toDevolucion.getIdMovto() + ")";
                 st.executeUpdate(strSQL);
 
                 if (idOrdenDeCompra != 0) {
@@ -169,14 +186,14 @@ public class DAOComprasOficina {
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                             + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                            + "WHERE D.idMovto=" + idMovto;
+                            + "WHERE D.idMovto=" + idMovtoCompra;
                     st.executeUpdate(strSQL);
 
                     strSQL = "SELECT idEmpaque\n"
                             + "FROM ordenCompraSurtido\n"
                             + "WHERE idOrdenCompra=" + idOrdenDeCompra + "\n"
                             + "         AND (surtidosOficina < cantOrdenada OR surtidosOficinaSinCargo < cantOrdenadaSinCargo)";
-                    ResultSet rs = st.executeQuery(strSQL);
+                    rs = st.executeQuery(strSQL);
                     if (rs.next()) {
                         strSQL = "UPDATE ordenCompra SET estado=5, fechaCierreOficina='' WHERE idOrdenCompra=" + idOrdenDeCompra;
                         st.executeUpdate(strSQL);
@@ -519,7 +536,6 @@ public class DAOComprasOficina {
 //            }
 //        }
 //    }
-    
     public ArrayList<TOProductoCompraOficina> crearOrdenDeCompraDetalle(TOMovimientoOficina toMov, boolean definitivo) throws SQLException {
         ArrayList<TOProductoCompraOficina> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {

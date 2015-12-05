@@ -192,7 +192,7 @@ public class MbPedidos implements Serializable {
                 this.producto.setCantOrdenada(this.producto.getCantFacturada());
 
                 this.dao = new DAOPedidos();
-                ArrayList<TOProductoPedido> listaSimilares = this.dao.grabarPedidoDetalle(toPed, toProd);
+                ArrayList<TOProductoPedido> listaSimilares = this.dao.grabarProductoCantidad(toPed, toProd);
 //                if (listaSimilares.isEmpty()) {
                 if (listaSimilares.size()<=1) {
                     this.totalResta(this.producto);
@@ -364,7 +364,7 @@ public class MbPedidos implements Serializable {
         TOPedido toPed = this.convertir(this.pedido);
         try {
             this.dao = new DAOPedidos();
-            for (TOProductoPedido toProd : this.dao.obtenerPedidoDetalle(toPed)) {
+            for (TOProductoPedido toProd : this.dao.obtenerDetalle(toPed)) {
                 prod = this.convertir(toProd);
                 this.totalSuma(prod);
                 this.detalle.add(prod);
@@ -527,26 +527,6 @@ public class MbPedidos implements Serializable {
     }
 
 //    vvvvvvvvvvvvvvvvvvvvvvvvvvvv NO SE USAN vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    public void traspasoSimilar() {
-        boolean ok = false;
-        this.similares = new ArrayList<>();
-        try {
-            this.similar = null;
-            this.cantTraspasar = 0;
-            this.dao = new DAOPedidos();
-            for (TOProductoPedido to : this.dao.obtenerSimilares(this.producto.getIdMovto(), this.producto.getProducto().getIdProducto())) {
-                this.similares.add(this.convertir(to));
-            }
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okSimilares", ok);
-    }
-
     public void actualizaTraspasoSimilar() {
         int idx;
         PedidoProducto prod;
@@ -579,6 +559,26 @@ public class MbPedidos implements Serializable {
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okSimilares", okSimilares);
+    }
+    
+    public void traspasoSimilar() {
+        boolean ok = false;
+        this.similares = new ArrayList<>();
+        try {
+            this.similar = null;
+            this.cantTraspasar = 0;
+            this.dao = new DAOPedidos();
+            for (TOProductoPedido to : this.dao.obtenerSimilares(this.producto.getIdMovto(), this.producto.getProducto().getIdProducto())) {
+                this.similares.add(this.convertir(to));
+            }
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okSimilares", ok);
     }
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ NO SE USAN ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
