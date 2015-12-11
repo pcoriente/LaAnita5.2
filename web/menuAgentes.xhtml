@@ -62,7 +62,7 @@
                                     :form:growl"/>
                             <p:column headerText="Codigo" style="width: 30px">
                                 <center>
-                                    #{agentes.idAgente}
+                                    #{agentes.codigo}
                                 </center>
                             </p:column>
                             <p:column headerText="Nivel" 
@@ -97,10 +97,12 @@
                                                  title="Buscar Contribuyente"
                                                  process="panelNuevoAgente"
                                                  actionListener="#{mbAgentes.buscar()}" 
-                                                 update="growl panelContribuyente"
+                                                 update="growl panelContribuyente btnGuardarContribuyente"
                                                  />
                                 <h:outputText value="Codigo:"/>
-                                <p:inputText id="txtCodigo" value="#{mbAgentes.agente.codigo}"/>
+                                <p:inputText id="txtCodigo" 
+                                             value="#{mbAgentes.agente.codigo}"
+                                             disabled="#{mbAgentes.actualizar == 1}"/>
                                 <h:outputText />
 
                                 <h:outputText id="lblAgente" value="Agente* :" />
@@ -236,6 +238,7 @@
                                              />
                             <p:commandButton icon="ui-icon-plus" 
                                              title="Agregar Direccion"
+                                             disabled="#{mbAgentes.contribuyenteExistente == true}"
                                              process="@this"
                                              update="panelCapturaDireccion"
                                              actionListener="#{mbAgentes.direccionContirbuyente()}"
@@ -248,29 +251,20 @@
                         </h:panelGrid>
                         <p:commandButton  actionListener="#{mbAgentes.guardarContribuyente()}"
                                           icon="ui-icon-disk"
+                                          id="btnGuardarContribuyente"
+                                          disabled="#{mbAgentes.contribuyenteExistente == true}"
                                           title="Guardar Contribuyente"
                                           update="growl txtAgenteContribuyente"
                                           process="@this contribuyente correo rfc direccionContribuyente"
                                           oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)"/>
                         <p:commandButton title="Salir"
+                                         immediate="true"
                                          icon="ui-icon-arrowreturnthick-1-w"
-                                         onclick="PF('confirmCancelar').show();"
+                                         onclick="PF('dlgContribuyente').hide();"
                                          />
                     </p:dialog>
 
-                    <p:confirmDialog message="¿Estas seguro de cancelar el contribuyente todos los datos se perderan?"
-                                     header="Cancelar Contribuyente"
-                                     widgetVar="confirmCancelar">
-                        <p:commandButton value="Salir" 
-                                         actionListener="#{mbAgentes.limpiarContriuyente()}"
-                                         update="panelContribuyente"
-                                         onclick="ocularTodo();"
-                                         />
-                        <p:commandButton value="Permanecer" 
-                                         oncomplete="PF('confirmCancelar').hide();"
-                                         />
-
-                    </p:confirmDialog>
+              
                     <!--- Dialog de Direccion -->
                     <p:dialog  header="Nueva Dirección" 
                                widgetVar="dlgDireccion"
@@ -279,13 +273,13 @@
                                closable="false">
                         <h:panelGrid id="panelCapturaDireccion" columns="2">
                             <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
-                            <p:inputText id="calle" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.calle}" />
+                            <p:inputText id="calle" value="#{mbAgentes.mbDireccion.direccion.calle}" />
                             <h:outputLabel value="No.Exterior:" for="noExterior" styleClass="colorLetra" />
-                            <p:inputText id="noExterior" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.numeroExterior}"/>
+                            <p:inputText id="noExterior" value="#{mbAgentes.mbDireccion.direccion.numeroExterior}"/>
                             <h:outputLabel value="No.Interior:" for="noInterior" styleClass="colorLetra" />
-                            <p:inputText id="noInterior" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.numeroInterior}"/>
+                            <p:inputText id="noInterior" value="#{mbAgentes.mbDireccion.direccion.numeroInterior}"/>
                             <h:outputLabel value="Referencia:" for="referencia" styleClass="colorLetra" />
-                            <p:inputText id="referencia" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.referencia}"/>
+                            <p:inputText id="referencia" value="#{mbAgentes.mbDireccion.direccion.referencia}"/>
                             <h:outputLabel value="País:" for="cboPaises" styleClass="colorLetra" />
                             <p:selectOneMenu id="cboPaises" 
                                              value="#{mbAgentes.mbDireccion.direccion.pais}"
@@ -298,7 +292,7 @@
                             <h:panelGroup>
                                 <h:panelGrid columns="3">
                                     <p:inputText id="codigoPostal"
-                                                 value="#{mbAgentes.mbContribuyente.contribuyente.direccion.codigoPostal}"/>
+                                                 value="#{mbAgentes.mbDireccion.direccion.codigoPostal}"/>
                                     <p:commandButton
                                         title="Buscar Codigo Postal"
                                         icon="ui-icon-search"
@@ -313,7 +307,7 @@
                                 <h:panelGrid rendered="#{mbAgentes.mbDireccion.editarAsentamiento}" 
                                              columns="2" >
                                     <p:inputText id="txtAsentamiento" 
-                                                 value="#{mbAgentes.mbContribuyente.contribuyente.direccion.colonia}"/>
+                                                 value="#{mbAgentes.mbDireccion.direccion.colonia}"/>
                                     <p:commandButton 
                                         icon="ui-icon-pencil"
                                         actionListener="#{mbAgentes.mbDireccion.setEditarAsentamiento(false)}" 
@@ -333,20 +327,20 @@
                                 </p:selectOneMenu>
                             </h:panelGroup>
                             <h:outputLabel value="Ciudad/Localidad:" for="localidad" styleClass="colorLetra" />
-                            <p:inputText id="localidad" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.localidad}"/>
+                            <p:inputText id="localidad" value="#{mbAgentes.mbDireccion.direccion.localidad}"/>
                             <h:outputLabel value="Municipio/Delegación:" for="municipio" styleClass="colorLetra" />
-                            <p:inputText id="municipio" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.municipio}" />
+                            <p:inputText id="municipio" value="#{mbAgentes.mbDireccion.direccion.municipio}" />
                             <h:outputLabel value="Estado:" for="estado" styleClass="colorLetra" />
-                            <p:inputText id="estado" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.estado}" />
+                            <p:inputText id="estado" value="#{mbAgentes.mbDireccion.direccion.estado}" />
                             <h:outputLabel value="GLN:" for="gln" styleClass="colorLetra" />
-                            <p:inputText id="gln" value="#{mbAgentes.mbContribuyente.contribuyente.direccion.numeroLocalizacion}"/>
+                            <p:inputText id="gln" value="#{mbAgentes.mbDireccion.direccion.numeroLocalizacion}"/>
                             <h:outputLabel />
                             <h:panelGroup style="display: block; text-align: right" >
                                 <p:commandButton icon="#{mbAgentes.lblNuevaDireccionAgente}"
                                                  actionListener="#{mbAgentes.validarDireccion()}"
                                                  process="@this txtAsentamiento cboPaises localidad municipio estado gln calle txtAsentamiento noExterior noInterior referencia codigoPostal"
                                                  title="Grabar Direccion"
-                                                 update="direccionAgente direccionContribuyente growl"
+                                                 update="direccionAgente panelCapturaDireccion direccionContribuyente growl"
                                                  oncomplete="nuevaDireccion(xhr, status, args)" />
                                 <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
                                                  title="Cancelar Direccion"
@@ -531,7 +525,7 @@
                     </p:dialog>
 
 
-                    <p:dialog header="BUSCADOR DE CONTRIBUYENTES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
+<!--                    <p:dialog header="BUSCADOR DE CONTRIBUYENTES" widgetVar="buscarProvDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="messages4" showDetail="true" closable="true" />
                         <p:panelGrid id="buscarProveedores" styleClass="sinBorde" >
                             <p:row >
@@ -592,7 +586,7 @@
                                                  update=":form:panelNuevoAgente"/>
                             </f:facet>
                         </p:dataTable>
-                    </p:dialog>`
+                    </p:dialog>`-->
 
 
 
