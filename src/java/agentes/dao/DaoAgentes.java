@@ -57,13 +57,15 @@ public class DaoAgentes {
         String sql = "SELECT * FROM agentes a "
                 + "INNER JOIN "
                 + "cedis  ced "
-                + "ON a.idCedis = ced.idCedis";
+                + "ON a.idCedis = ced.idCedis "
+                + "ORDER BY ced.idCedis";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         ResultSet rs = st.executeQuery(sql);
         while (rs.next()) {
             Agente agentes = new Agente();
-            agentes.setIdAgente(rs.getInt("codigoAgente"));
+            agentes.setIdAgente(rs.getInt("idAgente"));
+            agentes.setCodigo(rs.getInt("codigoAgente"));
             agentes.setAgente(rs.getString("agente"));
             agentes.getContribuyente().setIdContribuyente(rs.getInt("idContribuyente"));
             agentes.getDireccionAgente().setIdDireccion(rs.getInt("idDireccion"));
@@ -104,12 +106,23 @@ public class DaoAgentes {
             int idAgente = 0;
             int idContacto = 0;
             st.executeUpdate("begin transaction");
-            if (agente.getContribuyente().getRfc() != "") {
-                String sqlContribuyenteRfc = "INSERT INTO contribuyentesRfc (rfc, curp) VALUES ('" + agente.getContribuyente().getRfc().toUpperCase() + "', '" + agente.getContribuyente().getCurp().toUpperCase() + "')";
-                st.executeUpdate(sqlContribuyenteRfc);
-                rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyenteRfc");
-                if (rs.next()) {
-                    idRfc = rs.getInt("idContribuyenteRfc");
+
+            String sqlIdContribuyenteRfc = "select * from contribuyentes ctr\n"
+                    + "inner join contribuyentesRfc ctrRfc \n"
+                    + "on  ctrRfc.idRfc =  ctr.idRfc \n"
+                    + "where ctrRfc.rfc='" + agente.getContribuyente().getRfc().toUpperCase() + "'";
+            rs = st.executeQuery(sqlIdContribuyenteRfc);
+            while (rs.next()) {
+                idContribuyente = rs.getInt("idContribuyente");
+            }
+            if (idContribuyente == 0) {
+                if (agente.getContribuyente().getRfc() != "") {
+                    String sqlContribuyenteRfc = "INSERT INTO contribuyentesRfc (rfc, curp) VALUES ('" + agente.getContribuyente().getRfc().toUpperCase() + "', '" + agente.getContribuyente().getCurp().toUpperCase() + "')";
+                    st.executeUpdate(sqlContribuyenteRfc);
+                    rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyenteRfc");
+                    if (rs.next()) {
+                        idRfc = rs.getInt("idContribuyenteRfc");
+                    }
                 }
             }
             if (agente.getDireccionAgente().getCalle() != "") {
@@ -121,7 +134,8 @@ public class DaoAgentes {
                 }
             }
 
-            if (agente.getContribuyente().getDireccion().getCalle() != "") {
+//            if (agente.getContribuyente().getDireccion().getCalle() != "") {
+            if (idContribuyente == 0) {
                 String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
                 st.executeUpdate(sqlDireccionContribuyente);
                 rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionContribuyente");
@@ -134,39 +148,39 @@ public class DaoAgentes {
                 if (rs.next()) {
                     idContribuyente = rs.getInt("idContribuyente");
                 }
-                String sqlContactos = "INSERT INTO contactos(contacto ,puesto, correo, idTipo, idPadre) VALUES('" + agente.getAgente() + "','Agente','" + agente.getContacto().getCorreo() + "','3','" + idAgente + "')";
-                st.executeUpdate(sqlContactos);
-                rs = st.executeQuery("SELECT @@IDENTITY AS idContacto");
-                if (rs.next()) {
-                    idContacto = rs.getInt("idContacto");
-                }
-
             }
 
-            String sqlAgentes = "INSERT INTO agentes (agente, idContribuyente, idDireccion, idCedis, nivel, superior) VALUES('" + agente.getAgente() + "','" + idContribuyente + "','" + idDireccionAgente + "','" + agente.getMiniCedis().getIdCedis() + "', '" + agente.getNivel() + "', '" + agente.getSuperior() + "')";
+//            }
+            String sqlAgentes = "INSERT INTO agentes (agente, idContribuyente, idDireccion, idCedis, nivel, superior, codigoAgente) VALUES('" + agente.getAgente() + "','" + idContribuyente + "','" + idDireccionAgente + "','" + agente.getMiniCedis().getIdCedis() + "', '" + agente.getNivel() + "', '" + agente.getSuperior() + "', '" + agente.getCodigo() + "')";
             st.executeUpdate(sqlAgentes);
             rs = st.executeQuery("SELECT @@IDENTITY AS idAgente");
             if (rs.next()) {
                 idAgente = rs.getInt("idAgente");
             }
+            String sqlContactos = "INSERT INTO contactos(contacto ,puesto, correo, idTipo, idPadre) VALUES('" + agente.getAgente() + "','Agente','" + agente.getContacto().getCorreo() + "','3','" + idAgente + "')";
+            st.executeUpdate(sqlContactos);
+            rs = st.executeQuery("SELECT @@IDENTITY AS idContacto");
+            if (rs.next()) {
+                idContacto = rs.getInt("idContacto");
+            }
 
             x = true;
-            PreparedStatement ps = null;
-            if (agente.getContacto().getTelefonos().size() > 0) {
-                for (Telefono telefonos : agente.getContacto().getTelefonos()) {
-                    int idTipo = 0;
-                    if (telefonos.getTipo().isCelular() == false) {
-                        idTipo = 2;
-                    } else {
-                        idTipo = 1;
-                    }
-                    String sql = "INSERT INTO telefonos (lada, telefono, extension, idTipo, idContacto) VALUES ("
-                            + "'" + telefonos.getLada() + "','" + telefonos.getTelefono() + "','" + telefonos.getExtension() + "','" + idTipo + "','" + idContacto + "') ";
-                    ps = cn.prepareStatement(sql);
-                    ps.executeUpdate();
-                    ps.close();
-                }
-            }
+//            PreparedStatement ps = null;
+//            if (agente.getContacto().getTelefonos().size() > 0) {
+//                for (Telefono telefonos : agente.getContacto().getTelefonos()) {
+//                    int idTipo = 0;
+//                    if (telefonos.getTipo().isCelular() == false) {
+//                        idTipo = 2;
+//                    } else {
+//                        idTipo = 1;
+//                    }
+//                    String sql = "INSERT INTO telefonos (lada, telefono, extension, idTipo, idContacto) VALUES ("
+//                            + "'" + telefonos.getLada() + "','" + telefonos.getTelefono() + "','" + telefonos.getExtension() + "','" + idTipo + "','" + idContacto + "') ";
+//                    ps = cn.prepareStatement(sql);
+//                    ps.executeUpdate();
+//                    ps.close();
+//                }
+//            }
             st.executeUpdate("commit transaction");
         } catch (SQLException ex) {
             System.err.println(ex);
@@ -182,16 +196,15 @@ public class DaoAgentes {
     public void actualizarAgente(Agente agente, Contribuyente contribuyente) throws SQLException {
         Connection cn = this.ds.getConnection();
         Statement st = cn.createStatement();
-//        int idDireccionAgente = 0;
-        String sqlContribuyente = "UPDATE contribuyentes set contribuyente = '" + contribuyente.getContribuyente() + "' WHERE idContribuyente = " + contribuyente.getIdContribuyente();
-        String sqlContribuyenteRfc = "UPDATE contribuyentesRfc set  curp='" + contribuyente.getCurp().toUpperCase() + "' WHERE idRfc = " + contribuyente.getIdRfc();
+//        String sqlContribuyente = "UPDATE contribuyentes set contribuyente = '" + contribuyente.getContribuyente() + "' WHERE idContribuyente = " + contribuyente.getIdContribuyente();
+//        String sqlContribuyenteRfc = "UPDATE contribuyentesRfc set  curp='" + contribuyente.getCurp().toUpperCase() + "' WHERE idRfc = " + contribuyente.getIdRfc();
 
         try {
-            String sql = "UPDATE agentes set agente='" + agente.getAgente() + "', idCedis ='" + agente.getMiniCedis().getIdCedis() + "' WHERE idAgente=" + agente.getIdAgente();
+            String sql = "UPDATE agentes set agente='" + agente.getAgente() + "', idCedis ='" + agente.getMiniCedis().getIdCedis() + "', nivel ='"+agente.getNivel()+"' WHERE idAgente=" + agente.getIdAgente();
             st.executeUpdate("begin transaction");
             st.executeUpdate(sql);
-            st.executeUpdate(sqlContribuyente);
-            st.executeUpdate(sqlContribuyenteRfc);
+//            st.executeUpdate(sqlContribuyente);
+//            st.executeUpdate(sqlContribuyenteRfc);
             st.executeUpdate("commit transaction");
         } catch (SQLException ex) {
             st.executeUpdate("rollback transaction");
@@ -385,15 +398,7 @@ public class DaoAgentes {
             }
             String sqlAgregarContribuyenteAgentes = "UPDATE agentes SET idContribuyente = '" + idContribuyente + "' WHERE idAgente = '" + idAgente + "'";
             st.executeUpdate(sqlAgregarContribuyenteAgentes);
-//            String sqlContactos = "INSERT INTO contactos(contacto ,puesto, correo, idTipo, idPadre) VALUES('" + agente.getAgente() + "','Agente','" + agente.getContacto().getCorreo() + "','3','" + idAgente + "')";
-//            st.executeUpdate(sqlContactos);
-//            rs = 
-//                    st.execute("SELECT @@IDENTITY AS idContacto");
-//            if (rs.next()) {
-//                idContacto = rs.getInt("idContacto");
-//            }
-            
-            
+
             st.executeUpdate("COMMIT TRANSACTION");
         } catch (SQLException e) {
             st.executeUpdate("ROLLBACK TRANSACTION");

@@ -129,7 +129,7 @@ public class DAOContribuyentes {
 
     public void actualizarContribuyente(Contribuyente c) throws SQLException {
         String strSQL = "UPDATE contribuyentes "
-                + "SET contribuyente='" + c.getContribuyente() + "', idDireccion=" + c.getDireccion().getIdDireccion() + " "
+                + "SET contribuyente='" + c.getContribuyente() + "'"
                 + "WHERE idContribuyente = " + c.getIdContribuyente();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
@@ -313,6 +313,7 @@ public class DAOContribuyentes {
                 + "from contribuyentes cr\n"
                 + "inner join contribuyentesRfc crR on cr.idRfc = crR.idRfc\n"
                 + "inner join direcciones dir on cr.idDireccion = dir.idDireccion\n"
+                + "inner join paises p on dir.idPais = p.idPais\n"
                 + "where crR.rfc ='" + rfc + "';";
         Connection cn = ds.getConnection();
         try (Statement st = cn.createStatement()) {
