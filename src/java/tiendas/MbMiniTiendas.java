@@ -28,7 +28,7 @@ public class MbMiniTiendas implements Serializable {
     }
     
     private void inicializa() {
-        this.tiendas=new ArrayList<TOTienda>();
+        this.tiendas=new ArrayList<>();
         this.tienda=new TOTienda();
     }
     
@@ -53,8 +53,22 @@ public class MbMiniTiendas implements Serializable {
         return to;
     }
     
+    public void obtenerTiendasCliente(int idCliente) {
+        this.tiendas=new ArrayList<>();
+        try {
+            this.dao=new DAOTiendas();
+            for(TOTienda to:this.dao.obtenerTiendasCedisCliente(idCliente)) {
+                this.tiendas.add(to);
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+        }
+    }
+    
     public void obtenerTiendasFormato(int idFormato) {
-        this.tiendas=new ArrayList<TOTienda>();
+        this.tiendas=new ArrayList<>();
         try {
             this.dao=new DAOTiendas();
             for(TOTienda to:this.dao.obtenerTiendasFormato(idFormato)) {
@@ -68,7 +82,7 @@ public class MbMiniTiendas implements Serializable {
     }
     
     public void cargaTiendasFormato(int idFormato) {
-        this.listaTiendas=new ArrayList<SelectItem>();
+        this.listaTiendas=new ArrayList<>();
         this.listaTiendas.add(new SelectItem(new TOTienda(), "Seleccione una tienda"));
         try {
             this.dao=new DAOTiendas();

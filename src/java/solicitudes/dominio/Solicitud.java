@@ -8,7 +8,7 @@ import java.util.Date;
  * @author jesc
  */
 public class Solicitud {
-    private int idMovto;
+    private int idSolicitud;
     private TOAlmacenJS almacen;
     private int folio;
     private Date fecha;
@@ -30,12 +30,12 @@ public class Solicitud {
         this.almacenOrigen = almacenOrigen;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
     public TOAlmacenJS getAlmacen() {

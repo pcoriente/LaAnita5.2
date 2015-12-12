@@ -5,18 +5,18 @@ package solicitudes.to;
  * @author jesc
  */
 public class TOSolicitudProducto {
-    private int idMovto;
+    private int idSolicitud;
     private int idProducto;
     private double cantSolicitada;
     
     public TOSolicitudProducto() {}
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
     public int getIdProducto() {

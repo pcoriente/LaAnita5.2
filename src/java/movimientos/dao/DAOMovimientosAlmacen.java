@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import movimientos.dominio.ProductoAlmacen;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacen;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import movimientos.to.TOProductoLotes;
 import usuarios.dominio.UsuarioSesion;
@@ -120,9 +121,9 @@ public class DAOMovimientosAlmacen {
         }
     }
 
-    public ArrayList<ProductoAlmacen> obtenerLotesDisponibles(int idAlmacen, int idMovtoAlmacen, int idEmpaque) throws SQLException {
+    public ArrayList<TOProductoAlmacen> obtenerLotesDisponibles(int idAlmacen, int idMovtoAlmacen, int idEmpaque) throws SQLException {
         String strSQL;
-        ArrayList<ProductoAlmacen> lotes = new ArrayList<>();
+        ArrayList<TOProductoAlmacen> lotes = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 strSQL = "SELECT 0 AS idMovtoAlmacen, A.idEmpaque, A.lote, 0 AS cantidad, A.fechaCaducidad\n"
@@ -148,14 +149,38 @@ public class DAOMovimientosAlmacen {
         }
     }
 
-    public boolean validaLote(String lote) throws SQLException {
+    public ArrayList<TOMovimientoProductoAlmacen> agregarLote(int idAlmacen, TOMovimientoProductoAlmacen lote) throws SQLException {
+        ArrayList<TOMovimientoProductoAlmacen> lotes = new ArrayList<>();
+        String strSQL = "SELECT " + lote.getIdMovtoAlmacen() + " AS idMovtoAlmacen, L.idEmpaque, L.lote, 0 AS cantidad, L.fechaCaducidad\n"
+                + "FROM almacenesLotes L\n"
+                + "LEFT JOIN (SELECT * FROM movimientosDetalleAlmacen \n"
+                + "			WHERE idMovtoAlmacen=" + lote.getIdMovtoAlmacen() + " AND idEmpaque=" + lote.getIdProducto() + ") D ON D.idEmpaque=L.idEmpaque AND D.lote=L.lote\n"
+                + "WHERE L.idAlmacen=" + idAlmacen + " AND L.idEmpaque=" + lote.getIdProducto() + " AND D.lote IS NULL";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    lotes.add(movimientos.Movimientos.construirLote(rs));
+                }
+            }
+        }
+        return lotes;
+    }
+
+    public boolean validaLote(int idEmpresa, TOMovimientoProductoAlmacen lote) throws SQLException {
         boolean ok = false;
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
-                strSQL = "SELECT fecha FROM lotes WHERE lote=SUBSTRING('" + lote + "', 1, 4)";
+//                strSQL = "SELECT fecha FROM lotes WHERE lote=SUBSTRING('" + lote + "', 1, 4)";
+                strSQL = "SELECT AL.fechaCaducidad\n"
+                        + "FROM almacenesLotes AL\n"
+                        + "INNER JOIN almacenes A ON A.idAlmacen=AL.idAlmacen\n"
+                        + "INNER JOIN lotes L ON L.lote=SUBSTRING(AL.lote, 1, 4)\n"
+                        + "WHERE A.idEmpresa=" + idEmpresa + " AND AL.idEmpaque=" + lote.getIdProducto() + " AND AL.lote='" + lote.getLote() + "'";
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
+                    lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
                     ok = true;
                 }
             }
@@ -163,19 +188,11 @@ public class DAOMovimientosAlmacen {
         return ok;
     }
 
-    public void liberar(int idAlmacen, TOProductoAlmacen toProd, double separados) throws SQLException {
-        String strSQL = "";
-        double cantLiberar = separados - toProd.getCantidad();
+    public void liberar(int idAlmacen, TOProductoAlmacen toProd, double cantLiberar) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                strSQL = "UPDATE almacenesLotes\n"
-                        + "SET separados=separados-" + cantLiberar + "\n"
-                        + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
-                st.executeUpdate(strSQL);
-
-                movimientos.Movimientos.grabaProductoAlmacen(cn, toProd);
-
+            try {
+                movimientos.Movimientos.liberar(cn, idAlmacen, toProd, cantLiberar);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -186,34 +203,12 @@ public class DAOMovimientosAlmacen {
         }
     }
 
-    public double separar(int idAlmacen, TOProductoAlmacen toProd, double separados) throws SQLException {
-        double disponibles = 0;
-        double cantSeparar = toProd.getCantidad() - separados;
-        String strSQL = "SELECT lote,  existencia-separados AS disponibles\n"
-                + "FROM almacenesLotes\n"
-                + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
+    public double separar(int idAlmacen, TOProductoAlmacen toProd, double cantSolicitada, boolean total) throws SQLException {
+        double cantSeparada;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    disponibles = rs.getDouble("disponibles");
-                } else {
-                    throw new SQLException("No se encontró el lote solicitado !!!");
-                }
-                if (disponibles <= 0) {
-                    throw new SQLException("No hay unidades disponibles del lote solicitado !!!");
-                } else if (disponibles < cantSeparar) {
-                    cantSeparar = disponibles;
-                }
-                strSQL = "UPDATE almacenesLotes\n"
-                        + "SET separados=separados+" + cantSeparar + "\n"
-                        + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
-                st.executeUpdate(strSQL);
-
-                toProd.setCantidad(separados + cantSeparar);
-                movimientos.Movimientos.grabaProductoAlmacen(cn, toProd);
-
+            try {
+                cantSeparada = movimientos.Movimientos.separar(cn, idAlmacen, toProd, cantSolicitada, total);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -222,7 +217,7 @@ public class DAOMovimientosAlmacen {
                 cn.setAutoCommit(true);
             }
         }
-        return cantSeparar;
+        return cantSeparada;
     }
 
 //    public TOProductoLotes construirProductoAlmacen(ResultSet rs) throws SQLException, Exception {
@@ -230,23 +225,25 @@ public class DAOMovimientosAlmacen {
 //        boolean fin = movimientos.Movimientos.construirProducto(rs, toProd);
 //        return toProd;
 //    }
-    public ArrayList<TOProductoAlmacen> obtenerDetalleProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
-        ArrayList<TOProductoAlmacen> producto = new ArrayList<>();
+    public ArrayList<TOMovimientoProductoAlmacen> obtenerDetalleProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
+        ArrayList<TOMovimientoProductoAlmacen> producto = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             this.obtenDetalleProducto(cn, idMovtoAlmacen, idProducto);
         }
         return producto;
     }
 
-    private ArrayList<TOProductoAlmacen> obtenDetalleProducto(Connection cn, int idMovtoAlmacen, int idProducto) throws SQLException {
+    private ArrayList<TOMovimientoProductoAlmacen> obtenDetalleProducto(Connection cn, int idMovtoAlmacen, int idProducto) throws SQLException {
         String strSQL = "";
-        ArrayList<TOProductoAlmacen> producto = new ArrayList<>();
+        ArrayList<TOMovimientoProductoAlmacen> producto = new ArrayList<>();
         try (Statement st = cn.createStatement()) {
-            strSQL = "SELECT D.*, DATEADD(DAY, 365, L.fecha) AS fechaCaducidad\n"
+            strSQL = "SELECT D.*, A.fechaCaducidad\n"
                     + "FROM movimientosDetalleAlmacen D\n"
+                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                     + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
                     + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto + "\n"
-                    + "ORDER BY D.idEmpaque, D.lote";
+                    + "ORDER BY L.fecha";
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
                 producto.add(movimientos.Movimientos.construirLote(rs));
@@ -314,6 +311,12 @@ public class DAOMovimientosAlmacen {
 //        }
 //        return detalle;
 //    }
+    public void agregarProducto(TOMovimientoProductoAlmacen toProd) throws SQLException {
+        try (Connection cn = this.ds.getConnection()) {
+            movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
+        }
+    }
+
     public void agregarProducto(TOProductoAlmacen toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
@@ -364,16 +367,13 @@ public class DAOMovimientosAlmacen {
         return tos;
     }
 
-    public int agregarMovimiento(TOMovimientoAlmacen toMov, boolean definitivo) throws SQLException {
-        int idMovtoAlmacen = 0;
+    public void agregarMovimiento(TOMovimientoAlmacen toMov, boolean definitivo) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                toMov.setEstatus(0);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setPropietario(this.idUsuario);
                 movimientos.Movimientos.agregaMovimientoAlmacen(cn, toMov, definitivo);
-                idMovtoAlmacen = toMov.getIdMovtoAlmacen();
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -382,7 +382,6 @@ public class DAOMovimientosAlmacen {
                 cn.setAutoCommit(true);
             }
         }
-        return idMovtoAlmacen;
     }
 
     public ArrayList<MovimientoTipo> obtenerMovimientosTipos(boolean suma) throws SQLException {

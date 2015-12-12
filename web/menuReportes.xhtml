@@ -1,92 +1,72 @@
-<?xml version='1.0' encoding='UTF-8' ?>
+<?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:f="http://xmlns.jcp.org/jsf/core">
+      xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
-        <title>MÃ³dulo de reportes</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Módulo de reportes</title>
         <h:outputStylesheet library="css" name="main.css"/>
     </h:head>
     <h:body>
-        <div id="wrapper">
-            <ui:include src="wrapper.xhtml" />
-            <div id="content" align="center"  >
-                <br></br>
-                <h:form id="main">
-                    <p:blockUI id="block" block="tablaExistencias" 
-                               trigger=":main:cmbAlmacenes">
-                        Buscando...<br/>
-                        <p:graphicImage name="images/big-roller.gif"/>
-                    </p:blockUI>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="center" >
+                <h:form id="main" onkeypress="return event.keyCode !== 13;" >
                     <p:growl id="growl" autoUpdate="true" showDetail="true"/> 
-                    <div align="right">
-                        <p:commandButton icon="ui-icon-home" 
-                                         title="Salir"
-                                         action="#{mbReportes.salir()}"
-                                         ajax="false"
-                                         immediate="true"/>
-                    </div>
-
-                    <p:panel header="MÃ³dulo de reportes">
-                        <p:panelGrid style="float: left" columns="2">
-                            <h:outputText value="Almacenes:"/>
-                            <p:selectOneMenu id="cmbAlmacenes"
-                                             value="#{mbReportes.mbAlmacenesJS.toAlmacen}">
-                                <f:selectItems value="#{mbReportes.mbAlmacenesJS.listaAlmacenes}"/>
-                                <f:converter converterId="converters.TOAlmacenJSConverter"/>
-                                <p:ajax event="change" 
-                                        process=":main:block"
-                                        listener="#{mbReportes.busquedaDeExistencia()}"
-                                        update=":main:growl tablaExistencias :main:block"/>
-                            </p:selectOneMenu>
+                    <p:panel header="Módulo de reportes">
+                        <p:panelGrid style="float: left; width: 800px;" >
+                            <f:facet name="header" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton icon="ui-icon-home" 
+                                                         title="Salir"
+                                                         action="#{mbReportes.salir()}"
+                                                         ajax="false"
+                                                         immediate="true"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                            <p:row >
+                                <p:column >
+                                    <h:outputText value="Almacenes:"/>
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="cmbAlmacenes"
+                                                     value="#{mbReportes.mbAlmacenesJS.toAlmacen}">
+                                        <f:selectItems value="#{mbReportes.mbAlmacenesJS.listaAlmacenes}"/>
+                                        <f:converter converterId="converters.TOAlmacenJSConverter"/>
+                                        <p:ajax event="change"
+                                                listener="#{mbReportes.busquedaDeExistencia()}"
+                                                update=":main:growl tablaExistencias"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton value="Generar Reporte"
+                                                         ajax="false"
+                                                         update=":main:growl"
+                                                         action="#{mbReportes.generarReporte()}"/>
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
                         </p:panelGrid>
+                        <p:dataTable id="tablaExistencias" style="border:solid 1px; width: 800px;"
+                                     value="#{mbReportes.lst}"
+                                     var="listaReportes" rowKey="#{listaReportes.producto}"
+                                     emptyMessage="No hay información a mostrar">
+                            <p:column headerText="SKU">
+                                <h:outputText value="#{listaReportes.producto.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="PRODUCTO" >
+                                <h:outputText value="#{listaReportes.producto.toString()}" />
+                            </p:column>
+                        </p:dataTable>
                     </p:panel>
-                    <div align="right">
-                        <p:commandButton value="Generar Reporte"
-                                         ajax="false"
-                                         update=":main:growl"
-                                         action="#{mbReportes.generarReporte()}"/>
-                    </div>
-                    <p:dataTable style="margin-top: 20px" 
-                                 id="tablaExistencias"
-                                 value="#{mbReportes.lst}"
-                                 var="listaReportes"
-                                 scrollable="true"
-                                 scrollHeight="370"
-                                 emptyMessage="No hay informaciÃ³n a mostrar">
-                        <p:column headerText="SKU">
-                            #{listaReportes.producto.cod_pro}
-                        </p:column>
-                        <p:column width="270" headerText="DESCRIPCION">
-                            #{listaReportes.producto.toString()}
-                        </p:column>
-
-                        <p:column headerText="EXISTENCIA">
-                            #{listaReportes.existencia}
-                        </p:column>
-                        <p:column headerText="TRANCITO">
-                            #{listaReportes.transito}
-                        </p:column>
-                        <p:column headerText="TOTAL">
-                            #{listaReportes.total}
-                        </p:column>
-                        <p:column headerText="MINIMO">
-                            #{listaReportes.existenciaMinima}
-                        </p:column>
-                        <p:column headerText="MAXIMO">
-                            #{listaReportes.existenciaMaxima}
-                        </p:column>
-                        <p:column headerText="POR PEDIR">
-                            #{listaReportes.porPedir}
-                        </p:column>
-                        <f:facet name="footer" >#{mbReportes.lst.size()} Registros encontrados.</f:facet>
-                    </p:dataTable>
-
-
-
-
                 </h:form>
             </div>
         </div>

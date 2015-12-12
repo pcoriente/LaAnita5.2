@@ -1,29 +1,23 @@
 package movimientos.to;
 
-import java.util.Date;
-
 /**
  *
  * @author jesc
  */
-public class TOProductoAlmacen {    // Esta clase se usuara para grabar y compras (solo un lote por empaque)
-
+public class TOProductoAlmacen {
     private int idMovtoAlmacen;
     private int idProducto;
     private String lote;
     private double cantidad;
-    private Date fechaCaducidad;    // Pendiente por eliminar, solo queda por ahora por compatibilidad
 
     public TOProductoAlmacen() {
         this.lote = "";
-        this.fechaCaducidad = new Date();
     }
 
     public TOProductoAlmacen(int idMovtoAlmacen, int idProducto) {
         this.idMovtoAlmacen = idMovtoAlmacen;
         this.idProducto = idProducto;
         this.lote = "";
-        this.fechaCaducidad = new Date();
     }
 
     public int getIdMovtoAlmacen() {
@@ -56,13 +50,5 @@ public class TOProductoAlmacen {    // Esta clase se usuara para grabar y compra
 
     public void setCantidad(double cantidad) {
         this.cantidad = cantidad;
-    }
-
-    public Date getFechaCaducidad() {
-        return fechaCaducidad;
-    }
-
-    public void setFechaCaducidad(Date fechaCaducidad) {
-        this.fechaCaducidad = fechaCaducidad;
     }
 }

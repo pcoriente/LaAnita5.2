@@ -21,8 +21,6 @@ import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import movimientos.dao.DAOMovimientosAlmacen;
-import movimientos.dao.DAOMovimientosOld;
 import movimientos.to1.Lote1;
 import movimientos.dominio.MovimientoTipo;
 import net.sf.jasperreports.engine.JRException;
@@ -69,10 +67,8 @@ public class MbRechazo implements Serializable {
     private ArrayList<RechazoProducto> detalle;
     private RechazoProducto producto;
     private Lote1 lote;
-//    private DAOLotes daoLotes;
-    private DAOMovimientosOld daoMv;
+    private Date fechaInicial;
     private DAORechazos dao;
-    private DAOMovimientosAlmacen daoAlm;
 
     public MbRechazo() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -88,7 +84,7 @@ public class MbRechazo implements Serializable {
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (RechazoProductoAlmacen l : prod.getLotes()) {
+        for (TORechazoProductoAlmacen l : prod.getLotes()) {
             if (l.getCantidad() != 0) {
                 if (ya) {
                     rep.getLotes().add(l);
@@ -153,13 +149,14 @@ public class MbRechazo implements Serializable {
         this.modoEdicion = false;
     }
     
-    private RechazoProductoAlmacen convertirProductoAlmacen(TORechazoProductoAlmacen toProd) {
-        RechazoProductoAlmacen prod = new RechazoProductoAlmacen();
-        prod.setCantTraspasada(toProd.getCantTraspasada());
-        prod.setCantRecibida(toProd.getCantRecibida());
-        movimientos.Movimientos.convertir(toProd, prod);
-        return prod;
-    }
+//    private RechazoProductoAlmacen convertirProductoAlmacen(TORechazoProductoAlmacen toProd) {
+//        RechazoProductoAlmacen prod = new RechazoProductoAlmacen();
+//        prod.setCantTraspasada(toProd.getCantTraspasada());
+//        prod.setCantRecibida(toProd.getCantRecibida());
+//        movimientos.Movimientos.convertir(toProd, prod);
+//        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+//        return prod;
+//    }
 
     private RechazoProducto convertir(TORechazoProducto toProd) throws SQLException {
         RechazoProducto prod = new RechazoProducto();
@@ -169,7 +166,8 @@ public class MbRechazo implements Serializable {
         movimientos.Movimientos.convertir(toProd, prod);
         double sumaLotes=0;
         for(TORechazoProductoAlmacen to : this.dao.obtenerDetalleProducto(this.rechazo.getIdMovtoAlmacen(), toProd.getIdProducto())) {
-            prod.getLotes().add(this.convertirProductoAlmacen(to));
+//            prod.getLotes().add(this.convertirProductoAlmacen(to));
+            prod.getLotes().add(to);
             sumaLotes+=to.getCantidad();
         }
         if(prod.getCantFacturada()!=sumaLotes) {
@@ -183,7 +181,6 @@ public class MbRechazo implements Serializable {
     public void obtenerDetalle(SelectEvent event) {
         this.rechazo = (Rechazo) event.getObject();
         try {
-            this.daoAlm = new DAOMovimientosAlmacen();
             this.dao = new DAORechazos();
             this.detalle = new ArrayList<>();
             for (TORechazoProducto toProd : this.dao.obtenerDetalle(this.rechazo.getIdMovto())) {
@@ -214,7 +211,7 @@ public class MbRechazo implements Serializable {
         this.rechazos = new ArrayList<>();
         try {
             this.dao = new DAORechazos();
-            for (TORechazo mov : this.dao.obtenerRechazos(this.almacen.getIdAlmacen(), new Date())) {
+            for (TORechazo mov : this.dao.obtenerRechazos(this.almacen.getIdAlmacen(), this.fechaInicial)) {
                 this.rechazos.add(this.convertir(mov));
             }
             ok = true;
@@ -241,6 +238,7 @@ public class MbRechazo implements Serializable {
     private void inicializaLocales() {
         this.modoEdicion = false;
         this.almacen = new TOAlmacenJS();
+        this.fechaInicial = new Date();
     }
 
     private void inicializa() {
@@ -314,6 +312,14 @@ public class MbRechazo implements Serializable {
 
     public void setLote(Lote1 lote) {
         this.lote = lote;
+    }
+
+    public Date getFechaInicial() {
+        return fechaInicial;
+    }
+
+    public void setFechaInicial(Date fechaInicial) {
+        this.fechaInicial = fechaInicial;
     }
 
     public ArrayList<Accion> obtenerAcciones(int idModulo) {

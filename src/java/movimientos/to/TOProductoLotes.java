@@ -10,7 +10,7 @@ public class TOProductoLotes {
     private int idMovtoAlmacen;
     private int idProducto;
     private double cantidad;
-    private ArrayList<TOProductoAlmacen> lotes;
+    private ArrayList<TOMovimientoProductoAlmacen> lotes;
     
     public TOProductoLotes() {
         this.lotes=new ArrayList<>();
@@ -40,11 +40,11 @@ public class TOProductoLotes {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<TOProductoAlmacen> getLotes() {
+    public ArrayList<TOMovimientoProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<TOProductoAlmacen> lotes) {
+    public void setLotes(ArrayList<TOMovimientoProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 }

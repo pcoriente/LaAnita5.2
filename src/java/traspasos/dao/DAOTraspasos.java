@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.naming.Context;
@@ -38,6 +40,47 @@ public class DAOTraspasos {
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
 
+    public ArrayList<TOTraspasoProducto> obtenerDetalleTraspaso(int idMovto) throws SQLException {
+        ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
+        String strSQL = "SELECT S.cantSolicitada, D.*\n"
+                + "FROM movimientosDetalle D\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "INNER JOIN solicitudesDetalle S ON S.idSolicitud=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+                + "WHERE D.idMovto=" + idMovto;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    detalle.add(this.construir(rs));
+                }
+            }
+        }
+        return detalle;
+    }
+
+    public ArrayList<TOTraspaso> obtenerTraspasos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        ArrayList<TOTraspaso> traspasos = new ArrayList<>();
+        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
+                + "     , S.estatus AS solicitudEstatus, M.*\n"
+                + "FROM movimientos M\n"
+                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.estatus=" + estatus + "\n";
+        if (estatus == 7) {
+            strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
+        }
+        strSQL += "ORDER BY S.fecha";
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    traspasos.add(this.construirTraspaso(rs));
+                }
+            }
+        }
+        return traspasos;
+    }
+
     public void grabarTraspaso(TOMovimientoOficina toTraspaso) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
@@ -45,7 +88,7 @@ public class DAOTraspasos {
             try (Statement st = cn.createStatement()) {
                 toTraspaso.setIdUsuario(this.idUsuario);
                 toTraspaso.setPropietario(0);
-                toTraspaso.setEstatus(5);
+                toTraspaso.setEstatus(7);
 
                 toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toTraspaso);
@@ -53,10 +96,13 @@ public class DAOTraspasos {
                 toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toTraspaso);
 
-                strSQL = "UPDATE solicitudes SET idUsuario=" + this.idUsuario + ", estatus=5 WHERE idMovto=" + toTraspaso.getReferencia();
+                strSQL = "UPDATE solicitudes\n"
+                        + "SET idUsuario=" + this.idUsuario + ", estatus=7\n"
+                        + "WHERE idSolicitud=" + toTraspaso.getReferencia();
                 st.executeUpdate(strSQL);
 
-                strSQL = "DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen() + " AND cantidad=0";
+                strSQL = "DELETE FROM movimientosDetalleAlmacen\n"
+                        + "WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen() + " AND cantidad=0";
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE D\n"
@@ -121,11 +167,11 @@ public class DAOTraspasos {
                 toRecepcion.setIdUsuario(toTraspaso.getIdUsuario());
                 toRecepcion.setTipoDeCambio(toTraspaso.getTipoDeCambio());
                 toRecepcion.setIdReferencia(toTraspaso.getIdAlmacen());
-                toRecepcion.setEstatus(4);
+                toRecepcion.setEstatus(5);
 
                 toRecepcion.setReferencia(toTraspaso.getIdMovtoAlmacen());
                 movimientos.Movimientos.agregaMovimientoAlmacen(cn, toRecepcion, false);
-                
+
                 toRecepcion.setReferencia(toTraspaso.getIdMovto());
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toRecepcion, false);
 
@@ -151,25 +197,17 @@ public class DAOTraspasos {
     }
 
     public void cancelar(int idMovto, int idMovtoAlmacen) throws SQLException {
-//        int idMovtoAlmacen = 0;
-//        String strSQL = "SELECT idMovtoAlmacen FROM movimientos WHERE idMovto=" + idMovto;
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                ResultSet rs = st.executeQuery(strSQL);
-//                if (rs.next()) {
-//                    idMovtoAlmacen = rs.getInt("idMovtoAlmacen");
-//                } else {
-//                    throw new SQLException("No se encontró movimiento de almacen !!!");
-//                }
                 strSQL = "UPDATE S\n"
                         + "SET S.idUsuarioOrigen=" + this.idUsuario + ", S.estatus=6\n"
                         + "FROM movimientos M\n"
-                        + "INNER JOIN solicitudes S ON S.idMovto=M.referencia\n"
+                        + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
                         + "WHERE M.idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE A\n"
                         + "SET separados=A.separados-D.cantidad\n"
                         + "FROM movimientosDetalleAlmacen D\n"
@@ -216,7 +254,7 @@ public class DAOTraspasos {
                 toMov.setFolio(0);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setPropietario(this.idUsuario);
-                toMov.setEstatus(4);
+                toMov.setEstatus(5);
 
                 movimientos.Movimientos.agregaMovimientoAlmacen(cn, toMov, false);
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, false);
@@ -228,10 +266,12 @@ public class DAOTraspasos {
                         + "FROM solicitudesDetalle S\n"
                         + "INNER JOIN empaques E ON E.idEmpaque=S.idEmpaque\n"
                         + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
-                        + "WHERE S.idMovto=" + toMov.getReferencia();
+                        + "WHERE S.idSolicitud=" + toMov.getReferencia();
                 st.executeUpdate(strSQL);
-                
-                strSQL="UPDATE solicitudes SET estatus=4, idUsuarioOrigen="+this.idUsuario+" WHERE idMovto="+toMov.getReferencia();
+
+                strSQL = "UPDATE solicitudes\n"
+                        + "SET estatus=7, idUsuarioOrigen=" + this.idUsuario + "\n"
+                        + "WHERE idSolicitud=" + toMov.getReferencia();
                 st.executeUpdate(strSQL);
 
                 cn.commit();
@@ -245,30 +285,14 @@ public class DAOTraspasos {
     }
 
     public void rechazar(int idSolicitud) throws SQLException {
-        String strSQL = "UPDATE solicitudes SET idUsuarioOrigen=" + this.idUsuario + ", estatus=2 WHERE idMovto=" + idSolicitud;
+        String strSQL = "UPDATE solicitudes\n"
+                + "SET idUsuarioOrigen=" + this.idUsuario + ", estatus=6\n"
+                + "WHERE idSolicitud=" + idSolicitud;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 st.executeUpdate(strSQL);
             }
         }
-    }
-
-    public ArrayList<TOTraspasoProducto> obtenerDetalleTraspaso(int idMovto) throws SQLException {
-        ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
-        String strSQL = "SELECT S.cantSolicitada, D.*\n"
-                + "FROM movimientosDetalle D\n"
-                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "INNER JOIN solicitudesDetalle S ON S.idMovto=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                + "WHERE D.idMovto=" + idMovto;
-        try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    detalle.add(this.construir(rs));
-                }
-            }
-        }
-        return detalle;
     }
 
     private TOTraspasoProducto construir(ResultSet rs) throws SQLException {
@@ -280,12 +304,13 @@ public class DAOTraspasos {
 
     public ArrayList<TOTraspasoProducto> obtenerDetalleSolicitud(int idSolicitud) throws SQLException {
         ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
-        String strSQL = "SELECT 0 AS idMovto, S.idEmpaque, S.cantSolicitada, 0 AS cantFacturada, 0 AS cantSinCargo, 0 AS costoPromedio, 0 AS costo\n"
+        String strSQL = "SELECT S.cantSolicitada"
+                + "     , 0 AS idMovto, S.idEmpaque, 0 AS cantFacturada, 0 AS cantSinCargo, 0 AS costoPromedio, 0 AS costo\n"
                 + "	, 0 AS desctoProducto1, 0 AS desctoProducto2, 0 AS desctoConfidencial, 0 AS unitario, P.idImpuesto AS idImpuestoGrupo\n"
                 + "FROM solicitudesDetalle S\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=S.idEmpaque\n"
                 + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
-                + "WHERE S.idMovto=" + idSolicitud;
+                + "WHERE S.idSolicitud=" + idSolicitud;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -295,25 +320,6 @@ public class DAOTraspasos {
             }
         }
         return detalle;
-    }
-
-    public ArrayList<TOTraspaso> obtenerTraspasos(int idAlmacen) throws SQLException {
-        ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*\n"
-                + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idMovto=M.referencia\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.estatus>1\n"
-                + "ORDER BY S.fecha";
-        try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    traspasos.add(this.construirTraspaso(rs));
-                }
-            }
-        }
-        return traspasos;
     }
 
     private TOTraspaso construirTraspaso(ResultSet rs) throws SQLException {
@@ -328,14 +334,14 @@ public class DAOTraspasos {
 
     public ArrayList<TOTraspaso> obtenerSolicitudes(int idAlmacenOrigen) throws SQLException {
         ArrayList<TOTraspaso> solicitudes = new ArrayList<>();
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus\n"
+        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
+                + "     , S.idUsuario AS solicitudIdUsuario, S.estatus AS solicitudEstatus\n"
                 + "     , 0 AS idMovto, 35 AS idTipo, S.idEmpresa, S.idAlmacenOrigen AS idAlmacen, 0 AS folio\n"
                 + "     , 0 AS idComprobante, 0 AS idImpuestoZona, 0 AS desctoComercial, 0 AS desctoProntoPago, GETDATE() AS fecha\n"
-                + "     , " + this.idUsuario + " AS idUsuario, 1 AS tipoDeCambio, S.idAlmacen AS idReferencia, S.idMovto AS referencia\n"
+                + "     , " + this.idUsuario + " AS idUsuario, 1 AS tipoDeCambio, S.idAlmacen AS idReferencia, S.idSolicitud AS referencia\n"
                 + "     , 0 AS propietario, 0 AS estatus, 0 AS idMovtoAlmacen\n"
                 + "FROM solicitudes S\n"
-                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1\n"
+                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=5\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {

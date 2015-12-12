@@ -26,6 +26,7 @@ import usuarios.dominio.UsuarioSesion;
  * @author jesc
  */
 public class DAORecepciones {
+
     int idUsuario, idCedis;
     private DataSource ds = null;
 
@@ -40,26 +41,26 @@ public class DAORecepciones {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
-    
+
     public void cancelar(TORecepcion mov) throws SQLException {
-        String strSQL="";
+        String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 mov.setEstatus(6);
                 mov.setIdUsuario(this.idUsuario);
-                
+
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, mov);
                 movimientos.Movimientos.grabaMovimientoOficina(cn, mov);
-                
-                strSQL="UPDATE movimientosDetalleAlmacen SET cantidad=0 WHERE idMovtoAlmacen="+mov.getIdMovtoAlmacen();
+
+                strSQL = "UPDATE movimientosDetalleAlmacen SET cantidad=0 WHERE idMovtoAlmacen=" + mov.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
-                
-                strSQL="UPDATE movimientosDetalle SET cantFacturada=0 WHERE idMovto="+mov.getIdMovto();
+
+                strSQL = "UPDATE movimientosDetalle SET cantFacturada=0 WHERE idMovto=" + mov.getIdMovto();
                 st.executeUpdate(strSQL);
-                
+
                 this.generaRechazo(cn, mov);
-                
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -69,30 +70,31 @@ public class DAORecepciones {
             }
         }
     }
-    
-    private void generaRechazo(Connection cn, TORecepcion mov) throws SQLException {
+
+    private void generaRechazo(Connection cn, TORecepcion toRecepcion) throws SQLException {
         String strSQL = "SELECT M.idAlmacen, DE.idEmpaque, DE.cantFacturada, DS.cantFacturada\n"
                 + "FROM movimientosDetalle DE\n"
                 + "INNER JOIN movimientos M ON M.idMovto=DE.idMovto\n"
                 + "INNER JOIN movimientosDetalle DS ON DS.idMovto=M.referencia AND DS.idEmpaque=DE.idEmpaque\n"
-                + "WHERE DE.idMovto=" + mov.getIdMovto() + " AND DE.cantFacturada < DS.cantFacturada";
+                + "WHERE DE.idMovto=" + toRecepcion.getIdMovto() + " AND DE.cantFacturada < DS.cantFacturada";
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 TOMovimientoOficina toRechazo = new TOMovimientoOficina();
                 toRechazo.setIdTipo(54);
-                toRechazo.setIdEmpresa(mov.getIdEmpresa());
-                toRechazo.setIdAlmacen(mov.getIdReferencia());
-                toRechazo.setIdUsuario(mov.getIdUsuario());
-                toRechazo.setTipoDeCambio(mov.getTipoDeCambio());
-                toRechazo.setIdReferencia(mov.getIdAlmacen());
-                toRechazo.setEstatus(5);
-                
-                toRechazo.setReferencia(mov.getIdMovtoAlmacen());
+                toRechazo.setIdEmpresa(toRecepcion.getIdEmpresa());
+                toRechazo.setIdAlmacen(toRecepcion.getIdReferencia());
+                toRechazo.setTipoDeCambio(toRecepcion.getTipoDeCambio());
+                toRechazo.setIdReferencia(toRecepcion.getIdAlmacen());
+                toRechazo.setIdUsuario(this.idUsuario);
+                toRechazo.setPropietario(0);
+                toRechazo.setEstatus(7);
+
+                toRechazo.setReferencia(toRecepcion.getIdMovtoAlmacen());
                 toRechazo.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toRechazo.getIdAlmacen(), toRechazo.getIdTipo()));
                 movimientos.Movimientos.agregaMovimientoAlmacen(cn, toRechazo, true);
-                
-                toRechazo.setReferencia(mov.getIdMovto());
+
+                toRechazo.setReferencia(toRecepcion.getIdMovto());
                 toRechazo.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toRechazo.getIdAlmacen(), toRechazo.getIdTipo()));
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toRechazo, true);
 
@@ -101,7 +103,7 @@ public class DAORecepciones {
                         + "FROM movimientosDetalle DE\n"
                         + "INNER JOIN movimientos M ON M.idMovto=DE.idMovto\n"
                         + "INNER JOIN movimientosDetalle DS ON DS.idMovto=M.referencia AND DS.idEmpaque=DE.idEmpaque\n"
-                        + "WHERE DE.idMovto=" + mov.getIdMovto() + " AND DE.cantFacturada < DS.cantFacturada";
+                        + "WHERE DE.idMovto=" + toRecepcion.getIdMovto() + " AND DE.cantFacturada < DS.cantFacturada";
                 int n = st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE D\n"
@@ -111,7 +113,7 @@ public class DAORecepciones {
                         + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + toRechazo.getIdMovto();
                 if (st.executeUpdate(strSQL) != n) {
-                    throw new SQLException("(idMovto=" + mov.getIdMovto() + ") No se encontro empaque en almacen !!!");
+                    throw new SQLException("(idMovto=" + toRecepcion.getIdMovto() + ") No se encontro empaque en almacen !!!");
                 }
                 strSQL = "UPDATE A\n"
                         + "SET existencia=A.existencia+D.cantFacturada\n"
@@ -128,7 +130,7 @@ public class DAORecepciones {
                         + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + toRechazo.getIdMovto();
                 if (st.executeUpdate(strSQL) != n) {
-                    throw new SQLException("(idMovto=" + mov.getIdMovto() + ") No se encontro empaque en empresa !!!");
+                    throw new SQLException("(idMovto=" + toRecepcion.getIdMovto() + ") No se encontro empaque en empresa !!!");
                 }
                 strSQL = "UPDATE E\n"
                         + "SET existencia=E.existencia+D.cantFacturada\n"
@@ -143,7 +145,7 @@ public class DAORecepciones {
                         + "FROM movimientosDetalleAlmacen DE\n"
                         + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=DE.idMovtoAlmacen\n"
                         + "LEFT JOIN movimientosDetalleAlmacen DS ON DS.idMovtoAlmacen=M.referencia AND DS.idEmpaque=DE.idEmpaque AND DS.lote=DE.lote\n"
-                        + "WHERE DE.idMovtoAlmacen=" + mov.getIdMovtoAlmacen() + " AND DE.cantidad < DS.cantidad";
+                        + "WHERE DE.idMovtoAlmacen=" + toRecepcion.getIdMovtoAlmacen() + " AND DE.cantidad < DS.cantidad";
                 n = st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE D\n"
@@ -162,29 +164,30 @@ public class DAORecepciones {
                         + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                         + "WHERE D.idMovtoAlmacen=" + toRechazo.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
-                
-                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + mov.getIdMovto() + " AND cantFacturada=0";
+
+                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + toRecepcion.getIdMovto() + " AND cantFacturada=0";
                 st.executeUpdate(strSQL);
 
-                strSQL = "DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + mov.getIdMovtoAlmacen() + " AND cantidad=0";
+                strSQL = "DELETE FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + toRecepcion.getIdMovtoAlmacen() + " AND cantidad=0";
                 st.executeUpdate(strSQL);
             }
         }
     }
-    
+
     public void grabar(TORecepcion mov) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 this.generaRechazo(cn, mov);
-                
-                mov.setEstatus(5);
+
                 mov.setIdUsuario(this.idUsuario);
+                mov.setPropietario(this.idUsuario);
+                mov.setEstatus(7);
 
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, mov);
-                
+
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, mov);
 
@@ -263,19 +266,19 @@ public class DAORecepciones {
             }
         }
     }
-    
-    public void actualizarCantidad(int idMovto, TOProductoAlmacen toProd, double separados) throws SQLException {
-        String strSQL = "";
+
+    public void liberar(int idMovto, TOProductoAlmacen toProd, double cantLiberar) throws SQLException {
+        String strSQL = "UPDATE movimientosDetalle\n"
+                + "SET cantFacturada=cantFacturada-" + cantLiberar + "\n"
+                + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + toProd.getIdProducto();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+
+                toProd.setCantidad(toProd.getCantidad() - cantLiberar);
                 movimientos.Movimientos.grabaProductoAlmacen(cn, toProd);
 
-                strSQL = "UPDATE movimientosDetalle\n"
-                        + "SET cantFacturada=cantFacturada-" + separados + "+" + toProd.getCantidad() + "\n"
-                        + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + toProd.getIdProducto();
-                st.executeUpdate(strSQL);
-                
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -285,12 +288,34 @@ public class DAORecepciones {
             }
         }
     }
-    
+
+    public void separar(int idMovto, TOProductoAlmacen toProd, double cantSeparar) throws SQLException {
+        String strSQL = "UPDATE movimientosDetalle\n"
+                + "SET cantFacturada=cantFacturada+" + cantSeparar + "\n"
+                + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + toProd.getIdProducto();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
+
+                toProd.setCantidad(toProd.getCantidad() + cantSeparar);
+                movimientos.Movimientos.grabaProductoAlmacen(cn, toProd);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
     public TORecepcionProductoAlmacen construirProductoAlmacen(ResultSet rs) throws SQLException {
         TORecepcionProductoAlmacen toProd = new TORecepcionProductoAlmacen();
-//        toProd.setCantSolicitada(rs.getDouble("cantSolicitada"));
         toProd.setCantTraspasada(rs.getDouble("cantTraspasada"));
         movimientos.Movimientos.construirProductoAlmacen(rs, toProd);
+        toProd.setSeparados(toProd.getCantidad());
         return toProd;
     }
 
@@ -313,7 +338,7 @@ public class DAORecepciones {
         }
         return detalle;
     }
-    
+
     private TORecepcionProducto construirProducto(ResultSet rs) throws SQLException {
         TORecepcionProducto to = new TORecepcionProducto();
         to.setCantSolicitada(rs.getInt("cantSolicitada"));
@@ -329,7 +354,7 @@ public class DAORecepciones {
                 + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "INNER JOIN movimientosDetalle TD ON TD.idMovto=M.referencia AND TD.idEmpaque=D.idEmpaque\n"
                 + "INNER JOIN movimientos T ON T.idMovto=TD.idMovto\n"
-                + "INNER JOIN solicitudesDetalle S ON S.idMovto=T.referencia AND S.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN solicitudesDetalle S ON S.idSolicitud=T.referencia AND S.idEmpaque=D.idEmpaque\n"
                 + "WHERE D.idMovto=" + idMovto;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
@@ -341,7 +366,7 @@ public class DAORecepciones {
         }
         return productos;
     }
-    
+
     private TORecepcion construir(ResultSet rs) throws SQLException {
         TORecepcion toMov = new TORecepcion();
         toMov.setTraspasoFolio(rs.getInt("traspasoFolio"));
@@ -351,7 +376,7 @@ public class DAORecepciones {
         movimientos.Movimientos.construirMovimientoOficina(rs, toMov);
         return toMov;
     }
-    
+
     public ArrayList<TORecepcion> obtenerRecepciones(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TORecepcion> movimientos = new ArrayList<>();
@@ -360,10 +385,12 @@ public class DAORecepciones {
                 + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN movimientos T ON T.idMovto=M.referencia\n"
-                + "INNER JOIN solicitudes S ON S.idMovto=T.referencia\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=9 AND M.estatus=" + estatus + "\n"
-                + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'\n"
-                + "ORDER BY M.fecha";
+                + "INNER JOIN solicitudes S ON S.idSolicitud=T.referencia\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=9 AND M.estatus=" + estatus + "\n";
+        if (estatus != 0) {
+            strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
+        }
+        strSQL += "ORDER BY M.fecha DESC";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

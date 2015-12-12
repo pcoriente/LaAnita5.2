@@ -452,17 +452,21 @@ public class MbPedidos implements Serializable {
         this.mbTiendas.nuevaTienda();
     }
 
-    public void cambioDeCliente() {
-    }
-
     public void cambioDeGrupo() {
         this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
         this.mbTiendas.inicializar();
     }
-
+    
+    public void cambioDeCliente() {
+        this.mbTiendas.obtenerTiendasCliente(this.mbClientes.getCliente().getIdCliente());
+        this.mbTiendas.nuevaTienda();
+    }
+    
     public void nuevoPedido() {
-        this.mbGrupos.inicializar();
-        this.cambioDeGrupo();
+//        this.mbGrupos.inicializar();
+//        this.cambioDeGrupo();
+        this.mbClientes.obtenerClientesCedis();
+        this.mbClientes.nuevoCliente();
         this.ordenDeCompra = "";
         this.ordenDeCompraFecha = new Date();
     }

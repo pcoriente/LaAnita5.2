@@ -26,24 +26,21 @@
                                 <p:selectOneMenu id="almacen" value="#{mbVentas.mbAlmacenes.toAlmacen}" >
                                     <f:converter converterId="converters.MiniAlmacenConverter" />
                                     <f:selectItems value="#{mbVentas.mbAlmacenes.listaAlmacenes}" />
-                                    <p:ajax event="change" listener="#{mbVentas.obtenerPedidosAlmacen()}" 
+                                    <p:ajax event="change" listener="#{mbVentas.obtenerVentasAlmacen()}" 
                                             update=":main:msgsVenta fechaInicial listaDePedidos" />
                                 </p:selectOneMenu>
                             </p:column>
-                            <p:column style="text-align: right;" >
-                                <h:outputLabel for="chkTodosLosPedios" value="TODOS :" style="font-weight: bold; color: black;" />
-                            </p:column>
                             <p:column >
-                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbVentas.todos}" >
-                                    <p:ajax listener="#{mbVentas.regresarAlmacenFechaActual()}" 
+                                <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbVentas.pendientes}" >
+                                    <p:ajax listener="#{mbVentas.obtenerVentasAlmacen()}" 
                                             update=":main:msgsVenta fechaInicial listaDePedidos" />
                                 </p:selectBooleanCheckbox>
                             </p:column>
                             <p:column >
-                                <p:calendar id="fechaInicial" value="#{mbVentas.fechaInicial}" readonly="#{!mbVentas.todos}" 
-                                            readonlyInput="true" disabled="#{mbVentas.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                <p:calendar id="fechaInicial" value="#{mbVentas.fechaInicial}"
+                                            readonlyInput="true" disabled="#{mbVentas.mbAlmacenes.toAlmacen.idAlmacen==0 || mbVentas.pendientes}"
                                             locale="es" navigator="true" pattern="dd/MM/yyyy" >
-                                    <p:ajax event="dateSelect" process="@this" listener="#{mbVentas.obtenerPedidosAlmacen()}" 
+                                    <p:ajax event="dateSelect" process="@this" listener="#{mbVentas.obtenerVentasAlmacen()}" 
                                             update=":main:msgsVenta :main:listaDePedidos" />
                                 </p:calendar>
                             </p:column>
@@ -57,12 +54,12 @@
                 <p:dataTable id="listaDePedidos" value="#{mbVentas.pedidos}" 
                              var="pedido" rowKey="#{pedido.idMovto}" selectionMode="single" 
                              style="border:solid 1px" emptyMessage="No existen pedidos" >
-                    <p:ajax event="rowSelect" listener="#{mbVentas.obtenerAlmacenDetalle}" 
+                    <p:ajax event="rowSelect" listener="#{mbVentas.obtenerDetalleAlmacen}" 
                             update=":main:msgsVenta :main:pedido :main:detallePedido" 
                             oncomplete="abrirPedido(xhr, status, args);" />
 
-                    <p:column headerText="Formato" style="width: 200px;" >
-                        <h:outputText value="#{pedido.formato.formato}" />
+                    <p:column headerText="Cliente" style="width: 30%;" >
+                        <h:outputText value="#{pedido.tienda.contribuyente}" />
                     </p:column>
                     <p:column headerText="Tienda" >
                         <h:outputText value="#{pedido.tienda.tienda}" />
@@ -75,17 +72,12 @@
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Remision" style="width: 60px;" >
-                        <h:outputText value="#{pedido.remision}" />
-                    </p:column>
-                    <p:column headerText="Fecha" style="width: 70px;" >
-                        <h:outputText value="#{pedido.fechaComprobante}" >
-                            <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
-                        </h:outputText>
+                    <p:column headerText="Pedido" style="width: 6%;" >
+                        <h:outputText value="#{pedido.idPedido}" />
                     </p:column>
                 </p:dataTable>
             </p:panel>
-            <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 600px;" modal="true" >
+            <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 710px;" modal="true" >
                 <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
                 <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
                     <p:row >
@@ -110,7 +102,7 @@
                     </p:row>
                 </p:panelGrid>
                 <p:dataTable id="detalleSimilares" value="#{mbVentas.empaqueLotes}" 
-                             var="similar" scrollable="true" scrollHeight="200" style="width: 640px;"
+                             var="similar" scrollable="true" scrollHeight="200" style="width: 710px;"
                              rowKey="#{similar.producto}" selectionMode="single" selection="#{mbVentas.loteDestino}" >
                     <p:ajax event = "rowSelect" update="loteSeleccion" />
 
@@ -127,6 +119,10 @@
                     <p:column headerText="Lote" style="width: 70px;" >
                         <h:outputText value="#{similar.lote}" />
                     </p:column>
+                    
+                    <p:column headerText="Dsiponibles" style="width: 70px;" >
+                        <h:outputText value="#{similar.cantidad}" />
+                    </p:column>
 
                     <f:facet name="footer">
                         <p:commandButton id="loteSeleccion" value="Seleccionar" 
@@ -138,56 +134,48 @@
                 </p:dataTable>
             </p:dialog>
             <p:dialog header="Captura de Pedido" widgetVar="pedidoDlg" resizable="false" modal="true" >
-                <p:ajax event="close" listener="#{mbVentas.liberarMovtoRelacionado()}" />
+                <p:ajax event="close" listener="#{mbVentas.liberarVenta()}" />
                 <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panelGrid id="pedido" style="width: 910px;" >
                     <p:row >
-                        <p:column >
-                            <h:outputLabel for="txtFormato" value="FORMATO:" style="font-weight: bold; color: black;" />
+                        <p:column style="width: 80px;" >
+                            <h:outputLabel for="txtCliente" value="CLIENTE:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="3" >
-                            <p:inputText id="txtFormato" value="#{mbVentas.venta.formato.formato}" readonly="true" size="35" />
+                        <p:column colspan="3" style="width: 330px;" >
+                            <p:inputText id="txtCliente" value="#{mbVentas.venta.tienda.contribuyente}" readonly="true" size="45" />
                         </p:column>
-                        <p:column >
+                        <p:column style="width: 90px;" >
                             <h:outputLabel for="txtTienda" value="TIENDA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="4" >
+                        <p:column colspan="3" style="width: 400px;" >
                             <p:inputText id="txtTienda" value="#{mbVentas.venta.tienda.tienda}" readonly="true" size="50" />
                         </p:column>
                     </p:row>
                     <p:row >
-                        <p:column >
-                            <h:outputLabel for="txtFolio" value="FOLIO:" style="font-weight: bold; color: black;" />
+                        <p:column style="width: 80px;" >
+                            <h:outputLabel for="txtPedido" value="PEDIDO:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column >
-                            <p:inputText id="txtFolio" value="#{mbVentas.venta.folio}" readonly="true" size="6" />
+                        <p:column style="width: 90px;" >
+                            <p:inputText id="txtPedido" value="#{mbVentas.venta.idPedido}" readonly="true" size="6" />
                         </p:column>
-                        <p:column >
-                            <h:outputLabel for="txtFechaPedido" value="FECHA:" style="font-weight: bold; color: black;" />
+                        <p:column style="width: 70px;" >
+                            <h:outputLabel for="txtFecha" value="FECHA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column >
-                            <p:inputText id="txtFechaPedido" value="#{mbVentas.venta.fecha}" readonly="true" size="11" >
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
+                        <p:column style="width: 170px;" >
+                            <p:inputText id="txtFecha" value="#{mbVentas.venta.fecha}" readonly="true" size="11" >
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
                             </p:inputText>
                         </p:column>
-                        <p:column >
-                            <h:outputLabel for="txtRemision" value="REMISION:" style="font-weight: bold; color: black;" />
+                        <p:column colspan="2" style="width: 210px;" >
+                            <h:outputLabel for="txtDesctoComercial" value="DESCUENTO COMERCIAL :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column >
-                            <p:inputText id="txtRemision" value="#{mbVentas.venta.remision}" readonly="true" size="6" />
-                        </p:column>
-                        <p:column >
-                            <h:outputLabel for="txtFechaRemision" value="FECHA:" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:inputText id="txtFechaRemision" value="#{mbVentas.venta.fechaComprobante}" readonly="true" size="11" >
-                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
-                            </p:inputText>
+                        <p:column style="width: 90px;" >
+                            <p:inputText id="txtDesctoComercial" value="#{mbVentas.venta.desctoComercial}" readonly="true" size="6" />
                         </p:column>
                         <p:column >
                             <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Remisionar el pedido"
-                                             disabled="#{mbVentas.venta.status!=1}"
-                                             process="@this" actionListener="#{mbVentas.cerrarPedidoAlmacenRelacionado()}" 
+                                             disabled="#{!mbVentas.pendientes}"
+                                             process="@this" actionListener="#{mbVentas.cerrarVentaAlmacen()}" 
                                              update=":main:msgsPedido :main:listaDePedidos" 
                                              oncomplete="cerrarPedido(xhr, status, args);" />
                         </p:column>

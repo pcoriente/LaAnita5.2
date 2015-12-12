@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -25,9 +24,6 @@ import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import movimientos.dao.DAOMovimientosOld;
-import movimientos.dao.DAOMovimientosAlmacen;
-import movimientos.dao.DAOMovimientosOficina;
 import traspasos.dominio.TraspasoProducto;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -73,9 +69,6 @@ public class MbSolicitud implements Serializable {
     private ArrayList<SolicitudProducto> detalle;
     private SolicitudProducto producto;
     private TraspasoProducto resSolicitudProducto;
-    private DAOMovimientosOld daoMv;
-    private DAOMovimientosAlmacen daoAlmacen;
-    private DAOMovimientosOficina daoOficina;
     private DAOSolicitudes dao;
     private TimeZone zonaHoraria = TimeZone.getDefault();
 
@@ -84,15 +77,14 @@ public class MbSolicitud implements Serializable {
         this.mbAlmacenes = new MbAlmacenesJS();
         this.mbCedis = new MbMiniCedis();
         this.mbBuscar = new MbProductosBuscar();
-//        this.mbComprobantes = new MbComprobantes();
         this.inicializa();
     }
 
     public void eliminar() {
+        TOSolicitud to = this.convertir(this.solicitud);
         try {
             this.dao = new DAOSolicitudes();
-            TOSolicitud to = this.convertir(this.solicitud);
-            this.dao.eliminarSolicitud(to);
+            this.dao.eliminar(to);
             this.solicitudes.remove(this.solicitud);
             this.modoEdicion = false;
         } catch (SQLException ex) {
@@ -104,20 +96,23 @@ public class MbSolicitud implements Serializable {
 
     private SolicitudProducto convertir(TOSolicitudProducto toProd) throws SQLException {
         SolicitudProducto prod = new SolicitudProducto();
-        prod.setIdMovto(toProd.getIdMovto());
+        prod.setIdSolicitud(toProd.getIdSolicitud());
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         prod.setCantSolicitada(toProd.getCantSolicitada());
         return prod;
     }
 
-    private void obtenDetalle() {
+    public void obtenerDetalle(SelectEvent event) {
+        this.solicitud = (Solicitud) event.getObject();
+        TOSolicitud toMov = this.convertir(this.solicitud);
+        this.detalle = new ArrayList<>();
+        this.producto = new SolicitudProducto();
         try {
             this.dao = new DAOSolicitudes();
-            this.daoAlmacen = new DAOMovimientosAlmacen();
-            this.detalle = new ArrayList<>();
-            for (TOSolicitudProducto to : this.dao.obtenerDetalleSolicitud(this.solicitud.getIdMovto())) {
+            for (TOSolicitudProducto to : this.dao.obtenerDetalle(toMov)) {
                 this.detalle.add(this.convertir(to));
             }
+            this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -125,16 +120,9 @@ public class MbSolicitud implements Serializable {
         }
     }
 
-    public void obtenerDetalle(SelectEvent event) {
-        this.solicitud = (Solicitud) event.getObject();
-        this.obtenDetalle();
-        this.producto = new SolicitudProducto();
-        this.modoEdicion = true;
-    }
-
     private Solicitud convertir(TOSolicitud toMov) {
         Solicitud mov = new Solicitud(this.mbAlmacenes.getToAlmacen(), this.getAlmacen());
-        mov.setIdMovto(toMov.getIdMovto());
+        mov.setIdSolicitud(toMov.getIdSolicitud());
         mov.setFolio(toMov.getFolio());
         mov.setFecha(toMov.getFecha());
         mov.setIdUsuario(toMov.getIdUsuario());
@@ -147,7 +135,7 @@ public class MbSolicitud implements Serializable {
         this.solicitudes = new ArrayList<>();
         try {
             this.dao = new DAOSolicitudes();
-            for (TOSolicitud to : this.dao.obtenerSolicitudes(this.getAlmacen().getIdAlmacen(), Integer.parseInt(this.pendientes), new Date())) {
+            for (TOSolicitud to : this.dao.obtenerSolicitudes(this.getAlmacen().getIdAlmacen(), "0".equals(this.pendientes) ? 0 : 5)) {
                 this.solicitudes.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -232,7 +220,7 @@ public class MbSolicitud implements Serializable {
                 if (total != 0) {
                     TOSolicitud to = this.convertir(this.solicitud);
                     this.dao = new DAOSolicitudes();
-                    this.dao.grabarSolicitud(to);
+                    this.dao.grabar(to);
                     this.solicitud.setFolio(to.getFolio());
                     this.solicitud.setFecha(to.getFecha());
                     this.solicitud.setIdUsuario(to.getIdUsuario());
@@ -263,7 +251,7 @@ public class MbSolicitud implements Serializable {
             this.producto.setCantSolicitada(this.producto.getSeparados());
             try {
                 this.dao = new DAOSolicitudes();
-                this.dao.modificarSolicitudProducto(toProd);
+                this.dao.modificarProducto(toProd);
 
                 this.producto.setCantSolicitada(toProd.getCantSolicitada());
                 this.producto.setSeparados(toProd.getCantSolicitada());
@@ -289,7 +277,7 @@ public class MbSolicitud implements Serializable {
 
     private TOSolicitudProducto convertir(SolicitudProducto prod) {
         TOSolicitudProducto toProd = new TOSolicitudProducto();
-        toProd.setIdMovto(prod.getIdMovto());
+        toProd.setIdSolicitud(prod.getIdSolicitud());
         toProd.setIdProducto(prod.getProducto().getIdProducto());
         toProd.setCantSolicitada(prod.getCantSolicitada());
         return toProd;
@@ -306,12 +294,12 @@ public class MbSolicitud implements Serializable {
             }
         }
         if (nuevo) {
-            prod.setIdMovto(this.solicitud.getIdMovto());
+            prod.setIdSolicitud(this.solicitud.getIdSolicitud());
             try {
                 TOSolicitudProducto toProd = this.convertir(prod);
 
                 this.dao = new DAOSolicitudes();
-                this.dao.agregarSolicitudProducto(toProd);
+                this.dao.agregarProducto(toProd);
 
                 this.detalle.add(prod);
                 this.producto = prod;
@@ -321,7 +309,6 @@ public class MbSolicitud implements Serializable {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
-//        this.respaldaFila();
     }
 
     public void buscar() {
@@ -331,26 +318,9 @@ public class MbSolicitud implements Serializable {
         }
     }
 
-//    public void respaldaFila() {
-//        if (this.resSolicitudProducto == null) {
-//            this.resSolicitudProducto = new TraspasoProducto();
-//        }
-//        this.resSolicitudProducto.setCantSolicitada(this.producto.getCantSolicitada());
-////        this.resSolicitudProducto.setCantFacturada(this.solicitudProducto.getCantFacturada());
-////        this.resSolicitudProducto.setCantRecibida(this.solicitudProducto.getCantRecibida());
-////        this.resSolicitudProducto.setDesctoConfidencial(this.solicitudProducto.getDesctoConfidencial());
-////        this.resSolicitudProducto.setDesctoProducto1(this.solicitudProducto.getDesctoProducto1());
-////        this.resSolicitudProducto.setDesctoProducto2(this.solicitudProducto.getDesctoProducto2());
-//        this.resSolicitudProducto.setProducto(this.producto.getProducto());
-////        this.resSolicitudProducto.setImporte(this.solicitudProducto.getImporte());
-////        this.resSolicitudProducto.setNeto(this.solicitudProducto.getNeto());
-////        this.resSolicitudProducto.setUnitario(this.solicitudProducto.getUnitario());
-////        this.resSolicitudProducto.setCosto(this.solicitudProducto.getCosto());
-//    }
-
     private TOSolicitud convertir(Solicitud mov) {
         TOSolicitud toMov = new TOSolicitud();
-        toMov.setIdMovto(mov.getIdMovto());
+        toMov.setIdSolicitud(mov.getIdSolicitud());
         toMov.setIdEmpresa(mov.getAlmacen().getIdEmpresa());
         toMov.setIdAlmacen(mov.getAlmacen().getIdAlmacen());
         toMov.setFolio(mov.getFolio());
@@ -368,8 +338,8 @@ public class MbSolicitud implements Serializable {
         TOSolicitud toMov = this.convertir(this.solicitud);
         try {
             this.dao = new DAOSolicitudes();
-            this.dao.agregarSolicitud(toMov);
-            this.solicitud.setIdMovto(toMov.getIdMovto());
+            this.dao.agregar(toMov);
+            this.solicitud.setIdSolicitud(toMov.getIdSolicitud());
             this.solicitud.setFolio(toMov.getFolio());
             this.solicitud.setFecha(toMov.getFecha());
             this.solicitud.setIdUsuario(toMov.getIdUsuario());

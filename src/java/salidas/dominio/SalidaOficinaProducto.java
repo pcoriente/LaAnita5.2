@@ -1,4 +1,4 @@
-package mvEntradas;
+package salidas.dominio;
 
 import producto2.dominio.Producto;
 
@@ -6,17 +6,17 @@ import producto2.dominio.Producto;
  *
  * @author jesc
  */
-public class EntradaOficinaProducto {
+public class SalidaOficinaProducto {
     private Producto producto;
     private double cantFacturada;
     private double separados;
     private double unitario;
     
-    public EntradaOficinaProducto() {
+    public SalidaOficinaProducto() {
         this.producto=new Producto();
     }
     
-    public EntradaOficinaProducto(Producto producto) {
+    public SalidaOficinaProducto(Producto producto) {
         this.producto=producto;
     }
 
@@ -27,8 +27,8 @@ public class EntradaOficinaProducto {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 97 * hash + (this.producto != null ? this.producto.hashCode() : 0);
+        int hash = 7;
+        hash = 83 * hash + (this.producto != null ? this.producto.hashCode() : 0);
         return hash;
     }
 
@@ -40,7 +40,7 @@ public class EntradaOficinaProducto {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final EntradaOficinaProducto other = (EntradaOficinaProducto) obj;
+        final SalidaOficinaProducto other = (SalidaOficinaProducto) obj;
         if (this.producto != other.producto && (this.producto == null || !this.producto.equals(other.producto))) {
             return false;
         }
@@ -55,20 +55,20 @@ public class EntradaOficinaProducto {
         this.producto = producto;
     }
 
-    public double getCantFacturada() {
-        return cantFacturada;
-    }
-
-    public void setCantFacturada(double cantFacturada) {
-        this.cantFacturada = cantFacturada;
-    }
-
     public double getSeparados() {
         return separados;
     }
 
     public void setSeparados(double separados) {
         this.separados = separados;
+    }
+
+    public double getCantFacturada() {
+        return cantFacturada;
+    }
+
+    public void setCantFacturada(double cantFacturada) {
+        this.cantFacturada = cantFacturada;
     }
 
     public double getUnitario() {

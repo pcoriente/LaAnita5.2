@@ -1,7 +1,6 @@
-package salidas;
+package mvEntradas.dominio;
 
 import java.util.ArrayList;
-import movimientos.dominio.ProductoAlmacen;
 import movimientos.to1.Lote1;
 import producto2.dominio.Producto;
 
@@ -9,18 +8,18 @@ import producto2.dominio.Producto;
  *
  * @author jesc
  */
-public class SalidaAlmacenProducto {
+public class EntradaAlmacenProducto {
     private Producto producto;
     private double cantidad;
 //    private double separados;
-    private ArrayList<ProductoAlmacen> lotes;
+    private ArrayList<Lote1> lotes;
     
-    public SalidaAlmacenProducto() {
+    public EntradaAlmacenProducto() {
         this.producto=new Producto();
         this.lotes=new ArrayList<>();
     }
     
-    public SalidaAlmacenProducto(Producto producto) {
+    public EntradaAlmacenProducto(Producto producto) {
         this.producto=producto;
         this.lotes=new ArrayList<>();
     }
@@ -33,7 +32,7 @@ public class SalidaAlmacenProducto {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 31 * hash + (this.producto != null ? this.producto.hashCode() : 0);
+        hash = 41 * hash + (this.producto != null ? this.producto.hashCode() : 0);
         return hash;
     }
 
@@ -45,20 +44,12 @@ public class SalidaAlmacenProducto {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final SalidaAlmacenProducto other = (SalidaAlmacenProducto) obj;
+        final EntradaAlmacenProducto other = (EntradaAlmacenProducto) obj;
         if (this.producto != other.producto && (this.producto == null || !this.producto.equals(other.producto))) {
             return false;
         }
         return true;
     }
-
-//    public double getSeparados() {
-//        return separados;
-//    }
-//
-//    public void setSeparados(double separados) {
-//        this.separados = separados;
-//    }
 
     public Producto getProducto() {
         return producto;
@@ -76,11 +67,19 @@ public class SalidaAlmacenProducto {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<ProductoAlmacen> getLotes() {
+//    public double getSeparados() {
+//        return separados;
+//    }
+//
+//    public void setSeparados(double separados) {
+//        this.separados = separados;
+//    }
+
+    public ArrayList<Lote1> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<ProductoAlmacen> lotes) {
+    public void setLotes(ArrayList<Lote1> lotes) {
         this.lotes = lotes;
     }
 }

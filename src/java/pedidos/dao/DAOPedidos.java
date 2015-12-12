@@ -1,5 +1,6 @@
 package pedidos.dao;
 
+import comprobantes.to.TOComprobante;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -457,8 +458,6 @@ public class DAOPedidos {
                 if (rs.next()) {
                     toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
                 }
-//                strSQL = "INSERT INTO pedidos (idPedidoOC, fecha, idUsuario, propietario, canceladoMotivo, canceladoFecha, estatus)\n"
-//                        + "VALUES (" + toPed.getIdPedidoOC() + ", GETDATE(), "+toPed.getIdUsuario()+", "+toPed.getPropietario()+", '', '1900-01-01', 0)";
                 strSQL = "INSERT INTO pedidos (idTienda, idMoneda, idPedidoOC, fecha, canceladoMotivo, canceladoFecha, estatus)\n"
                         + "VALUES (" + toPed.getIdTienda() + ", " + toPed.getIdMoneda() + ", " + toPed.getIdPedidoOC() + ", GETDATE(), '', '1900-01-01', 0)";
                 st.executeUpdate(strSQL);
@@ -467,6 +466,23 @@ public class DAOPedidos {
                 if (rs.next()) {
                     toPed.setReferencia(rs.getInt("idPedido"));
                 }
+                TOComprobante to=new TOComprobante();
+                to.setIdTipoMovto(toPed.getIdTipo());
+                to.setIdEmpresa(toPed.getIdEmpresa());
+                to.setIdReferencia(toPed.getIdReferencia());
+                to.setTipo(1);
+                to.setSerie("");
+                to.setNumero(String.valueOf(toPed.getReferencia()));
+                to.setFechaFactura(toPed.getFecha());
+                to.setIdMoneda(toPed.getIdMoneda());
+                to.setIdUsuario(this.idUsuario);
+                to.setPropietario(0);
+                to.setEstatus(5);
+                to.setCerradoAlmacen(false);
+                to.setCerradoOficina(false);
+                comprobantes.Comprobantes.agregar(cn, to);
+                
+                toPed.setIdComprobante(to.getIdComprobante());
                 movimientos.Movimientos.agregaMovimientoAlmacen(cn, toPed, false);
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toPed, false);
 

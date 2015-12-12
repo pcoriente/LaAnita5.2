@@ -1,6 +1,7 @@
 package recepciones.dominio;
 
 import movimientos.dominio.ProductoAlmacen;
+import producto2.dominio.Producto;
 
 /**
  *
@@ -14,8 +15,8 @@ public class RecepcionProductoAlmacen extends ProductoAlmacen {
         super();
     }
     
-    public RecepcionProductoAlmacen(int idMovtoAlmacen, int idProducto) {
-        super(idMovtoAlmacen, idProducto);
+    public RecepcionProductoAlmacen(int idMovtoAlmacen, Producto producto) {
+        super(idMovtoAlmacen, producto);
     }
 
 //    public double getCantSolicitada() {
