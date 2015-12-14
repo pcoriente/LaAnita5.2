@@ -163,7 +163,7 @@ public class MbAgentes implements Serializable {
             DAOContribuyentes daoContribuyente;
             try {
                 daoContribuyente = new DAOContribuyentes();
-                c = daoContribuyente.buscarContribuyente(mbContribuyente.getContribuyente().getRfc());
+                c = daoContribuyente.buscarContribuyente(mbContribuyente.getContribuyente().getRfc().toUpperCase());
             } catch (NamingException ex) {
                 Logger.getLogger(MbAgentes.class.getName()).log(Level.SEVERE, null, ex);
             } catch (SQLException ex) {

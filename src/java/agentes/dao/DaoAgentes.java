@@ -57,7 +57,7 @@ public class DaoAgentes {
         String sql = "SELECT * FROM agentes a "
                 + "INNER JOIN "
                 + "cedis  ced "
-                + "ON a.idCedis = ced.idCedis";
+                + "ON a.idCedis = ced.idCedis order by ced.idCedis";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         ResultSet rs = st.executeQuery(sql);
@@ -108,10 +108,10 @@ public class DaoAgentes {
             String sqlIdContribuyenteRfc = "select * from contribuyentes ctr\n"
                     + "inner join contribuyentesRfc ctrRfc \n"
                     + "on  ctrRfc.idRfc =  ctr.idRfc \n"
-                    + "where ctrRfc.rfc='" + agente.getContribuyente().getRfc() + "'";
+                    + "where ctrRfc.rfc='" + agente.getContribuyente().getRfc().toUpperCase() + "'";
             rs = st.executeQuery(sqlIdContribuyenteRfc);
             while (rs.next()) {
-                idContribuyente = rs.getInt("idRfc");
+                idContribuyente = rs.getInt("idContribuyente");
             }
             if (idContribuyente == 0) {
                 if (agente.getContribuyente().getRfc() != "") {
@@ -133,13 +133,15 @@ public class DaoAgentes {
             }
 
             if (agente.getContribuyente().getDireccion().getCalle() != "") {
-                String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
-                st.executeUpdate(sqlDireccionContribuyente);
-                rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionContribuyente");
-                if (rs.next()) {
-                    idDireccionContribuyente = rs.getInt("idDireccionContribuyente");
-                }
+
                 if (idContribuyente == 0) {
+                    String sqlDireccionContribuyente = "INSERT INTO direcciones (calle, numeroExterior, numeroInterior, colonia, localidad, referencia, municipio, estado, idPais, codigoPostal,numeroLocalizacion)VALUES('" + agente.getContribuyente().getDireccion().getCalle() + "', '" + agente.getContribuyente().getDireccion().getNumeroExterior() + "','" + agente.getContribuyente().getDireccion().getNumeroInterior() + "','" + agente.getContribuyente().getDireccion().getColonia() + "','" + agente.getContribuyente().getDireccion().getLocalidad() + "','" + agente.getContribuyente().getDireccion().getReferencia() + "','" + agente.getContribuyente().getDireccion().getMunicipio() + "','" + agente.getContribuyente().getDireccion().getEstado() + "','" + agente.getContribuyente().getDireccion().getPais().getIdPais() + "','" + agente.getContribuyente().getDireccion().getCodigoPostal() + "','0')";
+                    st.executeUpdate(sqlDireccionContribuyente);
+                    rs = st.executeQuery("SELECT @@IDENTITY AS idDireccionContribuyente");
+                    if (rs.next()) {
+                        idDireccionContribuyente = rs.getInt("idDireccionContribuyente");
+                    }
+
                     String sqlContribuyente = "INSERT INTO contribuyentes (contribuyente, idRfc, idDireccion) values('" + agente.getContribuyente().getContribuyente() + "','" + idRfc + "','" + idDireccionContribuyente + "')";
                     st.executeUpdate(sqlContribuyente);
                     rs = st.executeQuery("SELECT @@IDENTITY AS idContribuyente");
