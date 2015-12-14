@@ -141,10 +141,6 @@
                                                          process="@this" actionListener="#{mbComprasAlmacen.mbBuscar.inicializar()}" 
                                                          update="buscarProductos listaBuscarProductos" 
                                                          oncomplete="PF('buscarProductoDlg').show()" />
-                                        <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Elimnar Producto" 
-                                                         disabled="#{mbComprasAlmacen.compra.idOrdenCompra!=0 or mbComprasAlmacen.compra.estatus!=0}" 
-                                                         process="@this" actionListener="#{mbComprasAlmacen.eliminarProductoAlmacen()}" 
-                                                         update=":main:msgs :main:detalleEntrada" />
                                     </p:column>
                                     <p:column colspan="7" style="text-align: right;" >
                                         <p:commandButton id="btnGrabarEntrada" icon="ui-icon-disk" title="Grabar Entrada"
@@ -226,7 +222,7 @@
                                     <p:inputText id="opcionSKU" value="#{mbComprasAlmacen.mbBuscar.strBuscar}" maxlength="8" size="10" />
                                     <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
                                                      process="@this opcionSKU" actionListener="#{mbComprasAlmacen.buscar()}" 
-                                                     update=":main:detalleEntrada :main:btnEliminarProducto" oncomplete="handleBuscar(xhr, status, args)" />
+                                                     update=":main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
                                 </p:column>
                                 <p:column rendered="#{mbComprasAlmacen.mbBuscar.tipoBuscar=='2'}" >
                                     <p:autoComplete id="opcionParte" value="#{mbComprasAlmacen.mbBuscar.mbParte.parte}" maxlength="24" size="24"

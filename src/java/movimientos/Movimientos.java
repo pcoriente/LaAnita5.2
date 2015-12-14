@@ -16,6 +16,7 @@ import movimientos.dominio.ProductoLotes;
 import movimientos.dominio.ProductoOficina;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoOficina;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import movimientos.to.TOProductoLotes;
 import movimientos.to.TOProductoOficina;
@@ -37,22 +38,69 @@ public class Movimientos {
         }
     }
 
-    public static TOProductoAlmacen convertir(ProductoAlmacen lote) {
+    public static void liberar(Connection cn, int idAlmacen, TOProductoAlmacen toProd, double cantLiberar) throws SQLException {
+        String strSQL = "UPDATE almacenesLotes\n"
+                + "SET separados=separados-" + cantLiberar + "\n"
+                + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
+        try (Statement st = cn.createStatement()) {
+            st.executeUpdate(strSQL);
+            
+            toProd.setCantidad(toProd.getCantidad()-cantLiberar);
+            grabaProductoAlmacen(cn, toProd);
+        }
+    }
+
+    public static double separar(Connection cn, int idAlmacen, TOProductoAlmacen toProd, double cantSeparar, boolean total) throws SQLException {
+        double disponibles = 0;
+        String strSQL = "SELECT lote,  existencia-separados AS disponibles\n"
+                + "FROM almacenesLotes\n"
+                + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                disponibles = rs.getDouble("disponibles");
+            } else {
+                throw new SQLException("No se encontró el lote solicitado !!!");
+            }
+            if (disponibles <= 0) {
+                throw new SQLException("No hay unidades disponibles del lote solicitado !!!");
+            } else if (disponibles < cantSeparar) {
+                if (total) {
+                    throw new SQLException("No hay existencia total para separar !!!");
+                }
+                cantSeparar = disponibles;
+            }
+            strSQL = "UPDATE almacenesLotes\n"
+                    + "SET separados=separados+" + cantSeparar + "\n"
+                    + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + toProd.getIdProducto() + " AND lote='" + toProd.getLote() + "'";
+            st.executeUpdate(strSQL);
+
+            toProd.setCantidad(toProd.getCantidad() + cantSeparar);
+            movimientos.Movimientos.grabaProductoAlmacen(cn, toProd);
+
+            cn.commit();
+        }
+        return cantSeparar;
+    }
+    
+    public static void convertir(ProductoAlmacen prod, TOProductoAlmacen toProd) {
+        toProd.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
+        toProd.setIdProducto(prod.getProducto().getIdProducto());
+        toProd.setLote(prod.getLote());
+        toProd.setCantidad(prod.getCantidad());
+    }
+
+    public static TOProductoAlmacen convertir(ProductoAlmacen prod) {
         TOProductoAlmacen toProd = new TOProductoAlmacen();
-        toProd.setIdMovtoAlmacen(lote.getIdMovtoAlmacen());
-        toProd.setIdProducto(lote.getIdProducto());
-        toProd.setLote(lote.getLote());
-        toProd.setCantidad(lote.getCantidad());
+        movimientos.Movimientos.convertir(prod, toProd);
         return toProd;
     }
 
     public static void convertir(TOProductoAlmacen toProd, ProductoAlmacen prod) {
         prod.setIdMovtoAlmacen(toProd.getIdMovtoAlmacen());
-        prod.setIdProducto(toProd.getIdProducto());
         prod.setLote(toProd.getLote());
         prod.setCantidad(toProd.getCantidad());
-        prod.setSeparados(toProd.getCantidad());
-        prod.setFechaCaducidad(toProd.getFechaCaducidad());
+//        prod.setSeparados(toProd.getCantidad());
     }
 
     public static ProductoAlmacen convertir(TOProductoAlmacen toProd) {
@@ -63,9 +111,18 @@ public class Movimientos {
 
     public static void convertir(TOProductoLotes toProd, ProductoLotes prod) {
         prod.setCantidad(toProd.getCantidad());
-        for (TOProductoAlmacen toLote : toProd.getLotes()) {
-            prod.getLotes().add(convertir(toLote));
-        }
+        prod.setLotes(toProd.getLotes());
+//        for (TOProductoAlmacen toLote : toProd.getLotes()) {
+//            prod.getLotes().add(convertir(toLote));
+//        }
+    }
+    
+    public static TOMovimientoProductoAlmacen construirLote(ResultSet rs) throws SQLException {
+        TOMovimientoProductoAlmacen lote = new TOMovimientoProductoAlmacen();
+        construirProductoAlmacen(rs, lote);
+        lote.setSeparados(lote.getCantidad());
+        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
+        return lote;
     }
 
 //    public static boolean construirProducto(ResultSet rs, TOProductoLotes toProd) throws SQLException {
@@ -99,28 +156,11 @@ public class Movimientos {
         lote.setIdProducto(rs.getInt("idEmpaque"));
         lote.setLote(rs.getString("lote"));
         lote.setCantidad(rs.getDouble("cantidad"));
-        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
     }
 
     public static TOProductoAlmacen construirProductoAlmacen(ResultSet rs) throws SQLException {
         TOProductoAlmacen lote = new TOProductoAlmacen();
         construirProductoAlmacen(rs, lote);
-//        lote.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
-//        lote.setIdProducto(rs.getInt("idEmpaque"));
-//        lote.setLote(rs.getString("lote"));
-//        lote.setCantidad(rs.getDouble("cantidad"));
-//        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
-        return lote;
-    }
-
-    public static ProductoAlmacen construirLote(ResultSet rs) throws SQLException {
-        ProductoAlmacen lote = new ProductoAlmacen();
-        lote.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
-        lote.setIdProducto(rs.getInt("idEmpaque"));
-        lote.setLote(rs.getString("lote"));
-        lote.setCantidad(rs.getDouble("cantidad"));
-        lote.setSeparados(lote.getCantidad());
-        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
         return lote;
     }
 
@@ -129,15 +169,6 @@ public class Movimientos {
                 + "VALUES (" + toProd.getIdMovtoAlmacen() + ", " + toProd.getIdProducto() + ", '" + toProd.getLote() + "', " + toProd.getCantidad() + ", '', 0)";
         try (Statement st = cn.createStatement()) {
             st.executeUpdate(strSQL);
-
-            strSQL = "SELECT DATEADD(DAY, 365, L.fecha) AS fechaCaducidad\n"
-                    + "FROM movimientosDetalleAlmacen D\n"
-                    + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
-                    + "WHERE D.idMovtoAlmacen=" + toProd.getIdMovtoAlmacen() + " AND D.idEmpaque=" + toProd.getIdProducto() + " AND D.lote='" + toProd.getLote() + "'";
-            ResultSet rs = st.executeQuery(strSQL);
-            if (rs.next()) {
-                toProd.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
-            }
         }
     }
 
@@ -259,7 +290,8 @@ public class Movimientos {
                 boletin.add(0.0);
                 strSQL = "SELECT B.* \n"
                         + "FROM clientesBoletinesDetalle B\n"
-                        + "WHERE B.idEmpresa=" + idEmpresa + "\n"
+                        + "INNER JOIN clientesBoletines L ON L.idClienteBoletin=B.idClienteBoletin\n"
+                        + "WHERE L.idEmpresa=" + idEmpresa + "\n"
                         + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
@@ -302,8 +334,9 @@ public class Movimientos {
                 int idGrupo = rs.getInt("idGrupo");
                 int idSubGrupo = rs.getInt("idSubGrupo");
                 strSQL = "SELECT B.*\n"
-                        + "FROM clientesListasPrecios B\n"
-                        + "WHERE B.idEmpresa=" + idEmpresa + "\n"
+                        + "FROM clientesListasDetalle B\n"
+                        + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
+                        + "WHERE L.idEmpresa=" + idEmpresa + "\n"
                         + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
@@ -531,7 +564,7 @@ public class Movimientos {
                         break;
                     }
                 }
-            } else if(total) {
+            } else if (total) {
                 throw new Exception("No hay existencia !!!");
             }
         }
@@ -789,7 +822,7 @@ public class Movimientos {
                         + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
-            } else if(idTipo==34) {
+            } else if (idTipo == 34) {
                 strSQL = "UPDATE E\n"
                         + "SET costoUnitarioPromedio=ROUND(((E.costoUnitarioPromedio*E.existencia - D.costoPromedio*(D.cantFacturada+D.cantSinCargo))/(E.existencia-D.cantFacturada-D.cantSinCargo)),6)\n"
                         + "	, idMovtoUltimaCompra=CASE WHEN M.idTipo=1 THEN M.idMovto ELSE E.idMovtoUltimaCompra END\n"

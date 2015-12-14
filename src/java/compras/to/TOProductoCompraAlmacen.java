@@ -12,6 +12,10 @@ public class TOProductoCompraAlmacen extends TOProductoAlmacen {
     public TOProductoCompraAlmacen() {
         super();
     }
+    
+    public TOProductoCompraAlmacen(int idMovtoAlmacen, int idProducto) {
+        super(idMovtoAlmacen, idProducto);
+    }
 
     public double getCantOrdenada() {
         return cantOrdenada;

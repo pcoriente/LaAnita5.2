@@ -22,6 +22,7 @@ import mbMenuClientesGrupos.MbClientesGrupos;
 import movimientos.dao.DAOMovimientosOld;
 import movimientos.to.TOLote;
 import movimientos.to.TOMovimientoAlmacenProducto;
+import movimientos.to.TOProductoAlmacen;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -92,15 +93,14 @@ public class MbVentas implements Serializable {
         this.inicializa();
     }
 
-    public void cerrarPedidoAlmacenRelacionado() {
+    public void cerrarVentaAlmacen() {
         boolean ok = false;
         try {
-            this.dao1 = new DAOMovimientos1();
-            int remision = this.dao1.cerrarMovtoAlmacenSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen());
-//            this.venta.setRemision(Integer.toString(remision));
-            this.venta.setEstatus(2);
-//            this.venta.setStatusAlmacen(2);
-            Mensajes.mensajeSucces("El pedido se remisiono correctamente !!!");
+            TOVenta toMov = this.convertir(this.venta);
+
+            this.dao = new DAOVentas();
+            this.dao.cerrarVentaAlmacen(toMov);
+            Mensajes.mensajeSucces("El pedido se cerró correctamente !!!");
             ok = true;
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
@@ -115,8 +115,8 @@ public class MbVentas implements Serializable {
         boolean ok = false;
         try {
             int idx;
-            this.dao1 = new DAOMovimientos1();
-            this.dao1.traspasarLote(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen), this.loteDestino.getLote(), this.cantTraspasar);
+            this.dao = new DAOVentas();
+            this.dao.traspasarLote(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen), this.convertirAlmacenProducto(this.loteDestino), this.cantTraspasar);
             idx = this.almacenDetalle.indexOf(this.loteOrigen);
             this.loteOrigen = this.almacenDetalle.get(idx);
             this.loteOrigen.setCantidad(this.loteOrigen.getCantidad() - this.cantTraspasar);
@@ -138,6 +138,15 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okLote", ok);
     }
 
+    private TOProductoAlmacen convertirAlmacenProducto(VentaAlmacenProducto prod) throws SQLException {
+        TOProductoAlmacen to = new TOProductoAlmacen();
+        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
+        to.setIdProducto(prod.getProducto().getIdProducto());
+        to.setLote(prod.getLote());
+        to.setCantidad(prod.getCantidad());
+        return to;
+    }
+
     public void inicializaTraspasoLote() {
         boolean ok = false;
         this.cantTraspasar = 0;
@@ -145,14 +154,12 @@ public class MbVentas implements Serializable {
         VentaAlmacenProducto prod;
         this.empaqueLotes = new ArrayList<>();
         try {
-            this.dao1 = new DAOMovimientos1();
-            for (TOLote to : this.dao1.obtenerEmpaqueLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.loteOrigen.getProducto().getIdProducto())) {
-                if (!this.loteOrigen.getLote().equals(to.getLote())) {
-                    prod = new VentaAlmacenProducto(this.loteOrigen.getProducto(), to.getLote());
-                    prod.setIdMovtoAlmacen(this.loteOrigen.getIdMovtoAlmacen());
-                    prod.setCantidad(to.getCantidad());
-                    this.empaqueLotes.add(prod);
-                }
+            this.dao = new DAOVentas();
+            for (TOProductoAlmacen to : this.dao.obtenerLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen))) {
+                prod = new VentaAlmacenProducto(this.loteOrigen.getProducto(), to.getLote());
+                prod.setIdMovtoAlmacen(this.loteOrigen.getIdMovtoAlmacen());
+                prod.setCantidad(to.getCantidad());
+                this.empaqueLotes.add(prod);
             }
             ok = true;
         } catch (NamingException ex) {
@@ -164,37 +171,29 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okLote", ok);
     }
 
-    private TOMovimientoAlmacenProducto convertirAlmacenProducto(VentaAlmacenProducto prod) throws SQLException {
-        TOMovimientoAlmacenProducto to = new TOMovimientoAlmacenProducto();
-        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
-        to.setIdProducto(prod.getProducto().getIdProducto());
-        to.setCantidad(prod.getCantidad());
-        return to;
-    }
-
-    private VentaAlmacenProducto convertirAlmacenProducto(TOMovimientoAlmacenProducto to) throws SQLException {
+    private VentaAlmacenProducto convertirAlmacenProducto(TOProductoAlmacen to) throws SQLException {
         VentaAlmacenProducto prod = new VentaAlmacenProducto();
         prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
+        prod.setLote(to.getLote());
         prod.setCantidad(to.getCantidad());
         return prod;
     }
 
-    public void obtenerAlmacenDetalle(SelectEvent event) {
+    public void obtenerDetalleAlmacen(SelectEvent event) {
         boolean ok = false;
         this.loteOrigen = null;
         this.venta = (Venta) event.getObject();
         this.almacenDetalle = new ArrayList<>();
         try {
-            this.dao1 = new DAOMovimientos1();
-            try {
-                this.ventaAsegurada = this.dao1.asegurarMovtoRelacionado(this.venta.getIdMovto());
-            } catch (Exception ex) {
-                Mensajes.mensajeAlert(ex.getMessage());
-            }
-            for (TOMovimientoAlmacenProducto to : this.dao1.obtenerMovimientoAlmacenDetalle(this.venta.getIdMovtoAlmacen())) {
+            TOVenta toVta = this.convertir(this.venta);
+            this.dao = new DAOVentas();
+            for (TOProductoAlmacen to : this.dao.obtenerDetalleAlmacen(toVta)) {
                 this.almacenDetalle.add(this.convertirAlmacenProducto(to));
             }
+            this.venta.setIdUsuario(toVta.getIdUsuario());
+            this.venta.setPropietario(toVta.getPropietario());
+            this.venta.setEstatus(toVta.getEstatus());
             ok = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -203,6 +202,21 @@ public class MbVentas implements Serializable {
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
+    }
+
+    public void obtenerVentasAlmacen() {
+        try {   // Segun fecha y status
+            this.ventas = new ArrayList<>();
+            this.dao = new DAOVentas();
+            for (TOVenta to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
+                this.ventas.add(this.convertir(to));
+            }
+            this.listaTitulo = this.pendientes ? "Lista de ventas pendientes" : "Lista de ventas";
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
 //    public void regresarAlmacenFechaActual() {
@@ -693,11 +707,6 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
-    public void nuevaVenta() {
-        this.mbGrupos.inicializar();
-        this.cambioDeGrupo();
-    }
-
 //    public void regresarFechaActual() {
 //        this.fechaInicial = new Date();
 //        this.obtenerVentas();
@@ -760,6 +769,18 @@ public class MbVentas implements Serializable {
     public void cambioDeGrupo() {
         this.mbFormatos.cargarFormatosCliente(this.mbGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
         this.mbTiendas.inicializar();
+    }
+
+    public void cambioDeCliente() {
+        this.mbTiendas.obtenerTiendasCliente(this.mbClientes.getCliente().getIdCliente());
+        this.mbTiendas.nuevaTienda();
+    }
+
+    public void nuevaVenta() {
+//        this.mbGrupos.inicializar();
+//        this.cambioDeGrupo();
+        this.mbClientes.obtenerClientesCedis();
+        this.mbClientes.nuevoCliente();
     }
 
     public String terminar() {

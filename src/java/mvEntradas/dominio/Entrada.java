@@ -1,6 +1,5 @@
-package salidas;
+package mvEntradas.dominio;
 
-import almacenes.dominio.AlmacenJS;
 import almacenes.to.TOAlmacenJS;
 import java.util.Date;
 import movimientos.dominio.MovimientoTipo;
@@ -9,8 +8,7 @@ import movimientos.dominio.MovimientoTipo;
  *
  * @author jesc
  */
-public class Salida {
-
+public class Entrada {
     private int idMovto;
     private TOAlmacenJS almacen;
     private MovimientoTipo tipo;
@@ -18,17 +16,11 @@ public class Salida {
     private Date fecha;
     private int idUsuario;
     private int estatus;
-
-    public Salida() {
-        this.almacen = new TOAlmacenJS();
-        this.tipo = new MovimientoTipo();
-        this.fecha = new Date();
-    }
-
-    public Salida(MovimientoTipo tipo, TOAlmacenJS almacen) {
-        this.tipo = tipo;
-        this.almacen = almacen;
-        this.fecha = new Date();
+    
+    public Entrada() {
+        this.almacen=new TOAlmacenJS();
+        this.tipo=new MovimientoTipo();
+        this.fecha=new Date();
     }
 
     public int getIdMovto() {

@@ -1,5 +1,6 @@
 package clientes;
 
+import Message.Mensajes;
 import clientes.dao.DAOClientes;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -30,6 +31,21 @@ public class MbMiniClientes implements Serializable {
         this.inicializa();
     }
     
+    public void obtenerClientesCedis() {
+        this.listaClientes=new ArrayList<>();
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
+        try {
+            this.dao=new DAOClientes();
+            for(TOCliente c:this.dao.obtenerClientesCedis()) {
+                this.listaClientes.add(new SelectItem(c, c.toString()));
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+    
     public TOCliente obtenerCliente(int idCliente) {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerCliente");
@@ -52,7 +68,7 @@ public class MbMiniClientes implements Serializable {
     public void cargarClientesGrupo(int idGrupo) {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargarClientesGrupo");
-        this.listaClientes=new ArrayList<SelectItem>();
+        this.listaClientes=new ArrayList<>();
         this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
         try {
             this.dao=new DAOClientes();

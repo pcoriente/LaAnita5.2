@@ -69,7 +69,6 @@ public class MbComprasAlmacen implements Serializable {
     private CompraAlmacen compra;
     private ArrayList<CompraAlmacen> compras;
     private ProductoCompraAlmacen producto;
-    private ProductoCompraAlmacen resProducto;
     private ArrayList<ProductoCompraAlmacen> detalle;
     private int idModulo;
     private String btnOrdenCompraIcono;
@@ -345,14 +344,11 @@ public class MbComprasAlmacen implements Serializable {
         }
     }
 
-    private ProductoCompraAlmacen convertir(TOProductoCompraAlmacen to) {
-        ProductoCompraAlmacen prod = new ProductoCompraAlmacen();
-        prod.setCantOrdenada(to.getCantOrdenada());
-        prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        prod.setLote(to.getLote());
-        prod.setCantidad(to.getCantidad());
-        prod.setSeparados(to.getCantidad());
+    private ProductoCompraAlmacen convertir(TOProductoCompraAlmacen toProd) {
+        ProductoCompraAlmacen prod = new ProductoCompraAlmacen(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        prod.setCantOrdenada(toProd.getCantOrdenada());
+        prod.setSeparados(toProd.getCantidad());
+        movimientos.Movimientos.convertir(toProd, prod);
         return prod;
     }
 
@@ -422,7 +418,6 @@ public class MbComprasAlmacen implements Serializable {
         this.detalle = new ArrayList<>();
         try {
             this.dao = new DAOComprasAlmacen();
-            this.daoMv = new DAOMovimientosAlmacen();
             for (TOProductoCompraAlmacen d : this.dao.crearOrdenDeCompraDetalle(toCompra, false)) {
                 this.detalle.add(this.convertir(d));
             }
@@ -529,10 +524,7 @@ public class MbComprasAlmacen implements Serializable {
     private TOProductoCompraAlmacen convertir(ProductoCompraAlmacen prod) {
         TOProductoCompraAlmacen to = new TOProductoCompraAlmacen();
         to.setCantOrdenada(prod.getCantOrdenada());
-        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
-        to.setIdProducto(prod.getProducto().getIdProducto());
-        to.setLote(prod.getLote());
-        to.setCantidad(prod.getCantidad());
+        movimientos.Movimientos.convertir(prod, to);
         return to;
     }
 
@@ -551,8 +543,8 @@ public class MbComprasAlmacen implements Serializable {
             prod.setIdMovtoAlmacen(this.compra.getIdMovtoAlmacen());
             TOProductoAlmacen toProd = this.convertir(prod);
             try {
-                this.dao = new DAOComprasAlmacen();
-                this.dao.agregarProductoAlmacen(toProd);
+                this.daoMv = new DAOMovimientosAlmacen();
+                this.daoMv.agregarProducto(toProd);
                 this.producto = prod;
                 this.detalle.add(this.producto);
             } catch (SQLException ex) {
@@ -646,7 +638,6 @@ public class MbComprasAlmacen implements Serializable {
     private void inicializaLocales() {
         this.modoEdicion = false;
         this.compra = new CompraAlmacen();
-        this.resProducto = new ProductoCompraAlmacen();
         this.compras = new ArrayList<>();
     }
 
@@ -702,14 +693,6 @@ public class MbComprasAlmacen implements Serializable {
 
     public void setProducto(ProductoCompraAlmacen producto) {
         this.producto = producto;
-    }
-
-    public ProductoCompraAlmacen getResProducto() {
-        return resProducto;
-    }
-
-    public void setResProducto(ProductoCompraAlmacen resProducto) {
-        this.resProducto = resProducto;
     }
 
     public ArrayList<ProductoCompraAlmacen> getDetalle() {

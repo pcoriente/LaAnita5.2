@@ -1,6 +1,7 @@
 package rechazos.dominio;
 
 import movimientos.dominio.ProductoAlmacen;
+import producto2.dominio.Producto;
 
 /**
  *
@@ -14,8 +15,8 @@ public class RechazoProductoAlmacen extends ProductoAlmacen {
         super();
     }
     
-    public RechazoProductoAlmacen(int idMovtoAlmacen, int idProducto) {
-        super(idMovtoAlmacen, idProducto);
+    public RechazoProductoAlmacen(int idMovtoAlmacen, Producto producto) {
+        super(idMovtoAlmacen, producto);
     }
 
     public double getCantTraspasada() {

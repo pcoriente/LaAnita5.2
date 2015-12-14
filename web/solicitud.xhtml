@@ -83,7 +83,7 @@
                             </f:facet>
                         </p:panelGrid>
                         <p:dataTable id="lstSolicitudes" value="#{mbSolicitud.solicitudes}" style="border:solid 1px; width: 410px;"
-                                     var="solicitud" rowKey="#{solicitud.idMovto}" selectionMode="single"
+                                     var="solicitud" rowKey="#{solicitud.idSolicitud}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbSolicitud.obtenerDetalle}" update="main" />
                             

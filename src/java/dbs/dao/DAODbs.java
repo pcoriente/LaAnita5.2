@@ -71,20 +71,33 @@ public class DAODbs {
         }
         return dbs;
     }
+    
+    private Usuario construirUsuario(ResultSet rs) throws SQLException {
+        Usuario usuario = new Usuario();
+        usuario.setId(rs.getInt("idUsuario"));
+        usuario.setUsuario(rs.getString("usuario"));
+        usuario.setCorreo(rs.getString("email"));
+        usuario.setIdPerfil(rs.getInt("idPerfil"));
+        usuario.setIdCedis(rs.getInt("idCedis"));
+        usuario.setIdCedisZona(rs.getInt("idCedisZona"));
+        return usuario;
+    }
 
-    public Usuario login(String login, String password, String jndi, int idDbs) throws NamingException, SQLException, Exception {
+    public Usuario login(String login, String password, int idDbs, String baseDeDatos) throws NamingException, SQLException, Exception {
         Usuario usuario = null;
         Connection cn = ds.getConnection();
 
         Statement st = cn.createStatement();
         try {
-            String strSQL = "SELECT u.idUsuario, u.usuario, u.password, u.email, isnull(a.idPerfil, 0) as idPerfil "
-                    + "FROM usuarios u "
-                    + "LEFT JOIN (SELECT idUsuario, idPerfil FROM accesos WHERE idDbs=" + idDbs + ") a ON a.idUsuario=u.idUsuario "
-                    + "WHERE u.login='" + login + "'";
+            String strSQL = "SELECT U.idUsuario, U.usuario, U.password, U.email, ISNULL(A.idPerfil, 0) as idPerfil\n"
+                    + "	, ISNULL(C.idCedis, 0) AS idCedis, ISNULL(C.idCedisZona, 0) AS idCedisZona\n"
+                    + "FROM usuarios U\n"
+                    + "LEFT JOIN (SELECT * FROM accesos WHERE idDbs=" + idDbs +") A ON A.idUsuario=U.idUsuario\n"
+                    + "LEFT JOIN " + baseDeDatos + ".dbo.usuarioConfig C ON C.idUsuario=U.idUsuario\n"
+                    + "WHERE U.login='" + login + "'";
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
-                String claveVer = rs.getString("password");
+//                String claveVer = rs.getString("password");
                 String clave = Utilerias.md51(password.trim());
                 if (rs.getString("password").equals(clave)) {
                     usuario = this.construirUsuario(rs);
@@ -95,15 +108,6 @@ public class DAODbs {
         } finally {
             cn.close();
         }
-        return usuario;
-    }
-
-    private Usuario construirUsuario(ResultSet rs) throws SQLException {
-        Usuario usuario = new Usuario();
-        usuario.setId(rs.getInt("idUsuario"));
-        usuario.setUsuario(rs.getString("usuario"));
-        usuario.setCorreo(rs.getString("email"));
-        usuario.setIdPerfil(rs.getInt("idPerfil"));
         return usuario;
     }
 }

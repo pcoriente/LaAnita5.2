@@ -15,7 +15,6 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.naming.NamingException;
-import main.MbMenu;
 import usuarios.MbAcciones;
 import usuarios.dominio.UsuarioSesion;
 import usuarios.dominio.Usuario;
@@ -93,7 +92,7 @@ public class MbDbs implements Serializable {
     }
 
     public List<SelectItem> obtenerBases() throws NamingException, SQLException {
-        List<SelectItem> bases = new ArrayList<SelectItem>();
+        List<SelectItem> bases = new ArrayList<>();
         
         Dbs db = new Dbs();
         db.setIdDbs(0);
@@ -114,13 +113,17 @@ public class MbDbs implements Serializable {
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         String outcome=null;
         try {
-            Usuario usuario = this.dao.login(this.login, this.password, this.dbs.getJndiDbs(), this.dbs.getIdDbs());
+            Usuario usuario = this.dao.login(this.login, this.password, this.dbs.getIdDbs(), this.dbs.getNombreBds());
             if (usuario == null) {
                 fMsg.setDetail("Usuario no válido !!!");
             } else if(usuario.getId()==0) {
                 fMsg.setDetail("Clave incorrecta !!!");
             } else if(usuario.getIdPerfil()==0) {
                 fMsg.setDetail("El usuario no tiene permisos para ingresar al sistema !!!");
+            } else if(usuario.getIdCedis()==0) {
+                fMsg.setDetail("El usuario no tiene asignado un cedis !!!");
+            } else if(usuario.getIdCedisZona()==0) {
+                fMsg.setDetail("El usuario no tiene asignada una zona !!!");
             } else {
                 this.usuarioSesion.setUsuario(usuario);
                 this.usuarioSesion.setJndi(this.dbs.getJndiDbs());
