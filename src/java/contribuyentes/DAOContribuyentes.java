@@ -130,7 +130,11 @@ public class DAOContribuyentes {
     public void actualizarContribuyente(Contribuyente c) throws SQLException {
         String strSQL = "UPDATE contribuyentes "
 <<<<<<< HEAD
+<<<<<<< HEAD
                 + "SET contribuyente='" + c.getContribuyente() + "' "
+=======
+                + "SET contribuyente='" + c.getContribuyente() + "'"
+>>>>>>> origin/master
 =======
                 + "SET contribuyente='" + c.getContribuyente() + "'"
 >>>>>>> origin/master
