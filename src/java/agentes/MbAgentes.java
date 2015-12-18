@@ -20,6 +20,7 @@ import contribuyentes.MbContribuyentes;
 import direccion.MbDireccion;
 import direccion.dao.DAODireccion;
 import direccion.dominio.Direccion;
+import java.io.Console;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -304,6 +305,9 @@ public class MbAgentes implements Serializable {
     public void respaldoDireccionAgente() {
         mbDireccion.setDireccion(new Direccion());
         this.flgDireccion = 2;
+        if (agente.getDireccionAgente().getCalle().equals("")) {
+            agente.setDireccionAgente(new Direccion());
+        }
         mbDireccion.setDireccion(this.agente.getDireccionAgente());
         if (actualizar == 1) {
             this.mbDireccion.buscarAsentamientos();
@@ -321,8 +325,12 @@ public class MbAgentes implements Serializable {
 
     public void direccionContirbuyente() {
         mbDireccion.setDireccion(mbContribuyente.getContribuyente().getDireccion());
-//        mbDireccion.setDireccion(agente.getContribuyente().getDireccion());
         flgDireccion = 1;
+    }
+
+    public void cancelarDireccion() {
+        mbDireccion.setDireccion(new Direccion());
+//        agente.setDireccionAgente(new Direccion());
     }
 
     public void validarDireccion() {
@@ -470,13 +478,18 @@ public class MbAgentes implements Serializable {
     }
 
     public void deseleccionar() {
+        seleccionListaAgente = null;
         if (this.getActualizar() == 1) {
             this.setActualizar(0);
         }
         buscadorContribuyentes = false;
-        seleccionListaAgente = null;
         mbContactos = new MbContactos();
         personaFisica = 0;
+        System.out.println("entro a deseleccionar");
+    }
+
+    public void testDeseleccionar() {
+        seleccionListaAgente = null;
     }
 
     public String getLblCancelar() {

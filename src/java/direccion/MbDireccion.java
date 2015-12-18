@@ -47,24 +47,24 @@ public class MbDireccion implements Serializable {
     public void limpiarDireccion() {
         direccion = new Direccion();
     }
-    
+
     public void actualizarDireccion() {
         boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
-        if(this.validarDireccion()) {
+        if (this.validarDireccion()) {
             this.actualizaDireccion();
             Mensajes.mensajeSucces("La dirección se grabó correctamente !!");
             ok = true;
         }
         context.addCallbackParam("okDireccion", ok);
     }
-    
+
     public int agregar(Direccion d) {
-        int idDireccion=0;
+        int idDireccion = 0;
         try {
             if (this.direccion.getIdDireccion() == 0) {
-                this.dao=new DAODirecciones();
-                idDireccion=this.dao.agregar(d);
+                this.dao = new DAODirecciones();
+                idDireccion = this.dao.agregar(d);
             } else {
                 Mensajes.mensajeError("La direccion no se puede agregar, ya tiene ** Id **");
             }
@@ -79,10 +79,10 @@ public class MbDireccion implements Serializable {
     public void grabar() {
         boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
-        if(this.valida(this.direccion)) {
+        if (this.valida(this.direccion)) {
             try {
                 if (this.direccion.getIdDireccion() != 0) {
-                    this.dao=new DAODirecciones();
+                    this.dao = new DAODirecciones();
                     this.dao.modificar(this.direccion);
                 }
                 this.actualizaDireccion();
@@ -96,16 +96,16 @@ public class MbDireccion implements Serializable {
         }
         context.addCallbackParam("okDireccion", ok);
     }
-    
+
     public boolean validarDireccion(Direccion d) {
         RequestContext context = RequestContext.getCurrentInstance();
         boolean ok = this.valida(d);
         context.addCallbackParam("okDireccion", ok);
         return ok;
     }
-    
+
     private boolean valida(Direccion d) {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
         if (d.getCalle().isEmpty()) {
             fMsg.setDetail("Se requiere la calle !!");
@@ -142,10 +142,10 @@ public class MbDireccion implements Serializable {
         context.addCallbackParam("okDireccion", ok);
         return ok;
     }
-    
+
     public void eliminar(int idDireccion) {
         try {
-            this.dao=new DAODirecciones();
+            this.dao = new DAODirecciones();
             this.dao.eliminar(idDireccion);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -158,19 +158,19 @@ public class MbDireccion implements Serializable {
         this.listaPaises = null;
         return this.llama + ".mantenimiento";
     }
-    
+
     public void mttoDireccion(String actualiza) {
         this.setEditarAsentamiento(true);
-        this.iconSearch="ui-icon-search";
-        this.iconSearchTitle="Buscar Colonias";
-        this.actualiza=actualiza;
+        this.iconSearch = "ui-icon-search";
+        this.iconSearchTitle = "Buscar Colonias";
+        this.actualiza = actualiza;
     }
-    
+
     public void mttoDireccionDlg(Direccion direccion, String actualiza) {
         this.setEditarAsentamiento(true);
-        this.iconSearch="ui-icon-search";
-        this.iconSearchTitle="Buscar Colonias";
-        this.actualiza=actualiza;
+        this.iconSearch = "ui-icon-search";
+        this.iconSearchTitle = "Buscar Colonias";
+        this.actualiza = actualiza;
         this.copiaDireccion(direccion);
         this.respaldo = direccion;
     }
@@ -220,12 +220,12 @@ public class MbDireccion implements Serializable {
     }
 
     public Direccion obtener(int idDireccion) {
-        Direccion dir=null;
+        Direccion dir = null;
         try {
-            if(idDireccion==0) {
-                dir=new Direccion();
+            if (idDireccion == 0) {
+                dir = new Direccion();
             } else {
-                this.dao=new DAODirecciones();
+                this.dao = new DAODirecciones();
                 dir = this.dao.obtener(idDireccion);
             }
         } catch (SQLException ex) {
@@ -235,11 +235,11 @@ public class MbDireccion implements Serializable {
         }
         return dir;
     }
-    
+
     private ArrayList<SelectItem> obtenerAsentamientos(String codigoPostal) throws NamingException, SQLException {
         ArrayList<SelectItem> asentamientos = new ArrayList<>();
 //        try {
-            Asentamiento a0 = new Asentamiento();
+        Asentamiento a0 = new Asentamiento();
 //            a0.setCodAsentamiento("0");
 //            a0.setCodigoPostal("");
 //            a0.setTipo("");
@@ -250,13 +250,13 @@ public class MbDireccion implements Serializable {
 //            a0.setMunicipio("");
 //            a0.setCiudad("");
 //            SelectItem cero = new SelectItem(a0, "Seleccione un asentamiento");
-            asentamientos.add(new SelectItem(a0, "Seleccione un asentamiento"));
+        asentamientos.add(new SelectItem(a0, "Seleccione un asentamiento"));
 
-            DAOAsentamiento daoAsenta = new DAOAsentamiento();
+        DAOAsentamiento daoAsenta = new DAOAsentamiento();
 //            Asentamiento[] aAsentamientos = daoAsenta.obtenerAsentamientos(codigoPostal);
-            for (Asentamiento a : daoAsenta.obtenerAsentamientos(codigoPostal)) {
-                asentamientos.add(new SelectItem(a, a.getTipo() + " " + a.getAsentamiento()));
-            }
+        for (Asentamiento a : daoAsenta.obtenerAsentamientos(codigoPostal)) {
+            asentamientos.add(new SelectItem(a, a.getTipo() + " " + a.getAsentamiento()));
+        }
 //        } catch (NamingException ex) {
 //            Mensajes.mensajeError(ex.getMessage());
 //        } catch (SQLException ex) {
@@ -270,16 +270,16 @@ public class MbDireccion implements Serializable {
         System.out.println("--------------------------------");
         System.out.println("entro a buscar el asentamiento");
         System.out.println("--------------------------------");
-        
+
         System.out.println(direccion.getCodigoPostal());
-        if(this.editarAsentamiento) {
+        if (this.editarAsentamiento) {
             String codigoPostal = this.direccion.getCodigoPostal();
             if (!codigoPostal.isEmpty() && this.direccion.getPais().getIdPais() == 1) {
                 try {
                     this.listaAsentamientos = obtenerAsentamientos(codigoPostal);
                     this.editarAsentamiento = false;
-                    this.iconSearch="ui-icon-pencil";
-                    this.iconSearchTitle="Editar Colonia";
+                    this.iconSearch = "ui-icon-pencil";
+                    this.iconSearchTitle = "Editar Colonia";
                 } catch (SQLException ex) {
                     Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
                 } catch (NamingException ex) {
@@ -287,9 +287,9 @@ public class MbDireccion implements Serializable {
                 }
             }
         } else {
-            this.editarAsentamiento=true;
-            this.iconSearch="ui-icon-search";
-            this.iconSearchTitle="Buscar Colonias";
+            this.editarAsentamiento = true;
+            this.iconSearch = "ui-icon-search";
+            this.iconSearchTitle = "Buscar Colonias";
         }
         editarAsentamiento = false;
     }
@@ -303,6 +303,7 @@ public class MbDireccion implements Serializable {
     }
 
     public void actualizaAsentamiento() {
+
         Asentamiento nuevo = this.direccion.getSelAsentamiento();
         String[] localidades = {"08", "15", "18", "20", "23", "24", "25", "26", "27", "28", "29", "32"};
 
@@ -335,8 +336,8 @@ public class MbDireccion implements Serializable {
             }
         }
         this.editarAsentamiento = true;
-        this.iconSearch="ui-icon-search";
-        this.iconSearchTitle="Buscar Colonias";
+        this.iconSearch = "ui-icon-search";
+        this.iconSearchTitle = "Buscar Colonias";
     }
 
     public void actualizaAsentamiento2() {
@@ -373,7 +374,7 @@ public class MbDireccion implements Serializable {
         }
         this.editarAsentamiento = true;
     }
-    
+
     public boolean isEditarAsentamiento() {
         return editarAsentamiento;
     }
@@ -416,7 +417,10 @@ public class MbDireccion implements Serializable {
     }
 
     public void cancelarDireccion() {
-        this.direccion = new Direccion();
+//        this.direccion = new Direccion();
+//        direccion.setMunicipio("0");
+        editarAsentamiento = true;
+//        selAsentamiento = new Asentamiento();
     }
 
     public void setListaPaises(ArrayList<SelectItem> listaPaises) {
