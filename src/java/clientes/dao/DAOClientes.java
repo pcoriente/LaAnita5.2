@@ -37,21 +37,22 @@ import usuarios.dominio.UsuarioSesion;
 public class DAOClientes {
 
     private DataSource ds;
-    private int idCedis;
+    int idUsuario, idCedis;
 
     public DAOClientes() throws NamingException {
         FacesContext context = FacesContext.getCurrentInstance();
         ExternalContext externalContext = context.getExternalContext();
         HttpSession httpSession = (HttpSession) externalContext.getSession(false);
         UsuarioSesion usuarioSesion = (UsuarioSesion) httpSession.getAttribute("usuarioSesion");
+        this.idUsuario = usuarioSesion.getUsuario().getId();
+        this.idCedis = usuarioSesion.getUsuario().getIdCedis();
 
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
-        this.idCedis = usuarioSesion.getUsuario().getIdCedis();
     }
 
     public ArrayList<TOCliente> obtenerClientesGrupo(int idGrupo) throws SQLException {
-        ArrayList<TOCliente> lstClientes = new ArrayList<TOCliente>();
+        ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
@@ -74,7 +75,7 @@ public class DAOClientes {
     }
 
     public ArrayList<TOCliente> lstClientes() throws SQLException {
-        ArrayList<TOCliente> lstClientes = new ArrayList<TOCliente>();
+        ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp , F.formato\n"
@@ -96,7 +97,7 @@ public class DAOClientes {
     }
 
     public ArrayList<TOCliente> obtenerClientesRfc(String rfc) throws SQLException {
-        ArrayList<TOCliente> lstClientes = new ArrayList<TOCliente>();
+        ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
@@ -119,17 +120,18 @@ public class DAOClientes {
     }
 
     public ArrayList<TOCliente> obtenerClientesCedis() throws SQLException {
-        ArrayList<TOCliente> lstClientes = new ArrayList<TOCliente>();
+        ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
-                + "FROM clientes C "
-                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte "
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente "
-                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc "
-                + "INNER JOIN clientesTiendas T ON T.idCliente=C.idCliente "
-                + "INNER JOIN agentes A ON A.idAgente=T.idAgente "
-                + "WHERE A.idCedis=" + this.idCedis
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+                + "FROM (SELECT DISTINCT T.idCliente\n"
+                + "	FROM clientesTiendas T\n"
+                + "	INNER JOIN agentes A ON A.idAgente=T.idAgente\n"
+                + "	WHERE A.idCedis=" + this.idCedis + ") I\n"
+                + "INNER JOIN clientes C ON C.idCliente=I.idCliente\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
+                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
                 + "ORDER BY C.idGrupoCte, Y.contribuyente";
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -240,24 +242,22 @@ public class DAOClientes {
         int idCliente = 0;
         String strSQL = "INSERT INTO clientes (idGrupoCte, idEsquema, idContribuyente, idDireccion, fechaAlta, diasCredito, limiteCredito, desctoComercial, diasBloqueo) "
                 + "VALUES (" + to.getIdGrupoCte() + ", 2, " + to.getIdContribuyente() + ", " + to.getIdDireccion() + ", GETDATE(), " + to.getDiasCredito() + ", " + to.getLimiteCredito() + ", " + to.getDesctoComercial() + ", " + to.getDiasBloqueo() + ")";
-        Connection cn = ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
-            st.executeUpdate("begin transaction");
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                st.executeUpdate(strSQL);
 
-            st.executeUpdate(strSQL);
-
-            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idCliente");
-            if (rs.next()) {
-                idCliente = rs.getInt("idCliente");
+                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idCliente");
+                if (rs.next()) {
+                    idCliente = rs.getInt("idCliente");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
             }
-            st.executeUpdate("commit transaction");
-        } catch (SQLException ex) {
-            st.executeUpdate("rollback transaction");
-            throw ex;
-        } finally {
-            st.close();
-            cn.close();
         }
         return idCliente;
     }
@@ -305,11 +305,10 @@ public class DAOClientes {
     public ClienteSEA[] obtenerClienteSEA() throws SQLException {
         ClienteSEA[] clis = null;
         Connection cn = ds.getConnection();
-        Statement sentencia = cn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        try {
+        try (Statement st = cn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             String strSQL = "SELECT * FROM Clientes ORDER BY nombre";
 
-            ResultSet rs = sentencia.executeQuery(strSQL);
+            ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 int i = 0;
                 rs.last();
@@ -321,7 +320,6 @@ public class DAOClientes {
                 }
             }
         } finally {
-            sentencia.close();
             cn.close();
         }
         return clis;
@@ -330,14 +328,12 @@ public class DAOClientes {
     public ClienteSEA obtenerClienteSEA(int cod_cli) throws SQLException {
         ClienteSEA dbs = null;
         Connection cn = this.ds.getConnection();
-        Statement st = cn.createStatement();
-        try {
+        try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery("SELECT cod_cli,nombre FROM Clientes WHERE cod_cli=" + cod_cli);
             if (rs.next()) {
                 dbs = construirSEA(rs);
             }
         } finally {
-            st.close();
             cn.close();
         }
         return dbs;

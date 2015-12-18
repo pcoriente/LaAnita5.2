@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Loteo de Traspasos</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgsTraspasos" autoUpdate="false" showDetail="true" closable="true" />
+            <p:panel id="panelTraspaso" header="Lista de Traspasos" style="float: left"
+                     rendered="#{not empty mBTraspasoAlmacen.obtenerAcciones(20) and not mBTraspasoAlmacen.modoEdicion}" >
+                <p:panelGrid style="width: 910px;" >
+                    <f:facet name="header" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="almacen" value="#{mBTraspasoAlmacen.almacen}" >
+                                    <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                    <f:selectItems value="#{mBTraspasoAlmacen.listaAlmacenes}" />
+                                    <p:ajax event="change" listener="#{mBTraspasoAlmacen.obtenerTraspasosAlmacen()}" 
+                                            update=":main:msgsTraspasos fechaInicial listaDeTraspasos" />
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column >
+                                <p:selectBooleanCheckbox id="chkTodosLosTraspasos" itemLabel="PENDIENTES" value="#{mBTraspasoAlmacen.pendientes}" >
+                                    <p:ajax listener="#{mBTraspasoAlmacen.obtenerTraspasosAlmacen()}" 
+                                            update=":main:msgsTraspasos fechaInicial listaDeTraspasos" />
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="fechaInicial" value="#{mBTraspasoAlmacen.fechaInicial}"
+                                            readonlyInput="true" disabled="#{mBTraspasoAlmacen.almacen.idAlmacen==0 || mBTraspasoAlmacen.pendientes}"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" listener="#{mBTraspasoAlmacen.obtenerTraspasosAlmacen()}" 
+                                            update=":main:msgsTraspasos :main:listaDeTraspasos" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column colspan="5" style="text-align: right;" >
+                                <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
+                                                 ajax="false" action="#{mBTraspasoAlmacen.terminar()}" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+                <p:dataTable id="listaDeTraspasos" value="#{mBTraspasoAlmacen.traspasos}" 
+                             var="traspaso" rowKey="#{traspaso.idMovto}" selectionMode="single" 
+                             style="border:solid 1px; width: 910px;" emptyMessage="No existen traspasos" >
+                    <p:ajax event="rowSelect" listener="#{mBTraspasoAlmacen.obtenerDetalleAlmacen}" 
+                            update=":main:msgsTraspasos :main:traspaso :main:detalleTraspaso" 
+                            oncomplete="abrirTraspaso(xhr, status, args);" />
+
+                    <p:column headerText="SOLICITUD" style="width: 60px;" >
+                        <h:outputText value="#{traspaso.solicitudFolio}" />
+                    </p:column>
+                    <p:column headerText="CEDIS" style="width: 150px;" >
+                        <h:outputText value="#{traspaso.almacenDestino.cedis}" />
+                    </p:column>
+                    <p:column headerText="ALMACEN" >
+                        <h:outputText value="#{traspaso.almacenDestino.toString()}" />
+                    </p:column>
+                    <p:column headerText="FECHA" style="width: 130px;" >
+                        <h:outputText value="#{traspaso.solicitudFecha}" >
+                            <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="ESTATUS" style="width: 60px; text-align: right;" >
+                        <h:outputText value="#{traspaso.estatus}" />
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+            <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 710px;" modal="true" >
+                <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtCantOriginal" value="Cant.Original :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtCantOriginal" value="#{mBTraspasoAlmacen.loteOrigen.cantidad}" size="14" readonly="true" >
+                                <f:convertNumber pattern="###,##0.0000" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <pe:inputNumber id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}" style="width: 120px;" 
+                                            maxlength="14" decimalPlaces="4" emptyValue="0" 
+                                            minValue="0" maxValue="#{mBTraspasoAlmacen.loteOrigen.cantidad}" >
+                                <p:ajax event="change" process="@this" update=":main:msgsSimilares" />
+                            </pe:inputNumber>
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="detalleSimilares" value="#{mBTraspasoAlmacen.empaqueLotes}" 
+                             var="similar" scrollable="true" scrollHeight="200" style="width: 710px;"
+                             rowKey="#{similar.lote}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteDestino}" >
+                    <p:ajax event = "rowSelect" update="loteSeleccion" />
+
+                    <f:facet name="header">Seleccione un similar</f:facet>
+
+                    <p:column headerText="SKU" style="width: 50px;" >
+                        <h:outputText value="#{similar.producto.cod_pro}" />
+                    </p:column>
+
+                    <p:column headerText="Producto" style="width: 420px;" >
+                        <h:outputText value="#{similar.producto.toString()}" />
+                    </p:column>
+
+                    <p:column headerText="Lote" style="width: 70px;" >
+                        <h:outputText value="#{similar.lote}" />
+                    </p:column>
+
+                    <p:column headerText="Dsiponibles" style="width: 70px;" >
+                        <h:outputText value="#{similar.disponibles}" />
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <p:commandButton id="loteSeleccion" value="Seleccionar" 
+                                         disabled="#{mBTraspasoAlmacen.loteDestino==null || mBTraspasoAlmacen.cantTraspasar==0}"
+                                         process="@this" actionListener="#{mBTraspasoAlmacen.actualizaTraspasoLote()}"
+                                         update=":main:msgsSimilares :main:detalleTraspaso" 
+                                         oncomplete="cerrarSimilares(xhr, status, args);" />
+                    </f:facet>
+                </p:dataTable>
+            </p:dialog>
+            <p:dialog header="Captura del Traspaso" widgetVar="traspasoDlg" resizable="false" modal="true" >
+                <p:ajax event="close" listener="#{mBTraspasoAlmacen.liberarTraspaso()}" />
+                <p:messages id="msgsTraspaso" autoUpdate="false" showDetail="true" closable="true" />
+                <p:panelGrid id="traspaso" style="width: 910px;" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacen}" readonly="true" size="52" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacenDestino.cedis}" readonly="true" size="52" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacenDestino.toString()}" readonly="true" size="52" />
+                        </p:column>
+                        <p:column style="text-align: right;" >
+                            <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar traspaso" 
+                                             disabled="#{mBTraspasoAlmacen.traspaso.estatus!=5 or !mBTraspasoAlmacen.locked}"
+                                             process="@this" actionListener="#{mBTraspasoAlmacen.cerrarAlmacen()}" 
+                                             update="main" />
+                            <p:commandButton icon="ui-icon-print" title="Imprimir Lotes del traspaso"
+                                             disabled="#{mBTraspasoAlmacen.traspaso.estatus!=7}"
+                                             ajax="false" immediate="true" action="#{mBTraspasoAlmacen.imprimir()}" />
+                            <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                             process="@this" actionListener="#{mBTraspasoAlmacen.salir()}" 
+                                             update="main" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="detalleTraspaso" value="#{mBTraspasoAlmacen.detalleAlmacen}"
+                             var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 910px;" 
+                             rowKey="#{prod.producto}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteOrigen}"
+                             emptyMessage="No existen productos" >
+                    <p:ajax event = "rowSelect" update="seleccion" />
+
+                    <f:facet name="header" >Detalle del traspaso</f:facet>
+                    <p:column headerText="Codigo" style="width: 50px;" >
+                        <h:outputText value="#{prod.producto.cod_pro}" />
+                    </p:column>
+                    <p:column headerText="Producto" >
+                        <h:outputText value="#{prod.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="Lote" style="width: 80px; text-align: right;" >
+                        <h:outputText value="#{prod.lote}" />
+                    </p:column>
+                    <p:column headerText="Cantidad" style="width: 100px; text-align: right;" >
+                        <h:outputText value="#{prod.cantidad}" >
+                            <f:convertNumber pattern="###,##0.0000" />
+                        </h:outputText>
+                    </p:column>
+
+                    <f:facet name="footer">
+                        <p:commandButton id="seleccion" value="CAMBIAR DE LOTE" title="Cambiar una cantidad parcial o total"
+                                         disabled="#{mBTraspasoAlmacen.loteOrigen==null or mBTraspasoAlmacen.traspaso.estatus!=5 or !mBTraspasoAlmacen.locked}" 
+                                         process="@this" actionListener="#{mBTraspasoAlmacen.inicializaTraspasoLote()}" 
+                                         update=":main:msgsTraspaso :main:panelSimilares :main:detalleSimilares" 
+                                         oncomplete="abrirSimilares(xhr, status, args);" />
+                    </f:facet>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <script type="text/javascript" >
+            function cerrarSimilares(xhr, status, args) {
+                if (!(args.validationFailed || !args.okLote)) {
+                    PF('SimilaresDlg').hide();
+                }
+            }
+            function abrirSimilares(xhr, status, args) {
+                if (!(args.validationFailed || !args.okLote)) {
+                    PF('SimilaresDlg').show();
+                }
+            }
+            function cerrarTraspaso(xhr, status, args) {
+                if (!(args.validationFailed || !args.okTraspaso)) {
+                    PF('traspasoDlg').hide();
+                }
+            }
+            function abrirTraspaso(xhr, status, args) {
+                if (!(args.validationFailed || !args.okTraspaso)) {
+                    PF('traspasoDlg').show();
+                }
+            }
+        </script>
+    </body>
+</html>

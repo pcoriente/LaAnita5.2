@@ -25,10 +25,10 @@ import entradas.to.TOEntradaProducto;
 import movimientos.to.TOLote;
 import movimientos.to.TOMovimientoAlmacenProducto;
 import movimientos.to1.TOMovimientoAlmacenProducto1;
-import mvEntradas.TOEntradaOficinaProducto;
+import mvEntradas.to.TOEntradaOficinaProducto;
 import pedidos.to.TOPedido;
 import pedidos.to.TOPedidoProducto;
-import salidas.TOSalidaOficinaProducto;
+import salidas.to.TOSalidaOficinaProducto;
 import usuarios.dominio.UsuarioSesion;
 
 /**

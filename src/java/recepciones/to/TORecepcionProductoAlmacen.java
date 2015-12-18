@@ -9,7 +9,7 @@ import movimientos.to.TOProductoAlmacen;
 public class TORecepcionProductoAlmacen extends TOProductoAlmacen {
 //    private double cantSolicitada;
     private double cantTraspasada;
-//    private double separados;
+    private double separados;
     
     public TORecepcionProductoAlmacen() {
         super();
@@ -31,11 +31,11 @@ public class TORecepcionProductoAlmacen extends TOProductoAlmacen {
         this.cantTraspasada = cantTraspasada;
     }
 
-//    public double getSeparados() {
-//        return separados;
-//    }
-//
-//    public void setSeparados(double separados) {
-//        this.separados = separados;
-//    }
+    public double getSeparados() {
+        return separados;
+    }
+
+    public void setSeparados(double separados) {
+        this.separados = separados;
+    }
 }

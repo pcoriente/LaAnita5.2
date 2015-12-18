@@ -103,6 +103,45 @@ public class DAOMovimientosOficina {
             }
         }
     }
+    
+    public ArrayList<TOProductoOficina> obtenerDetalle(TOMovimientoOficina toMov) throws SQLException {
+        int propietario = 0;
+        ArrayList<TOProductoOficina> productos = new ArrayList<>();
+        String strSQL = "SELECT * FROM movimientosDetalle WHERE idMovto=" + toMov.getIdMovto();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    productos.add(movimientos.Movimientos.construirProductoOficina(rs));
+                }
+                strSQL = "SELECT propietario, estatus FROM movimientos WHERE idMovto=" + toMov.getIdMovto();
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    toMov.setEstatus(rs.getInt("estatus"));
+                    propietario = rs.getInt("propietario");
+                    if (propietario == 0) {
+                        strSQL = "UPDATE movimientos SET propietario=" + this.idUsuario + "\n"
+                                + "WHERE idMovto=" + toMov.getIdMovto();
+                        st.executeUpdate(strSQL);
+                        toMov.setPropietario(this.idUsuario);
+                    } else {
+                        toMov.setPropietario(propietario);
+                    }
+                    toMov.setIdUsuario(this.idUsuario);
+                } else {
+                    throw new SQLException("No se encontro el movimiento !!!");
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return productos;
+    }
 
     public ArrayList<TOProductoOficina> obtenerDetalle(int idMovto) throws SQLException {
         ArrayList<TOProductoOficina> productos = new ArrayList<>();

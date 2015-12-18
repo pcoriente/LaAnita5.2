@@ -13,9 +13,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.ProductoAlmacen;
 import movimientos.to.TOMovimientoAlmacen;
-import movimientos.to.TOProductoAlmacen;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -45,7 +43,7 @@ public class DAOComprasAlmacen {
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 strSQL = "SELECT S.cantOrdenada+S.cantOrdenadaSinCargo AS cantOrdenada\n"
-                        + "     , M.folio AS idMovtoAlmacen, D.idEmpaque, D.lote, D.cantidad\n"
+                        + "     , M.folio AS idMovtoAlmacen, D.idEmpaque, D.lote, D.cantidad, 0 AS disponibles\n"
                         + "FROM movimientosDetalleAlmacen D\n"
                         + "INNER JOIN movimientosAlmacen M on M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                         + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
@@ -58,31 +56,6 @@ public class DAOComprasAlmacen {
             }
         }
         return detalle;
-    }
-
-    public void eliminarProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
-        String strSQL = "";
-        try (Connection cn = this.ds.getConnection()) {
-            cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                strSQL = "UPDATE S\n"
-                        + "SET separadosAlmacen=S.separadosAlmacen-D.cantidad\n"
-                        + "FROM movimientosDetalleAlmacen D\n"
-                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                        + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto;
-                st.executeUpdate(strSQL);
-
-                movimientos.Movimientos.eliminaProductoAlmacen(cn, idMovtoAlmacen, idProducto);
-
-                cn.commit();
-            } catch (SQLException ex) {
-                cn.rollback();
-                throw ex;
-            } finally {
-                cn.setAutoCommit(true);
-            }
-        }
     }
 
     private void validarExistenciaAlmacen(Connection cn, int idMovtoAlmacen) throws SQLException {
@@ -293,6 +266,31 @@ public class DAOComprasAlmacen {
             }
         }
     }
+    
+    public void eliminarProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
+        String strSQL = "";
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE S\n"
+                        + "SET separadosAlmacen=S.separadosAlmacen-D.cantidad\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "INNER JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+
+                movimientos.Movimientos.eliminaProductoAlmacen(cn, idMovtoAlmacen, idProducto);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
 
     public void liberar(int idMovtoAlmacen, int idEmpaque, String lote, double cantLiberar, int idOrdenCompra) throws SQLException {
         String strSQL = "";
@@ -327,16 +325,6 @@ public class DAOComprasAlmacen {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 if (idOrdenCompra != 0) {
-//                    strSQL = "SELECT cantOrdenada + cantOrdenadaSinCargo - surtidosAlmacen - separadosAlmacen AS disponibles\n"
-//                            + "FROM ordenCompraSurtido \n"
-//                            + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
-//                    ResultSet rs = st.executeQuery(strSQL);
-//                    if (rs.next()) {
-//                        disponibles = rs.getDouble("disponibles");
-//                    }
-//                    if (disponibles < cantSeparar) {
-//                        cantSeparar = disponibles;
-//                    }
                     strSQL = "UPDATE ordenCompraSurtido\n"
                             + "SET separadosAlmacen=separadosAlmacen+" + cantSeparar + "\n"
                             + "WHERE idOrdenCompra=" + idOrdenCompra + " AND idEmpaque=" + idEmpaque;
@@ -443,10 +431,7 @@ public class DAOComprasAlmacen {
     private TOProductoCompraAlmacen construirProductoCompra(ResultSet rs) throws SQLException {
         TOProductoCompraAlmacen toProd = new TOProductoCompraAlmacen();
         toProd.setCantOrdenada(rs.getDouble("cantOrdenada"));
-        toProd.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
-        toProd.setIdProducto(rs.getInt("idEmpaque"));
-        toProd.setLote(rs.getString("lote"));
-        toProd.setCantidad(rs.getDouble("cantidad"));
+        movimientos.Movimientos.construirProductoAlmacen(rs, toProd);
         return toProd;
     }
 
@@ -454,7 +439,8 @@ public class DAOComprasAlmacen {
         String strSQL = "";
         ArrayList<TOProductoCompraAlmacen> detalle = new ArrayList<>();
         try (Statement st = cn.createStatement()) {
-            strSQL = "SELECT D.*, ISNULL(S.cantOrdenada, 0)+ISNULL(S.cantOrdenadaSinCargo, 0) AS cantOrdenada\n"
+            strSQL = "SELECT D.*, 0 AS disponibles\n"
+                    + "     , ISNULL(S.cantOrdenada, 0)+ISNULL(S.cantOrdenadaSinCargo, 0) AS cantOrdenada\n"
                     + "FROM movimientosDetalleAlmacen D\n"
                     + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                     + "LEFT JOIN ordenCompraSurtido S ON S.idOrdenCompra=M.referencia AND S.idEmpaque=D.idEmpaque\n"
@@ -474,6 +460,12 @@ public class DAOComprasAlmacen {
         }
         return detalle;
     }
+    
+//    public void agregarProductoAlmacen(TOProductoAlmacen toProd) throws SQLException {
+//        try (Connection cn = this.ds.getConnection()) {
+//            movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
+//        }
+//    }
 
 //    public ArrayList<TOProductoCompraAlmacen> cargarCompraDetalle(int idMovtoAlmacen) throws SQLException {
 //        ArrayList<TOProductoCompraAlmacen> detalle = new ArrayList<>();
@@ -498,27 +490,22 @@ public class DAOComprasAlmacen {
 //        lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
 //        return lote;
 //    }
-    public ProductoAlmacen obtenerLoteHoy(int dias) throws SQLException {
-        ProductoAlmacen lote = null;
-        String strSQL = "SELECT 0 AS idMovtoAlmacen, 0 AS idEmpaque, lote, 0 AS cantidad, DATEADD(DAY, " + dias + ", fecha) AS fechaCaducidad\n"
-                + "FROM lotes\n"
-                + "WHERE fecha=CONVERT(DATE, GETDATE())";
-        try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    lote = movimientos.Movimientos.construirLote(rs);
-                } else {
-                    throw new SQLException("No hay lote creado con la fecha de hoy !!!");
-                }
-            }
-        }
-        return lote;
-    }
-
-    public void agregarProductoAlmacen(TOProductoAlmacen toProd) throws SQLException {
-        try (Connection cn = this.ds.getConnection()) {
-            movimientos.Movimientos.agregaProductoAlmacen(cn, toProd);
-        }
-    }
+//    
+//    public TOProductoAlmacen obtenerLoteHoy(int dias) throws SQLException {
+//        TOProductoAlmacen lote = null;
+//        String strSQL = "SELECT 0 AS idMovtoAlmacen, 0 AS idEmpaque, lote, 0 AS cantidad, DATEADD(DAY, " + dias + ", fecha) AS fechaCaducidad\n"
+//                + "FROM lotes\n"
+//                + "WHERE fecha=CONVERT(DATE, GETDATE())";
+//        try (Connection cn = this.ds.getConnection()) {
+//            try (Statement st = cn.createStatement()) {
+//                ResultSet rs = st.executeQuery(strSQL);
+//                if (rs.next()) {
+//                    lote = movimientos.Movimientos.construirLote(rs);
+//                } else {
+//                    throw new SQLException("No hay lote creado con la fecha de hoy !!!");
+//                }
+//            }
+//        }
+//        return lote;
+//    }
 }

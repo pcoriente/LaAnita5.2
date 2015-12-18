@@ -129,7 +129,7 @@ public class DAOContribuyentes {
 
     public void actualizarContribuyente(Contribuyente c) throws SQLException {
         String strSQL = "UPDATE contribuyentes "
-                + "SET contribuyente='" + c.getContribuyente() + "'"
+                + "SET contribuyente='" + c.getContribuyente() + "' "
                 + "WHERE idContribuyente = " + c.getIdContribuyente();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {

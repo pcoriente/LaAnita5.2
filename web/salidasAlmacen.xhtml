@@ -133,26 +133,46 @@
                         <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
                         <p:ajax event="close" update=":main:listaLotes" />
                         <p:panelGrid id="datosLote" >
-                            <p:row >
+                            <p:row rendered="false" >
                                 <p:column >
                                     <h:outputText value="LOTE :" />
                                 </p:column>
                                 <p:column style="text-align: left" >
                                     <p:inputText id="txtLote" value="#{mbSalidasAlmacen.lote.lote}" maxlength="10" size="10" />
                                 </p:column>
-                                <p:column colspan="2" >
+                                <p:column >
                                     <p:commandButton id="btnAgregarLote" icon="ui-icon-disk" title="Nuevo lote" 
                                                      process="@this txtLote" actionListener="#{mbSalidasAlmacen.agregarLote()}" 
                                                      update=":main:msgs2 :main:listaLotes" 
                                                      oncomplete="handleCerrarAgregarLote(xhr, status, args);" />
                                 </p:column>
                             </p:row>
+                            <p:row >
+                                <p:column colspan="3" >
+                                    <p:dataTable id="listaLotesSin" widgetVar="listaLotesSin" 
+                                                 value="#{mbSalidasAlmacen.lotes}" style="border: solid 1px" 
+                                                 var="lote" rowKey="#{lote.lote}" selectionMode="single" selection="#{mbSalidasAlmacen.lote}"
+                                                 emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="100" >
+                                        <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasAlmacen.agregarLote()}" 
+                                                update=":main:msgs2" oncomplete="handleCerrarAgregarLote(xhr, status, args);" />
+                                        
+                                        <p:column headerText="LOTE" style="width: 80px;" >
+                                            <h:outputText value="#{lote.lote}" />
+                                        </p:column>
+                                        <p:column headerText="CADUCIDAD" style="width: 80px;" >
+                                            <h:outputText value="#{lote.fechaCaducidad}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy" />
+                                            </h:outputText>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:column>
+                            </p:row>
                         </p:panelGrid>
                     </p:dialog>
                     <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="350" >
                         <p:messages id="msgs1" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
-                        <p:ajax event="close" update=":main:detalleSalida"  />
-                        
+                        <p:ajax event="close" update=":main:detalleSalida" />
+
                         <p:dataTable id="listaLotes" widgetVar="listaLotes" 
                                      value="#{mbSalidasAlmacen.producto.lotes}" style="border: solid 1px" 
                                      var="lote" rowKey="#{lote.lote}" editable="true" editMode="cell"
@@ -193,10 +213,10 @@
                                                      disabled="#{mbSalidasAlmacen.salida.estatus!=0}" 
                                                      process="@this" actionListener="#{mbSalidasAlmacen.eliminarProducto()}" 
                                                      update=":main:detalleSalida" oncomplete="PF('editarLotesDlg').hide();" />
-                                    <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
+                                    <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Agregar lote"
                                                      disabled="#{mbSalidasAlmacen.salida.estatus!=0}"
                                                      process="@this" actionListener="#{mbSalidasAlmacen.nuevoLote()}" 
-                                                     update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
+                                                     update=":main:listaLotes :main:listaLotesSin" oncomplete="PF('agregarLoteDlg').show();" />
                                 </p:column>
                                 <p:column style="text-align: right; width: 100px;" >
                                     <h:outputText value="Total :" />
@@ -217,7 +237,7 @@
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasAlmacen.obtenerDetalle}" 
                                     update=":main" oncomplete="PF('pendientesDlg').hide();" />
-                            
+
                             <p:column headerText="ALMACEN" style="width: 300px;" >
                                 <h:outputText value="#{salida.almacen}" />
                             </p:column>

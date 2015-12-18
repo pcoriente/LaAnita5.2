@@ -21,16 +21,31 @@
                         <p:panelGrid id="encabezadoRecepcion" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="ALMACEN QUE RECIBE :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.almacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.almacen}" style="width: 400px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbRecepcion.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbRecepcion.obtenerRecepciones()}" 
                                                 update=":main:msgs listaRecepciones" />
                                     </p:selectOneMenu>
                                 </p:column>
+                                <p:column >
+                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbRecepcion.pendientes}"
+                                                         itemLabel="PENDIENTES" style="color: black; font-weight: bold; font-size: small;" >
+                                    <p:ajax listener="#{mbRecepcion.obtenerRecepciones()}" 
+                                            update=":main:msgs fechaInicial listaRecepciones" />
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="fechaInicial" value="#{mbRecepcion.fechaInicial}"
+                                            readonlyInput="true" disabled="#{mbRecepcion.almacen.idAlmacen==0 || mbRecepcion.pendientes}"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" listener="#{mbRecepcion.obtenerRecepciones()}" 
+                                            update=":main:msgs listaRecepciones" />
+                                </p:calendar>
+                            </p:column>
                                 <p:column >
                                     <p:commandButton icon="ui-icon-home" title="Salir" 
                                                      action="#{mbRecepcion.terminar()}" ajax="false" />
@@ -54,7 +69,7 @@
                             <p:column headerText="ALMACEN" >
                                 <h:outputText value="#{recepcion.almacenOrigen.almacen}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 120px;" >
+                            <p:column headerText="FECHA" style="width: 130px;" >
                                 <h:outputText value="#{recepcion.traspasoFecha}" >
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
@@ -89,11 +104,11 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar envio"
-                                                     disabled="#{mbRecepcion.recepcion.estatus!=4}"
+                                                     disabled="#{mbRecepcion.recepcion.estatus!=5 or !mbRecepcion.locked}"
                                                      process="@this" actionListener="#{mbRecepcion.grabar()}" 
                                                      update="@this main :main:msgs" />
                                     <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
-                                                     disabled="#{mbRecepcion.recepcion.estatus==4}"
+                                                     disabled="#{mbRecepcion.recepcion.estatus==5}"
                                                      ajax="false" immediate="true" action="#{mbRecepcion.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbRecepcion.salir()}" update="main" />
@@ -146,7 +161,7 @@
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{lte.cantidad}" readonly="#{mbRecepcion.recepcion.estatus!=4}" >
+                                        <p:inputText value="#{lte.cantidad}" readonly="#{mbRecepcion.recepcion.estatus!=5 or !mbRecepcion.locked}" >
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <p:ajax event="change" listener="#{mbRecepcion.gestionar()}" 

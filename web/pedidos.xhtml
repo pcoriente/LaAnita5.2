@@ -31,26 +31,22 @@
                                                 update=":main:msgsPedidos chkTodosLosPedios fechaInicial btnNuevoPedido listaDePedidos" />
                                     </p:selectOneMenu>
                                 </p:column>
-                                <p:column style="text-align: right;" >
-                                    <h:outputLabel for="chkTodosLosPedios" value="PENDIENTES :" style="font-weight: bold; color: black;"
-                                                   title="Ver a la fecha indicada, los pendientes o los cerrados" />
-                                </p:column>
                                 <p:column >
-                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbPedidos.pendientes}" 
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbPedidos.pendientes}" 
                                                              disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}" >
                                         <p:ajax listener="#{mbPedidos.obtenerPedidos()}" 
-                                                update=":main:msgsPedidos listaDePedidos" />
+                                                update=":main:msgsPedidos fechaInicial listaDePedidos" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column >
                                     <p:calendar id="fechaInicial" value="#{mbPedidos.fechaInicial}" 
-                                                readonlyInput="true" disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                readonlyInput="true" disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0 || mbPedidos.pendientes}"
                                                 locale="es" navigator="true" pattern="dd/MM/yyyy" >
                                         <p:ajax event="dateSelect" process="@this" listener="#{mbPedidos.obtenerPedidos()}" 
                                                 update=":main:msgsPedidos listaDePedidos" />
                                     </p:calendar>
                                 </p:column>
-                                <p:column colspan="5" style="text-align: right;" >
+                                <p:column style="text-align: right;" >
                                     <p:commandButton id="btnNuevoPedido" icon="ui-icon-document" title="Nuevo Pedido" 
                                                      disabled="#{mbPedidos.mbAlmacenes.toAlmacen.idAlmacen==0}"
                                                      process="@this" actionListener="#{mbPedidos.nuevoPedido()}" 
@@ -412,29 +408,26 @@
                     <p:messages id="msgsNuevoPedido" autoUpdate="false" showDetail="true" closable="true" />
                     <p:panelGrid id="nuevoPedido" >
                         <p:row >
-                            <p:column style="width: 70px;" >
-                                <h:outputLabel for="grupo" value="GRUPO :" style="font-weight: bold; color: black;" />
+                            <p:column >
+                                <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="grupo" value="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado}" style="width: 340px;" 
-                                                 disabled="#{mbPedidos.mbFormatos.formatoSeleccion.idFormato!=0}" >
-                                    <f:converter converterId="converters.ClientesGrupos" />
-                                    <f:selectItems value="#{mbPedidos.mbGrupos.itemsClientesGrupos}" />
-                                    <p:ajax event="change" listener="#{mbPedidos.cambioDeGrupo()}" 
-                                            update=":main:msgsNuevoPedido formato listaTiendas btnCrearPedido" />
+                                <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}" >
+                                    <f:converter converterId="converters.miniCliente" />
+                                    <f:selectItems value="#{mbPedidos.mbClientes.listaClientes}" />
+                                    <p:ajax event="change" listener="#{mbPedidos.cambioDeCliente()}" 
+                                            update=":main:msgsNuevoPedido listaTiendas btnCrearPedido" />
                                 </p:selectOneMenu>
                             </p:column>
-                            <p:column style="width: 85px;" >
-                                <h:outputLabel for="formato" value="FORMATO :" style="font-weight: bold; color: black;" />
+                            <p:column >
+                                <h:outputLabel for="cboMoneda" value="MONEDA :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="formato" value="#{mbPedidos.mbFormatos.formatoSeleccion}" style="width: 330px;"
-                                                 disabled="#{mbPedidos.mbGrupos.clienteGrupoSeleccionado.idGrupoCte==0}" >
-                                    <f:converter converterId="converter.formatos" />
-                                    <f:selectItems value="#{mbPedidos.mbFormatos.lstFormatos}" />
-                                    <p:ajax event="change" 
-                                            listener="#{mbPedidos.cambioDeFormato()}" 
-                                            update=":main:msgsNuevoPedido grupo listaTiendas btnCrearPedido" />
+                                <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbComprobantes.mbMonedas.seleccionMoneda}"
+                                                 style="width: 240px;" >
+                                    <f:converter converterId="converters.Moneda" />
+                                    <f:selectItems value="#{mbPedidos.mbComprobantes.mbMonedas.listaMonedas}" />
+                                    <p:ajax event="change" process="@this" />
                                 </p:selectOneMenu>
                             </p:column>
                         </p:row>
@@ -446,10 +439,6 @@
                                              style="border:solid 1px; width: 910px;" emptyMessage="No existen tiendas" >
                                     <p:ajax event = "rowSelect" update=":main:btnCrearPedido" />
 
-                                    <p:column headerText="CLIENTE" style="width: 250px;" >
-                                        <h:outputText value="#{tienda.contribuyente}" />
-                                    </p:column>
-
                                     <p:column headerText="TIENDA" style="width: 250px;" >
                                         <h:outputText value="#{tienda.toString()}" />
                                     </p:column>
@@ -459,19 +448,6 @@
                                     </p:column>
 
                                 </p:dataTable>
-                            </p:column>
-                        </p:row>
-                        <p:row >
-                            <p:column >
-                                <h:outputLabel for="cboMoneda" value="MONEDA :" style="font-weight: bold; color: black;" />
-                            </p:column>
-                            <p:column colspan="3" >
-                                <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbComprobantes.mbMonedas.seleccionMoneda}"
-                                                 style="width: 240px;" >
-                                    <f:converter converterId="converters.Moneda" />
-                                    <f:selectItems value="#{mbPedidos.mbComprobantes.mbMonedas.listaMonedas}" />
-                                    <p:ajax event="change" process="@this" />
-                                </p:selectOneMenu>
                             </p:column>
                         </p:row>
                         <f:facet name="footer" >
@@ -533,7 +509,7 @@
                                 <f:convertNumber pattern="##,###,##0.000" />
                             </h:outputText>
                         </p:column>
-                        
+
                         <p:column headerText="Sin Cargo" >
                             <h:outputText value="#{similar.cantSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />

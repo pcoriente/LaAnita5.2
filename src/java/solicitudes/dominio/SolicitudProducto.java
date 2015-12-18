@@ -8,7 +8,7 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class SolicitudProducto {
-    private int idMovto;
+    private int idSolicitud;
     private Producto producto;
     private double cantSolicitada;
     private double separados;
@@ -48,12 +48,12 @@ public class SolicitudProducto {
         return true;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
     public Producto getProducto() {

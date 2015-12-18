@@ -151,8 +151,8 @@ public class MbComprobantes implements Serializable {
         try {
             if (this.comprobante.getNumero().equals("")) {
                 Mensajes.mensajeAlert("Se requiere el numero del comprobante");
-            } else if (this.comprobante.getMoneda().getIdMoneda() == 0) {
-                Mensajes.mensajeAlert("Se requiere una moneda !!!");
+//            } else if (this.comprobante.getMoneda().getIdMoneda() == 0) {
+//                Mensajes.mensajeAlert("Se requiere una moneda !!!");
             } else {
                 this.dao = new DAOComprobantes();
 //                TOComprobante to = this.convierte(this.comprobante);
@@ -229,7 +229,11 @@ public class MbComprobantes implements Serializable {
         c.setSerie(to.getSerie());
         c.setNumero(to.getNumero());
         c.setFechaFactura(to.getFechaFactura());
-        c.setMoneda(this.mbMonedas.obtenerMoneda(to.getIdMoneda()));
+        if(to.getIdMoneda()!=0) {
+//            c.setMoneda(this.mbMonedas.obtenerMonedaCero());
+//        } else {
+            c.setMoneda(this.mbMonedas.obtenerMoneda(to.getIdMoneda()));
+        }
         c.setIdUsuario(to.getIdUsuario());
         c.setPropietario(to.getPropietario());
         c.setCerradoOficina(to.isCerradoOficina());

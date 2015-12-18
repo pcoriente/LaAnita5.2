@@ -4,7 +4,6 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
 import comprobantes.MbComprobantes;
-import entradas.dao.DAOMovimientos1;
 import formatos.MbFormatos;
 import impuestos.dominio.ImpuestosProducto;
 import javax.inject.Named;
@@ -14,24 +13,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import mbMenuClientesGrupos.MbClientesGrupos;
-import movimientos.dao.DAOMovimientosOld;
-import movimientos.to.TOLote;
-import movimientos.to.TOMovimientoAlmacenProducto;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
-import producto2.dominio.Producto;
 import tiendas.MbMiniTiendas;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 import ventas.dao.DAOVentas;
 import ventas.dominio.Venta;
-import ventas.dominio.VentaAlmacenProducto;
 import ventas.dominio.VentaProducto;
 import ventas.to.TOVenta;
 import ventas.to.TOVentaProducto;
@@ -61,21 +53,19 @@ public class MbVentas implements Serializable {
     private MbProductosBuscar mbBuscar;
     @ManagedProperty(value = "#{mbComprobantes}")
     private MbComprobantes mbComprobantes;
-    private DAOMovimientos1 dao1;
-    private DAOMovimientosOld daoMv;
     private DAOVentas dao;
     private ArrayList<Venta> ventas, pedidos;
     private Venta venta;
     private boolean ventaAsegurada;
     private ArrayList<VentaProducto> detalle, similares;
-    private VentaProducto producto, respaldo, similar;
+    private VentaProducto producto, similar;
     private ArrayList<ImpuestosProducto> impuestosTotales;
-    private ArrayList<VentaAlmacenProducto> almacenDetalle, empaqueLotes;
-    private VentaAlmacenProducto loteOrigen, loteDestino;
+//    private ArrayList<VentaProductoAlmacen> almacenDetalle, empaqueLotes;
+//    private VentaProductoAlmacen loteOrigen, loteDestino;
+    private double cantTraspasar;
     private boolean pendientes;
     private Date fechaInicial;
     private TimeZone zonaHoraria = TimeZone.getDefault();
-    private double cantTraspasar;
     private String listaTitulo;
 
     public MbVentas() throws NamingException {
@@ -91,139 +81,7 @@ public class MbVentas implements Serializable {
 
         this.inicializa();
     }
-
-    public void cerrarPedidoAlmacenRelacionado() {
-        boolean ok = false;
-        try {
-            this.dao1 = new DAOMovimientos1();
-            int remision = this.dao1.cerrarMovtoAlmacenSalidaRelacionado(this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdMovto(), this.venta.getIdMovtoAlmacen());
-//            this.venta.setRemision(Integer.toString(remision));
-            this.venta.setEstatus(2);
-//            this.venta.setStatusAlmacen(2);
-            Mensajes.mensajeSucces("El pedido se remisiono correctamente !!!");
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
-    }
-
-    public void actualizaTraspasoLote() {
-        boolean ok = false;
-        try {
-            int idx;
-            this.dao1 = new DAOMovimientos1();
-            this.dao1.traspasarLote(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen), this.loteDestino.getLote(), this.cantTraspasar);
-            idx = this.almacenDetalle.indexOf(this.loteOrigen);
-            this.loteOrigen = this.almacenDetalle.get(idx);
-            this.loteOrigen.setCantidad(this.loteOrigen.getCantidad() - this.cantTraspasar);
-            if ((idx = this.almacenDetalle.indexOf(this.loteDestino)) != -1) {
-                this.loteDestino = this.almacenDetalle.get(idx);
-                this.loteDestino.setCantidad(this.loteDestino.getCantidad() + this.cantTraspasar);
-                this.almacenDetalle.set(idx, this.loteDestino);
-            } else {
-                this.loteDestino.setCantidad(this.cantTraspasar);
-                this.almacenDetalle.add(this.loteDestino);
-            }
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLote", ok);
-    }
-
-    public void inicializaTraspasoLote() {
-        boolean ok = false;
-        this.cantTraspasar = 0;
-        this.loteDestino = null;
-        VentaAlmacenProducto prod;
-        this.empaqueLotes = new ArrayList<>();
-        try {
-            this.dao1 = new DAOMovimientos1();
-            for (TOLote to : this.dao1.obtenerEmpaqueLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.loteOrigen.getProducto().getIdProducto())) {
-                if (!this.loteOrigen.getLote().equals(to.getLote())) {
-                    prod = new VentaAlmacenProducto(this.loteOrigen.getProducto(), to.getLote());
-                    prod.setIdMovtoAlmacen(this.loteOrigen.getIdMovtoAlmacen());
-                    prod.setCantidad(to.getCantidad());
-                    this.empaqueLotes.add(prod);
-                }
-            }
-            ok = true;
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okLote", ok);
-    }
-
-    private TOMovimientoAlmacenProducto convertirAlmacenProducto(VentaAlmacenProducto prod) throws SQLException {
-        TOMovimientoAlmacenProducto to = new TOMovimientoAlmacenProducto();
-        to.setIdMovtoAlmacen(prod.getIdMovtoAlmacen());
-        to.setIdProducto(prod.getProducto().getIdProducto());
-        to.setCantidad(prod.getCantidad());
-        return to;
-    }
-
-    private VentaAlmacenProducto convertirAlmacenProducto(TOMovimientoAlmacenProducto to) throws SQLException {
-        VentaAlmacenProducto prod = new VentaAlmacenProducto();
-        prod.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
-        prod.setProducto(this.mbBuscar.obtenerProducto(to.getIdProducto()));
-        prod.setCantidad(to.getCantidad());
-        return prod;
-    }
-
-    public void obtenerAlmacenDetalle(SelectEvent event) {
-        boolean ok = false;
-        this.loteOrigen = null;
-        this.venta = (Venta) event.getObject();
-        this.almacenDetalle = new ArrayList<>();
-        try {
-            this.dao1 = new DAOMovimientos1();
-            try {
-                this.ventaAsegurada = this.dao1.asegurarMovtoRelacionado(this.venta.getIdMovto());
-            } catch (Exception ex) {
-                Mensajes.mensajeAlert(ex.getMessage());
-            }
-            for (TOMovimientoAlmacenProducto to : this.dao1.obtenerMovimientoAlmacenDetalle(this.venta.getIdMovtoAlmacen())) {
-                this.almacenDetalle.add(this.convertirAlmacenProducto(to));
-            }
-            ok = true;
-        } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okPedido", ok);
-    }
-
-//    public void regresarAlmacenFechaActual() {
-//        this.fechaInicial = new Date();
-//        this.obtenerPedidosAlmacen1();
-//    }
-//    
-//    public void obtenerPedidosAlmacen1() {
-//        try {   // Segun fecha y status
-//            this.ventas = new ArrayList<>();
-//            this.dao1 = new DAOMovimientos1();
-//            for (TOMovimientoOficina to : this.dao1.obtenerMovimientosAlmacenRelacionados(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), 28, (this.pendientes ? 9999 : 1), this.fechaInicial)) {
-//                this.ventas.add(this.convertir(to));
-//            }
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-//        } catch (NamingException ex) {
-//            Mensajes.mensajeError(ex.getMessage());
-//        }
-//    }
-    // *************************** Ventas Oficina ******************************* //
+    
     public void actualizaTraspasoSimilar() {
 //        int idx;
 //        VentaProducto prod;
@@ -693,11 +551,6 @@ public class MbVentas implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
-    public void nuevaVenta() {
-        this.mbGrupos.inicializar();
-        this.cambioDeGrupo();
-    }
-
 //    public void regresarFechaActual() {
 //        this.fechaInicial = new Date();
 //        this.obtenerVentas();
@@ -718,23 +571,17 @@ public class MbVentas implements Serializable {
         }
     }
 
-    private Venta convertir(TOVenta toMov) {
-        Venta mov = new Venta(this.mbAlmacenes.obtenerAlmacen(toMov.getIdAlmacen()), this.mbTiendas.obtenerTienda(toMov.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toMov.getIdComprobante()));
-        mov.setIdPedidoOC(toMov.getIdPedidoOC());
-        mov.setOrdenDeCompra(toMov.getOrdenDeCompra());
-        mov.setOrdenDeCompraFecha(toMov.getOrdenDeCompraFecha());
-        mov.setCanceladoMotivo(toMov.getCanceladoMotivo());
-        mov.setCanceladoFecha(toMov.getCanceladoFecha());
-        movimientos.Movimientos.convertir(toMov, mov);
-        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(mov.getTienda().getIdCliente()));
-        // Si la venta todavia esta pendiente, se actualiza con datos del cliente
-        // Si ya esta cerrada, se queda con lo que se leyo de la base
-        if (toMov.getEstatus() == 0) {
-            mov.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
-            mov.setDesctoProntoPago(0);
+    private Venta convertir(TOVenta toVta) {
+        Venta vta = new Venta(this.mbAlmacenes.obtenerAlmacen(toVta.getIdAlmacen()), this.mbTiendas.obtenerTienda(toVta.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toVta.getIdComprobante()));
+        Ventas.convertir(toVta, vta);
+        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(vta.getTienda().getIdCliente()));
+        if (toVta.getEstatus() == 0) {
+            // Si la venta todavia esta pendiente, se actualiza con datos del cliente
+            // Si ya esta cerrada, se queda con lo que se leyo de la base
+            vta.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
+            vta.setDesctoProntoPago(0);
         }
-        mov.setIdPedido(toMov.getReferencia());
-        return mov;
+        return vta;
     }
 
     public void obtenerVentas() {
@@ -762,6 +609,18 @@ public class MbVentas implements Serializable {
         this.mbTiendas.inicializar();
     }
 
+    public void cambioDeCliente() {
+        this.mbTiendas.obtenerTiendasCliente(this.mbClientes.getCliente().getIdCliente());
+        this.mbTiendas.nuevaTienda();
+    }
+
+    public void nuevaVenta() {
+//        this.mbGrupos.inicializar();
+//        this.cambioDeGrupo();
+        this.mbClientes.obtenerClientesCedis();
+        this.mbClientes.nuevoCliente();
+    }
+
     public String terminar() {
         this.acciones = null;
         this.inicializar();
@@ -774,6 +633,7 @@ public class MbVentas implements Serializable {
         this.mbGrupos.inicializar();
         this.mbClientes.inicializar();
         this.mbFormatos.inicializar();
+        
         this.mbBuscar.inicializar();
         this.mbComprobantes.getMbMonedas().setListaMonedas(null);
 
@@ -915,38 +775,38 @@ public class MbVentas implements Serializable {
     public void setCantTraspasar(double cantTraspasar) {
         this.cantTraspasar = cantTraspasar;
     }
-
-    public ArrayList<VentaAlmacenProducto> getAlmacenDetalle() {
-        return almacenDetalle;
-    }
-
-    public void setAlmacenDetalle(ArrayList<VentaAlmacenProducto> almacenDetalle) {
-        this.almacenDetalle = almacenDetalle;
-    }
-
-    public ArrayList<VentaAlmacenProducto> getEmpaqueLotes() {
-        return empaqueLotes;
-    }
-
-    public void setEmpaqueLotes(ArrayList<VentaAlmacenProducto> empaqueLotes) {
-        this.empaqueLotes = empaqueLotes;
-    }
-
-    public VentaAlmacenProducto getLoteOrigen() {
-        return loteOrigen;
-    }
-
-    public void setLoteOrigen(VentaAlmacenProducto loteOrigen) {
-        this.loteOrigen = loteOrigen;
-    }
-
-    public VentaAlmacenProducto getLoteDestino() {
-        return loteDestino;
-    }
-
-    public void setLoteDestino(VentaAlmacenProducto loteDestino) {
-        this.loteDestino = loteDestino;
-    }
+//
+//    public ArrayList<VentaProductoAlmacen> getAlmacenDetalle() {
+//        return almacenDetalle;
+//    }
+//
+//    public void setAlmacenDetalle(ArrayList<VentaProductoAlmacen> almacenDetalle) {
+//        this.almacenDetalle = almacenDetalle;
+//    }
+//
+//    public ArrayList<VentaProductoAlmacen> getEmpaqueLotes() {
+//        return empaqueLotes;
+//    }
+//
+//    public void setEmpaqueLotes(ArrayList<VentaProductoAlmacen> empaqueLotes) {
+//        this.empaqueLotes = empaqueLotes;
+//    }
+//
+//    public VentaProductoAlmacen getLoteOrigen() {
+//        return loteOrigen;
+//    }
+//
+//    public void setLoteOrigen(VentaProductoAlmacen loteOrigen) {
+//        this.loteOrigen = loteOrigen;
+//    }
+//
+//    public VentaProductoAlmacen getLoteDestino() {
+//        return loteDestino;
+//    }
+//
+//    public void setLoteDestino(VentaProductoAlmacen loteDestino) {
+//        this.loteDestino = loteDestino;
+//    }
 
     public MbAcciones getMbAcciones() {
         return mbAcciones;

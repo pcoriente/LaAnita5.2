@@ -1,22 +1,22 @@
-package entradas.dominio;
+package traspasos.dominio;
 
 import java.util.ArrayList;
-import movimientos.to.TOProductoAlmacen;
+import rechazos.to.TORechazoProductoAlmacen;
 
 /**
  *
  * @author jesc
  */
-public class MovimientoRelacionadoProductoReporte {
+public class TraspasoProductoReporte {
     private String sku;
     private String empaque;
     private double cantFacturada;
     private double unitario;
     private String lote;
     private double loteCantidad;
-    private ArrayList<TOProductoAlmacen> lotes;
+    private ArrayList<TORechazoProductoAlmacen> lotes;
     
-    public MovimientoRelacionadoProductoReporte() {
+    public TraspasoProductoReporte() {
         this.sku="";
         this.empaque="";
         this.lote="";
@@ -71,11 +71,11 @@ public class MovimientoRelacionadoProductoReporte {
         this.loteCantidad = loteCantidad;
     }
 
-    public ArrayList<TOProductoAlmacen> getLotes() {
+    public ArrayList<TORechazoProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<TOProductoAlmacen> lotes) {
+    public void setLotes(ArrayList<TORechazoProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 }

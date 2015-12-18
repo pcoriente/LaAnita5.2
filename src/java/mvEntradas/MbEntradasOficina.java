@@ -238,8 +238,7 @@ public class MbEntradasOficina implements Serializable {
     }
 
     private ProductoOficina convertir(TOProductoOficina toProd) throws SQLException {
-        ProductoOficina prod = new ProductoOficina();
-        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        ProductoOficina prod = new ProductoOficina(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         movimientos.Movimientos.convertir(toProd, prod);
         return prod;
     }

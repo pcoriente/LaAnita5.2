@@ -5,7 +5,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
 import cedis.MbMiniCedis;
-import entradas.dominio.MovimientoRelacionadoProductoReporte;
+import traspasos.dominio.TraspasoProductoReporte;
 import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -14,10 +14,9 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -27,7 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import movimientos.dao.DAOMovimientos;
 import movimientos.dao.DAOMovimientosAlmacen;
 import movimientos.dominio.MovimientoTipo;
-import movimientos.to.TOProductoAlmacen;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -35,11 +34,14 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
+import rechazos.to.TORechazoProductoAlmacen;
 import traspasos.dominio.Traspaso;
 import traspasos.dominio.TraspasoProducto;
+import traspasos.dominio.TraspasoProductoAlmacen;
 import traspasos.to.TOTraspaso;
 import traspasos.to.TOTraspasoProducto;
 import usuarios.MbAcciones;
@@ -54,15 +56,22 @@ import usuarios.dominio.Accion;
 public class MbTraspaso implements Serializable {
 
     private boolean modoEdicion;
-    private double sumaLotes;
     private Traspaso traspaso;
     private TOAlmacenJS almacen;
     private ArrayList<SelectItem> listaAlmacenes;
     private ArrayList<Traspaso> traspasos;
     private ArrayList<TraspasoProducto> detalle;
     private TraspasoProducto producto;
+    private ArrayList<TraspasoProductoAlmacen> almacenDetalle, empaqueLotes;
+    private TraspasoProductoAlmacen loteOrigen, loteDestino;
+    private double cantTraspasar;
+    private boolean solicitudes;
+    private boolean pendientes;
+    private Date fechaInicial;
+    private boolean locked;
     DAOMovimientosAlmacen daoAlm;
     private DAOTraspasos dao;
+    
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
@@ -81,18 +90,28 @@ public class MbTraspaso implements Serializable {
 
         this.inicializa();
     }
+    
+    private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to) {
+        TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
+        toProd.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
+        toProd.setIdProducto(to.getIdProducto());
+        toProd.setLote(to.getLote());
+        toProd.setCantidad(to.getCantidad());
+        toProd.setFechaCaducidad(to.getFechaCaducidad());
+        return toProd;
+    }
 
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(TraspasoProducto prod) throws SQLException {
+    private TraspasoProductoReporte convertirProductoReporte(TraspasoProducto prod) throws SQLException {
         boolean ya = false;
-        MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
+        TraspasoProductoReporte rep = new TraspasoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
-        for (TOProductoAlmacen l : this.daoAlm.obtenerDetalleProducto(this.traspaso.getAlmacen().getIdAlmacen(), prod.getProducto().getIdProducto())) {
+        for (TOMovimientoProductoAlmacen l : this.daoAlm.obtenerDetalleProducto(this.traspaso.getIdMovtoAlmacen(), prod.getProducto().getIdProducto())) {
             if (l.getCantidad() != 0) {
                 if (ya) {
-                    rep.getLotes().add(l);
+                    rep.getLotes().add(this.convertir(l));
                 } else {
                     rep.setLote(l.getLote());
                     rep.setLoteCantidad(l.getCantidad());
@@ -109,7 +128,7 @@ public class MbTraspaso implements Serializable {
         try {
             this.obtenDetalleTraspaso();
             this.daoAlm = new DAOMovimientosAlmacen();
-            ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
+            ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
             for (TraspasoProducto p : this.detalle) {
                 if (p.getCantFacturada() != 0) {
                     detalleReporte.add(this.convertirProductoReporte(p));
@@ -161,16 +180,7 @@ public class MbTraspaso implements Serializable {
     }
 
     private TOTraspaso convertir(Traspaso traspaso) {
-        TOTraspaso to = new TOTraspaso();
-        to.setSolicitudFolio(traspaso.getSolicitudFolio());
-        to.setSolicitudFecha(traspaso.getSolicitudFecha());
-        to.setSolicitudIdUsuario(traspaso.getSolicitudIdUsuario());
-        to.setSolicitudProietario(traspaso.getSolicitudProietario());
-        to.setSolicitudEstatus(traspaso.getSolicitudEstatus());
-        movimientos.Movimientos.convertir(traspaso, to);
-        to.setIdReferencia(traspaso.getAlmacenDestino().getIdAlmacen());
-        to.setReferencia(traspaso.getIdSolicitud());
-        return to;
+        return Traspasos.convertir(traspaso);
     }
 
     private double sumaPiezas() {
@@ -189,11 +199,13 @@ public class MbTraspaso implements Serializable {
                 TOTraspaso to = this.convertir(this.traspaso);
 
                 this.dao = new DAOTraspasos();
-                this.dao.grabarTraspaso(to);
+                this.dao.cerrar(to);
                 this.traspaso.setFolio(to.getFolio());
                 this.traspaso.setFecha(to.getFecha());
                 this.traspaso.setIdUsuario(to.getIdUsuario());
+                this.traspaso.setPropietario(to.getPropietario());
                 this.traspaso.setEstatus(to.getEstatus());
+                this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
                 Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
             } else {
                 Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
@@ -306,11 +318,55 @@ public class MbTraspaso implements Serializable {
 
     public void salir() {
         if (this.traspaso.getIdMovto() != 0) {
+            this.liberarTraspaso();
             this.obtenerTraspasos();
         } else {
+            this.liberarSolicitud();
             this.obtenerSolicitudes();
         }
         this.modoEdicion = false;
+    }
+    
+    public void liberarSolicitud() {
+        boolean ok = false;
+        if (this.traspaso == null) {
+            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
+        } else {
+            TOTraspaso toTraspaso = this.convertir(this.traspaso);
+            try {
+                this.dao = new DAOTraspasos();
+                this.dao.liberarSolicitud(toTraspaso);
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (Exception ex) {
+                Mensajes.mensajeAlert(ex.getMessage());
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okTraspaso", ok);
+    }
+    
+    public void liberarTraspaso() {
+        boolean ok = false;
+        if (this.traspaso == null) {
+            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
+        } else {
+            TOTraspaso toTraspaso = this.convertir(this.traspaso);
+            try {
+                this.dao = new DAOTraspasos();
+                this.dao.liberarTraspaso(toTraspaso);
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (Exception ex) {
+                Mensajes.mensajeAlert(ex.getMessage());
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okTraspaso", ok);
     }
 
     private TraspasoProducto convertir(TOTraspasoProducto toProd) throws SQLException {
@@ -323,11 +379,16 @@ public class MbTraspaso implements Serializable {
 
     private void obtenDetalleTraspaso() {
         this.detalle = new ArrayList<>();
+        TOTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
             this.dao = new DAOTraspasos();
-            for (TOTraspasoProducto to : this.dao.obtenerDetalleTraspaso(this.traspaso.getIdMovto())) {
+            for (TOTraspasoProducto to : this.dao.obtenerDetalleTraspaso(toTraspaso)) {
                 this.detalle.add(this.convertir(to));
             }
+            this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
+            this.traspaso.setPropietario(toTraspaso.getPropietario());
+            this.traspaso.setEstatus(toTraspaso.getEstatus());
+            this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -337,11 +398,16 @@ public class MbTraspaso implements Serializable {
 
     private void obtenDetalleSolicitud() {
         this.detalle = new ArrayList<>();
+        TOTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
             this.dao = new DAOTraspasos();
-            for (TOTraspasoProducto to : this.dao.obtenerDetalleSolicitud(this.traspaso.getIdSolicitud())) {
+            for (TOTraspasoProducto to : this.dao.obtenerDetalleSolicitud(toTraspaso)) {
                 this.detalle.add(this.convertir(to));
             }
+            this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
+            this.traspaso.setPropietario(toTraspaso.getPropietario());
+            this.traspaso.setEstatus(toTraspaso.getEstatus());
+            this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -363,7 +429,7 @@ public class MbTraspaso implements Serializable {
     private void obtenTraspasos() throws NamingException, SQLException {
         this.traspasos = new ArrayList<>();
         this.dao = new DAOTraspasos();
-        for (TOTraspaso to : this.dao.obtenerTraspasos(this.almacen.getIdAlmacen())) {
+        for (TOTraspaso to : this.dao.obtenerTraspasos(this.almacen.getIdAlmacen(), this.pendientes?5:7 , this.fechaInicial)) {
             traspasos.add(this.convertir(to));
         }
     }
@@ -380,14 +446,7 @@ public class MbTraspaso implements Serializable {
 
     private Traspaso convertir(TOTraspaso toMov) {
         Traspaso mov = new Traspaso(new MovimientoTipo(35, "Traspaso"), this.almacen, this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
-        mov.setSolicitudFolio(toMov.getSolicitudFolio());
-        mov.setSolicitudFecha(toMov.getSolicitudFecha());
-        mov.setSolicitudIdUsuario(toMov.getSolicitudIdUsuario());
-        mov.setSolicitudEstatus(toMov.getSolicitudEstatus());
-//        mov.setAlmacen(this.almacen);
-        movimientos.Movimientos.convertir(toMov, mov);
-//        mov.setAlmacenDestino(this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
-        mov.setIdSolicitud(toMov.getReferencia());
+        Traspasos.convertir(toMov, mov);
         return mov;
     }
 
@@ -401,7 +460,11 @@ public class MbTraspaso implements Serializable {
 
     public void obtenerSolicitudes() {
         try {
-            this.obtenSolicitudes();
+            if(this.isSolicitudes()) {
+                this.obtenSolicitudes();
+            } else {
+                this.obtenTraspasos();
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -417,21 +480,66 @@ public class MbTraspaso implements Serializable {
     }
 
     private void inicializa() {
+        this.inicializar();
+    }
+
+    public void inicializar() {
         this.mbAlmacenes.setListaAlmacenes(null);
         this.listaAlmacenes = this.mbAlmacenes.getListaAlmacenes();
         this.almacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
         this.mbCedis.cargaMiniCedisTodos();
         this.mbBuscar.inicializar();
-        this.inicializaLocales();
-    }
-
-    public void inicializar() {
-        this.mbBuscar.inicializar();
+        
         inicializaLocales();
     }
 
     private void inicializaLocales() {
         this.modoEdicion = false;
+        this.solicitudes = true;
+        this.pendientes = true;
+        this.fechaInicial = new Date();
+        this.traspasos = new ArrayList<>();
+        this.setLocked(false);
+    }
+
+    public ArrayList<TraspasoProductoAlmacen> getAlmacenDetalle() {
+        return almacenDetalle;
+    }
+
+    public void setAlmacenDetalle(ArrayList<TraspasoProductoAlmacen> almacenDetalle) {
+        this.almacenDetalle = almacenDetalle;
+    }
+
+    public ArrayList<TraspasoProductoAlmacen> getEmpaqueLotes() {
+        return empaqueLotes;
+    }
+
+    public void setEmpaqueLotes(ArrayList<TraspasoProductoAlmacen> empaqueLotes) {
+        this.empaqueLotes = empaqueLotes;
+    }
+
+    public TraspasoProductoAlmacen getLoteOrigen() {
+        return loteOrigen;
+    }
+
+    public void setLoteOrigen(TraspasoProductoAlmacen loteOrigen) {
+        this.loteOrigen = loteOrigen;
+    }
+
+    public TraspasoProductoAlmacen getLoteDestino() {
+        return loteDestino;
+    }
+
+    public void setLoteDestino(TraspasoProductoAlmacen loteDestino) {
+        this.loteDestino = loteDestino;
+    }
+
+    public double getCantTraspasar() {
+        return cantTraspasar;
+    }
+
+    public void setCantTraspasar(double cantTraspasar) {
+        this.cantTraspasar = cantTraspasar;
     }
 
     public boolean isModoEdicion() {
@@ -508,6 +616,30 @@ public class MbTraspaso implements Serializable {
         this.mbBuscar = mbBuscar;
     }
 
+    public boolean isSolicitudes() {
+        return solicitudes;
+    }
+
+    public void setSolicitudes(boolean solicitudes) {
+        this.solicitudes = solicitudes;
+    }
+
+    public boolean isPendientes() {
+        return pendientes;
+    }
+
+    public void setPendientes(boolean pendientes) {
+        this.pendientes = pendientes;
+    }
+
+    public Date getFechaInicial() {
+        return fechaInicial;
+    }
+
+    public void setFechaInicial(Date fechaInicial) {
+        this.fechaInicial = fechaInicial;
+    }
+
     public Traspaso getTraspaso() {
         return traspaso;
     }
@@ -524,13 +656,13 @@ public class MbTraspaso implements Serializable {
         this.traspasos = traspasos;
     }
 
-    public double getSumaLotes() {
-        return sumaLotes;
-    }
-
-    public void setSumaLotes(double sumaLotes) {
-        this.sumaLotes = sumaLotes;
-    }
+//    public double getSumaLotes() {
+//        return sumaLotes;
+//    }
+//
+//    public void setSumaLotes(double sumaLotes) {
+//        this.sumaLotes = sumaLotes;
+//    }
 
     public TOAlmacenJS getAlmacen() {
         return almacen;
@@ -546,5 +678,13 @@ public class MbTraspaso implements Serializable {
 
     public void setListaAlmacenes(ArrayList<SelectItem> listaAlmacenes) {
         this.listaAlmacenes = listaAlmacenes;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }

@@ -305,7 +305,7 @@ public class DAOMovimientosOld {
         toProd.setIdProducto(rs.getInt("idEmpaque"));
         toProd.setLote(rs.getString("lote"));
         toProd.setCantidad(rs.getDouble("cantidad"));
-        toProd.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
+//        toProd.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
         return toProd;
     }
 

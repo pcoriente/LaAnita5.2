@@ -694,7 +694,9 @@ public class MbComprasOficina implements Serializable {
 
     public void crearNuevaCompra() {
         this.compra = new CompraOficina(this.mbAlmacenes.getToAlmacen(), this.mbProveedores.getMiniProveedor(), this.mbComprobantes.getComprobante());
-        if (this.compra.getComprobante().getMoneda().getIdMoneda() != this.mbOrdenCompra.getOrdenElegida().getMoneda().getIdMoneda()) {
+        if(this.compra.getComprobante().getMoneda().getIdMoneda()==0) {
+            Mensajes.mensajeAlert("El comprobante no tiene asignada una moneda !!!");
+        } else if (this.compra.getComprobante().getMoneda().getIdMoneda() != this.mbOrdenCompra.getOrdenElegida().getMoneda().getIdMoneda()) {
             Mensajes.mensajeAlert("NO corresponde la moneda de la orden con la del comprobante !!!");
         } else {
             this.compra.setIdOrdenCompra(this.mbOrdenCompra.getOrdenElegida().getIdOrdenCompra());
@@ -907,6 +909,8 @@ public class MbComprasOficina implements Serializable {
             Mensajes.mensajeAlert("Se requiere un proveedor");
         } else if (this.mbComprobantes.getSeleccion() == null) {
             Mensajes.mensajeAlert("Se requiere un comprobante");
+        } else if (this.mbComprobantes.getSeleccion().getIdMoneda()==0) {
+            Mensajes.mensajeAlert("El comprobante seleccionado no tiene moneda !!!");
         } else {
             ok = true;
         }

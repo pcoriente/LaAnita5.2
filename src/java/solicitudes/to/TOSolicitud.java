@@ -7,7 +7,7 @@ import java.util.Date;
  * @author jesc
  */
 public class TOSolicitud {
-    private int idMovto;
+    private int idSolicitud;
     private int idEmpresa;
     private int idAlmacen;
     private int folio;
@@ -22,12 +22,12 @@ public class TOSolicitud {
         this.fecha = new Date();
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
     public int getIdEmpresa() {

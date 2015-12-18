@@ -1,6 +1,7 @@
 package movimientos.dominio;
 
 import java.util.ArrayList;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import producto2.dominio.Producto;
 
 /**
@@ -10,7 +11,7 @@ import producto2.dominio.Producto;
 public class ProductoLotes {
     private Producto producto;
     private double cantidad;
-    private ArrayList<ProductoAlmacen> lotes;
+    private ArrayList<TOMovimientoProductoAlmacen> lotes;
     
     public ProductoLotes() {
         this.producto=new Producto();
@@ -38,11 +39,11 @@ public class ProductoLotes {
         this.cantidad = cantidad;
     }
 
-    public ArrayList<ProductoAlmacen> getLotes() {
+    public ArrayList<TOMovimientoProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<ProductoAlmacen> lotes) {
+    public void setLotes(ArrayList<TOMovimientoProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 }

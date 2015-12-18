@@ -118,7 +118,7 @@ public class DAORechazos {
                 + "FROM movimientos M\n"
                 + "INNER JOIN movimientos R ON R.idMovto=M.referencia\n"
                 + "INNER JOIN movimientos T ON T.idMovto=R.referencia\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=54 AND M.estatus=5\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=54 AND M.estatus=7\n"
                 + "         AND CONVERT(date, M.fecha) <= '" + format.format(fechaInicial) + "'\n"
                 + "ORDER BY M.fecha";
         try (Connection cn = this.ds.getConnection()) {

@@ -23,24 +23,39 @@
                                 <p:column >
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="3" >
+                                <p:column colspan="4" >
                                     <p:selectOneMenu id="almacenOrigen" value="#{mbTraspaso.almacen}" style="width: 390px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbTraspaso.listaAlmacenes}" />
+                                        <p:ajax event="change" listener="#{mbTraspaso.obtenerSolicitudes()}" 
+                                            update=":main:msgs :main:listaTraspasos" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column />
-                                <p:column style="width: 220px; text-align: right;" >
-                                    <p:commandButton icon="ui-icon-search" value="Solicitudes" title="Buscar solicitudes"  
-                                                     process="@this almacenOrigen" actionListener="#{mbTraspaso.obtenerSolicitudes()}"
-                                                     update=":main:msgs :main:listaTraspasos" />
+                                <p:column style="width: 120px;" >
+                                    <p:selectBooleanCheckbox id="chkSolicitudes" value="#{mbTraspaso.solicitudes}"
+                                                             itemLabel="SOLICITUDES" style="color: black; font-weight: bold; font-size: small;" >
+                                        <p:ajax listener="#{mbTraspaso.obtenerSolicitudes()}" 
+                                                update=":main:msgs chkTodosLosPedios fechaInicial :main:listaTraspasos" />
+                                    </p:selectBooleanCheckbox>
                                 </p:column>
-                                <p:column style="width: 100px;" >
-                                    <p:commandButton icon="ui-icon-search" value="Traspasos" title="Buscar solicitudes"  
-                                                     process="@this almacenOrigen" actionListener="#{mbTraspaso.obtenerTraspasos()}"
-                                                     update=":main:msgs :main:listaTraspasos" />
+                                <p:column style="width: 120px;" >
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbTraspaso.pendientes}"
+                                                             disabled="#{mbTraspaso.solicitudes}"
+                                                             itemLabel="PENDIENTES" style="color: black; font-weight: bold; font-size: small;" >
+                                        <p:ajax listener="#{mbTraspaso.obtenerTraspasos()}" 
+                                                update=":main:msgs fechaInicial :main:listaTraspasos" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column style="width: 120px;" >
+                                    <p:calendar id="fechaInicial" value="#{mbTraspaso.fechaInicial}" readonlyInput="true" 
+                                                disabled="#{mbTraspaso.almacen.idAlmacen==0 or mbTraspaso.solicitudes or mbTraspaso.pendientes}"
+                                                locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" listener="#{mbTraspaso.obtenerTraspasos()}" 
+                                                update=":main:msgs :main:listaTraspasos" />
+                                    </p:calendar>
                                 </p:column>
                                 <p:column style="width: 30px;" >
                                     <p:commandButton icon="ui-icon-home" title="Salir" 
@@ -49,7 +64,7 @@
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="listaTraspasos" value="#{mbTraspaso.traspasos}" style="border:solid 1px"
-                                     var="traspaso" rowKey="#{traspaso.idMovto}" selectionMode="single" 
+                                     var="traspaso" rowKey="#{traspaso.idSolicitud}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.obtenerDetalle}" update="main" />
 
@@ -62,13 +77,13 @@
                             <p:column headerText="ALMACEN" >
                                 <h:outputText value="#{traspaso.almacenDestino.toString()}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 120px;" >
+                            <p:column headerText="FECHA" style="width: 130px;" >
                                 <h:outputText value="#{traspaso.solicitudFecha}" >
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="ESTATUS" style="width: 60px; text-align: right;" >
-                                <h:outputText value="#{traspaso.estatus}" />
+                                <h:outputText value="#{traspaso.idMovto==0?'Solicitado':traspaso.estatus==5?'Pendiente':'Cerrada'}" />
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -99,11 +114,11 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar traspaso" 
-                                                     disabled="#{mbTraspaso.traspaso.estatus!=4}"
+                                                     disabled="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=5 or !mbTraspaso.locked}"
                                                      process="@this" actionListener="#{mbTraspaso.grabar()}" 
                                                      update="main" />
-                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
-                                                     disabled="#{mbTraspaso.traspaso.estatus!=5}"
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir traspaso"
+                                                     disabled="#{mbTraspaso.traspaso.estatus!=7}"
                                                      ajax="false" immediate="true" action="#{mbTraspaso.imprimir()}" />
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                                      process="@this" actionListener="#{mbTraspaso.salir()}" 
@@ -134,7 +149,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.cantFacturada}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus==5}" >
+                                                     readonly="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=5 or !mbTraspaso.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" 
@@ -145,18 +160,18 @@
                                 </p:cellEditor>
                             </p:column>
                             <f:facet name="footer">
-                                <p:commandButton id="btnRechazarSolicitud" icon="ui-icon-cancel" value="Rechazar" title="Rechazar el traspaso"
-                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0}"
+                                <p:commandButton id="btnRechazarSolicitud" icon="ui-icon-cancel" value="Rechazar" title="Rechazar la solicitud"
+                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0 or !mbTraspaso.locked}"
                                                  process="@this" actionListener="#{mbTraspaso.rechazar()}" update="main" >
                                     <p:confirm header="Rechazar solicitud" message="Confirma ?" icon="ui-icon-alert" />
                                 </p:commandButton>
-                                <p:commandButton icon="ui-icon-check" value="Aceptar" title="Aceptar la solicitud"
-                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0}"
+                                <p:commandButton id="btnAceptarSolicitud" icon="ui-icon-check" value="Aceptar" title="Aceptar la solicitud"
+                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0 or !mbTraspaso.locked}"
                                                  process="@this" actionListener="#{mbTraspaso.procesar()}" update="main" >
                                     <p:confirm header="Procesar solicitud" message="Confirma ?" icon="ui-icon-alert"  />
                                 </p:commandButton>
                                 <p:commandButton id="btnCancelarTraspaso" icon="ui-icon-trash" value="Cancelar" title="Cancelar el traspaso"
-                                                 disabled="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=4}"
+                                                 disabled="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=5 or !mbTraspaso.locked}"
                                                  process="@this" actionListener="#{mbTraspaso.cancelar()}" update="main" >
                                     <p:confirm header="Cancelar traspaso" message="Confirma ?" icon="ui-icon-alert" />
                                 </p:commandButton>

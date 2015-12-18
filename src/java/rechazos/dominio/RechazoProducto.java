@@ -2,6 +2,7 @@ package rechazos.dominio;
 
 import java.util.ArrayList;
 import movimientos.dominio.ProductoOficina;
+import rechazos.to.TORechazoProductoAlmacen;
 
 /**
  *
@@ -10,7 +11,7 @@ import movimientos.dominio.ProductoOficina;
 public class RechazoProducto extends ProductoOficina {
     private double cantTraspasada;
     private double cantRecibida;
-    private ArrayList<RechazoProductoAlmacen> lotes;
+    private ArrayList<TORechazoProductoAlmacen> lotes;
     private double sumaLotes;
     
     public RechazoProducto() {
@@ -34,11 +35,11 @@ public class RechazoProducto extends ProductoOficina {
         this.cantRecibida = cantRecibida;
     }
 
-    public ArrayList<RechazoProductoAlmacen> getLotes() {
+    public ArrayList<TORechazoProductoAlmacen> getLotes() {
         return lotes;
     }
 
-    public void setLotes(ArrayList<RechazoProductoAlmacen> lotes) {
+    public void setLotes(ArrayList<TORechazoProductoAlmacen> lotes) {
         this.lotes = lotes;
     }
 

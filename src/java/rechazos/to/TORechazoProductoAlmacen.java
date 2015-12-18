@@ -1,12 +1,12 @@
 package rechazos.to;
 
-import movimientos.to.TOProductoAlmacen;
+import movimientos.to.TOMovimientoProductoAlmacen;
 
 /**
  *
  * @author jesc
  */
-public class TORechazoProductoAlmacen extends TOProductoAlmacen {
+public class TORechazoProductoAlmacen extends TOMovimientoProductoAlmacen {
     private double cantTraspasada;
     private double cantRecibida;
     
