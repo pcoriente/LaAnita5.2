@@ -173,6 +173,21 @@ public class DAORecepciones {
             }
         }
     }
+    
+    public void liberarRecepcion(TORecepcion toRecepcion) throws SQLException {
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                movimientos.Movimientos.liberarMovimientoOficina(cn, toRecepcion.getIdMovto(), this.idUsuario);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
 
     public void grabar(TORecepcion mov) throws SQLException {
         String strSQL;
@@ -182,80 +197,24 @@ public class DAORecepciones {
                 this.generaRechazo(cn, mov);
 
                 mov.setIdUsuario(this.idUsuario);
-                mov.setPropietario(this.idUsuario);
+                mov.setPropietario(0);
                 mov.setEstatus(7);
 
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, mov);
+                
+                strSQL="UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + mov.getIdMovtoAlmacen();
+                st.executeUpdate(strSQL);
 
+                movimientos.Movimientos.actualizaDetalleAlmacen(cn, mov.getIdMovtoAlmacen(), true);
+                
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, mov);
-
-                strSQL = "INSERT INTO almacenesEmpaques (idAlmacen, idEmpaque, existencia, separados, existenciaMinima, existenciaMaxima)\n"
-                        + "SELECT M.idAlmacen, D.idEmpaque, 0, 0, 0, 0\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "LEFT JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + mov.getIdMovto() + " AND D.cantFacturada > 0 AND A.idAlmacen IS NULL";
+                
+                strSQL="UPDATE movimientos SET propietario=0 WHERE idMovto=" + mov.getIdMovto();
                 st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE D\n"
-                        + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + mov.getIdMovto() + " AND D.cantFacturada > 0";
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE A\n"
-                        + "SET existencia=A.existencia+D.cantFacturada\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + mov.getIdMovto() + " AND D.cantFacturada > 0";
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE E\n"
-                        + "SET costoUnitarioPromedio=(E.costoUnitarioPromedio*E.existencia+D.costoPromedio*D.cantFacturada)/(E.existencia+D.cantFacturada)\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + mov.getIdMovto() + " AND D.cantFacturada > 0";
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE E\n"
-                        + "SET existencia=E.existencia+D.cantFacturada\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + mov.getIdMovto() + " AND D.cantFacturada > 0";
-                st.executeUpdate(strSQL);
-
-                strSQL = "INSERT INTO almacenesLotes (idAlmacen, idEmpaque, lote, fechaCaducidad, existencia, separados, existenciaFisica)\n"
-                        + "SELECT DISTINCT M.idAlmacen, D.idEmpaque, D.lote, DATEADD(DAY, 365, L.fecha), 0, 0, 0\n"
-                        + "FROM movimientosDetalleAlmacen D\n"
-                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                        + "INNER JOIN lotes L ON SUBSTRING(L.lote, 1, 4)=SUBSTRING(D.lote, 1, 4)\n"
-                        + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
-                        + "WHERE D.idMovtoAlmacen=" + mov.getIdMovtoAlmacen() + " AND D.cantidad > 0 AND A.idAlmacen IS NULL\n"
-                        + "ORDER BY D.idEmpaque, D.lote";
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE D\n"
-                        + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
-                        + "FROM movimientosDetalleAlmacen D\n"
-                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                        + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
-                        + "WHERE D.idMovtoAlmacen=" + mov.getIdMovtoAlmacen() + " AND D.cantidad > 0";
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE A\n"
-                        + "SET existencia=A.existencia+D.cantidad\n"
-                        + "FROM movimientosDetalleAlmacen D\n"
-                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                        + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
-                        + "WHERE D.idMovtoAlmacen=" + mov.getIdMovtoAlmacen() + " AND D.cantidad > 0";
-                st.executeUpdate(strSQL);
+                
+                movimientos.Movimientos.actualizaDetalleOficina(cn, mov.getIdMovto(), mov.getIdTipo(), true);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -347,7 +306,7 @@ public class DAORecepciones {
         return to;
     }
 
-    public ArrayList<TORecepcionProducto> obtenerDetalle(int idMovto) throws SQLException {
+    public ArrayList<TORecepcionProducto> obtenerDetalle(TORecepcion toRecepcion) throws SQLException {
         ArrayList<TORecepcionProducto> productos = new ArrayList<>();
         String strSQL = "SELECT D.*, TD.cantFacturada AS cantTraspasada, S.cantSolicitada\n"
                 + "FROM movimientosDetalle D\n"
@@ -355,13 +314,22 @@ public class DAORecepciones {
                 + "INNER JOIN movimientosDetalle TD ON TD.idMovto=M.referencia AND TD.idEmpaque=D.idEmpaque\n"
                 + "INNER JOIN movimientos T ON T.idMovto=TD.idMovto\n"
                 + "INNER JOIN solicitudesDetalle S ON S.idSolicitud=T.referencia AND S.idEmpaque=D.idEmpaque\n"
-                + "WHERE D.idMovto=" + idMovto;
+                + "WHERE D.idMovto=" + toRecepcion.getIdMovto();
         try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
                     productos.add(this.construirProducto(rs));
                 }
+                movimientos.Movimientos.bloquearMovimientoOficina(cn, toRecepcion, this.idUsuario);
+                
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
             }
         }
         return productos;

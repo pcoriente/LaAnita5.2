@@ -112,6 +112,10 @@ public class MbMonedas implements Serializable {
         }
     }
 
+    public Moneda obtenerMonedaCero() {
+        return (Moneda) this.listaMonedas.get(0).getValue();
+    }
+
     public ArrayList<SelectItem> getListaMonedas() throws NamingException {
         if (this.listaMonedas == null) {
             listaMonedas = this.obtenerListaMonedas();
@@ -136,7 +140,7 @@ public class MbMonedas implements Serializable {
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             }
         }
         return lstMoneda;

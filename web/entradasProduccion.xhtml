@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">   
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html" 
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Entradas de Producción</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <div id="wrapper" align="center">
+            <ui:include src="wrapper.xhtml"></ui:include>
+            <div id="content" align="left">
+                <h:form id="main" onkeypress="return event.keyCode !== 13;">
+                    <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                    <p:panel id="encabezado" header="ENTRADAS DE PRODUCCION"
+                             rendered="#{not empty mbEntradasProduccion.obtenerAcciones(27) and not mbEntradasProduccion.modoEdicion}">
+                        <p:panelGrid id="encabezadoSalida" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbEntradasProduccion.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
+                                                update=":main:msgs listaDeEntradas" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column >
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
+                                                             style="font-weight: bold; color: black;"
+                                                             value="#{mbEntradasProduccion.chkPendientes}" >
+                                        <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
+                                                update=":main:msgs fechaInicial listaDeEntradas" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column >
+                                    <p:calendar id="fechaInicial" value="#{mbEntradasProduccion.fechaInicial}"
+                                                disabled="#{mbEntradasProduccion.chkPendientes}"
+                                                readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" listener="#{mbEntradasProduccion.obtenerEntradas()}"
+                                                update=":main:msgs listaDeEntradas" />
+                                    </p:calendar>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="concepto" value="#{mbEntradasProduccion.tipo}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MovimientoTipo" />
+                                        <f:selectItems value="#{mbEntradasProduccion.listaMovimientosTipos}" />
+                                        <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
+                                                update=":main:msgs listaDeEntradas" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column colspan="2" style="text-align: right;" >
+                                    <p:commandButton id="btnNueva" icon="ui-icon-document" title="Crear nueva entrada" 
+                                                     process="@this" actionListener="#{mbEntradasProduccion.crearEntrada()}" update="main" />
+                                    <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
+                                                     process="@this" action="#{mbEntradasProduccion.terminar()}" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaDeEntradas" widgetVar="listaDeEntradas"
+                                     value="#{mbEntradasProduccion.entradas}" style="border: solid 1px; width: 800px;"
+                                     var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasProduccion.obtenerDetalle}" 
+                                    update=":main" />
+
+                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{entrada.almacen}" />
+                            </p:column>
+                            <p:column headerText="TIPO" style="width: 300px;" >
+                                <h:outputText value="#{entrada.tipo}" />
+                            </p:column>
+                            <p:column headerText="FOLIO" style="width: 45px;" >
+                                <h:outputText value="#{entrada.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 55px;" >
+                                <h:outputText value="#{entrada.fecha}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:panel id="mantenimiento" header="ENTRADA DE PRODCCION" rendered="#{mbEntradasProduccion.modoEdicion}" >
+                        <p:panelGrid >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}" 
+                                                     process="@this" actionListener="#{mbEntradasProduccion.grabar()}" />
+                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar entrada de almacén"
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradasProduccion.cancelar()}" 
+                                                     update=":main" />
+                                    <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus==0}"
+                                                     ajax="false" immediate="true" action="#{mbEntradasProduccion.imprimir()}" />
+                                    <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
+                                                     process="@this" actionListener="#{mbEntradasProduccion.salir()}" 
+                                                     update=":main" />
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="Concepto :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText value="#{mbEntradasProduccion.tipo}" readonly="true" size="52" />
+                                </p:column>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos"
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradasProduccion.mbBuscar.inicializar()}" 
+                                                     update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="detalleEntrada" widgetVar="detalleEntrada" 
+                                     value="#{mbEntradasProduccion.detalle}" style="border:solid 1px;"
+                                     var="prod" rowKey="#{prod.producto.idProducto}" 
+                                     selectionMode="single" selection="#{mbEntradasProduccion.producto}" 
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasProduccion.obtenerDetalleProducto()}"
+                                    update=":main:listaLotes" oncomplete="handleAbrirEditarLotes(xhr, status, args);"  />
+
+                            <p:column headerText="SKU" width="64"  >
+                                <h:outputText value="#{prod.producto.cod_pro}" />
+                            </p:column>
+                            <p:column headerText="Producto" width="500" >
+                                <h:outputText value="#{prod.producto.toString()}" />
+                            </p:column>
+                            <p:column headerText="Cantidad" width="64" >
+                                <h:outputText value="#{prod.cantFacturada}" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                    <p:dialog id="agregarLoteDlg" widgetVar="agregarLoteDlg" header="NUEVO LOTE" resizable="false" modal="true" width="300" >
+                        <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" update=":main:listaLotes" />
+                        <p:panelGrid id="datosLote" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputText value="LOTE :" />
+                                </p:column>
+                                <p:column style="text-align: left" >
+                                    <p:inputText id="txtLote" value="#{mbEntradasProduccion.lote.lote}" maxlength="10" size="10" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:commandButton id="btnAgregarLote" icon="ui-icon-disk" title="Nuevo lote" 
+                                                     process="@this txtLote" actionListener="#{mbEntradasProduccion.agregarLote()}" 
+                                                     update=":main:msgs2 :main:listaLotes" 
+                                                     oncomplete="handleCerrarAgregarLote(xhr, status, args);" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog id="editarLotesDlg" widgetVar="editarLotesDlg" header="EDICION DE LOTES" resizable="false" modal="true" width="350" >
+                        <p:messages id="msgsEditar" autoUpdate="false" showDetail="true" showSummary="false" closable="true" />
+                        <p:ajax event="close" update=":main:detalleEntrada" />
+
+                        <p:dataTable id="listaLotes" widgetVar="listaLotes" 
+                                     value="#{mbEntradasProduccion.empaqueLotes}" style="border: solid 1px" 
+                                     var="lote" rowKey="#{lote.lote}" editable="true" editMode="cell"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="100" >
+                            <p:ajax event="cellEdit" listener="#{mbEntradasProduccion.onCellEdit}" update=":main:msgsEditar" />
+
+                            <p:column colspan="2" headerText="LOTE" style="width: 80px;" >
+                                <h:outputText value="#{lote.lote}" />
+                            </p:column>
+                            <p:column headerText="CADUCIDAD" style="width: 80px;" >
+                                <h:outputText value="#{lote.fechaCaducidad}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="CANTIDAD" style="width: 100px;" >
+                                <p:cellEditor>
+                                    <f:facet name="output">
+                                        <h:outputText value="#{lote.cantidad}" >
+                                            <f:convertNumber pattern="###,##0.000" />
+                                        </h:outputText>
+                                    </f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText value="#{lote.cantidad}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                                     readonly="#{mbEntradasProduccion.entrada.estatus!=0}" >
+                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" pattern="###,##0.000" />
+                                            <p:ajax event="change" process="@this" listener="#{mbEntradasProduccion.gestionarLotes()}" 
+                                                    update=":main:msgsEditar listaLotes :main:listaTotales" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+                        </p:dataTable>
+                        <p:panelGrid id="listaTotales" >
+                            <p:row >
+                                <p:column >
+                                    <p:commandButton id="btnEliminarProducto" icon="ui-icon-trash" title="Eliminar un Producto" 
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}" 
+                                                     process="@this" actionListener="#{mbEntradasProduccion.eliminarProducto()}" 
+                                                     update=":main:detalleEntrada" oncomplete="PF('editarLotesDlg').hide();" />
+                                    <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
+                                                     process="@this" actionListener="#{mbEntradasProduccion.nuevoLote()}" 
+                                                     update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
+                                </p:column>
+                                <p:column style="text-align: right; width: 100px;" >
+                                    <h:outputText value="Total :" />
+                                </p:column>
+                                <p:column style="text-align: left; width: 100px;" >
+                                    <h:outputText value="#{mbEntradasProduccion.producto.cantFacturada}" >
+                                        <f:convertNumber pattern="###,##0.000" />
+                                    </h:outputText>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel for="opciones" value="OPCIONES :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneRadio id="opciones" value="#{mbEntradasProduccion.mbBuscar.tipoBuscar}" style="background-color: #ccc" >
+                                        <f:selectItem itemLabel="SKU" itemValue="1" />
+                                        <f:selectItem itemLabel="Genérico" itemValue="2" />
+                                        <f:selectItem itemLabel="Descripcion" itemValue="3" />
+                                        <p:ajax listener="#{mbEntradasProduccion.mbBuscar.verCambio()}" update="buscarProductos listaBuscarProductos" />
+                                    </p:selectOneRadio>
+                                </p:column>
+                                <p:column rendered="#{mbEntradasProduccion.mbBuscar.tipoBuscar=='1'}" >
+                                    <p:inputText id="opcionSKU" value="#{mbEntradasProduccion.mbBuscar.strBuscar}" maxlength="8" size="10" />
+                                    <p:commandButton id="btnBuscarSKU" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionSKU" actionListener="#{mbEntradasProduccion.buscar()}" 
+                                                     update=":main:msgs :main:detalleEntrada" oncomplete="handleBuscar(xhr, status, args)" />
+                                </p:column>
+                                <p:column rendered="#{mbEntradasProduccion.mbBuscar.tipoBuscar=='2'}" >
+                                    <p:autoComplete id="opcionParte" value="#{mbEntradasProduccion.mbBuscar.mbParte.parte}" maxlength="24" size="24"
+                                                    completeMethod="#{mbEntradasProduccion.mbBuscar.mbParte.completePartes}" 
+                                                    var="p" itemLabel="#{p.parte}" itemValue="#{p}" converter="converters.Parte" 
+                                                    forceSelection="true" />
+                                    <p:commandButton id="btnBuscarLista" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionParte" actionListener="#{mbEntradasProduccion.buscar()}" 
+                                                     update=":main:msgs listaBuscarProductos"  />
+                                </p:column>
+                                <p:column rendered="#{mbEntradasProduccion.mbBuscar.tipoBuscar=='3'}" >
+                                    <p:inputText id="opcionDescripcion" value="#{mbEntradasProduccion.mbBuscar.strBuscar}" maxlength="24" size="24" />
+                                    <p:commandButton id="btnBuscarDescripcion" icon="ui-icon-check" title="Buscar" 
+                                                     process="@this opcionDescripcion" actionListener="#{mbEntradasProduccion.buscar()}" 
+                                                     update=":main:msgs listaBuscarProductos" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:dataTable id="listaBuscarProductos" value="#{mbEntradasProduccion.mbBuscar.productos}" 
+                                     var="prod" scrollable="true" scrollHeight="200" style="width: 800px;"
+                                     rowKey="#{prod.idProducto}" selectionMode="single" selection="#{mbEntradasProduccion.mbBuscar.producto}" >
+                            <p:ajax event = "rowSelect" update="seleccion" />
+
+                            <f:facet name="header">
+                                Seleccione un producto  
+                            </f:facet>
+
+                            <p:column headerText="SKU" style="width: 250px;" >
+                                <h:outputText value="#{prod.cod_pro}" />
+                            </p:column>
+
+                            <p:column headerText="Producto" style="width: 250px;" >
+                                <h:outputText value="#{prod.toString()}" />
+                            </p:column>
+
+                            <f:facet name="footer">
+                                <p:commandButton id="seleccion" value="Seleccionar" 
+                                                 disabled="#{mbEntradasProduccion.mbBuscar.producto==null}"
+                                                 actionListener="#{mbEntradasProduccion.actualizaProductoSeleccionado()}"
+                                                 update=":main:msgs :main:detalleEntrada" oncomplete="PF('buscarProductoDlg').hide()" />
+                            </f:facet>
+                        </p:dataTable>
+                    </p:dialog>
+                </h:form>
+                <script type="text/javascript">
+                    function handleCerrarAgregarLote(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okLotes)) {
+                            PF('agregarLoteDlg').hide();
+                        }
+                    }
+                    function handleCerrarEditarLotes(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okLotes)) {
+                            PF('editarLotesDlg').hide();
+                        }
+                    }
+                    function handleAbrirEditarLotes(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okLotes)) {
+                            PF('editarLotesDlg').show();
+                        }
+                    }
+                    function handleBuscar(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okBuscar)) {
+                            PF('buscarProductoDlg').hide();
+                        }
+                    }
+                </script>
+            </div>
+        </div>
+    </body>
+</html>

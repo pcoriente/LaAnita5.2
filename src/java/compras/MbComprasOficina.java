@@ -907,6 +907,8 @@ public class MbComprasOficina implements Serializable {
             Mensajes.mensajeAlert("Se requiere un proveedor");
         } else if (this.mbComprobantes.getSeleccion() == null) {
             Mensajes.mensajeAlert("Se requiere un comprobante");
+        } else if (this.mbComprobantes.getSeleccion().getIdMoneda()==0) {
+            Mensajes.mensajeAlert("El comprobante seleccionado no tiene moneda !!!");
         } else {
             ok = true;
         }

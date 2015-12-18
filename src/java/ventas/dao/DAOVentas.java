@@ -18,10 +18,12 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import usuarios.dominio.UsuarioSesion;
 import ventas.to.TOVenta;
 import ventas.to.TOVentaProducto;
+import ventas.to.TOVentaProductoAlmacen;
 
 /**
  *
@@ -82,12 +84,16 @@ public class DAOVentas {
         }
     }
 
-    public void traspasarLote(int idAlmacen, TOProductoAlmacen loteOrigen, TOProductoAlmacen toDestino, double cantTraspasar) throws SQLException {
+    public void traspasarLote(int idAlmacen, TOVentaProductoAlmacen toOrigen, TOVentaProductoAlmacen toDestino, double cantTraspasar) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 movimientos.Movimientos.separar(cn, idAlmacen, toDestino, cantTraspasar, true);
-                movimientos.Movimientos.liberar(cn, idAlmacen, toDestino, cantTraspasar);
+                if(toDestino.getIdMovtoAlmacen()==0) {
+                    toDestino.setIdMovtoAlmacen(toOrigen.getIdMovtoAlmacen());
+                    movimientos.Movimientos.agregaProductoAlmacen(cn, toDestino);
+                }
+                movimientos.Movimientos.liberar(cn, idAlmacen, toOrigen, cantTraspasar);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -99,36 +105,46 @@ public class DAOVentas {
         }
     }
 
-    public ArrayList<TOProductoAlmacen> obtenerLotesDisponibles(int idAlmacen, TOProductoAlmacen toProd) throws SQLException {
-        ArrayList<TOProductoAlmacen> lotes = new ArrayList<>();
+    public ArrayList<TOVentaProductoAlmacen> obtenerLotesDisponibles(int idAlmacen, TOVentaProductoAlmacen toProd) throws SQLException {
+        ArrayList<TOVentaProductoAlmacen> lotes = new ArrayList<>();
         String strSQL = "SELECT ISNULL(D.idMovtoAlmacen, 0) AS idMovtoAlmacen, L.idEmpaque, L.lote, ISNULL(D.cantidad, 0) AS cantidad, L.existencia-L.separados AS disponibles, L.fechaCaducidad\n"
                 + "FROM almacenesLotes L\n"
-                + "LEFT JOIN (SELECT * FROM movimientosDetalleAlmacen WHERE idMovto="+toProd.getIdMovtoAlmacen()+" ) D ON D.idEmpaque=L.idEmpaque AND D.lote=L.lote\n"
+                + "LEFT JOIN (SELECT * FROM movimientosDetalleAlmacen WHERE idMovtoAlmacen=" + toProd.getIdMovtoAlmacen() + " ) D ON D.idEmpaque=L.idEmpaque AND D.lote=L.lote\n"
                 + "WHERE L.idAlmacen=" + idAlmacen + " AND L.idEmpaque=" + toProd.getIdProducto() + " AND L.lote!='" + toProd.getLote() + "' AND L.existencia-L.separados > 0\n"
                 + "ORDER BY L.fechaCaducidad";
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                lotes.add(movimientos.Movimientos.construirProductoAlmacen(rs));
+                lotes.add(this.construirProductoAlmacen(rs));
             }
         } finally {
             cn.close();
         }
         return lotes;
     }
+    
+    private TOVentaProductoAlmacen construirProductoAlmacen(ResultSet rs) throws SQLException {
+        TOVentaProductoAlmacen toProd = new TOVentaProductoAlmacen();
+        toProd.setDisponibles(rs.getDouble("disponibles"));
+        toProd.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
+        movimientos.Movimientos.construirProductoAlmacen(rs, toProd);
+        return toProd;
+    }
 
-    public ArrayList<TOProductoAlmacen> obtenerDetalleAlmacen(TOVenta toVta) throws SQLException, NamingException {
-        String strSQL = "SELECT *\n"
-                + "FROM movimientosAlmacenDetalle\n"
-                + "WHERE idMovtoAlmacen=" + toVta.getIdMovtoAlmacen() + "\n"
-                + "ORDER BY idEmpaque";
-        ArrayList<TOProductoAlmacen> productos = new ArrayList<>();
+    public ArrayList<TOVentaProductoAlmacen> obtenerDetalleAlmacen(TOVenta toVta) throws SQLException, NamingException {
+        String strSQL = "SELECT D.*, 0 AS disponibles, A.fechaCaducidad\n"
+                + "FROM movimientosDetalleAlmacen D\n"
+                + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+                + "WHERE D.idMovtoAlmacen=" + toVta.getIdMovtoAlmacen() + "\n"
+                + "ORDER BY D.idEmpaque, A.fechaCaducidad";
+        ArrayList<TOVentaProductoAlmacen> productos = new ArrayList<>();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                productos.add(movimientos.Movimientos.construirProductoAlmacen(rs));
+                productos.add(this.construirProductoAlmacen(rs));
             }
             int propietario = 0;
             strSQL = "SELECT propietario, estatus FROM movimientosAlmacen WHERE idMovtoAlmacen=" + toVta.getIdMovtoAlmacen();

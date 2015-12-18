@@ -684,15 +684,23 @@
                         <p:messages id="msgMttoComprobante" showDetail="true" autoUpdate="false" closable="true" />
                         <p:ajax event="close" listener="#{mbComprasOficina.mbComprobantes.liberar()}" update=":main:comprobanteComplete" />
                         <p:panelGrid id="mttoComprobante" >
-                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable() and mbComprasOficina.mbComprobantes.comprobante.estatus==0}" >
                                 <p:column colspan="2" >
-                                    <p:selectOneRadio id="selectTipoComprobante" value="#{mbComprasOficina.mbComprobantes.comprobante.tipo}" 
+                                    <p:selectOneRadio id="selectTipoComprobante" value="#{mbComprasOficina.mbComprobantes.comprobante.tipo}"
                                                       style="background-color: #ccc" >
                                         <f:selectItem itemLabel="Factura" itemValue="3" />
                                         <f:selectItem itemLabel="Remision" itemValue="2" />
                                         <f:selectItem itemLabel="Interno" itemValue="1" />
-                                        <p:ajax event="change" update="txtSerie" />
+                                        <p:ajax event="change" process="@this" />
                                     </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable() and mbComprasOficina.mbComprobantes.comprobante.estatus!=0}" >
+                                <p:column >
+                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputText value="#{mbComprasOficina.mbComprobantes.comprobante.dameTipo()}" style="font-size: small; font-weight: bold;" />
                                 </p:column>
                             </p:row>
                             <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
@@ -724,16 +732,16 @@
                                     </p:calendar>
                                 </p:column>
                             </p:row>
-                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{mbComprasOficina.mbComprobantes.comprobante.isGrabable() and mbComprasOficina.mbComprobantes.comprobante.moneda.idMoneda==0}" >
                                 <p:column style="text-align: right;" >
                                     <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:selectOneMenu id="cboMoneda" value="#{mbComprasOficina.mbComprobantes.comprobante.moneda}"
+                                                     disabled="#{mbComprasOficina.mbComprobantes.comprobante.moneda.idMoneda!=0}"
                                                      style="width: 180px;" >
                                         <f:converter converterId="converters.Moneda" />
                                         <f:selectItems value="#{mbComprasOficina.mbComprobantes.mbMonedas.listaMonedas}" />
-                                        <p:ajax event="change" process="@this" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
@@ -755,7 +763,7 @@
                                     </h:outputText>
                                 </p:column>
                             </p:row>
-                            <p:row rendered="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable() or mbComprasOficina.mbComprobantes.comprobante.moneda.idMoneda!=0}" >
                                 <p:column style="text-align: right;" >
                                     <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
                                 </p:column>
@@ -768,13 +776,13 @@
                                     <p:column colspan="2" >
                                         <p:commandButton icon="ui-icon-disk" title="Grabar Comprobante" 
                                                          disabled="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}"
-                                                         process="@this selectTipoComprobante txtSerie txtNumero txtFechaFactura" 
+                                                         process="@this txtSerie txtNumero txtFechaFactura cboMoneda" 
                                                          actionListener="#{mbComprasOficina.mbComprobantes.grabar()}" 
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar" 
                                                          disabled="#{not mbComprasOficina.mbComprobantes.comprobante.isGrabable()}"
-                                                         actionListener="#{mbComprasOficina.mbComprobantes.eliminar()}"
+                                                         process="@this"  actionListener="#{mbComprasOficina.mbComprobantes.eliminar()}"
                                                          oncomplete="handleCerrarMttoComprobanteDlg(xhr, status, args)" 
                                                          update="msgMttoComprobante comprobanteComplete" />
                                     </p:column>

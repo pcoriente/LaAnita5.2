@@ -14,7 +14,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.dominio.ProductoAlmacen;
 import movimientos.dominio.MovimientoTipo;
 import movimientos.to.TOMovimientoAlmacen;
 import movimientos.to.TOMovimientoProductoAlmacen;
@@ -167,6 +166,25 @@ public class DAOMovimientosAlmacen {
         return lotes;
     }
 
+    public boolean validaLote(TOMovimientoProductoAlmacen lote) throws SQLException {
+        boolean ok = false;
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+//                strSQL = "SELECT fecha FROM lotes WHERE lote=SUBSTRING('" + lote + "', 1, 4)";
+                strSQL = "SELECT DATEADD(DAY, 365, L.fecha) AS fechaCaducidad\n"
+                        + "FROM lotes L\n"
+                        + "WHERE L.lote=SUBSTRING('"+lote.getLote()+"', 1, 4)";
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
+                    ok = true;
+                }
+            }
+        }
+        return ok;
+    }
+
     public boolean validaLote(int idEmpresa, TOMovimientoProductoAlmacen lote) throws SQLException {
         boolean ok = false;
         String strSQL;
@@ -228,30 +246,29 @@ public class DAOMovimientosAlmacen {
     public ArrayList<TOMovimientoProductoAlmacen> obtenerDetalleProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
         ArrayList<TOMovimientoProductoAlmacen> producto = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
-            this.obtenDetalleProducto(cn, idMovtoAlmacen, idProducto);
+            producto = movimientos.Movimientos.obtenerDetalleProducto(cn, idMovtoAlmacen, idProducto);
         }
         return producto;
     }
 
-    private ArrayList<TOMovimientoProductoAlmacen> obtenDetalleProducto(Connection cn, int idMovtoAlmacen, int idProducto) throws SQLException {
-        String strSQL = "";
-        ArrayList<TOMovimientoProductoAlmacen> producto = new ArrayList<>();
-        try (Statement st = cn.createStatement()) {
-            strSQL = "SELECT D.*, A.fechaCaducidad\n"
-                    + "FROM movimientosDetalleAlmacen D\n"
-                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                    + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
-                    + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
-                    + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto + "\n"
-                    + "ORDER BY L.fecha";
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                producto.add(movimientos.Movimientos.construirLote(rs));
-            }
-        }
-        return producto;
-    }
-
+//    private ArrayList<TOMovimientoProductoAlmacen> obtenDetalleProducto(Connection cn, int idMovtoAlmacen, int idProducto) throws SQLException {
+//        String strSQL = "";
+//        ArrayList<TOMovimientoProductoAlmacen> producto = new ArrayList<>();
+//        try (Statement st = cn.createStatement()) {
+//            strSQL = "SELECT D.*, A.fechaCaducidad\n"
+//                    + "FROM movimientosDetalleAlmacen D\n"
+//                    + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+//                    + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+//                    + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
+//                    + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto + "\n"
+//                    + "ORDER BY L.fecha";
+//            ResultSet rs = st.executeQuery(strSQL);
+//            while (rs.next()) {
+//                producto.add(movimientos.Movimientos.construirLote(rs));
+//            }
+//        }
+//        return producto;
+//    }
     private TOProductoLotes construir(ResultSet rs) throws SQLException {
         TOProductoLotes toProd = new TOProductoLotes();
         toProd.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
@@ -274,7 +291,7 @@ public class DAOMovimientosAlmacen {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
                     toProd = this.construir(rs);
-                    toProd.setLotes(this.obtenDetalleProducto(cn, toProd.getIdMovtoAlmacen(), toProd.getIdProducto()));
+                    toProd.setLotes(movimientos.Movimientos.obtenerDetalleProducto(cn, toProd.getIdMovtoAlmacen(), toProd.getIdProducto()));
                     detalle.add(toProd);
                 }
             } catch (SQLException ex) {

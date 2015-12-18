@@ -3,7 +3,7 @@ package rechazos;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
-import entradas.dominio.MovimientoRelacionadoProductoReporte;
+import traspasos.dominio.TraspasoProductoReporte;
 import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -77,9 +77,9 @@ public class MbRechazo implements Serializable {
         this.inicializa();
     }
 
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(RechazoProducto prod) {
+    private TraspasoProductoReporte convertirProductoReporte(RechazoProducto prod) {
         boolean ya = false;
-        MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
+        TraspasoProductoReporte rep = new TraspasoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
@@ -102,7 +102,7 @@ public class MbRechazo implements Serializable {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
-        ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
+        ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
         for (RechazoProducto p : this.detalle) {
             if (p.getCantFacturada() != 0) {
                 detalleReporte.add(this.convertirProductoReporte(p));
