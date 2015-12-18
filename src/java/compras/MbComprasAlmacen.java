@@ -100,7 +100,7 @@ public class MbComprasAlmacen implements Serializable {
             this.dao = new DAOComprasAlmacen();
             ArrayList<ProductoReporteAlmacen> detalleReporte = new ArrayList<>();
             for (CompraAlmacen cmp : this.compras) {
-                if (cmp.getEstatus() == 5) {
+                if (cmp.getEstatus() == 7) {
                     for (TOProductoCompraAlmacen p : this.dao.obtenerCompraDetalle(this.compra.getIdMovtoAlmacen())) {
                         prod = this.convertir(p);
                         if (p.getCantidad() != 0) {

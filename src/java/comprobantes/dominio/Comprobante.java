@@ -82,7 +82,11 @@ public class Comprobante {
     }
 
     public boolean isGrabable() {
-        return (this.idComprobante==0 || (this.idUsuario==this.propietario && this.estatus!=7));
+        return (this.idComprobante==0 || (this.idUsuario==this.propietario && (this.estatus!=7 || this.moneda.getIdMoneda()==0)));
+    }
+    
+    public String dameTipo() {
+        return (this.tipo.equals("3")? "Factura" : this.tipo.equals("2")? "Remision" : "Interno");
     }
 
     public int getIdComprobante() {

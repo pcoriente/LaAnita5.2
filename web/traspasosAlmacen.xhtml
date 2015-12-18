@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Loteo de Ventas</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgsTraspasos" autoUpdate="false" showDetail="true" closable="true" />
+            <p:panel id="panelTraspaso" header="Lista de Traspasos" style="float: left" >
+                <p:panelGrid style="width: 910px;" >
+                    <f:facet name="header" >
+                        <p:row >
+                            <p:column >
+                                <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:selectOneMenu id="almacen" value="#{mbTraspaso.almacen}" >
+                                    <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                    <f:selectItems value="#{mbTraspaso.listaAlmacenes}" />
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                </p:panelGrid>
+            </p:panel>
+        </h:form>
+    </body>
+</html>

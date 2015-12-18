@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -32,6 +34,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -71,6 +74,7 @@ public class MbSolicitud implements Serializable {
     private TraspasoProducto resSolicitudProducto;
     private DAOSolicitudes dao;
     private TimeZone zonaHoraria = TimeZone.getDefault();
+    private boolean locked;
 
     public MbSolicitud() throws NamingException {
         this.mbAcciones = new MbAcciones();
@@ -112,6 +116,10 @@ public class MbSolicitud implements Serializable {
             for (TOSolicitudProducto to : this.dao.obtenerDetalle(toMov)) {
                 this.detalle.add(this.convertir(to));
             }
+            this.solicitud.setIdUsuario(toMov.getIdUsuario());
+            this.solicitud.setPropietario(toMov.getPropietario());
+            this.solicitud.setEstatus(toMov.getEstatus());
+            this.setLocked(this.solicitud.getIdUsuario() == this.solicitud.getPropietario());
             this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -125,6 +133,7 @@ public class MbSolicitud implements Serializable {
         mov.setIdSolicitud(toMov.getIdSolicitud());
         mov.setFolio(toMov.getFolio());
         mov.setFecha(toMov.getFecha());
+        mov.setIdUsuarioOrigen(toMov.getIdUsuarioOrigen());
         mov.setIdUsuario(toMov.getIdUsuario());
         mov.setPropietario(toMov.getPropietario());
         mov.setEstatus(toMov.getEstatus());
@@ -206,12 +215,16 @@ public class MbSolicitud implements Serializable {
         this.mbCedis.cargaMiniCedisTodos();
         this.mbBuscar.inicializar();
         this.pendientes = "0";
+        this.solicitudes = new ArrayList<>();
+        this.setLocked(false);
     }
 
     public void grabar() {
         try {
             if (this.detalle.isEmpty()) {
                 Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+//            } else if(this.solicitud.getIdUsuario()!=this.solicitud.getPropietario()) {
+//                Mensajes.mensajeAlert("Operacion invalida. No es propietario de la solicitud !!!");
             } else {
                 double total = 0;
                 for (SolicitudProducto e : this.detalle) {
@@ -224,7 +237,9 @@ public class MbSolicitud implements Serializable {
                     this.solicitud.setFolio(to.getFolio());
                     this.solicitud.setFecha(to.getFecha());
                     this.solicitud.setIdUsuario(to.getIdUsuario());
+                    this.solicitud.setPropietario(to.getPropietario());
                     this.solicitud.setEstatus(to.getEstatus());
+                    this.setLocked(this.solicitud.getIdUsuario() == this.solicitud.getPropietario());
                     Mensajes.mensajeSucces("La solicitud se grabo correctamente !!!");
                 } else {
                     Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
@@ -240,12 +255,35 @@ public class MbSolicitud implements Serializable {
     public void salir() {
         this.modoEdicion = false;
         this.obtenerSolicitudes();
+        this.liberar();
+    }
+
+    private void liberar() {
+        boolean ok = false;
+        if (this.solicitud == null) {
+            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
+        } else {
+            try {
+                this.dao = new DAOSolicitudes();
+                this.dao.liberar(this.solicitud.getIdSolicitud());
+                ok=true;
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okSolicitud", ok);
     }
 
     public void gestionar() {
         if (this.producto.getCantSolicitada() < 0) {
             this.producto.setCantSolicitada(this.producto.getSeparados());
             Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
+//        } else if (this.solicitud.getIdUsuario()!=this.solicitud.getPropietario()) {
+//            this.producto.setCantSolicitada(this.producto.getSeparados());
+//            Mensajes.mensajeAlert("Operacion invalida. No es propietario de la solicitud !!!");
         } else if (this.producto.getCantSolicitada() != this.producto.getSeparados()) {
             TOSolicitudProducto toProd = this.convertir(this.producto);
             this.producto.setCantSolicitada(this.producto.getSeparados());
@@ -334,6 +372,7 @@ public class MbSolicitud implements Serializable {
     }
 
     public void nuevaSolicitud() {
+        this.detalle = new ArrayList<>();
         this.solicitud = new Solicitud(this.getAlmacen(), this.mbAlmacenes.getToAlmacen());
         TOSolicitud toMov = this.convertir(this.solicitud);
         try {
@@ -345,13 +384,13 @@ public class MbSolicitud implements Serializable {
             this.solicitud.setIdUsuario(toMov.getIdUsuario());
             this.solicitud.setPropietario(toMov.getPropietario());
             this.solicitud.setEstatus(toMov.getEstatus());
+            this.setLocked(this.solicitud.getIdUsuario() == this.solicitud.getPropietario());
+            this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
-        this.detalle = new ArrayList<>();
-        this.modoEdicion = true;
     }
 
     public String terminar() {
@@ -502,5 +541,13 @@ public class MbSolicitud implements Serializable {
 
     public void setZonaHoraria(TimeZone zonaHoraria) {
         this.zonaHoraria = zonaHoraria;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }

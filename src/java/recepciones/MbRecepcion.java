@@ -4,7 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import almacenes.to.TOAlmacenJS;
 import cedis.MbMiniCedis;
-import entradas.dominio.MovimientoRelacionadoProductoReporte;
+import traspasos.dominio.TraspasoProductoReporte;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -30,6 +30,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -71,6 +72,7 @@ public class MbRecepcion implements Serializable {
     private TORecepcionProductoAlmacen lote;
     private boolean pendientes;
     private Date fechaInicial;
+    private boolean locked;
     private DAORecepciones dao;
 
     public MbRecepcion() throws NamingException {
@@ -92,9 +94,9 @@ public class MbRecepcion implements Serializable {
         return toProd;
     }
 
-    private MovimientoRelacionadoProductoReporte convertirProductoReporte(RecepcionProducto prod) {
+    private TraspasoProductoReporte convertirProductoReporte(RecepcionProducto prod) {
         boolean ya = false;
-        MovimientoRelacionadoProductoReporte rep = new MovimientoRelacionadoProductoReporte();
+        TraspasoProductoReporte rep = new TraspasoProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
@@ -117,7 +119,7 @@ public class MbRecepcion implements Serializable {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
-        ArrayList<MovimientoRelacionadoProductoReporte> detalleReporte = new ArrayList<>();
+        ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
         for (RecepcionProducto p : this.detalle) {
             if (p.getCantFacturada() != 0) {
                 detalleReporte.add(this.convertirProductoReporte(p));
@@ -219,6 +221,7 @@ public class MbRecepcion implements Serializable {
                 this.dao.grabar(toMov);
                 this.recepcion.setFecha(toMov.getFecha());
                 this.recepcion.setIdUsuario(toMov.getIdUsuario());
+                this.recepcion.setPropietario(toMov.getPropietario());
                 this.recepcion.setEstatus(toMov.getEstatus());
                 Mensajes.mensajeSucces("La recepcion se grabo correctamente !!!");
             } catch (SQLException ex) {
@@ -279,8 +282,31 @@ public class MbRecepcion implements Serializable {
     public void editar(SelectEvent event) {
         this.producto = (RecepcionProducto) event.getObject();
     }
+    
+    public void liberarRecepcion() {
+        boolean ok = false;
+        if (this.recepcion == null) {
+            ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
+        } else if (this.locked) {
+            TORecepcion toRecepcion = this.convertir(this.recepcion);
+            try {
+                this.dao = new DAORecepciones();
+                this.dao.liberarRecepcion(toRecepcion);
+                this.locked = false;
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            } catch (Exception ex) {
+                Mensajes.mensajeAlert(ex.getMessage());
+            }
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okRecepcion", ok);
+    }
 
     public void salir() {
+        this.liberarRecepcion();
         this.obtenerRecepciones();
         this.modoEdicion = false;
     }
@@ -318,11 +344,16 @@ public class MbRecepcion implements Serializable {
         this.recepcion = (Recepcion) event.getObject();
         this.detalle = new ArrayList<>();
         this.producto = new RecepcionProducto();
+        TORecepcion toRecepcion = this.convertir(this.recepcion);
         try {
             this.dao = new DAORecepciones();
-            for (TORecepcionProducto p : this.dao.obtenerDetalle(this.recepcion.getIdMovto())) {
+            for (TORecepcionProducto p : this.dao.obtenerDetalle(toRecepcion)) {
                 this.detalle.add(this.convertir(p));
             }
+            this.recepcion.setIdUsuario(toRecepcion.getIdUsuario());
+            this.recepcion.setPropietario(toRecepcion.getPropietario());
+            this.recepcion.setEstatus(toRecepcion.getEstatus());
+            this.setLocked(this.recepcion.getIdUsuario()==this.recepcion.getPropietario());
             this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -428,6 +459,7 @@ public class MbRecepcion implements Serializable {
         this.recepciones = new ArrayList<>();
         this.pendientes = true;
         this.fechaInicial = new Date();
+        this.setLocked(false);
     }
 
     private void inicializa() {
@@ -466,6 +498,14 @@ public class MbRecepcion implements Serializable {
 
     public void setListaAlmacenes(ArrayList<SelectItem> listaAlmacenes) {
         this.listaAlmacenes = listaAlmacenes;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
     public ArrayList<Accion> obtenerAcciones(int idModulo) {

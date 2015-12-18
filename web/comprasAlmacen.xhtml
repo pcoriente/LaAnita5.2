@@ -427,7 +427,7 @@
                         <p:messages id="msgMttoComprobante" showDetail="true" autoUpdate="false" closable="true" />
                         <p:ajax event="close" listener="#{mbComprasAlmacen.mbComprobantes.liberar()}" update=":main:comprobanteComplete" />
                         <p:panelGrid id="mttoComprobante" >
-                            <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable() and mbComprasAlmacen.mbComprobantes.comprobante.estatus==0}" >
                                 <p:column colspan="2" >
                                     <p:selectOneRadio id="selectTipoComprobante" value="#{mbComprasAlmacen.mbComprobantes.comprobante.tipo}" 
                                                       style="background-color: #ccc" >
@@ -436,6 +436,14 @@
                                         <f:selectItem itemLabel="Interno" itemValue="1" />
                                         <p:ajax event="change" update="txtSerie" />
                                     </p:selectOneRadio>
+                                </p:column>
+                            </p:row>
+                            <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable() and mbComprasAlmacen.mbComprobantes.comprobante.estatus!=0}" >
+                                <p:column style="text-align: right;" >
+                                    <h:outputLabel value="COMPROBANTE :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <h:outputText value="#{mbComprasOficina.mbComprobantes.comprobante.dameTipo()}" style="font-size: small; font-weight: bold;" />
                                 </p:column>
                             </p:row>
                             <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}" >
@@ -467,7 +475,7 @@
                                     </p:calendar>
                                 </p:column>
                             </p:row>
-                            <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{mbComprasAlmacen.mbComprobantes.comprobante.isGrabable() and false}" >
                                 <p:column style="text-align: right;" >
                                     <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
                                 </p:column>
@@ -498,7 +506,7 @@
                                     </h:outputText>
                                 </p:column>
                             </p:row>
-                            <p:row rendered="#{not mbComprasAlmacen.mbComprobantes.comprobante.isGrabable()}" >
+                            <p:row rendered="#{not mbComprasAlmacen.mbComprobantes.comprobante.isGrabable() and false}" >
                                 <p:column style="text-align: right;" >
                                     <h:outputLabel value="MONEDA :" style="font-weight: bold; color: red;" />
                                 </p:column>

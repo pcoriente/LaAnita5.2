@@ -1,4 +1,4 @@
-package entradas.dominio;
+package traspasos.dominio;
 
 import java.util.ArrayList;
 import rechazos.to.TORechazoProductoAlmacen;
@@ -7,7 +7,7 @@ import rechazos.to.TORechazoProductoAlmacen;
  *
  * @author jesc
  */
-public class MovimientoRelacionadoProductoReporte {
+public class TraspasoProductoReporte {
     private String sku;
     private String empaque;
     private double cantFacturada;
@@ -16,7 +16,7 @@ public class MovimientoRelacionadoProductoReporte {
     private double loteCantidad;
     private ArrayList<TORechazoProductoAlmacen> lotes;
     
-    public MovimientoRelacionadoProductoReporte() {
+    public TraspasoProductoReporte() {
         this.sku="";
         this.empaque="";
         this.lote="";
