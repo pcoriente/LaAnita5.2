@@ -303,6 +303,8 @@ public class MbDireccion implements Serializable {
     }
 
     public void actualizaAsentamiento() {
+        
+        System.out.println("ENTRO A BUSCAR EL ASENTAMIENTO");
         Asentamiento nuevo = this.direccion.getSelAsentamiento();
         String[] localidades = {"08", "15", "18", "20", "23", "24", "25", "26", "27", "28", "29", "32"};
 
