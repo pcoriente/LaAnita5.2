@@ -7,6 +7,7 @@ import java.util.Date;
  * @author jesc
  */
 public class TOCliente {
+
     private int idCliente;
     private int idGrupoCte;
     private String grupoCte;
@@ -26,13 +27,14 @@ public class TOCliente {
     private double limiteCredito;
     private double desctoComercial;
     private int diasBloqueo;
-    
+    private String esquema;
+
     public TOCliente() {
 //        this.formato="";
-        this.contribuyente="";
-        this.rfc="";
-        this.curp="";
-        this.fechaAlta=new Date();
+        this.contribuyente = "";
+        this.rfc = "";
+        this.curp = "";
+        this.fechaAlta = new Date();
     }
 
     @Override
@@ -109,8 +111,6 @@ public class TOCliente {
 //    public void setFormato(String formato) {
 //        this.formato = formato;
 //    }
- 
-
     public int getIdEsquema() {
         return idEsquema;
     }
@@ -214,4 +214,13 @@ public class TOCliente {
     public void setDiasBloqueo(int diasBloqueo) {
         this.diasBloqueo = diasBloqueo;
     }
+
+    public String getEsquema() {
+        return esquema;
+    }
+
+    public void setEsquema(String esquema) {
+        this.esquema = esquema;
+    }
+
 }

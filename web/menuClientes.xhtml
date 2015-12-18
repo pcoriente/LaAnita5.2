@@ -33,27 +33,37 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="tablaClientesGrupos" var="cte" value="#{mbClientes.clientes}"
-                                     rowKey="#{cte.idCliente}" selectionMode="single" selection="#{mbClientes.cliente}"
+                        <p:dataTable id="tablaClientesGrupos" 
+                                     var="cte" value="#{mbClientes.clientes}"
+                                     rowKey="#{cte.idCliente}"
+                                     selectionMode="single" 
+                                     filteredValue="#{mbClientes.listaFiltros}"
+                                     selection="#{mbClientes.cliente}"
                                      emptyMessage="No hay clientes" scrollable="true" scrollHeight="310" >
                             <p:ajax event="rowSelect" process="@this" update=":form:btnModificarCliente" />
 
-                            <p:column headerText="Grupo" width="200" >
+                            <p:column filterBy="#{cte.grupo.grupoCte}" 
+                                      filterMatchMode="contains"
+                                      headerText="Grupo" width="200" >
                                 #{cte.grupo.grupoCte}
                             </p:column>
 
                             <p:column headerText="Formato" width="200" >
-                                #{cte.formato.formato}
+                                #{cte.nombreEsquema}
                             </p:column>
 
                             <p:column headerText="Rfc" width="100" >
                                 #{cte.contribuyente.rfc}
                             </p:column>
 
-                            <p:column headerText="Contribuyente" width="300" >
+                            <p:column filterMatchMode="contains" 
+                                      filterBy="#{cte.contribuyente.contribuyente}" 
+                                      headerText="Contribuyente" width="300" >
                                 #{cte.contribuyente.contribuyente}
                             </p:column>
-
+                            <f:facet name="footer">
+                                #{mbClientes.clientes.size()} Registros encontrados.
+                            </f:facet>
                         </p:dataTable>
                     </p:panel>
                     <p:dialog widgetVar="dlgSeleccionarCliente" resizable="false" header="Seleccione un Cliente" modal="true" >
