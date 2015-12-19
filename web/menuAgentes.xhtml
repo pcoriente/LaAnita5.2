@@ -10,7 +10,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
         <h:outputStylesheet library="css" name="main.css"/>
         <h:outputStylesheet library="css" name="estilos.css"/>
-
     </h:head>
     <h:body>
         <div id="wrapper" align="center">
@@ -200,13 +199,14 @@
                                               process="@this txtAgenteContribuyente txtNombreAgente cmbCedis direccionAgente cmbNivel txtCodigo"
                                               actionListener="#{mbAgentes.agregarNuevoAgente()}"
                                               oncomplete="nuevoContribuyente(xhr, status, args)"
-                                              update="growl listaAgentes actualizar panelContribuyente"/>
+                                              update="growl :form:listaAgentes actualizar panelContribuyente"/>
                             <p:commandButton  icon="ui-icon-arrowreturnthick-1-w"
-                                              title="Cancelar Agente"
-                                              update=":form:listaAgentes 
-                                              :form:actualizar"
-                                              actionListener="#{mbAgentes.deseleccionar()}"
+                                              title="Cancelar Agente" 
                                               process="@this"
+                                              update="listaAgentes 
+                                              actualizar"
+                                              actionListener="#{mbAgentes.deseleccionar()}"
+                                             
                                               oncomplete="PF('dlg').hide()"/>
                         </center>
                     </p:dialog>
@@ -214,14 +214,13 @@
                     <p:dialog widgetVar="dlgContribuyente"
                               modal="true"
                               resizable="false"
-                              closable="false"
+                              closable="true"
                               header="Datos del contribuyente">
                         <h:panelGrid columns="3" id="panelContribuyente">
                             <p:outputLabel style="color: black"  value="Rfc:"/>
                             <p:inputText id="rfc" 
                                          value="#{mbAgentes.mbContribuyente.contribuyente.rfc}"
                                          disabled="true"/> 
-                            
                             <p:outputLabel/>
                             <p:outputLabel style="color: black" value="Contribuyente:"/>
                             <p:inputText id="contribuyente" 
@@ -257,11 +256,7 @@
                                           update="growl txtAgenteContribuyente"
                                           process="@this contribuyente correo rfc direccionContribuyente"
                                           oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)"/>
-                        <p:commandButton title="Salir"
-                                         immediate="true"
-                                         icon="ui-icon-arrowreturnthick-1-w"
-                                         onclick="PF('dlgContribuyente').hide();"
-                                         />
+                       
                     </p:dialog>
 
               
@@ -273,13 +268,17 @@
                                closable="false">
                         <h:panelGrid id="panelCapturaDireccion" columns="2">
                             <h:outputLabel value="Calle:" for="calle"  styleClass="colorLetra" />
-                            <p:inputText id="calle" value="#{mbAgentes.mbDireccion.direccion.calle}" />
+                            <p:inputText id="calle" 
+                                         value="#{mbAgentes.mbDireccion.direccion.calle}" />
                             <h:outputLabel value="No.Exterior:" for="noExterior" styleClass="colorLetra" />
-                            <p:inputText id="noExterior" value="#{mbAgentes.mbDireccion.direccion.numeroExterior}"/>
+                            <p:inputText id="noExterior" 
+                                         value="#{mbAgentes.mbDireccion.direccion.numeroExterior}"/>
                             <h:outputLabel value="No.Interior:" for="noInterior" styleClass="colorLetra" />
-                            <p:inputText id="noInterior" value="#{mbAgentes.mbDireccion.direccion.numeroInterior}"/>
+                            <p:inputText id="noInterior" 
+                                         value="#{mbAgentes.mbDireccion.direccion.numeroInterior}"/>
                             <h:outputLabel value="Referencia:" for="referencia" styleClass="colorLetra" />
-                            <p:inputText id="referencia" value="#{mbAgentes.mbDireccion.direccion.referencia}"/>
+                            <p:inputText id="referencia" 
+                                         value="#{mbAgentes.mbDireccion.direccion.referencia}"/>
                             <h:outputLabel value="País:" for="cboPaises" styleClass="colorLetra" />
                             <p:selectOneMenu id="cboPaises" 
                                              value="#{mbAgentes.mbDireccion.direccion.pais}"
@@ -288,7 +287,8 @@
                                 <f:converter converterId="converters.Pais" />
                                 <f:selectItems value="#{mbDireccion.listaPaises}" />
                             </p:selectOneMenu>
-                            <h:outputLabel value="Código Postal:" for="codigoPostal" styleClass="colorLetra"  />
+                            <h:outputLabel value="Código Postal:" for="codigoPostal" 
+                                           styleClass="colorLetra"/>
                             <h:panelGroup>
                                 <h:panelGrid columns="3">
                                     <p:inputText id="codigoPostal"
@@ -320,7 +320,8 @@
                                                  value="#{mbAgentes.mbDireccion.direccion.selAsentamiento}" 
                                                  style="width: 188px"
                                                  filter="true">
-                                    <p:ajax event="change" listener="#{mbAgentes.mbDireccion.actualizaAsentamiento}" 
+                                    <p:ajax event="change" 
+                                            listener="#{mbAgentes.mbDireccion.actualizaAsentamiento}" 
                                             update="estado municipio localidad  asentamientos" />             
                                     <f:converter converterId="converters.Asentamiento" />
                                     <f:selectItems value="#{mbAgentes.mbDireccion.listaAsentamientos}" />
@@ -344,10 +345,10 @@
                                                  oncomplete="nuevaDireccion(xhr, status, args)" />
                                 <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
                                                  title="Cancelar Direccion"
-                                                 actionListener="#{mbAgentes.mbDireccion.cancelarDireccion()}"
-                                                 process="@this"
-                                                 update="cboPaises localidad municipio estado gln calle txtAsentamiento noExterior noInterior referencia codigoPostal"
-                                                 oncomplete=" PF('dlgDireccion').hide();"/>
+                                                 actionListener="#{mbAgentes.cancelarDireccion()}"
+                                                 oncomplete=" PF('dlgDireccion').hide();"
+                                                 
+                                                 />
                             </h:panelGroup>
                         </h:panelGrid>
                     </p:dialog>

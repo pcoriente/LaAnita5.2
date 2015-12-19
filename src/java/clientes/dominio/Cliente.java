@@ -23,7 +23,7 @@ public class Cliente implements Serializable {
     private int idCliente;
     private ClienteGrupo grupo;
 //    private TiendaFormato formato;
-    private ClienteFormato formato ;
+    private ClienteFormato formato;
     private Contribuyente contribuyente;
     private Direccion direccion;
     private int idEsquema;
@@ -34,15 +34,16 @@ public class Cliente implements Serializable {
     private int diasBloqueo;
     private ArrayList<ClienteBanco> bancos;
     private ArrayList<Contacto> contactos;
+    private String nombreEsquema;
 
     public Cliente() {
-        this.grupo=new ClienteGrupo();
+        this.grupo = new ClienteGrupo();
 //        this.formato=new TiendaFormato();
         this.formato = new ClienteFormato();
-        this.contribuyente=new Contribuyente();
-        this.direccion=new Direccion();
-        this.bancos=new ArrayList<ClienteBanco>();
-        this.contactos=new ArrayList<Contacto>();
+        this.contribuyente = new Contribuyente();
+        this.direccion = new Direccion();
+        this.bancos = new ArrayList<ClienteBanco>();
+        this.contactos = new ArrayList<Contacto>();
     }
 
     @Override
@@ -90,7 +91,6 @@ public class Cliente implements Serializable {
 //    public void setFormato(TiendaFormato formato) {
 //        this.formato = formato;
 //    }
-
     public int getIdEsquema() {
         return idEsquema;
     }
@@ -178,6 +178,13 @@ public class Cliente implements Serializable {
     public void setFormato(ClienteFormato formato) {
         this.formato = formato;
     }
-    
-    
+
+    public String getNombreEsquema() {
+        return nombreEsquema;
+    }
+
+    public void setNombreEsquema(String nombreEsquema) {
+        this.nombreEsquema = nombreEsquema;
+    }
+
 }

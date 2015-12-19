@@ -33,6 +33,7 @@ import org.primefaces.context.RequestContext;
 @Named(value = "mbClientes")
 @SessionScoped
 public class MbClientes implements Serializable {
+
     @ManagedProperty(value = "#{mbClientesGrupos}")
     private MbClientesGrupos mbClientesGrupos;
     @ManagedProperty(value = "#{mbContribuyente}")
@@ -43,11 +44,12 @@ public class MbClientes implements Serializable {
     private MbClientesBancos mbClientesBancos;
     @ManagedProperty(value = "#{mbTiendasFormatos}")
     private MbTiendasFormatos mbTiendasFormatos;
-    
+
     private int indexClienteSeleccionado;
     private Cliente cliente, clienteSeleccionado;
     private ArrayList<Cliente> clientes, listaClientes;
-    
+    private ArrayList<Cliente>listaFiltros;
+
 //    private int personaFisica = 0;
 //    private boolean actualizarRfc = false;
     private ClienteBanco clienteBanco = new ClienteBanco();
@@ -59,13 +61,13 @@ public class MbClientes implements Serializable {
      * Creates a new instance of MbClientes
      */
     public MbClientes() {
-        this.mbClientesGrupos=new MbClientesGrupos();
+        this.mbClientesGrupos = new MbClientesGrupos();
         this.mbContribuyente = new MbContribuyentes();
         this.mbDireccion = new MbDireccion();
         this.mbClientesBancos = new MbClientesBancos();
         this.mbTiendasFormatos = new MbTiendasFormatos();
-        
-        this.cliente=new Cliente();
+
+        this.cliente = new Cliente();
     }
 
     public List<String> completarClientes(String query) {
@@ -84,14 +86,14 @@ public class MbClientes implements Serializable {
         }
         return lst;
     }
-    
+
     public void cargarFormatos() {
         this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
     public String salir() {
-        this.cliente=null;
-        this.clientes=null;
+        this.cliente = null;
+        this.clientes = null;
         return "index.xhtml";
     }
 
@@ -120,50 +122,49 @@ public class MbClientes implements Serializable {
 //            }
 //        }
 //    }
-
     public void altaDireccionClientes() {
 //        direccionCliente = true;
         mbDireccion.setDireccion(cliente.getDireccion());
     }
-    
+
     public void seleccionaCliente() {
-        this.cliente=this.clienteSeleccionado;
-        int idx=this.clientes.indexOf(this.cliente);
-        if(idx!=-1) {
-            this.indexClienteSeleccionado=idx;
+        this.cliente = this.clienteSeleccionado;
+        int idx = this.clientes.indexOf(this.cliente);
+        if (idx != -1) {
+            this.indexClienteSeleccionado = idx;
         }
         this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
     public void obtenerInformacionRfc() {
-        boolean ok=false;
+        boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
         try {
-            DAOClientes dao=new DAOClientes();
-            if(this.cliente.getIdCliente()==0) {
-                this.indexClienteSeleccionado=-1;
-                this.listaClientes=new ArrayList<Cliente>();
+            DAOClientes dao = new DAOClientes();
+            if (this.cliente.getIdCliente() == 0) {
+                this.indexClienteSeleccionado = -1;
+                this.listaClientes = new ArrayList<Cliente>();
                 this.cliente.setContribuyente(this.mbContribuyente.obtenerContribuyenteRfc(this.cliente.getContribuyente().getRfc()));
                 this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
             } else {
-                this.listaClientes=new ArrayList<Cliente>();
-                for(TOCliente to: dao.obtenerClientesRfc(this.cliente.getContribuyente().getRfc())) {
+                this.listaClientes = new ArrayList<Cliente>();
+                for (TOCliente to : dao.obtenerClientesRfc(this.cliente.getContribuyente().getRfc())) {
                     this.listaClientes.add(this.convertir(to));
                 }
-                if(this.listaClientes.isEmpty()) {
-                    this.cliente=new Cliente();
+                if (this.listaClientes.isEmpty()) {
+                    this.cliente = new Cliente();
                     this.cliente.setContribuyente(this.mbContribuyente.obtenerContribuyenteRfc(this.cliente.getContribuyente().getRfc()));
                     this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
                     Mensajes.mensajeAlert("No se encontraron clientes con el contribuyente especificado !!!");
-                } else if(this.listaClientes.size()==1) {
-                    this.cliente=this.listaClientes.get(0);
-                    int idx=this.clientes.indexOf(this.cliente);
-                    if(idx!=-1) {
-                        this.indexClienteSeleccionado=idx;
+                } else if (this.listaClientes.size() == 1) {
+                    this.cliente = this.listaClientes.get(0);
+                    int idx = this.clientes.indexOf(this.cliente);
+                    if (idx != -1) {
+                        this.indexClienteSeleccionado = idx;
                     }
                     this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
                 } else {
-                    ok=true;
+                    ok = true;
                 }
             }
         } catch (SQLException ex) {
@@ -173,7 +174,7 @@ public class MbClientes implements Serializable {
         }
         context.addCallbackParam("okAbrirListaClientes", ok);
     }
-    
+
 //    public void mttoDireccion() {
 //        this.mbDireccion.mttoDireccion(this.cliente.getDireccion());
 //    }
@@ -183,7 +184,6 @@ public class MbClientes implements Serializable {
 //        this.mbDireccion.mttoDireccion(this.mbContribuyente.getContribuyente().getDireccion());
 ////        this.mbDireccion.setRequerida(true);
 //    }
-
 //    public void cargarDatos() {
 ////        this.setControlActualizar(1);
 //        this.setActualizarRfc(true);
@@ -200,7 +200,6 @@ public class MbClientes implements Serializable {
 //        mbClientesGrupos.getMbFormatos().setLstFormatos(null);
 //        mbClientesGrupos.getMbFormatos().cargarListaFormatos(clienteSeleccionado.getGrupo().getIdGrupoCte());
 //    }
-
 //    public void cancelar() {
 //        clienteSeleccionado = null;
 ////        this.controlActualizar = 0;
@@ -210,7 +209,6 @@ public class MbClientes implements Serializable {
 //        cliente = new Cliente();
 //        mbClientesGrupos.getCmbClientesGrupos().setIdGrupoCte(0);
 //    }
-
 //    public void obtenerBancosClientes() {
 //        try {
 //            mbClientesBancos.getMbBanco().obtenerBancos(cliente.getIdCliente());
@@ -219,7 +217,6 @@ public class MbClientes implements Serializable {
 //            Mensajes.mensajeError(ex.getMessage());
 //        }
 //    }
-
     public void cargarDatosClientes(String rfc) {
         try {
             DAOClientes dao = new DAOClientes();
@@ -241,7 +238,7 @@ public class MbClientes implements Serializable {
 //            mbClientesBancos.getMbBanco().obtenerBancos(cl.getCodigoCliente());
 //            mbClientesBancos.cargarBancos(cl.getCodigoCliente());
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
@@ -274,9 +271,9 @@ public class MbClientes implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, fMsg);
         context.addCallbackParam("ok", ok);
     }
-    
+
     private TOCliente convertir(Cliente cliente) {
-        TOCliente to=new TOCliente();
+        TOCliente to = new TOCliente();
         to.setIdCliente(cliente.getIdCliente());
         to.setIdGrupoCte(cliente.getGrupo().getIdGrupoCte());
 //        to.setIdFormato(cliente.getFormato().getIdFormato());
@@ -290,7 +287,7 @@ public class MbClientes implements Serializable {
         to.setDiasBloqueo(cliente.getDiasBloqueo());
         return to;
     }
-    
+
 //    private void limpiar() {
 //        mbDireccion.setDireccion(new Direccion());
 //        mbContribuyente.setContribuyente(new Contribuyente());
@@ -302,15 +299,14 @@ public class MbClientes implements Serializable {
 //        cliente.setLimiteCredito((float) 0.00);
 //        cliente.getContribuyente().setDireccion(new Direccion());
 //    }
-    
     public void grabarContribuyente() {
-        if(this.mbDireccion.validarDireccion(this.mbContribuyente.getContribuyente().getDireccion())) {
-            if(this.mbContribuyente.grabar()) {
+        if (this.mbDireccion.validarDireccion(this.mbContribuyente.getContribuyente().getDireccion())) {
+            if (this.mbContribuyente.grabar()) {
                 this.cliente.setContribuyente(this.mbContribuyente.getContribuyente());
             }
         }
     }
-    
+
     public void mttoContribuyente() {
         this.mbContribuyente.mttoContribuyente(this.cliente.getContribuyente());
     }
@@ -340,7 +336,6 @@ public class MbClientes implements Serializable {
 //            }
 //        }
 //    }
-
     public boolean validarClientes() {
         boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
@@ -349,11 +344,11 @@ public class MbClientes implements Serializable {
             fMsg.setDetail("Error!! Formato de Cliente Requerido");
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
             context.addCallbackParam("ok", ok);
-        } else if (cliente.getContribuyente().getIdContribuyente()==0) {
+        } else if (cliente.getContribuyente().getIdContribuyente() == 0) {
             fMsg.setDetail("Error!! Contribuyente del Cliente Requerido");
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
             context.addCallbackParam("ok", ok);
-        } else if (cliente.getContribuyente().getIdRfc()==0) {
+        } else if (cliente.getContribuyente().getIdRfc() == 0) {
             fMsg.setDetail("Error!! RFC del Contribuyente Requerido");
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
             context.addCallbackParam("ok", ok);
@@ -387,19 +382,18 @@ public class MbClientes implements Serializable {
 //    public void dameCuentasBancarias() {
 //        mbClientesBancos.getMbBanco().cargarBancos(cliente.getIdCliente());
 //    }
-    
     public void cancelar() {
-        if(this.indexClienteSeleccionado!=-1) {
-            this.cliente=this.clientes.get(this.indexClienteSeleccionado);
+        if (this.indexClienteSeleccionado != -1) {
+            this.cliente = this.clientes.get(this.indexClienteSeleccionado);
         } else {
-            this.cliente=null;
+            this.cliente = null;
         }
     }
-    
+
     public void modificar() {
-        this.indexClienteSeleccionado=this.clientes.indexOf(this.cliente);
-        Cliente tmp=this.clientes.get(this.indexClienteSeleccionado);
-        this.cliente=new Cliente();
+        this.indexClienteSeleccionado = this.clientes.indexOf(this.cliente);
+        Cliente tmp = this.clientes.get(this.indexClienteSeleccionado);
+        this.cliente = new Cliente();
         this.cliente.setIdCliente(tmp.getIdCliente());
         this.cliente.setGrupo(tmp.getGrupo());
         this.cliente.setFormato(tmp.getFormato());
@@ -414,11 +408,11 @@ public class MbClientes implements Serializable {
         this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
     }
-    
+
     public void guardar() {
-        boolean ok=false;
+        boolean ok = false;
         RequestContext context = RequestContext.getCurrentInstance();
-        if(this.validarClientes()) {
+        if (this.validarClientes()) {
             try {
                 DAOClientes dao = new DAOClientes();
                 if (this.cliente.getIdCliente() == 0) {
@@ -429,31 +423,32 @@ public class MbClientes implements Serializable {
                     dao.modificar(this.convertir(this.cliente));
                 }
                 Mensajes.mensajeSucces("El cliente se grabo correctamente !!!");
-                ok=true;
+                ok = true;
             } catch (SQLException ex) {
-                Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
         context.addCallbackParam("ok", ok);
     }
-    
+
     public void nuevo() {
 //        if(this.cliente==null) {
-            this.indexClienteSeleccionado=-1;
+        this.indexClienteSeleccionado = -1;
 //        } else {
 //            this.indexClienteSeleccionado=clientes.indexOf(this.cliente);
 //        }
-        this.cliente=new Cliente();
+        this.cliente = new Cliente();
         this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
-    
+
     private Cliente convertir(TOCliente to) {
-        Cliente cte=new Cliente();
+        Cliente cte = new Cliente();
         cte.setIdCliente(to.getIdCliente());
         cte.getGrupo().setIdGrupoCte(to.getIdGrupoCte());
         cte.getGrupo().setGrupoCte(to.getGrupoCte());
+        cte.setNombreEsquema(to.getEsquema());
 //        cte.getFormato().setIdFormato(to.getIdFormato());
 //        cte.getFormato().setFormato(to.getFormato());
         cte.getFormato().setIdGrupoCte(to.getIdGrupoCte());
@@ -471,22 +466,22 @@ public class MbClientes implements Serializable {
         cte.setDiasBloqueo(to.getDiasBloqueo());
         return cte;
     }
-    
+
     private void cargarClientes() {
-        this.clientes=new ArrayList<Cliente>();
+        this.clientes = new ArrayList<Cliente>();
         try {
             DAOClientes daoCliente = new DAOClientes();
-            for(TOCliente to: daoCliente.lstClientes()) {
+            for (TOCliente to : daoCliente.lstClientes()) {
                 this.clientes.add(this.convertir(to));
             }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public ArrayList<Cliente> getClientes() {
         if (this.clientes == null) {
             this.cargarClientes();
@@ -505,7 +500,6 @@ public class MbClientes implements Serializable {
 //    public void setClienteSeleccionado(Cliente clienteSeleccionado) {
 //        this.clienteSeleccionado = clienteSeleccionado;
 //    }
-
     public Cliente getCliente() {
         return cliente;
     }
@@ -537,7 +531,6 @@ public class MbClientes implements Serializable {
 //    public void setPersonaFisica(int personaFisica) {
 //        this.personaFisica = personaFisica;
 //    }
-
 //    public boolean isActualizarRfc() {
 //        return actualizarRfc;
 //    }
@@ -545,7 +538,6 @@ public class MbClientes implements Serializable {
 //    public void setActualizarRfc(boolean actualizarRfc) {
 //        this.actualizarRfc = actualizarRfc;
 //    }
-
     public MbClientesBancos getMbClientesBancos() {
         return mbClientesBancos;
     }
@@ -577,7 +569,6 @@ public class MbClientes implements Serializable {
 //    public void setDireccionCliente(boolean direccionCliente) {
 //        this.direccionCliente = direccionCliente;
 //    }
-
 //    public boolean isNuevoContribuyente() {
 //        return nuevoContribuyente;
 //    }
@@ -585,7 +576,6 @@ public class MbClientes implements Serializable {
 //    public void setNuevoContribuyente(boolean nuevoContribuyente) {
 //        this.nuevoContribuyente = nuevoContribuyente;
 //    }
-
 //    public boolean isActivarRfc() {
 //        return activarRfc;
 //    }
@@ -593,7 +583,6 @@ public class MbClientes implements Serializable {
 //    public void setActivarRfc(boolean activarRfc) {
 //        this.activarRfc = activarRfc;
 //    }
-
     public MbTiendasFormatos getMbTiendasFormatos() {
         return mbTiendasFormatos;
     }
@@ -617,4 +606,15 @@ public class MbClientes implements Serializable {
     public void setClienteSeleccionado(Cliente clienteSeleccionado) {
         this.clienteSeleccionado = clienteSeleccionado;
     }
+
+    public ArrayList<Cliente> getListaFiltros() {
+        return listaFiltros;
+    }
+
+    public void setListaFiltros(ArrayList<Cliente> listaFiltros) {
+        this.listaFiltros = listaFiltros;
+    }
+    
+    
+    
 }

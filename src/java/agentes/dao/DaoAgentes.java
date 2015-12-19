@@ -157,7 +157,12 @@ public class DaoAgentes {
             if (rs.next()) {
                 idAgente = rs.getInt("idAgente");
             }
-            String sqlContactos = "INSERT INTO contactos(contacto ,puesto, correo, idTipo, idPadre) VALUES('" + agente.getAgente() + "','Agente','" + agente.getContacto().getCorreo() + "','3','" + idAgente + "')";
+            String contacto = agente.getContacto().getCorreo();
+            if (agente.getContacto().getCorreo().equals("")) {
+                contacto = "correo@laanita.com";
+            }
+
+            String sqlContactos = "INSERT INTO contactos(contacto ,puesto, correo, idTipo, idPadre) VALUES('" + agente.getAgente() + "','Agente','" + contacto + "','3','" + idAgente + "')";
             st.executeUpdate(sqlContactos);
             rs = st.executeQuery("SELECT @@IDENTITY AS idContacto");
             if (rs.next()) {
@@ -200,7 +205,7 @@ public class DaoAgentes {
 //        String sqlContribuyenteRfc = "UPDATE contribuyentesRfc set  curp='" + contribuyente.getCurp().toUpperCase() + "' WHERE idRfc = " + contribuyente.getIdRfc();
 
         try {
-            String sql = "UPDATE agentes set agente='" + agente.getAgente() + "', idCedis ='" + agente.getMiniCedis().getIdCedis() + "', nivel ='"+agente.getNivel()+"' WHERE idAgente=" + agente.getIdAgente();
+            String sql = "UPDATE agentes set agente='" + agente.getAgente() + "', idCedis ='" + agente.getMiniCedis().getIdCedis() + "', nivel ='" + agente.getNivel() + "' WHERE idAgente=" + agente.getIdAgente();
             st.executeUpdate("begin transaction");
             st.executeUpdate(sql);
 //            st.executeUpdate(sqlContribuyente);
