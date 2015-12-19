@@ -8,21 +8,22 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class ProductoAlmacen {
+
     private int idMovtoAlmacen;
     private Producto producto;
     private String lote;
     private double cantidad;
-    
+
     public ProductoAlmacen() {
-        this.producto=new Producto();
-        this.lote="";
+        this.producto = new Producto();
+        this.lote = "";
     }
-    
+
     public ProductoAlmacen(Producto producto) {
         this.producto = producto;
         this.lote = "";
     }
-    
+
     public ProductoAlmacen(int idMovtoAlmacen, Producto producto) {
         this.idMovtoAlmacen = idMovtoAlmacen;
         this.producto = producto;
@@ -31,14 +32,14 @@ public class ProductoAlmacen {
 
     @Override
     public String toString() {
-        return this.producto.toString() ;
+        return this.producto.toString();
     }
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 29 * hash + Objects.hashCode(this.producto);
-        hash = 29 * hash + Objects.hashCode(this.lote);
+        int hash = 3;
+        hash = 11 * hash + Objects.hashCode(this.producto);
+        hash = 11 * hash + Objects.hashCode(this.lote);
         return hash;
     }
 
