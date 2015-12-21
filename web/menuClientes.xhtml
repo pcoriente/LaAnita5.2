@@ -34,7 +34,8 @@
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="tablaClientesGrupos" 
-                                     var="cte" value="#{mbClientes.clientes}"
+                                     var="cte" 
+                                     value="#{mbClientes.clientes}"
                                      rowKey="#{cte.idCliente}"
                                      selectionMode="single" 
                                      filteredValue="#{mbClientes.listaFiltros}"
@@ -48,7 +49,7 @@
                                 #{cte.grupo.grupoCte}
                             </p:column>
 
-                            <p:column headerText="Formato" width="200" >
+                            <p:column headerText="Esquema" width="200" >
                                 #{cte.nombreEsquema}
                             </p:column>
 
