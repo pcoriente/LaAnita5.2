@@ -55,7 +55,7 @@ public class MbVentasAlmacen implements Serializable {
     
     private Venta venta;
     private ArrayList<Venta> ventas;
-    private boolean ventaAsegurada;
+    private boolean locked;
     private VentaProductoAlmacen loteOrigen, loteDestino;
     private ArrayList<VentaProductoAlmacen> detalleAlmacen, empaqueLotes;
     private double cantTraspasar;
@@ -82,12 +82,12 @@ public class MbVentasAlmacen implements Serializable {
         boolean ok = false;
         if (this.venta == null) {
             ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
-        } else if (this.ventaAsegurada) {
+        } else if (this.locked) {
             try {
 
                 this.dao = new DAOVentas();
                 this.dao.liberarVenta(this.venta.getIdMovto());
-                this.ventaAsegurada = false;
+                this.locked = false;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
@@ -205,7 +205,7 @@ public class MbVentasAlmacen implements Serializable {
             this.venta.setIdUsuario(toVta.getIdUsuario());
             this.venta.setPropietario(toVta.getPropietario());
             this.venta.setEstatus(toVta.getEstatus());
-            this.ventaAsegurada = this.venta.getIdUsuario() == this.venta.getPropietario();
+            this.locked = this.venta.getIdUsuario() == this.venta.getPropietario();
             ok = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -361,12 +361,12 @@ public class MbVentasAlmacen implements Serializable {
         this.ventas = ventas;
     }
 
-    public boolean isVentaAsegurada() {
-        return ventaAsegurada;
+    public boolean isLocked() {
+        return locked;
     }
 
-    public void setVentaAsegurada(boolean ventaAsegurada) {
-        this.ventaAsegurada = ventaAsegurada;
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
     public VentaProductoAlmacen getLoteOrigen() {

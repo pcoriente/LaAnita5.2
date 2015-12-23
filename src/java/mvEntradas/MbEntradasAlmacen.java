@@ -63,10 +63,11 @@ public class MbEntradasAlmacen implements Serializable {
     private ArrayList<ProductoLotes> detalle;
     private ProductoLotes producto;
     private MovimientoAlmacen entrada;
-    private ArrayList<MovimientoAlmacen> pendientes;
+    private ArrayList<MovimientoAlmacen> entradas;
     private TOMovimientoProductoAlmacen lote;
-    private boolean chkPendientes;
+    private boolean pendientes;
     private Date fechaInicial;
+    private boolean locked;
     private DAOMovimientosAlmacen dao;
 
     public MbEntradasAlmacen() throws NamingException {
@@ -113,6 +114,7 @@ public class MbEntradasAlmacen implements Serializable {
         DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
         DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
 
+
         ArrayList<ProductoReporteAlmacen> detalleReporte = new ArrayList<>();
         for (ProductoLotes p : this.detalle) {
             if (p.getCantidad() != 0) {
@@ -135,7 +137,6 @@ public class MbEntradasAlmacen implements Serializable {
         parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));
 
         parameters.put("idUsuario", this.entrada.getIdUsuario());
-
         try {
             JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
             JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
@@ -157,8 +158,10 @@ public class MbEntradasAlmacen implements Serializable {
         try {
             this.dao = new DAOMovimientosAlmacen();
             this.dao.cancelarMovimiento(this.entrada.getIdMovtoAlmacen(), true);
-            Mensajes.mensajeSucces("La cancelacion de la entrada se realizo con exito !!!");
+            this.obtenerEntradas();
+            this.entrada = new MovimientoAlmacen();
             this.modoEdicion = false;
+            Mensajes.mensajeSucces("La cancelacion de la entrada se realizo con exito !!!");
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -175,14 +178,14 @@ public class MbEntradasAlmacen implements Serializable {
             } else {
                 TOMovimientoAlmacen toMov = this.convertir(this.entrada);
 
+                this.detalle = new ArrayList<>();
                 this.dao = new DAOMovimientosAlmacen();
-                this.dao.grabarDetalle(toMov, true);
+                for (TOProductoLotes toProd : this.dao.grabarDetalle(toMov, true)) {
+                    this.detalle.add(this.convertir(toProd));
+                }
                 this.entrada.setFolio(toMov.getFolio());
                 this.entrada.setFecha(toMov.getFecha());
-                this.entrada.setIdUsuario(toMov.getIdUsuario());
                 this.entrada.setEstatus(toMov.getEstatus());
-
-                this.obtenDetalle(this.entrada.getIdMovtoAlmacen());
                 Mensajes.mensajeSucces("La entrada se grabó correctamente !!!");
             }
         } catch (SQLException ex) {
@@ -241,9 +244,7 @@ public class MbEntradasAlmacen implements Serializable {
             } else if (!this.dao.validaLote(this.entrada.getAlmacen().getIdEmpresa(), this.lote)) {
                 Mensajes.mensajeAlert("Lote no valido !!!");
             } else if (this.producto.getLotes().indexOf(this.lote) == -1) {
-//                TOProductoAlmacen toProd = movimientos.Movimientos.convertir(this.lote);
                 this.dao.agregarProducto(this.lote);
-//                this.lote.setFechaCaducidad(this.lote.getFechaCaducidad());
                 this.producto.getLotes().add(this.lote);
                 ok = true;
             } else {
@@ -286,7 +287,21 @@ public class MbEntradasAlmacen implements Serializable {
     }
 
     public void salir() {
-        this.modoEdicion = false;
+        try {
+            this.dao = new DAOMovimientosAlmacen();
+            if (this.isLocked()) {
+                this.dao.liberarMovimiento(this.entrada.getIdMovtoAlmacen());
+            }
+            this.entradas = new ArrayList<>();
+            for (TOMovimientoAlmacen to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), this.pendientes ? 0 : 7, this.fechaInicial)) {
+                this.entradas.add(this.convertir(to));
+            }
+            this.modoEdicion = false;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     private ProductoLotes convertir(TOProductoLotes toProd) throws SQLException {
@@ -295,29 +310,32 @@ public class MbEntradasAlmacen implements Serializable {
         return prod;
     }
 
-    private void obtenDetalle(int idMovtoAlmacen) throws NamingException, SQLException {
-        this.detalle = new ArrayList<>();
-//        try {
-            this.dao = new DAOMovimientosAlmacen();
-            for (TOProductoLotes to : this.dao.obtenerDetalle(idMovtoAlmacen)) {
-                this.detalle.add(this.convertir(to));
-            }
-////            for(ProductoLotes prod: this.detalle) {
-////                for(ProductoAlmacen l: prod.getLotes()) {
-////                    prod.setCantidad(prod.getCantidad()+l.getCantidad());
-////                }
-////            }
-//        } catch (SQLException ex) {
-//            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
-//        } catch (NamingException ex) {
-//            Mensajes.mensajeError(ex.getMessage());
+//    private void obtenDetalle() throws NamingException, SQLException {
+//        TOMovimientoAlmacen toMov = this.convertir(this.entrada);
+//
+//        this.detalle = new ArrayList<>();
+//        this.dao = new DAOMovimientosAlmacen();
+//        for (TOProductoLotes to : this.dao.obtenerDetalle(toMov)) {
+//            this.detalle.add(this.convertir(to));
 //        }
-    }
-
+//        this.entrada.setIdUsuario(toMov.getIdUsuario());
+//        this.entrada.setPropietario(toMov.getPropietario());
+//        this.entrada.setEstatus(toMov.getEstatus());
+//        this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
+//    }
     public void obtenerDetalle(SelectEvent event) {
         this.entrada = ((MovimientoAlmacen) event.getObject());
+        TOMovimientoAlmacen toMov = this.convertir(this.entrada);
         try {
-            this.obtenDetalle(this.entrada.getIdMovtoAlmacen());
+            this.detalle = new ArrayList<>();
+            this.dao = new DAOMovimientosAlmacen();
+            for (TOProductoLotes to : this.dao.obtenerDetalle(toMov)) {
+                this.detalle.add(this.convertir(to));
+            }
+            this.entrada.setIdUsuario(toMov.getIdUsuario());
+            this.entrada.setPropietario(toMov.getPropietario());
+            this.entrada.setEstatus(toMov.getEstatus());
+            this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
             this.producto = new ProductoLotes();
             this.modoEdicion = true;
         } catch (SQLException ex) {
@@ -333,32 +351,20 @@ public class MbEntradasAlmacen implements Serializable {
         return mov;
     }
 
-    public void pendientes() {
-        boolean ok = false;
-        int estatus = 0;
-        if (this.tipo.getIdTipo() == 0) {
-            Mensajes.mensajeAlert("Se requiere seleccionar un concepto");
-        } else if (this.mbAlmacenes.getToAlmacen().getIdAlmacen() == 0) {
-            Mensajes.mensajeAlert("Se requiere seleccionar un almacen !!!");
-        } else {
-            this.pendientes = new ArrayList<>();
-            if (!this.chkPendientes) {
-                estatus = 7;
-            }
+    public void obtenerEntradas() {
+        if (this.tipo.getIdTipo() != 0 && this.mbAlmacenes.getToAlmacen().getIdAlmacen() != 0) {
+            this.entradas = new ArrayList<>();
             try {
                 this.dao = new DAOMovimientosAlmacen();
-                for (TOMovimientoAlmacen to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), estatus, this.fechaInicial)) {
-                    this.pendientes.add(this.convertir(to));
+                for (TOMovimientoAlmacen to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), this.pendientes ? 0 : 7, this.fechaInicial)) {
+                    this.entradas.add(this.convertir(to));
                 }
-                ok = true;
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("ok", ok);
     }
 
     private TOMovimientoAlmacen convertir(MovimientoAlmacen mov) {
@@ -379,6 +385,9 @@ public class MbEntradasAlmacen implements Serializable {
                 this.dao = new DAOMovimientosAlmacen();
                 this.dao.agregarMovimiento(toMov, false);
                 this.entrada.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
+                this.entrada.setIdUsuario(toMov.getIdUsuario());
+                this.entrada.setPropietario(toMov.getPropietario());
+                this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
                 this.detalle = new ArrayList<>();
                 this.producto = new ProductoLotes();
                 this.modoEdicion = true;
@@ -420,7 +429,7 @@ public class MbEntradasAlmacen implements Serializable {
         this.modoEdicion = false;
         this.listaMovimientosTipos = null;
         this.detalle = new ArrayList<>();
-        this.chkPendientes = true;
+        this.pendientes = true;
         this.fechaInicial = new Date();
     }
 
@@ -489,12 +498,12 @@ public class MbEntradasAlmacen implements Serializable {
         this.fechaInicial = fechaInicial;
     }
 
-    public boolean isChkPendientes() {
-        return chkPendientes;
+    public boolean isPendientes() {
+        return pendientes;
     }
 
-    public void setChkPendientes(boolean chkPendientes) {
-        this.chkPendientes = chkPendientes;
+    public void setPendientes(boolean pendientes) {
+        this.pendientes = pendientes;
     }
 
     public MovimientoTipo getTipo() {
@@ -537,11 +546,19 @@ public class MbEntradasAlmacen implements Serializable {
         this.entrada = entrada;
     }
 
-    public ArrayList<MovimientoAlmacen> getPendientes() {
-        return pendientes;
+    public ArrayList<MovimientoAlmacen> getEntradas() {
+        return entradas;
     }
 
-    public void setPendientes(ArrayList<MovimientoAlmacen> pendientes) {
-        this.pendientes = pendientes;
+    public void setEntradas(ArrayList<MovimientoAlmacen> entradas) {
+        this.entradas = entradas;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }

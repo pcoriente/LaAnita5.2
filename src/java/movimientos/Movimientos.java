@@ -694,20 +694,23 @@ public class Movimientos {
         }
     }
 
-    public static void bloquearMovimientoAlmacen(Connection cn, TOMovimientoOficina toMov) throws SQLException {
-        String strSQL = "SELECT propietario, estatus FROM movimientosAlmacen WHERE idMovto=" + toMov.getIdMovto();
+    public static void bloquearMovimientoAlmacen(Connection cn, TOMovimientoAlmacen toMov, int idUsuario) throws SQLException {
+        toMov.setIdUsuario(idUsuario);
+        String strSQL = "SELECT propietario, estatus FROM movimientosAlmacen WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 toMov.setEstatus(rs.getInt("estatus"));
                 int propietario = rs.getInt("propietario");
                 if (propietario == 0) {
-                    strSQL = "UPDATE movimientosAlmacen SET propietario=" + toMov.getIdUsuario() + " WHERE idMovto=" + toMov.getIdMovto();
+                    strSQL = "UPDATE movimientosAlmacen SET propietario=" + idUsuario + " WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
                     st.executeUpdate(strSQL);
-                    toMov.setPropietario(toMov.getIdUsuario());
+                    toMov.setPropietario(idUsuario);
                 } else {
                     toMov.setPropietario(propietario);
                 }
+            } else {
+                toMov.setPropietario(0);
             }
         }
     }
@@ -728,7 +731,6 @@ public class Movimientos {
                         + "WHERE M.idMovtoAlmacen=" + idMovtoAlmacen + " AND AL.idAlmacen IS NULL";
                 st.executeUpdate(strSQL);
             }
-
             strSQL = "UPDATE D\n"
                     + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
                     + "FROM movimientosDetalleAlmacen D\n"

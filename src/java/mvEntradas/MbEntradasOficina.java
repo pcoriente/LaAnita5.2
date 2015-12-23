@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-//import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -34,7 +33,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
-import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
@@ -61,10 +59,11 @@ public class MbEntradasOficina implements Serializable {
     private MovimientoTipo tipo;
     private ArrayList<ProductoOficina> detalle;
     private ProductoOficina producto;
-    private ArrayList<MovimientoOficina> pendientes;
+    private ArrayList<MovimientoOficina> entradas;
     private MovimientoOficina entrada;
-    private boolean chkPendientes;
+    private boolean pendientes;
     private Date fechaInicial;
+    private boolean locked;
     private DAOMovimientosOficina dao;
 
     public MbEntradasOficina() throws NamingException {
@@ -109,7 +108,6 @@ public class MbEntradasOficina implements Serializable {
         parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));
 
         parameters.put("idUsuario", this.entrada.getIdUsuario());
-
         try {
             JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
             JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
@@ -131,8 +129,10 @@ public class MbEntradasOficina implements Serializable {
         try {
             this.dao = new DAOMovimientosOficina();
             this.dao.cancelarMovimiento(this.entrada.getIdMovto(), true);
-            Mensajes.mensajeError("La cancelacion de la entrada se realizo con exito !!!");
+            this.obtenerEntradas();
+            this.entrada = new MovimientoOficina();
             this.modoEdicion = false;
+            Mensajes.mensajeError("La cancelacion de la entrada se realizo con exito !!!");
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -147,17 +147,16 @@ public class MbEntradasOficina implements Serializable {
             } else if (movimientos.Movimientos.sumaPiezasOficina(this.detalle) == 0) {
                 Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
             } else {
-                TOMovimientoOficina toMov = new TOMovimientoOficina();
-                movimientos.Movimientos.convertir(this.entrada, toMov);
+                TOMovimientoOficina toMov = this.convertir(this.entrada);
 
+                this.detalle = new ArrayList<>();
                 this.dao = new DAOMovimientosOficina();
-                this.dao.grabarDetalle(toMov, true);
+                for (TOProductoOficina toProd : this.dao.grabarDetalle(toMov, true)) {
+                    this.detalle.add(this.convertir(toProd));
+                }
                 this.entrada.setFolio(toMov.getFolio());
                 this.entrada.setFecha(toMov.getFecha());
-                this.entrada.setIdUsuario(toMov.getIdUsuario());
                 this.entrada.setEstatus(toMov.getEstatus());
-
-                this.obtenDetalle(this.entrada.getIdMovto());
                 Mensajes.mensajeSucces("La entrada se grabo correctamente !!!");
             }
         } catch (SQLException ex) {
@@ -234,7 +233,21 @@ public class MbEntradasOficina implements Serializable {
     }
 
     public void salir() {
-        this.modoEdicion = false;
+        try {
+            this.dao = new DAOMovimientosOficina();
+            if (this.isLocked()) {
+                this.dao.liberarMovimiento(this.entrada.getIdMovto());
+            }
+            this.entradas = new ArrayList<>();
+            for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), this.pendientes ? 0 : 7, this.fechaInicial)) {
+                this.entradas.add(this.convertir(to));
+            }
+            this.modoEdicion = false;
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     private ProductoOficina convertir(TOProductoOficina toProd) throws SQLException {
@@ -243,25 +256,39 @@ public class MbEntradasOficina implements Serializable {
         return prod;
     }
 
-    private void obtenDetalle(int idMovto) {
-        this.detalle = new ArrayList<>();
+//    private void obtenDetalle() throws NamingException, SQLException {
+//        TOMovimientoOficina toMov = this.convertir(this.entrada);
+//
+//        this.detalle = new ArrayList<>();
+//        this.dao = new DAOMovimientosOficina();
+//        for (TOProductoOficina to : this.dao.obtenerDetalle(toMov)) {
+//            this.detalle.add(this.convertir(to));
+//        }
+//        this.entrada.setIdUsuario(toMov.getIdUsuario());
+//        this.entrada.setPropietario(toMov.getPropietario());
+//        this.entrada.setEstatus(toMov.getEstatus());
+//        this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
+//    }
+    public void obtenerDetalle(SelectEvent event) {
+        this.entrada = ((MovimientoOficina) event.getObject());
+        TOMovimientoOficina toMov = this.convertir(this.entrada);
         try {
+            this.detalle = new ArrayList<>();
             this.dao = new DAOMovimientosOficina();
-            for (TOProductoOficina to : this.dao.obtenerDetalle(idMovto)) {
+            for (TOProductoOficina to : this.dao.obtenerDetalle(toMov)) {
                 this.detalle.add(this.convertir(to));
             }
+            this.entrada.setIdUsuario(toMov.getIdUsuario());
+            this.entrada.setPropietario(toMov.getPropietario());
+            this.entrada.setEstatus(toMov.getEstatus());
+            this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
+            this.producto = new ProductoOficina();
+            this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
-    }
-
-    public void obtenerDetalle(SelectEvent event) {
-        this.entrada = ((MovimientoOficina) event.getObject());
-        this.obtenDetalle(this.entrada.getIdMovto());
-        this.producto = new ProductoOficina();
-        this.modoEdicion = true;
     }
 
     private MovimientoOficina convertir(TOMovimientoOficina toMov) throws SQLException {
@@ -270,36 +297,24 @@ public class MbEntradasOficina implements Serializable {
         return mov;
     }
 
-    public void pendientes() {
-        boolean ok = false;
-        int estatus=0;
-        if (this.tipo.getIdTipo() == 0) {
-            Mensajes.mensajeAlert("Se requiere seleccionar un concepto");
-        } else if (this.mbAlmacenes.getToAlmacen().getIdAlmacen() == 0) {
-            Mensajes.mensajeAlert("Se requiere seleccionar un almacen !!!");
-        } else {
-            this.pendientes = new ArrayList<>();
-            if(!this.chkPendientes) {
-                estatus=7;
-            }
+    public void obtenerEntradas() {
+        if (this.tipo.getIdTipo() != 0 && this.mbAlmacenes.getToAlmacen().getIdAlmacen() != 0) {
+            this.entradas = new ArrayList<>();
             try {
                 this.dao = new DAOMovimientosOficina();
-                for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), estatus, this.fechaInicial)) {
-                    this.pendientes.add(this.convertir(to));
+                for (TOMovimientoOficina to : this.dao.obtenerMovimientos(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.getTipo().getIdTipo(), this.pendientes ? 0 : 7, this.fechaInicial)) {
+                    this.entradas.add(this.convertir(to));
                 }
-                ok = true;
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("ok", ok);
     }
 
     private TOMovimientoOficina convertir(MovimientoOficina mov) {
-        TOMovimientoOficina toMov = new TOMovimientoOficina();
+        TOMovimientoOficina toMov = new TOMovimientoOficina(mov.getTipo().getIdTipo());
         movimientos.Movimientos.convertir(mov, toMov);
         return toMov;
     }
@@ -311,9 +326,14 @@ public class MbEntradasOficina implements Serializable {
             Mensajes.mensajeAlert("Se requiere seleccionar un almacen !!!");
         } else {
             this.entrada = new MovimientoOficina(this.tipo, this.mbAlmacenes.getToAlmacen());
+            TOMovimientoOficina toMov = this.convertir(this.entrada);
             try {
                 this.dao = new DAOMovimientosOficina();
-                this.entrada.setIdMovto(this.dao.agregarMovimiento(this.convertir(this.entrada), false));
+                this.dao.agregarMovimiento(toMov, false);
+                this.entrada.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
+                this.entrada.setIdUsuario(toMov.getIdUsuario());
+                this.entrada.setPropietario(toMov.getPropietario());
+                this.setLocked(this.entrada.getIdUsuario() == this.entrada.getPropietario());
                 this.detalle = new ArrayList<>();
                 this.producto = new ProductoOficina();
                 this.modoEdicion = true;
@@ -354,8 +374,8 @@ public class MbEntradasOficina implements Serializable {
         this.modoEdicion = false;
         this.listaMovimientosTipos = null;
         this.detalle = new ArrayList<>();
-        this.chkPendientes=true;
-        this.fechaInicial=new Date();
+        this.pendientes = true;
+        this.fechaInicial = new Date();
     }
 
     private void inicializa() {
@@ -431,12 +451,12 @@ public class MbEntradasOficina implements Serializable {
         this.tipo = tipo;
     }
 
-    public boolean isChkPendientes() {
-        return chkPendientes;
+    public boolean isPendientes() {
+        return pendientes;
     }
 
-    public void setChkPendientes(boolean chkPendientes) {
-        this.chkPendientes = chkPendientes;
+    public void setPendientes(boolean pendientes) {
+        this.pendientes = pendientes;
     }
 
     public Date getFechaInicial() {
@@ -447,12 +467,12 @@ public class MbEntradasOficina implements Serializable {
         this.fechaInicial = fechaInicial;
     }
 
-    public ArrayList<MovimientoOficina> getPendientes() {
-        return pendientes;
+    public ArrayList<MovimientoOficina> getEntradas() {
+        return entradas;
     }
 
-    public void setPendientes(ArrayList<MovimientoOficina> pendientes) {
-        this.pendientes = pendientes;
+    public void setEntradas(ArrayList<MovimientoOficina> entradas) {
+        this.entradas = entradas;
     }
 
     public ArrayList<ProductoOficina> getDetalle() {
@@ -477,5 +497,13 @@ public class MbEntradasOficina implements Serializable {
 
     public void setEntrada(MovimientoOficina entrada) {
         this.entrada = entrada;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }

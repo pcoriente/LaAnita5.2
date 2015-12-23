@@ -27,6 +27,10 @@ public class VentaProductoAlmacen extends ProductoAlmacen {
         super(idMovtoAlmacen, producto);
         this.fechaCaducidad = new Date();
     }
+    
+    public String getId() {
+        return String.valueOf(super.getProducto().getIdProducto()).concat(super.getLote());
+    }
 
     public double getSeparados() {
         return separados;

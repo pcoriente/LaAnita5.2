@@ -57,12 +57,12 @@ public class DAOEntradasProduccion {
         }
     }
 
-    public void grabar(TOMovimientoOficina toMov) throws SQLException {
+    public ArrayList<TOProductoOficina> grabar(TOMovimientoOficina toMov) throws SQLException {
+        ArrayList<TOProductoOficina> productos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 toMov.setEstatus(7);
-                toMov.setIdUsuario(this.idUsuario);
 
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
@@ -73,6 +73,7 @@ public class DAOEntradasProduccion {
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toMov);
 
                 movimientos.Movimientos.actualizaDetalleOficina(cn, toMov.getIdMovto(), toMov.getIdTipo(), true);
+                productos = this.obtenDetalle(cn, toMov.getIdMovto());
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -82,6 +83,7 @@ public class DAOEntradasProduccion {
                 cn.setAutoCommit(true);
             }
         }
+        return productos;
     }
 
     public void cancelarMovimiento(int idMovto, int idMovtoAlmacen) throws SQLException {
@@ -159,19 +161,27 @@ public class DAOEntradasProduccion {
         }
         return productos;
     }
-    
+
+    private ArrayList<TOProductoOficina> obtenDetalle(Connection cn, int idMovto) throws SQLException {
+        ArrayList<TOProductoOficina> productos = new ArrayList<>();
+        String strSQL = "SELECT * FROM movimientosDetalle WHERE idMovto=" + idMovto;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                productos.add(movimientos.Movimientos.construirProductoOficina(rs));
+            }
+        }
+        return productos;
+    }
+
     public ArrayList<TOProductoOficina> obtenerDetalle(TOMovimientoOficina toMov) throws SQLException {
         ArrayList<TOProductoOficina> productos = new ArrayList<>();
-        String strSQL = "SELECT * FROM movimientosDetalle WHERE idMovto=" + toMov.getIdMovto();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    productos.add(movimientos.Movimientos.construirProductoOficina(rs));
-                }
+            try {
+                productos = this.obtenDetalle(cn, toMov.getIdMovto());
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toMov, this.idUsuario);
-                
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -182,7 +192,7 @@ public class DAOEntradasProduccion {
         }
         return productos;
     }
-    
+
     public void agregarProducto(TOProductoOficina toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);

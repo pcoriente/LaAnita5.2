@@ -72,16 +72,33 @@ public class DAOMovimientosAlmacen {
         }
     }
 
-    public void grabarDetalle(TOMovimientoAlmacen toMov, boolean suma) throws SQLException {
+    public void liberarMovimiento(int idMovtoAlmacen) throws SQLException {
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                movimientos.Movimientos.liberarMovimientoAlmacen(cn, idMovtoAlmacen, this.idUsuario);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    public ArrayList<TOProductoLotes> grabarDetalle(TOMovimientoAlmacen toMov, boolean suma) throws SQLException {
+        ArrayList<TOProductoLotes> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 toMov.setEstatus(7);
-                toMov.setIdUsuario(this.idUsuario);
+                
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
 
                 movimientos.Movimientos.actualizaDetalleAlmacen(cn, toMov.getIdMovtoAlmacen(), suma);
+                detalle = this.obtenDetalle(cn, toMov);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -91,6 +108,7 @@ public class DAOMovimientosAlmacen {
                 cn.setAutoCommit(true);
             }
         }
+        return detalle;
     }
 
     public void cancelarProducto(int idMovtoAlmacen, int idEmpaque, boolean suma) throws SQLException {
@@ -174,7 +192,7 @@ public class DAOMovimientosAlmacen {
 //                strSQL = "SELECT fecha FROM lotes WHERE lote=SUBSTRING('" + lote + "', 1, 4)";
                 strSQL = "SELECT DATEADD(DAY, 365, L.fecha) AS fechaCaducidad\n"
                         + "FROM lotes L\n"
-                        + "WHERE L.lote=SUBSTRING('"+lote.getLote()+"', 1, 4)";
+                        + "WHERE L.lote=SUBSTRING('" + lote.getLote() + "', 1, 4)";
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));
@@ -277,23 +295,33 @@ public class DAOMovimientosAlmacen {
         return toProd;
     }
 
-    public ArrayList<TOProductoLotes> obtenerDetalle(int idMovtoAlmacen) throws SQLException {
-        String strSQL = "";
+    private ArrayList<TOProductoLotes> obtenDetalle(Connection cn, TOMovimientoAlmacen toMov) throws SQLException {
         TOProductoLotes toProd;
+        ArrayList<TOProductoLotes> detalle = new ArrayList<>();
+        String strSQL = "SELECT idMovtoAlmacen, idEmpaque, SUM(cantidad) AS cantidad\n"
+                + "FROM movimientosDetalleAlmacen\n"
+                + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + "\n"
+                + "GROUP BY idMovtoAlmacen, idEmpaque";
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                toProd = this.construir(rs);
+                toProd.setLotes(movimientos.Movimientos.obtenerDetalleProducto(cn, toProd.getIdMovtoAlmacen(), toProd.getIdProducto()));
+                detalle.add(toProd);
+            }
+        }
+        return detalle;
+    }
+
+    public ArrayList<TOProductoLotes> obtenerDetalle(TOMovimientoAlmacen toMov) throws SQLException {
         ArrayList<TOProductoLotes> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                strSQL = "SELECT idMovtoAlmacen, idEmpaque, SUM(cantidad) AS cantidad\n"
-                        + "FROM movimientosDetalleAlmacen\n"
-                        + "WHERE idMovtoAlmacen=" + idMovtoAlmacen + "\n"
-                        + "GROUP BY idMovtoAlmacen, idEmpaque";
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    toProd = this.construir(rs);
-                    toProd.setLotes(movimientos.Movimientos.obtenerDetalleProducto(cn, toProd.getIdMovtoAlmacen(), toProd.getIdProducto()));
-                    detalle.add(toProd);
-                }
+            try {
+                detalle = this.obtenDetalle(cn, toMov);
+                movimientos.Movimientos.bloquearMovimientoAlmacen(cn, toMov, this.idUsuario);
+
+                cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
                 throw ex;

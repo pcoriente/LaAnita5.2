@@ -24,7 +24,7 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" style="width: 400px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbEntradasProduccion.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
@@ -34,14 +34,14 @@
                                 <p:column >
                                     <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
                                                              style="font-weight: bold; color: black;"
-                                                             value="#{mbEntradasProduccion.chkPendientes}" >
+                                                             value="#{mbEntradasProduccion.pendientes}" >
                                         <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
                                                 update=":main:msgs fechaInicial listaDeEntradas" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column >
                                     <p:calendar id="fechaInicial" value="#{mbEntradasProduccion.fechaInicial}"
-                                                disabled="#{mbEntradasProduccion.chkPendientes}"
+                                                disabled="#{mbEntradasProduccion.pendientes}"
                                                 readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
                                         <p:ajax event="dateSelect" listener="#{mbEntradasProduccion.obtenerEntradas()}"
                                                 update=":main:msgs listaDeEntradas" />
@@ -53,7 +53,7 @@
                                     <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="concepto" value="#{mbEntradasProduccion.tipo}" style="width: 450px;" >
+                                    <p:selectOneMenu id="concepto" value="#{mbEntradasProduccion.tipo}" style="width: 400px;" >
                                         <f:converter converterId="converters.MovimientoTipo" />
                                         <f:selectItems value="#{mbEntradasProduccion.listaMovimientosTipos}" />
                                         <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
@@ -72,8 +72,7 @@
                                      value="#{mbEntradasProduccion.entradas}" style="border: solid 1px; width: 800px;"
                                      var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasProduccion.obtenerDetalle}" 
-                                    update=":main" />
+                            <p:ajax event="rowSelect" listener="#{mbEntradasProduccion.obtenerDetalle}" update=":main" />
 
                             <p:column headerText="ALMACEN" style="width: 300px;" >
                                 <h:outputText value="#{entrada.almacen}" />
@@ -103,7 +102,7 @@
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 
                                                      disabled="#{mbEntradasProduccion.entrada.estatus!=0}" 
-                                                     process="@this" actionListener="#{mbEntradasProduccion.grabar()}" />
+                                                     process="@this" actionListener="#{mbEntradasProduccion.grabar()}" update=":main" />
                                     <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar entrada de almacén"
                                                      disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
                                                      process="@this" actionListener="#{mbEntradasProduccion.cancelar()}" 
@@ -125,7 +124,7 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos"
-                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
+                                                     disabled="#{mbEntradasProduccion.entrada.estatus!=0 or !mbEntradasProduccion.locked}"
                                                      process="@this" actionListener="#{mbEntradasProduccion.mbBuscar.inicializar()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
@@ -197,7 +196,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{lote.cantidad}" style="width:80px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEntradasProduccion.entrada.estatus!=0}" >
+                                                     readonly="#{mbEntradasProduccion.entrada.estatus!=0 or !mbEntradasProduccion.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" pattern="###,##0.000" />
                                             <p:ajax event="change" process="@this" listener="#{mbEntradasProduccion.gestionarLotes()}" 

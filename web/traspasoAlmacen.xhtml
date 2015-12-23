@@ -87,7 +87,8 @@
                     </p:inputText>
 
                     <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
-                    <p:inputText id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}" 
+                    <p:inputText id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}"
+                                 readonly="#{!mBTraspasoAlmacen.locked}"
                                  size="14" validatorMessage="cantidad a traspasar [ 0 - #{mBTraspasoAlmacen.loteOrigen.cantidad} ]" >
                         <f:validateDoubleRange minimum="0.0" maximum="#{mBTraspasoAlmacen.loteOrigen.cantidad}" />
                         <p:ajax event="keyup" update="msgsSimilares" />

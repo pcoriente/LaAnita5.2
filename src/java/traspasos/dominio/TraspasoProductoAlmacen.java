@@ -9,7 +9,6 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class TraspasoProductoAlmacen extends ProductoAlmacen {
-//    private String id;
     private double separados;
     private double disponibles;
     private Date fechaCaducidad;
@@ -54,11 +53,6 @@ public class TraspasoProductoAlmacen extends ProductoAlmacen {
     }
 
     public String getId() {
-//        this.id = String.valueOf(super.getProducto().getIdProducto()).concat(super.getLote());
         return String.valueOf(super.getProducto().getIdProducto()).concat(super.getLote());
     }
-    
-//    public void setId(String id) {
-//        this.id = id;
-//    }
 }
