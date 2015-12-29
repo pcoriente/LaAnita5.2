@@ -55,12 +55,14 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
-                + "FROM clientes C "
-                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte "
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente "
-                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc "
-                + "WHERE C.idGrupoCte=" + idGrupo + " "
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+                + "FROM clientes C\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
+                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
+                + "INNER JOIN esquemaNegociacion N ON N.idEsquema=C.idEsquema\n"
+                + "WHERE C.idGrupoCte=" + idGrupo + "\n"
                 + "ORDER BY C.idGrupoCte, Y.contribuyente";
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -78,13 +80,13 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT esq.*,C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp , F.formato\n"
-                + "FROM clientes C \n"
-                + "INNER JOIN esquemaNegociacion esq \n"
-                + "on C.idEsquema = esq.idEsquema \n"
+        String sql = "SELECT C.* , G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp, F.formato\n"
+                + "FROM clientes C\n"
+                + "INNER JOIN esquemaNegociacion esq ON esq.idEsquema=C.idEsquema\n"
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte \n"
                 + "INNER JOIN clientesFormatos F on F.idGrupoCte=C.idGrupoCte\n"
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente \n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
                 + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc ORDER BY C.idGrupoCte, Y.contribuyente";
        
         System.out.println(sql);
@@ -104,12 +106,14 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
-                + "FROM clientes C "
-                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte "
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente "
-                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc "
-                + "WHERE R.rfc='" + rfc + "' "
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+                + "FROM clientes C\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
+                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
+                + "INNER JOIN esquemaNegociacion N ON N.idEsquema=C.idEsquema\n"
+                + "WHERE R.rfc='" + rfc + "'\n"
                 + "ORDER BY C.idGrupoCte, Y.contribuyente";
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -127,7 +131,8 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
                 + "FROM (SELECT DISTINCT T.idCliente\n"
                 + "	FROM clientesTiendas T\n"
                 + "	INNER JOIN agentes A ON A.idAgente=T.idAgente\n"
@@ -136,6 +141,7 @@ public class DAOClientes {
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
                 + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
                 + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
+                + "INNER JOIN esquemaNegociacion N ON N.idEsquema=C.idEsquema\n"
                 + "ORDER BY C.idGrupoCte, Y.contribuyente";
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -153,12 +159,14 @@ public class DAOClientes {
         TOCliente cliente = new TOCliente();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
-                + "FROM clientes C "
-                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte "
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente "
-                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc "
-                + "INNER JOIN clientesFormatos CL ON C.idCliente = CL.idCliente"
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+                + "FROM clientes C\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
+                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
+                + "INNER JOIN clientesFormatos CL ON C.idCliente = CL.idCliente\n"
+                + "INNER JOIN esquemaNegociacion N ON N.idEsquema=C.idEsquema\n"
                 + "WHERE R.rfc ='" + rfc + "'";
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -201,11 +209,13 @@ public class DAOClientes {
         TOCliente cliente = new TOCliente();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp "
-                + "FROM clientes C "
-                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte "
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente "
-                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc "
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
+                + "FROM clientes C\n"
+                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
+                + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
+                + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc\n"
+                + "INNER JOIN esquemaNegociacion N ON N.idEsquema=C.idEsquema\n"
                 + "WHERE C.idCliente=" + idCliente;
         try {
             ResultSet rs = st.executeQuery(sql);

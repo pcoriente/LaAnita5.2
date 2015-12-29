@@ -13,9 +13,9 @@
     <body>
         <ui:include src="wrapper.xhtml" />
         <h:form id="main" onkeypress="return event.keyCode !== 13;" >
-            <p:messages id="msgsVentas" autoUpdate="false" showDetail="true" closable="true" />
+            <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true" />
             <p:panel id="panelVenta" header="Lista de Ventas" style="float: left"
-                     rendered="#{not empty mBTraspasoAlmacen.obtenerAcciones(36) and not mBTraspasoAlmacen.modoEdicion}" >
+                     rendered="#{not empty mbVentasAlmacen.obtenerAcciones(36)}" >
                 <p:panelGrid style="width: 910px;" >
                     <f:facet name="header" >
                         <p:row >
@@ -26,22 +26,22 @@
                                 <p:selectOneMenu id="almacen" value="#{mbVentasAlmacen.mbAlmacenes.toAlmacen}" >
                                     <f:converter converterId="converters.TOAlmacenJSConverter" />
                                     <f:selectItems value="#{mbVentasAlmacen.mbAlmacenes.listaAlmacenes}" />
-                                    <p:ajax event="change" listener="#{mbVentasAlmacen.obtenerVentasAlmacen()}" 
-                                            update=":main:msgsVentas fechaInicial listaDeVentas" />
+                                    <p:ajax event="change" listener="#{mbVentasAlmacen.obtenerVentas()}" 
+                                            update=":main:msgs listaDeVentas" />
                                 </p:selectOneMenu>
                             </p:column>
                             <p:column >
                                 <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbVentasAlmacen.pendientes}" >
-                                    <p:ajax listener="#{mbVentasAlmacen.obtenerVentasAlmacen()}" 
-                                            update=":main:msgsVentas fechaInicial listaDeVentas" />
+                                    <p:ajax listener="#{mbVentasAlmacen.obtenerVentas()}" 
+                                            update=":main:msgs fechaInicial listaDeVentas" />
                                 </p:selectBooleanCheckbox>
                             </p:column>
                             <p:column >
                                 <p:calendar id="fechaInicial" value="#{mbVentasAlmacen.fechaInicial}"
                                             readonlyInput="true" disabled="#{mbVentasAlmacen.mbAlmacenes.toAlmacen.idAlmacen==0 || mbVentasAlmacen.pendientes}"
                                             locale="es" navigator="true" pattern="dd/MM/yyyy" >
-                                    <p:ajax event="dateSelect" process="@this" listener="#{mbVentasAlmacen.obtenerVentasAlmacen()}" 
-                                            update=":main:msgsVentas :main:listaDeVentas" />
+                                    <p:ajax event="dateSelect" process="@this" listener="#{mbVentasAlmacen.obtenerVentas()}" 
+                                            update=":main:msgs :main:listaDeVentas" />
                                 </p:calendar>
                             </p:column>
                             <p:column colspan="5" style="text-align: right;" >
@@ -55,7 +55,7 @@
                              var="vta" rowKey="#{vta.idMovto}" selectionMode="single" 
                              style="border:solid 1px; width: 910px;" emptyMessage="No existen pedidos" >
                     <p:ajax event="rowSelect" listener="#{mbVentasAlmacen.obtenerDetalleAlmacen}" 
-                            update=":main:msgsVentas :main:venta :main:detalleVenta" 
+                            update=":main:msgs :main:venta :main:detalle" 
                             oncomplete="abrirVenta(xhr, status, args);" />
 
                     <p:column headerText="Cliente" style="width: 30%;" >
@@ -118,7 +118,7 @@
                         <p:commandButton id="loteSeleccion" value="Seleccionar" 
                                          disabled="#{mbVentasAlmacen.loteDestino==null || mbVentasAlmacen.cantTraspasar==0}"
                                          process="@this :main:panelSimilares" actionListener="#{mbVentasAlmacen.actualizaTraspasoLote()}"
-                                         validateClient="true" update=":main:msgsSimilares :main:panelSimilares :main:detalleVenta" 
+                                         validateClient="true" update=":main:msgsSimilares :main:panelSimilares :main:detalle" 
                                          oncomplete="cerrarSimilares(xhr, status, args);" />
                     </f:facet>
                 </p:dataTable>
@@ -166,12 +166,12 @@
                             <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Remisionar la venta"
                                              disabled="#{!mbVentasAlmacen.pendientes}"
                                              process="@this" actionListener="#{mbVentasAlmacen.cerrarVentaAlmacen()}" 
-                                             update=":main:msgsVentas :main:listaDeVentas" 
+                                             update=":main:msgs :main:listaDeVentas" 
                                              oncomplete="cerrarVenta(xhr, status, args);" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>
-                <p:dataTable id="detalleVenta" value="#{mbVentasAlmacen.detalleAlmacen}"
+                <p:dataTable id="detalle" value="#{mbVentasAlmacen.detalle}"
                              var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 910px;" 
                              rowKey="#{prod.id}" selectionMode="single" selection="#{mbVentasAlmacen.loteOrigen}"
                              emptyMessage="No existen productos" >

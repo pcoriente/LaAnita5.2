@@ -81,7 +81,7 @@ public class DAOMovimientosOficina {
                             + "SET separados=A.separados-(D.cantFacturada+D.cantSinCargo)\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                            + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=M.idEmpaque\n"
+                            + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
                 }

@@ -8,7 +8,7 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TOPedido extends TOMovimientoOficina {
-    private int idTienda;
+//    private int idTienda;
     private int idPedidoOC;
     private int idMoneda;
     private String ordenDeCompra;
@@ -32,13 +32,13 @@ public class TOPedido extends TOMovimientoOficina {
         this.canceladoMotivo="";
     }
     
-    public int getIdTienda() {
-        return idTienda;
-    }
-
-    public void setIdTienda(int idTienda) {
-        this.idTienda = idTienda;
-    }
+//    public int getIdTienda() {
+//        return idTienda;
+//    }
+//
+//    public void setIdTienda(int idTienda) {
+//        this.idTienda = idTienda;
+//    }
     
     public int getIdPedidoOC() {
         return idPedidoOC;

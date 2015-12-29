@@ -153,7 +153,7 @@ public class MBTraspasoAlmacen implements Serializable {
             try {
                 this.dao = new DAOTraspasos();
                 this.dao.liberarTraspaso(toTraspaso);
-                this.locked = false;
+                this.setLocked(false);
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {

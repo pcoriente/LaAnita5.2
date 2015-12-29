@@ -55,12 +55,12 @@ public class MbVentasAlmacen implements Serializable {
     
     private Venta venta;
     private ArrayList<Venta> ventas;
-    private boolean locked;
     private VentaProductoAlmacen loteOrigen, loteDestino;
-    private ArrayList<VentaProductoAlmacen> detalleAlmacen, empaqueLotes;
+    private ArrayList<VentaProductoAlmacen> detalle, empaqueLotes;
     private double cantTraspasar;
     private boolean pendientes;
     private Date fechaInicial;
+    private boolean locked;
     private TimeZone zonaHoraria = TimeZone.getDefault();
     private DAOVentas dao;
 
@@ -77,17 +77,18 @@ public class MbVentasAlmacen implements Serializable {
 
         this.inicializa();
     }
-    
+
     public void liberarVenta() {
         boolean ok = false;
         if (this.venta == null) {
             ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
-        } else if (this.locked) {
+        } else if (this.isLocked()) {
+            TOVenta toVta = this.convertir(this.venta);
             try {
-
                 this.dao = new DAOVentas();
-                this.dao.liberarVenta(this.venta.getIdMovto());
-                this.locked = false;
+                this.dao.liberarVentaAlmacen(toVta);
+                this.venta.setPropietario(toVta.getPropietario());
+                this.setLocked(false);
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
@@ -99,7 +100,7 @@ public class MbVentasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     public void cerrarVentaAlmacen() {
         boolean ok = false;
         try {
@@ -117,23 +118,23 @@ public class MbVentasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     public void actualizaTraspasoLote() {
         boolean ok = false;
         try {
             this.dao = new DAOVentas();
             this.dao.traspasarLote(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen), this.convertirAlmacenProducto(this.loteDestino), this.cantTraspasar);
-            this.loteOrigen.setCantidad(this.loteOrigen.getCantidad()-this.cantTraspasar);
+            this.loteOrigen.setCantidad(this.loteOrigen.getCantidad() - this.cantTraspasar);
             this.loteOrigen.setSeparados(this.loteOrigen.getCantidad());
-            if(this.loteDestino.getIdMovtoAlmacen()!=0) {
-                int idx = this.detalleAlmacen.indexOf(this.loteDestino);
-                this.setLoteDestino(this.detalleAlmacen.get(idx));
+            if (this.loteDestino.getIdMovtoAlmacen() != 0) {
+                int idx = this.detalle.indexOf(this.loteDestino);
+                this.setLoteDestino(this.detalle.get(idx));
             } else {
                 this.loteDestino.setIdMovtoAlmacen(this.venta.getIdMovtoAlmacen());
-                this.detalleAlmacen.add(this.loteDestino);
+                this.detalle.add(this.loteDestino);
                 this.loteDestino.setDisponibles(0);
             }
-            this.loteDestino.setCantidad(this.loteDestino.getCantidad()+this.cantTraspasar);
+            this.loteDestino.setCantidad(this.loteDestino.getCantidad() + this.cantTraspasar);
             this.loteDestino.setSeparados(this.loteDestino.getCantidad());
             ok = true;
         } catch (NamingException ex) {
@@ -144,7 +145,7 @@ public class MbVentasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okLote", ok);
     }
-    
+
     private TOVentaProductoAlmacen convertirAlmacenProducto(VentaProductoAlmacen prod) {
         TOVentaProductoAlmacen toProd = new TOVentaProductoAlmacen();
         movimientos.Movimientos.convertir(prod, toProd);
@@ -152,20 +153,20 @@ public class MbVentasAlmacen implements Serializable {
         toProd.setFechaCaducidad(prod.getFechaCaducidad());
         return toProd;
     }
-    
+
     public void inicializaTraspasoLote() {
         boolean ok = false;
-        this.cantTraspasar = 0;
-        this.loteDestino = null;
-        this.empaqueLotes = new ArrayList<>();
         try {
+            this.empaqueLotes = new ArrayList<>();
             this.dao = new DAOVentas();
             for (TOVentaProductoAlmacen to : this.dao.obtenerLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen))) {
                 this.empaqueLotes.add(this.convertirAlmacenProducto(to));
             }
-            if(this.empaqueLotes.isEmpty()) {
+            if (this.empaqueLotes.isEmpty()) {
                 Mensajes.mensajeAlert("No hay lotes con existencia disponible para traspasar !!");
             } else {
+                this.cantTraspasar = 0;
+                this.loteDestino = null;
                 ok = true;
             }
         } catch (NamingException ex) {
@@ -176,11 +177,7 @@ public class MbVentasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okLote", ok);
     }
-    
-    private TOVenta convertir(Venta venta) {
-        return Ventas.convertir(venta);
-    }
-    
+
     private VentaProductoAlmacen convertirAlmacenProducto(TOVentaProductoAlmacen toProd) throws SQLException {
         VentaProductoAlmacen prod = new VentaProductoAlmacen();
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
@@ -191,21 +188,25 @@ public class MbVentasAlmacen implements Serializable {
         return prod;
     }
     
+    private TOVenta convertir(Venta venta) {
+        return Ventas.convertir(venta);
+    }
+
     public void obtenerDetalleAlmacen(SelectEvent event) {
         boolean ok = false;
-        this.loteOrigen = null;
         this.venta = (Venta) event.getObject();
-        this.detalleAlmacen = new ArrayList<>();
+        TOVenta toVta = this.convertir(this.venta);
         try {
-            TOVenta toVta = this.convertir(this.venta);
+            this.detalle = new ArrayList<>();
             this.dao = new DAOVentas();
             for (TOVentaProductoAlmacen to : this.dao.obtenerDetalleAlmacen(toVta)) {
-                this.detalleAlmacen.add(this.convertirAlmacenProducto(to));
+                this.detalle.add(this.convertirAlmacenProducto(to));
             }
             this.venta.setIdUsuario(toVta.getIdUsuario());
             this.venta.setPropietario(toVta.getPropietario());
             this.venta.setEstatus(toVta.getEstatus());
-            this.locked = this.venta.getIdUsuario() == this.venta.getPropietario();
+            this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
+            this.loteOrigen = null;
             ok = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -215,15 +216,15 @@ public class MbVentasAlmacen implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     private Venta convertir(TOVenta toVta) {
         Venta vta = new Venta(this.mbAlmacenes.obtenerAlmacen(toVta.getIdAlmacen()), this.mbTiendas.obtenerTienda(toVta.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toVta.getIdComprobante()));
         Ventas.convertir(toVta, vta);
         this.mbClientes.setCliente(this.mbClientes.obtenerCliente(vta.getTienda().getIdCliente()));
         return vta;
     }
-    
-    public void obtenerVentasAlmacen() {
+
+    public void obtenerVentas() {
         try {   // Segun fecha y status
             this.ventas = new ArrayList<>();
             this.dao = new DAOVentas();
@@ -236,20 +237,20 @@ public class MbVentasAlmacen implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public String terminar() {
         this.acciones = null;
         this.inicializar();
         return "index.xhtml";
     }
-    
+
     public void inicializar() {
         this.mbAlmacenes.setListaAlmacenes(null);
 
         this.mbGrupos.inicializar();
         this.mbClientes.inicializar();
         this.mbFormatos.inicializar();
-        
+
         this.mbBuscar.inicializar();
         this.mbComprobantes.getMbMonedas().setListaMonedas(null);
 
@@ -258,7 +259,7 @@ public class MbVentasAlmacen implements Serializable {
         this.ventas = new ArrayList<>();
         this.venta = new Venta();
     }
-    
+
     private void inicializa() {
         this.inicializar();
     }
@@ -322,7 +323,7 @@ public class MbVentasAlmacen implements Serializable {
     public MbAcciones getMbAcciones() {
         return mbAcciones;
     }
-    
+
     public ArrayList<Accion> obtenerAcciones(int idModulo) {
         if (this.acciones == null) {
             this.acciones = this.mbAcciones.obtenerAcciones(idModulo);
@@ -385,12 +386,12 @@ public class MbVentasAlmacen implements Serializable {
         this.loteDestino = loteDestino;
     }
 
-    public ArrayList<VentaProductoAlmacen> getDetalleAlmacen() {
-        return detalleAlmacen;
+    public ArrayList<VentaProductoAlmacen> getDetalle() {
+        return detalle;
     }
 
-    public void setDetalleAlmacen(ArrayList<VentaProductoAlmacen> detalleAlmacen) {
-        this.detalleAlmacen = detalleAlmacen;
+    public void setDetalle(ArrayList<VentaProductoAlmacen> detalle) {
+        this.detalle = detalle;
     }
 
     public ArrayList<VentaProductoAlmacen> getEmpaqueLotes() {

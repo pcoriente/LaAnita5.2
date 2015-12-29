@@ -279,6 +279,8 @@ public class DAOTraspasos {
             cn.setAutoCommit(false);
             try {
                 movimientos.Movimientos.liberarMovimientoOficina(cn, toTraspaso.getIdMovto(), this.idUsuario);
+                toTraspaso.setPropietario(0);
+                
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

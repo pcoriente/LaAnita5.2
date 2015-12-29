@@ -405,17 +405,17 @@
                     </p:row>
                     <p:row >
                         <p:column style="text-align: left;" >
-                            <p:commandButton id="btnVentaEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar la venta" 
-                                             disabled="#{mbVentas.venta.estatus ge 7 || not mbVentas.ventaAsegurada}"
+                            <p:commandButton id="btnVentaEliminar" icon="ui-icon-trash" value="Eliminar" title="Eliminar la venta" 
+                                             disabled="#{mbVentas.venta.idPedido!=0 or mbVentas.venta.estatus ge 7 or !mbVentas.locked}"
                                              process="@this" actionListener="#{mbVentas.eliminarVenta()}" 
                                              update=":main:msgs :main:msgs :main:listaDeVentas" 
                                              oncomplete="handleVenta(xhr, status, args);" />
                             <p:commandButton id="btnVentaCerrar" value="CERRAR" title="Cerrar la venta para surtir almacen" 
-                                             disabled="#{mbVentas.venta.total==0 || mbVentas.venta.estatus ge 7}"
+                                             disabled="#{mbVentas.venta.total==0 or mbVentas.venta.estatus ge 7}"
                                              process="@this" actionListener="#{mbVentas.cerrarVenta()}" 
                                              update=":main:msgsVenta :main:detalleVenta :main:totales" />
                             <p:commandButton id="btnSurtirOC" icon="ui-icon-gear" value="SURTIR OC" title="Surtir Orden de Compra" 
-                                             disabled="#{mbVentas.venta.idPedido==0 || mbVentas.venta.estatus ge 7 || not mbVentas.ventaAsegurada}" 
+                                             disabled="#{mbVentas.venta.idPedido==0 or mbVentas.venta.estatus ge 7 or !mbVentas.locked}" 
                                              process="@this" actionListener="#{mbVentas.surtirFincado()}"
                                              update=":main:msgsVenta :main:detalleVenta :main:totales" />
                         </p:column>
