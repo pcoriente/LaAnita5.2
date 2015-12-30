@@ -504,6 +504,8 @@ public class MbPedidos implements Serializable {
                 this.pedido.setPropietario(toPed.getPropietario());
                 this.pedido.setEstatus(toPed.getEstatus());
                 this.setLocked(this.pedido.getIdUsuario() == this.pedido.getPropietario());
+                this.detalle = new ArrayList<>();
+                this.setProducto(null);
 //                this.pedidos.add(this.pedido);
                 ok = true;
             } catch (NamingException ex) {

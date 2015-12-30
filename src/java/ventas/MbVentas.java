@@ -163,6 +163,26 @@ public class MbVentas implements Serializable {
         }
     }
 
+    public void salir() {
+        try {
+            this.dao = new DAOVentas();
+            if (this.venta != null && this.isLocked()) {
+                TOVenta toVta = this.convertir(this.venta);
+                this.dao.liberarVentaOficina(toVta);
+                this.venta.setPropietario(0);
+                this.setLocked(false);
+            }
+            this.ventas = new ArrayList<>();
+            for (TOVenta to : this.dao.obtenerVentasOficina(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), this.pendientes ? 0 : 7, this.fechaInicial)) {
+                this.ventas.add(this.convertir(to));
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+
     public void liberarVenta() {
         boolean ok = false;
         if (this.venta == null) {
@@ -366,15 +386,18 @@ public class MbVentas implements Serializable {
     }
 
     public void modificarProducto(SelectEvent event) {
-        if (this.venta.getEstatus() >= 7) {
-            Mensajes.mensajeAlert("La venta ya esta cerrada, no se puede modificar !!!");
-        } else if (this.isLocked()) {
-            this.producto = (VentaProducto) event.getObject();
-        } else {
-            Mensajes.mensajeAlert("La venta esta en modo lectura, no se puede modificar !!!");
-        }
+//        boolean ok = false;
+//        if (this.venta.getEstatus() >= 7) {
+//            Mensajes.mensajeAlert("La venta ya esta cerrada, no se puede modificar !!!");
+//        } else if (this.isLocked()) {
+        this.producto = (VentaProducto) event.getObject();
+//            ok = true;
+//        } else {
+//            Mensajes.mensajeAlert("La venta esta en modo lectura, no se puede modificar !!!");
+//        }
         RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okEdicion", this.locked);
+//        context.addCallbackParam("okEdicion", ok);
+        context.addCallbackParam("okEdicion", true);
     }
 
     public void actualizaProductoSeleccionado() {
@@ -393,8 +416,9 @@ public class MbVentas implements Serializable {
             try {
                 this.dao = new DAOVentas();
                 this.dao.agregarProducto(toVta, toProd);
-                this.producto.setIdMovto(toProd.getIdMovto());
-                this.producto.setIdPedido(toProd.getIdPedido());
+                this.producto = this.convertir(toProd);
+//                this.producto.setIdMovto(toProd.getIdMovto());
+//                this.producto.setIdPedido(toProd.getIdPedido());
                 this.detalle.add(this.producto);
                 ok = true;
             } catch (SQLException ex) {
@@ -516,11 +540,13 @@ public class MbVentas implements Serializable {
                 this.dao.agregarVenta(toVta, 1);
                 this.venta.setIdMovto(toVta.getIdMovto());
                 this.venta.setIdMovtoAlmacen(toVta.getIdMovtoAlmacen());
+                this.venta.setFecha(toVta.getFecha());
                 this.venta.setIdUsuario(toVta.getIdUsuario());
                 this.venta.setPropietario(toVta.getPropietario());
                 this.venta.setEstatus(toVta.getEstatus());
                 this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
-                this.ventas.add(this.venta);
+                this.detalle = new ArrayList<>();
+                this.setProducto(null);
                 ok = true;
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
@@ -533,7 +559,7 @@ public class MbVentas implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     public void cambioDeFormato() {
         this.mbTiendas.obtenerTiendasFormato(this.mbFormatos.getFormatoSeleccion().getIdFormato());
         this.mbTiendas.nuevaTienda();
@@ -552,6 +578,8 @@ public class MbVentas implements Serializable {
     public void nuevaVenta() {
         this.mbClientes.obtenerClientesCedis();
         this.mbClientes.nuevoCliente();
+        this.mbTiendas.obtenerTiendasCliente(this.mbClientes.getCliente().getIdCliente());
+        this.mbTiendas.nuevaTienda();
     }
 
     private Venta convertir(TOVenta toVta) {

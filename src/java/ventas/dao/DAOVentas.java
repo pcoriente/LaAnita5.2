@@ -409,7 +409,7 @@ public class DAOVentas {
                 strSQL = "DELETE FROM movimientosDetalleImpuestos WHERE idMovto=" + toMov.getIdMovto();
                 st.executeUpdate(strSQL);
 
-                strSQL = "DELETE FROM comprobantes WHERE idComproobante=" + toMov.getIdComprobante();
+                strSQL = "DELETE FROM comprobantes WHERE idComprobante=" + toMov.getIdComprobante();
                 st.executeUpdate(strSQL);
 
                 cn.commit();
@@ -925,6 +925,7 @@ public class DAOVentas {
                         } while (!surtido);
                     }
                 }
+                cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
                 throw ex;
@@ -965,14 +966,14 @@ public class DAOVentas {
         }
     }
 
-    private void construir(ResultSet rs, TOVenta toMov) throws SQLException {
-        toMov.setIdPedidoOC(rs.getInt("idPedidoOC"));
-        toMov.setIdMoneda(rs.getInt("idMoneda"));
-        toMov.setOrdenDeCompra(rs.getString("ordenDeCompra"));
-        toMov.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
-        toMov.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-        toMov.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
-        movimientos.Movimientos.construirMovimientoOficina(rs, toMov);
+    private void construir(ResultSet rs, TOVenta toVta) throws SQLException {
+        toVta.setIdPedidoOC(rs.getInt("idPedidoOC"));
+        toVta.setIdMoneda(rs.getInt("idMoneda"));
+        toVta.setOrdenDeCompra(rs.getString("ordenDeCompra"));
+        toVta.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
+        toVta.setCanceladoMotivo(rs.getString("canceladoMotivo"));
+        toVta.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
+        movimientos.Movimientos.construirMovimientoOficina(rs, toVta);
     }
 
     private TOVenta construir(ResultSet rs) throws SQLException {

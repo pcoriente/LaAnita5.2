@@ -789,8 +789,10 @@ public class Movimientos {
             boolean borra = true;
             if (idTipo == 28) {
                 rs = st.executeQuery("SELECT referencia FROM movimientos WHERE idMovto=" + idMovto);
-                if (rs.getInt("referencia") != 0) {
-                    borra = false;
+                if (rs.next()) {
+                    if (rs.getInt("referencia") != 0) {
+                        borra = false;
+                    }
                 }
             }
             if (borra) {

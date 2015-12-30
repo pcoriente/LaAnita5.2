@@ -16,7 +16,7 @@ public class Venta extends MovimientoOficina {
     private TOTienda tienda;
     private Comprobante comprobante;
     private int idPedidoOC;
-    private int idMoneda;
+//    private int idMoneda;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private String canceladoMotivo;
@@ -77,13 +77,13 @@ public class Venta extends MovimientoOficina {
         this.idPedidoOC = idPedidoOC;
     }
 
-    public int getIdMoneda() {
-        return idMoneda;
-    }
-
-    public void setIdMoneda(int idMoneda) {
-        this.idMoneda = idMoneda;
-    }
+//    public int getIdMoneda() {
+//        return idMoneda;
+//    }
+//
+//    public void setIdMoneda(int idMoneda) {
+//        this.idMoneda = idMoneda;
+//    }
 
     public String getOrdenDeCompra() {
         return ordenDeCompra;

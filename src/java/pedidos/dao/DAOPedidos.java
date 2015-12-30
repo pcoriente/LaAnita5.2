@@ -171,6 +171,9 @@ public class DAOPedidos {
 
                 strSQL = "DELETE FROM movimientosDetalleImpuestos WHERE idMovto=" + toPed.getIdMovto();
                 st.executeUpdate(strSQL);
+                
+                strSQL = "DELETE FROM comprobantes WHERE idComprobante=" + toPed.getIdComprobante();
+                st.executeUpdate(strSQL);
 
                 strSQL = "DELETE FROM movimientosAlmacen WHERE idMovtoAlmacen=" + toPed.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
@@ -537,7 +540,7 @@ public class DAOPedidos {
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus" + condicion + "\n";
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus" + condicion + "\n";
         if (estatus != 0) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             strSQL += "         AND CONVERT(date, P.fecha) >= '" + format.format(fechaInicial) + "'\n";
