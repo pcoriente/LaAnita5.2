@@ -476,7 +476,7 @@ public class MbPedidos implements Serializable {
             Mensajes.mensajeAlert("Debe seleccionar un almacen !!!");
         } else if (this.mbTiendas.getTienda() == null) {
             Mensajes.mensajeAlert("Debe seleccionar una tienda !!!");
-        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null) {
+        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null || this.mbComprobantes.getMbMonedas().getSeleccionMoneda().getIdMoneda()==0) {
             Mensajes.mensajeAlert("Debe seleccionar una moneda !!!");
         } else {
             ok = true;
