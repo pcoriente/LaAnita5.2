@@ -366,20 +366,22 @@ public class Movimientos {
                         throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
                     } else {
                         precioUnitario = rs.getDouble("precioVenta");
-                        if (!rs.getString("descuentos").equals("")) {
-                            double descuento = 1.00;
-                            for (String str : rs.getString("descuentos").split(",")) {
-                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
-                            }
-                            desctoProducto1 = (1.00 - descuento) * 100.00;
-                        } else {
-                            desctoProducto1 = 0.00;
-                        }
-                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
-                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+//                        if (!rs.getString("descuentos").equals("")) {
+//                            double descuento = 1.00;
+//                            for (String str : rs.getString("descuentos").split(",")) {
+//                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
+//                            }
+//                            desctoProducto1 = (1.00 - descuento) * 100.00;
+//                        } else {
+//                            desctoProducto1 = 0.00;
+//                        }
+//                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
+//                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+                        precioLista = (precioUnitario / (1 - desctoComercial / 100.00));
 
                         precio.add(precioUnitario);
-                        precio.add(desctoProducto1);
+//                        precio.add(desctoProducto1);
+                        precio.add(0.0);
                         precio.add(precioLista);
                     }
                 } else {
