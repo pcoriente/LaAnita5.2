@@ -365,7 +365,8 @@ public class Movimientos {
                     if (rs.getDouble("precioVenta") == 0) {
                         throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
                     } else {
-                        precioUnitario = rs.getDouble("precioVenta");
+//                        precioUnitario = rs.getDouble("precioVenta");
+                        precioLista = rs.getDouble("precioVenta");
 //                        if (!rs.getString("descuentos").equals("")) {
 //                            double descuento = 1.00;
 //                            for (String str : rs.getString("descuentos").split(",")) {
@@ -377,7 +378,7 @@ public class Movimientos {
 //                        }
 //                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
 //                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
-                        precioLista = (precioUnitario / (1 - desctoComercial / 100.00));
+                        precioUnitario = (precioLista * (1 - desctoComercial / 100.00));
 
                         precio.add(precioUnitario);
 //                        precio.add(desctoProducto1);
