@@ -6,8 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import movimientos.dominio.ProductoAlmacen;
 import movimientos.dominio.MovimientoAlmacen;
 import movimientos.dominio.MovimientoOficina;
@@ -307,7 +305,7 @@ public class Movimientos {
                 boletin.add(0.0);
                 strSQL = "SELECT B.* \n"
                         + "FROM clientesBoletinesDetalle B\n"
-                        + "INNER JOIN clientesBoletines L ON L.idClienteBoletin=B.idClienteBoletin\n"
+                        + "INNER JOIN clientesBoletines L ON L.idBoletin=B.idBoletin\n"
                         + "WHERE L.idEmpresa=" + idEmpresa + "\n"
                         + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
                         + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
@@ -316,7 +314,7 @@ public class Movimientos {
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND B.finVigencia";
+                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, GETDATE()) ELSE B.finVigencia END";
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
@@ -361,27 +359,30 @@ public class Movimientos {
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND B.finVigencia";
+                        + "		AND CONVERT(date, GETDATE()) BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, GETDATE()) ELSE B.finVigencia END";
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     if (rs.getDouble("precioVenta") == 0) {
                         throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
                     } else {
-                        precioUnitario = rs.getDouble("precioVenta");
-                        if (!rs.getString("descuentos").equals("")) {
-                            double descuento = 1.00;
-                            for (String str : rs.getString("descuentos").split(",")) {
-                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
-                            }
-                            desctoProducto1 = (1.00 - descuento) * 100.00;
-                        } else {
-                            desctoProducto1 = 0.00;
-                        }
-                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
-                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+//                        precioUnitario = rs.getDouble("precioVenta");
+                        precioLista = rs.getDouble("precioVenta");
+//                        if (!rs.getString("descuentos").equals("")) {
+//                            double descuento = 1.00;
+//                            for (String str : rs.getString("descuentos").split(",")) {
+//                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
+//                            }
+//                            desctoProducto1 = (1.00 - descuento) * 100.00;
+//                        } else {
+//                            desctoProducto1 = 0.00;
+//                        }
+//                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
+//                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+                        precioUnitario = (precioLista * (1 - desctoComercial / 100.00));
 
                         precio.add(precioUnitario);
-                        precio.add(desctoProducto1);
+//                        precio.add(desctoProducto1);
+                        precio.add(0.0);
                         precio.add(precioLista);
                     }
                 } else {
@@ -694,20 +695,23 @@ public class Movimientos {
         }
     }
 
-    public static void bloquearMovimientoAlmacen(Connection cn, TOMovimientoOficina toMov) throws SQLException {
-        String strSQL = "SELECT propietario, estatus FROM movimientosAlmacen WHERE idMovto=" + toMov.getIdMovto();
+    public static void bloquearMovimientoAlmacen(Connection cn, TOMovimientoAlmacen toMov, int idUsuario) throws SQLException {
+        toMov.setIdUsuario(idUsuario);
+        String strSQL = "SELECT propietario, estatus FROM movimientosAlmacen WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 toMov.setEstatus(rs.getInt("estatus"));
                 int propietario = rs.getInt("propietario");
                 if (propietario == 0) {
-                    strSQL = "UPDATE movimientosAlmacen SET propietario=" + toMov.getIdUsuario() + " WHERE idMovto=" + toMov.getIdMovto();
+                    strSQL = "UPDATE movimientosAlmacen SET propietario=" + idUsuario + " WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
                     st.executeUpdate(strSQL);
-                    toMov.setPropietario(toMov.getIdUsuario());
+                    toMov.setPropietario(idUsuario);
                 } else {
                     toMov.setPropietario(propietario);
                 }
+            } else {
+                toMov.setPropietario(0);
             }
         }
     }
@@ -728,7 +732,6 @@ public class Movimientos {
                         + "WHERE M.idMovtoAlmacen=" + idMovtoAlmacen + " AND AL.idAlmacen IS NULL";
                 st.executeUpdate(strSQL);
             }
-
             strSQL = "UPDATE D\n"
                     + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
                     + "FROM movimientosDetalleAlmacen D\n"
@@ -785,15 +788,26 @@ public class Movimientos {
     public static void actualizaDetalleOficina(Connection cn, int idMovto, int idTipo, boolean suma) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
-            strSQL = "DELETE I\n"
-                    + "FROM movimientosDetalleImpuestos I\n"
-                    + "INNER JOIN movimientosDetalle D ON D.idMovto=I.idMovto AND D.idEmpaque=I.idEmpaque\n"
-                    + "WHERE I.idMovto=" + idMovto + " AND D.cantFacturada+D.cantSinCargo=0";
-            st.executeUpdate(strSQL);
+            ResultSet rs;
+            boolean borra = true;
+            if (idTipo == 28) {
+                rs = st.executeQuery("SELECT referencia FROM movimientos WHERE idMovto=" + idMovto);
+                if (rs.next()) {
+                    if (rs.getInt("referencia") != 0) {
+                        borra = false;
+                    }
+                }
+            }
+            if (borra) {
+                strSQL = "DELETE I\n"
+                        + "FROM movimientosDetalleImpuestos I\n"
+                        + "INNER JOIN movimientosDetalle D ON D.idMovto=I.idMovto AND D.idEmpaque=I.idEmpaque\n"
+                        + "WHERE I.idMovto=" + idMovto + " AND D.cantFacturada+D.cantSinCargo=0";
+                st.executeUpdate(strSQL);
 
-            strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + idMovto + " AND cantFacturada+cantSinCargo=0";
-            st.executeUpdate(strSQL);
-
+                strSQL = "DELETE FROM movimientosDetalle WHERE idMovto=" + idMovto + " AND cantFacturada+cantSinCargo=0";
+                st.executeUpdate(strSQL);
+            }
             if (suma) {
                 strSQL = "INSERT INTO empresasEmpaques (idEmpresa, idEmpaque, costoUnitarioPromedio, existencia, idMovtoUltimaCompra)\n"
                         + "SELECT M.idEmpresa, D.idEmpaque, 0, 0, 0\n"
@@ -857,7 +871,7 @@ public class Movimientos {
                         + "FROM movimientosDetalle D\n"
                         + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto + " AND D.costo=0";
-                ResultSet rs = st.executeQuery(strSQL);
+                rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     throw new SQLException("El empaque (sku=" + rs.getInt("cod_pro") + ") no tiene costo !!!");
                 }
@@ -870,7 +884,15 @@ public class Movimientos {
                         + "WHERE D.idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
             } else {
-                if (idTipo == 34) { // Cancelacion de compra
+                if (idTipo == 28) { // Venta
+                    strSQL = "UPDATE D\n"
+                            + "SET D.costoPromedio=E.costoUnitarioPromedio\n"
+                            + "FROM movimientosDetalle D\n"
+                            + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                            + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
+                            + "WHERE D.idMovto=" + idMovto;
+                    st.executeUpdate(strSQL);
+                } else if (idTipo == 34) { // Cancelacion de compra
                     strSQL = "UPDATE E\n"
                             + "SET costoUnitarioPromedio=ROUND(((E.costoUnitarioPromedio*E.existencia - D.costoPromedio*(D.cantFacturada+D.cantSinCargo))/(E.existencia-D.cantFacturada-D.cantSinCargo)),6)\n"
                             + "	, idMovtoUltimaCompra=CASE WHEN M.idTipo=1 THEN M.idMovto ELSE E.idMovtoUltimaCompra END\n"
@@ -879,20 +901,12 @@ public class Movimientos {
                             + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
-                } else if (idTipo == 35) { // Traspaso
+                } else { // Traspaso y todos los demas
                     strSQL = "UPDATE D\n"
                             + "SET costoPromedio=EE.costoUnitarioPromedio, costo=EE.costoUnitarioPromedio, unitario=EE.costoUnitarioPromedio\n"
                             + "FROM movimientosDetalle D\n"
                             + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                             + "INNER JOIN empresasEmpaques EE ON EE.idEmpresa=M.idEmpresa AND EE.idEmpaque=D.idEmpaque\n"
-                            + "WHERE D.idMovto=" + idMovto;
-                    st.executeUpdate(strSQL);
-                } else {
-                    strSQL = "UPDATE D\n"
-                            + "SET D.costoPromedio=E.costoUnitarioPromedio\n"
-                            + "FROM movimientosDetalle D\n"
-                            + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                            + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
                 }

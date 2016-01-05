@@ -144,7 +144,7 @@ public class DAOTiendas {
         to.setIdAgente(rs.getInt("idAgente"));
         to.setIdRuta(rs.getInt("idRuta"));
         to.setIdImpuestoZona(rs.getInt("idImpuestoZona"));
-        to.setCodigoTienda(rs.getInt("codigoTienda"));
+        to.setCodigoTienda(rs.getInt("codigoCliente"));
         to.setEstado(rs.getInt("estado"));
         return to;
     }

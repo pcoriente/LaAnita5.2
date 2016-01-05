@@ -117,8 +117,11 @@ public class MBTraspasoAlmacen implements Serializable {
         return toProd;
     }
 
+//    public void inicializaTraspasoLote(SelectEvent event) {
     public void inicializaTraspasoLote() {
+//        this.loteOrigen = (TraspasoProductoAlmacen) event.getObject();
         boolean ok = false;
+       
         this.cantTraspasar = 0;
         this.loteDestino = null;
         this.empaqueLotes = new ArrayList<>();
@@ -150,7 +153,7 @@ public class MBTraspasoAlmacen implements Serializable {
             try {
                 this.dao = new DAOTraspasos();
                 this.dao.liberarTraspaso(toTraspaso);
-                this.locked = false;
+                this.setLocked(false);
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {

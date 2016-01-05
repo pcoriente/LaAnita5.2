@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -78,44 +77,29 @@
                     </p:column>
                 </p:dataTable>
             </p:panel>
-            <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 710px;" modal="true" >
-                <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
-                <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel for="txtCantOriginal" value="Cant.Original :" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <p:inputText id="txtCantOriginal" value="#{mBTraspasoAlmacen.loteOrigen.cantidad}" size="14" readonly="true" >
-                                <f:convertNumber pattern="###,##0.0000" />
-                            </p:inputText>
-                        </p:column>
-                        <p:column >
-                            <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
-                        </p:column>
-                        <p:column >
-                            <pe:inputNumber id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}" style="width: 120px;" 
-                                            maxlength="14" decimalPlaces="4" emptyValue="0" 
-                                            minValue="0" maxValue="#{mBTraspasoAlmacen.loteOrigen.cantidad}" >
-                                <p:ajax event="change" process="@this" update=":main:msgsSimilares" />
-                            </pe:inputNumber>
-                        </p:column>
-                    </p:row>
+            <p:dialog header="Similares" widgetVar="SimilaresDlg" closable="true" resizable="false" style="width: 300px;" modal="true" >
+                <p:messages id="msgsSimilares" showSummary="false" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="panelSimilares" columns="2" >
+                    <h:outputLabel for="txtCantOriginal" value="Cant.Original :" style="font-weight: bold; color: black;" />
+                    <p:inputText id="txtCantOriginal" value="#{mBTraspasoAlmacen.loteOrigen.cantidad}" 
+                                 size="14" readonly="true" >
+                        <f:convertNumber pattern="##,###,##0.000" />
+                    </p:inputText>
+
+                    <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
+                    <p:inputText id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}"
+                                 readonly="#{!mBTraspasoAlmacen.locked}"
+                                 size="14" validatorMessage="cantidad a traspasar [ 0 - #{mBTraspasoAlmacen.loteOrigen.cantidad} ]" >
+                        <f:validateDoubleRange minimum="0.0" maximum="#{mBTraspasoAlmacen.loteOrigen.cantidad}" />
+                        <p:ajax event="keyup" update="msgsSimilares" />
+                    </p:inputText>
                 </p:panelGrid>
                 <p:dataTable id="detalleSimilares" value="#{mBTraspasoAlmacen.empaqueLotes}" 
-                             var="similar" scrollable="true" scrollHeight="200" style="width: 710px;"
+                             var="similar" scrollable="true" scrollHeight="200" style="width: 300px;"
                              rowKey="#{similar.lote}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteDestino}" >
                     <p:ajax event = "rowSelect" update="loteSeleccion" />
 
-                    <f:facet name="header">Seleccione un similar</f:facet>
-
-                    <p:column headerText="SKU" style="width: 50px;" >
-                        <h:outputText value="#{similar.producto.cod_pro}" />
-                    </p:column>
-
-                    <p:column headerText="Producto" style="width: 420px;" >
-                        <h:outputText value="#{similar.producto.toString()}" />
-                    </p:column>
+                    <f:facet name="header">Seleccione el lote destino</f:facet>
 
                     <p:column headerText="Lote" style="width: 70px;" >
                         <h:outputText value="#{similar.lote}" />
@@ -128,8 +112,8 @@
                     <f:facet name="footer">
                         <p:commandButton id="loteSeleccion" value="Seleccionar" 
                                          disabled="#{mBTraspasoAlmacen.loteDestino==null || mBTraspasoAlmacen.cantTraspasar==0}"
-                                         process="@this" actionListener="#{mBTraspasoAlmacen.actualizaTraspasoLote()}"
-                                         update=":main:msgsSimilares :main:detalleTraspaso" 
+                                         process="@this :main:panelSimilares" actionListener="#{mBTraspasoAlmacen.actualizaTraspasoLote()}"
+                                         validateClient="true" update=":main:msgsSimilares :main:panelSimilares :main:detalleTraspaso" 
                                          oncomplete="cerrarSimilares(xhr, status, args);" />
                     </f:facet>
                 </p:dataTable>
@@ -177,11 +161,14 @@
                 </p:panelGrid>
                 <p:dataTable id="detalleTraspaso" value="#{mBTraspasoAlmacen.detalleAlmacen}"
                              var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 910px;" 
-                             rowKey="#{prod.producto}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteOrigen}"
+                             rowKey="#{prod.id}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteOrigen}"
                              emptyMessage="No existen productos" >
-                    <p:ajax event = "rowSelect" update="seleccion" />
+                    <p:ajax event = "rowSelect" listener="#{mBTraspasoAlmacen.inicializaTraspasoLote()}" 
+                            update=":main:msgsTraspaso :main:panelSimilares :main:detalleSimilares" 
+                            oncomplete="abrirSimilares(xhr, status, args);" />
 
                     <f:facet name="header" >Detalle del traspaso</f:facet>
+
                     <p:column headerText="Codigo" style="width: 50px;" >
                         <h:outputText value="#{prod.producto.cod_pro}" />
                     </p:column>
@@ -193,17 +180,10 @@
                     </p:column>
                     <p:column headerText="Cantidad" style="width: 100px; text-align: right;" >
                         <h:outputText value="#{prod.cantidad}" >
-                            <f:convertNumber pattern="###,##0.0000" />
+                            <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
 
-                    <f:facet name="footer">
-                        <p:commandButton id="seleccion" value="CAMBIAR DE LOTE" title="Cambiar una cantidad parcial o total"
-                                         disabled="#{mBTraspasoAlmacen.loteOrigen==null or mBTraspasoAlmacen.traspaso.estatus!=5 or !mBTraspasoAlmacen.locked}" 
-                                         process="@this" actionListener="#{mBTraspasoAlmacen.inicializaTraspasoLote()}" 
-                                         update=":main:msgsTraspaso :main:panelSimilares :main:detalleSimilares" 
-                                         oncomplete="abrirSimilares(xhr, status, args);" />
-                    </f:facet>
                 </p:dataTable>
             </p:dialog>
         </h:form>

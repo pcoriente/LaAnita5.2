@@ -20,17 +20,17 @@ public class Ventas {
     }
     
     public static TOVenta convertir(Venta venta) {
-        TOVenta toMov = new TOVenta();
-        toMov.setIdPedidoOC(venta.getIdPedidoOC());
-        toMov.setOrdenDeCompra(venta.getOrdenDeCompra());
-        toMov.setOrdenDeCompraFecha(venta.getOrdenDeCompraFecha());
-        toMov.setCanceladoMotivo(venta.getCanceladoMotivo());
-        toMov.setCanceladoFecha(venta.getCanceladoFecha());
-        movimientos.Movimientos.convertir(venta, toMov);
-        toMov.setIdComprobante(venta.getComprobante() == null ? 0 : venta.getComprobante().getIdComprobante());
-        toMov.setIdImpuestoZona(venta.getTienda().getIdImpuestoZona());
-        toMov.setIdReferencia(venta.getTienda().getIdTienda());
-        toMov.setReferencia(venta.getIdPedido());
-        return toMov;
+        TOVenta toVta = new TOVenta();
+        toVta.setIdPedidoOC(venta.getIdPedidoOC());
+        toVta.setOrdenDeCompra(venta.getOrdenDeCompra());
+        toVta.setOrdenDeCompraFecha(venta.getOrdenDeCompraFecha());
+        toVta.setCanceladoMotivo(venta.getCanceladoMotivo());
+        toVta.setCanceladoFecha(venta.getCanceladoFecha());
+        movimientos.Movimientos.convertir(venta, toVta);
+        toVta.setIdComprobante(venta.getComprobante() == null ? 0 : venta.getComprobante().getIdComprobante());
+        toVta.setIdImpuestoZona(venta.getTienda().getIdImpuestoZona());
+        toVta.setIdReferencia(venta.getTienda().getIdTienda());
+        toVta.setReferencia(venta.getIdPedido());
+        return toVta;
     }
 }

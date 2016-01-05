@@ -23,7 +23,7 @@ public class TOAlmacenJS {
     
     @Override
     public String toString() {
-        return (this.idEmpresa==0?"":this.nombreComercial+" - ")+this.almacen;
+        return (this.idEmpresa==0?"":this.nombreComercial+" - ")+this.almacen+" - "+ this.cedis;
     }
 
     @Override

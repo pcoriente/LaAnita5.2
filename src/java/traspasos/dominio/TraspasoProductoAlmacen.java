@@ -12,12 +12,12 @@ public class TraspasoProductoAlmacen extends ProductoAlmacen {
     private double separados;
     private double disponibles;
     private Date fechaCaducidad;
-    
+     
     public TraspasoProductoAlmacen() {
         super();
         this.fechaCaducidad = new Date();
     }
-    
+        
     public TraspasoProductoAlmacen(Producto producto, String lote) {
         super(producto);
         this.fechaCaducidad = new Date();
@@ -50,5 +50,9 @@ public class TraspasoProductoAlmacen extends ProductoAlmacen {
 
     public void setFechaCaducidad(Date fechaCaducidad) {
         this.fechaCaducidad = fechaCaducidad;
+    }
+
+    public String getId() {
+        return String.valueOf(super.getProducto().getIdProducto()).concat(super.getLote());
     }
 }

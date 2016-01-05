@@ -24,24 +24,27 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradasAlmacen.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasAlmacen.mbAlmacenes.toAlmacen}" style="width: 400px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbEntradasAlmacen.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbEntradasAlmacen.obtenerEntradas()}" 
+                                                update=":main:msgs :main:listaPendientes" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
                                     <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
                                                              style="font-weight: bold; color: black;"
-                                                             value="#{mbEntradasAlmacen.chkPendientes}" >
-                                        <p:ajax event="change" process="@this" update="fechaInicial" />
+                                                             value="#{mbEntradasAlmacen.pendientes}" >
+                                        <p:ajax event="change" process="@this" listener="#{mbEntradasAlmacen.obtenerEntradas()}"
+                                                update=":main:msgs fechaInicial :main:listaPendientes" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column >
                                     <p:calendar id="fechaInicial" value="#{mbEntradasAlmacen.fechaInicial}"
-                                                disabled="#{mbEntradasAlmacen.chkPendientes}"
+                                                disabled="#{mbEntradasAlmacen.pendientes}"
                                                 readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
-                                        <p:ajax event="dateSelect" process="@this" />
+                                        <p:ajax event="dateSelect" process="@this" listener="#{mbEntradasAlmacen.obtenerEntradas()}"
+                                                update=":main:msgs :main:listaPendientes" />
                                     </p:calendar>
                                 </p:column>
                             </p:row>
@@ -50,23 +53,42 @@
                                     <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="concepto" value="#{mbEntradasAlmacen.tipo}" style="width: 450px;" >
+                                    <p:selectOneMenu id="concepto" value="#{mbEntradasAlmacen.tipo}" style="width: 400px;" >
                                         <f:converter converterId="converters.MovimientoTipo" />
                                         <f:selectItems value="#{mbEntradasAlmacen.listaMovimientosTipos}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbEntradasAlmacen.obtenerEntradas()}"
+                                                update=":main:msgs :main:listaPendientes" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column colspan="2" style="text-align: right;" >
                                     <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
                                                      process="@this" actionListener="#{mbEntradasAlmacen.capturar()}" update="main" />
-                                    <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
-                                                     process="@this" actionListener="#{mbEntradasAlmacen.pendientes()}" 
-                                                     update=":main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
                                     <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
                                                      process="@this" action="#{mbEntradasAlmacen.terminar()}" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
+                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
+                                     value="#{mbEntradasAlmacen.entradas}" style="border: solid 1px; width: 800px;"
+                                     var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax event="rowSelect" listener="#{mbEntradasAlmacen.obtenerDetalle}" update=":main" />
+
+                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{entrada.almacen}" />
+                            </p:column>
+                            <p:column headerText="TIPO" style="width: 300px;" >
+                                <h:outputText value="#{entrada.tipo}" />
+                            </p:column>
+                            <p:column headerText="FOLIO" style="width: 45px;" >
+                                <h:outputText value="#{entrada.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 55px;" >
+                                <h:outputText value="#{entrada.fecha}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="ENTRADA DE ALMACEN" rendered="#{mbEntradasAlmacen.modoEdicion}" >
                         <p:panelGrid id="mantenimientoSalida" >
@@ -103,7 +125,7 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos"
-                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0}"
+                                                     disabled="#{mbEntradasAlmacen.entrada.estatus!=0 or !mbEntradasAlmacen.locked}"
                                                      process="@this" actionListener="#{mbEntradasAlmacen.mbBuscar.inicializar()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
@@ -128,31 +150,6 @@
                             </p:column>
                         </p:dataTable>
                     </p:panel>
-                    <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE ENTRADAS DE ALMACEN PENDIENTES" 
-                              resizable="false" modal="true" >
-                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbEntradasAlmacen.pendientes}" style="border: solid 1px; width: 800px;"
-                                     var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbEntradasAlmacen.obtenerDetalle}" 
-                                    update=":main" oncomplete="PF('pendientesDlg').hide();" />
-
-                            <p:column headerText="ALMACEN" style="width: 300px;" >
-                                <h:outputText value="#{entrada.almacen}" />
-                            </p:column>
-                            <p:column headerText="TIPO" style="width: 300px;" >
-                                <h:outputText value="#{entrada.tipo}" />
-                            </p:column>
-                            <p:column headerText="FOLIO" style="width: 45px;" >
-                                <h:outputText value="#{entrada.folio}" />
-                            </p:column>
-                            <p:column headerText="FECHA" style="width: 55px;" >
-                                <h:outputText value="#{entrada.fecha}" >
-                                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                                </h:outputText>
-                            </p:column>
-                        </p:dataTable>
-                    </p:dialog>
                     <p:dialog id="agregarLoteDlg" widgetVar="agregarLoteDlg" header="NUEVO LOTE" resizable="false" modal="true" width="300" >
                         <p:messages id="msgs2" showDetail="true" showSummary="false" closable="true" />
                         <p:ajax event="close" update=":main:listaLotes" />
@@ -202,7 +199,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{lote.cantidad}" style="width:80px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEntradasAlmacen.entrada.estatus!=0}" >
+                                                     readonly="#{mbEntradasAlmacen.entrada.estatus!=0 or !mbEntradasAlmacen.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" pattern="###,##0.000" />
                                             <p:ajax event="change" process="@this" listener="#{mbEntradasAlmacen.gestionarLotes()}" 
@@ -300,11 +297,6 @@
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">
-                    function handleAbrirPendientes(xhr, status, args) {
-                        if (!(args.validationFailed || !args.ok)) {
-                            PF('pendientesDlg').show();
-                        }
-                    }
                     function handleCerrarAgregarLote(xhr, status, args) {
                         if (!(args.validationFailed || !args.okLotes)) {
                             PF('agregarLoteDlg').hide();

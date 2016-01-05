@@ -4,7 +4,6 @@
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui"
-      xmlns:pe="http://primefaces.org/ui/extensions"
       xmlns:f="http://java.sun.com/jsf/core">
     <h:head>
         <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
@@ -25,24 +24,27 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacen" value="#{mbSalidasOficina.mbAlmacenes.toAlmacen}" style="width: 450px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbSalidasOficina.mbAlmacenes.toAlmacen}" style="width: 400px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSalidasOficina.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbSalidasOficina.obtenerSalidas()}"
+                                                update=":main:msgs listaDeSalidas" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
                                     <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
                                                              style="font-weight: bold; color: black;"
-                                                             value="#{mbSalidasOficina.chkPendientes}" >
-                                        <p:ajax event="change" process="@this" update="fechaInicial" />
+                                                             value="#{mbSalidasOficina.pendientes}" >
+                                        <p:ajax event="change" listener="#{mbSalidasOficina.obtenerSalidas()}"
+                                                update=":main:msgs fechaInicial listaDeSalidas" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column >
                                     <p:calendar id="fechaInicial" value="#{mbSalidasOficina.fechaInicial}"
-                                                disabled="#{mbSalidasOficina.chkPendientes}"
+                                                disabled="#{mbSalidasOficina.pendientes}"
                                                 readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
-                                        <p:ajax event="dateSelect" process="@this" />
+                                        <p:ajax event="dateSelect" listener="#{mbSalidasOficina.obtenerSalidas()}"
+                                                update=":main:msgs listaDeSalidas" />
                                     </p:calendar>
                                 </p:column>
                             </p:row>
@@ -51,24 +53,43 @@
                                     <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="concepto" value="#{mbSalidasOficina.tipo}" style="width: 450px;" >
+                                    <p:selectOneMenu id="concepto" value="#{mbSalidasOficina.tipo}" style="width: 400px;" >
                                         <f:converter converterId="converters.MovimientoTipo" />
                                         <f:selectItems value="#{mbSalidasOficina.listaMovimientosTipos}" />
-                                        <p:ajax event="change" update=":main:msgs" />
+                                        <p:ajax event="change" listener="#{mbSalidasOficina.obtenerSalidas()}"
+                                                update=":main:msgs listaDeSalidas" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column colspan="2" style="text-align: right;" >
                                     <p:commandButton id="btnEditar" icon="ui-icon-document" title="Comenzar captura" 
                                                      process="@this" actionListener="#{mbSalidasOficina.capturar()}" 
                                                      update="main" />
-                                    <p:commandButton id="btnBuscar" icon="ui-icon-search" title="Buscar movimientos pendientes" 
-                                                     process="@this" actionListener="#{mbSalidasOficina.pendientes()}" 
-                                                     update="main" oncomplete="handleAbrirPendientes(xhr, status, args);" />
                                     <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
                                                      process="@this" action="#{mbSalidasOficina.terminar()}" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
+                        <p:dataTable id="listaDeSalidas" widgetVar="listaDeSalidas"
+                                     value="#{mbSalidasOficina.salidas}" style="border: solid 1px; width: 800px;"
+                                     var="salida" rowKey="#{salida.idMovto}" selectionMode="single"
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
+                            <p:ajax event="rowSelect" listener="#{mbSalidasOficina.obtenerDetalle}" update=":main" />
+                            
+                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{salida.almacen}" />
+                            </p:column>
+                            <p:column headerText="TIPO" style="width: 300px;" >
+                                <h:outputText value="#{salida.tipo}" />
+                            </p:column>
+                            <p:column headerText="FOLIO" style="width: 45px;" >
+                                <h:outputText value="#{salida.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 55px;" >
+                                <h:outputText value="#{salida.fecha}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="SALIDA DE OFICINA" rendered="#{mbSalidasOficina.modoEdicion}" >
                         <p:panelGrid id="mantenimientoSalida" >
@@ -103,7 +124,7 @@
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos" 
-                                                     disabled="#{mbSalidasOficina.salida.estatus!=0}"
+                                                     disabled="#{mbSalidasOficina.salida.estatus!=0 or !mbSalidasOficina.locked}"
                                                      process="@this" actionListener="#{mbSalidasOficina.mbBuscar.inicializar()}" 
                                                      update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show()" />
                                 </p:column>
@@ -130,7 +151,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.cantFacturada}" style="width:80px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbSalidasOficina.salida.estatus!=0}" >
+                                                     readonly="#{mbSalidasOficina.salida.estatus!=0 or !mbSalidasOficina.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" process="@this" listener="#{mbSalidasOficina.gestionar()}" 
@@ -141,31 +162,6 @@
                             </p:column>
                         </p:dataTable>
                     </p:panel>
-                    <p:dialog id="pendientes" widgetVar="pendientesDlg" header="LISTA DE SALIDAS DE OFICINA PENDIENTES" 
-                              resizable="false" modal="true" >
-                        <p:dataTable id="listaPendientes" widgetVar="listaPendientes"
-                                     value="#{mbSalidasOficina.pendientes}" style="border: solid 1px; width: 800px;"
-                                     var="salida" rowKey="#{salida.idMovto}" selectionMode="single"
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
-                            <p:ajax process="@this" event="rowSelect" listener="#{mbSalidasOficina.obtenerDetalle}" 
-                                    update=":main" oncomplete="PF('pendientesDlg').hide();" />
-                            
-                            <p:column headerText="ALMACEN" style="width: 300px;" >
-                                <h:outputText value="#{salida.almacen}" />
-                            </p:column>
-                            <p:column headerText="TIPO" style="width: 300px;" >
-                                <h:outputText value="#{salida.tipo}" />
-                            </p:column>
-                            <p:column headerText="FOLIO" style="width: 45px;" >
-                                <h:outputText value="#{salida.folio}" />
-                            </p:column>
-                            <p:column headerText="FECHA" style="width: 55px;" >
-                                <h:outputText value="#{salida.fecha}" >
-                                    <f:convertDateTime pattern="dd/MM/yyyy" />
-                                </h:outputText>
-                            </p:column>
-                        </p:dataTable>
-                    </p:dialog>
                     <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                         <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
                         <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
@@ -231,11 +227,6 @@
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">
-                    function handleAbrirPendientes(xhr, status, args) {
-                        if (!(args.validationFailed || !args.ok)) {
-                            PF('pendientesDlg').show();
-                        }
-                    }
                     function handleBuscar(xhr, status, args) {
                         if (!(args.validationFailed || !args.okBuscar)) {
                             PF('buscarProductoDlg').hide();

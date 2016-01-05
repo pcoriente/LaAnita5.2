@@ -24,7 +24,7 @@
                                     <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacen" value="#{mbPedidos.mbAlmacenes.toAlmacen}" >
+                                    <p:selectOneMenu id="almacen" value="#{mbPedidos.mbAlmacenes.toAlmacen}" style="width: 350px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbPedidos.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbPedidos.obtenerPedidos()}" 
@@ -103,10 +103,11 @@
                             </p:column>
                             <p:column >
                                 <p:inputText value="#{mbPedidos.producto.cantOrdenada}" style="width: 80px;"
+                                             readonly="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked}"
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
                                     <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
-                                            update=":main:msgsEdicion txtCantSinCargo btnSimilares :main:detallePedido :main:totales" />
+                                            update="@this :main:msgsEdicion txtCantSinCargo btnSimilares :main:detallePedido :main:totales" />
                                 </p:inputText>
                             </p:column>
                             <p:column >
@@ -119,7 +120,7 @@
                             </p:column>
                             <p:column >
                                 <p:commandButton id="btnSimilares" icon="ui-icon-transfer-e-w" title="Traspasar sin cargo a similar"
-                                                 disabled="#{mbPedidos.producto.cantOrdenadaSinCargo==0}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked or mbPedidos.producto.cantOrdenadaSinCargo==0}"
                                                  process="@this" actionListener="#{mbPedidos.traspasoSimilar()}" 
                                                  update=":main:msgsPedidos :main:panelSimilares :main:detalleSimilares"
                                                  oncomplete="handleAbrirSimilares(xhr, status, args);" />
@@ -136,7 +137,7 @@
                     </p:panelGrid>
                 </p:dialog>
                 <p:dialog header="Captura de Pedido" widgetVar="pedidoDlg" resizable="false" modal="true" >
-                    <p:ajax event="close" listener="#{mbPedidos.liberarPedido()}" />
+                    <p:ajax event="close" listener="#{mbPedidos.salir()}" update=":main:msgsPedidos :main:listaDePedidos" />
                     <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
                     <p:panelGrid id="pedido" style="width: 910px;" >
                         <p:row >
@@ -291,17 +292,15 @@
                         <p:row >
                             <p:column style="text-align: left;" >
                                 <p:commandButton id="btnPedidoEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar el pedido" 
-                                                 disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.estatus!=0}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked}"
                                                  process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
-                                                 update=":main:msgsPedido :main:listaDePedidos" 
-                                                 oncomplete="handlePedido(xhr, status, args);" />
+                                                 update=":main:msgsPedido" oncomplete="handlePedido(xhr, status, args);" />
                                 <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Cerrar pedido, ya no se podra modificar" 
-                                                 disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.estatus!=0}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked}"
                                                  process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
-                                                 update=":main:msgsPedido :main:listaDePedidos" 
-                                                 oncomplete="handlePedido(xhr, status, args);" />
+                                                 update=":main:msgsPedido :main:pedido :main:totales" />
                                 <p:commandButton id="btnPedidoCancelar" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar el pedido" 
-                                                 disabled="#{!mbPedidos.asegurado || mbPedidos.pedido.estatus!=5}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=5 or !mbPedidos.locked}"
                                                  process="@this" update=":main:cancelarPedido" 
                                                  oncomplete="PF('cancelarPedidoDlg').show();" />
                             </p:column>
@@ -333,8 +332,8 @@
                                 <p:column colspan="2" style="text-align: right;" >
                                     <p:commandButton id="btnCancelarPedido" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar pedido" 
                                                      process="@this motivo" actionListener="#{mbPedidos.cancelarPedido()}" 
-                                                     update="@this :main:msgsPedidos :main:listaDePedidos" 
-                                                     oncomplete="handleCancelarPedido(xhr, status, args);" />
+                                                     update=":main:msgsPedido :main:pedido :main:totales"
+                                                     oncomplete="PF('cancelarPedidoDlg').hide()" />
                                 </p:column>
                             </p:row>
                         </f:facet>
@@ -412,7 +411,8 @@
                                 <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}" >
+                                <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}" style="width: 350px;"
+                                                 filter="true" filterMatchMode="contains" >
                                     <f:converter converterId="converters.miniCliente" />
                                     <f:selectItems value="#{mbPedidos.mbClientes.listaClientes}" />
                                     <p:ajax event="change" listener="#{mbPedidos.cambioDeCliente()}" 
@@ -466,7 +466,6 @@
                         </f:facet>
                     </p:panelGrid>
                 </p:dialog>
-                <!-- vvvvvvvvvvvvvvvvvvvvvvvvvv NO SE USA vvvvvvvvvvvvvvvvvvvvvvv -->
                 <p:dialog header="Similares" widgetVar="similaresDlg" closable="true" resizable="false" style="width: 600px;" modal="true" >
                     <p:messages id="msgsSimilares" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panelGrid id="panelSimilares" styleClass="sinBorde" >
@@ -525,7 +524,6 @@
                         </f:facet>
                     </p:dataTable>
                 </p:dialog>
-                <!-- ^^^^^^^^^^^^^^^^^^^^^ NO SE USA ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
             </h:form>
             <ui:include src="footer.xhtml" />
         </div>
@@ -558,7 +556,6 @@
                 }
                 function handleCancelarPedido(xhr, status, args) {
                     if (!(args.validationFailed || !args.okPedido)) {
-                        PF('cancelarPedidoDlg').hide();
                         PF('pedidoDlg').hide();
                     }
                 }
