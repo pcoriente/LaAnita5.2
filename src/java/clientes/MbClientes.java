@@ -25,6 +25,8 @@ import javax.naming.NamingException;
 import leyenda.dominio.ClienteBanco;
 import mbMenuClientesGrupos.MbClientesGrupos;
 import org.primefaces.context.RequestContext;
+import utilerias.Dialogs;
+import utilerias.Utilerias;
 
 /**
  *
@@ -46,9 +48,10 @@ public class MbClientes implements Serializable {
     private MbTiendasFormatos mbTiendasFormatos;
 
     private int indexClienteSeleccionado;
-    private Cliente cliente, clienteSeleccionado;
+    private Cliente cliente;
+    private Cliente clienteSeleccion;
     private ArrayList<Cliente> clientes, listaClientes;
-    private ArrayList<Cliente>listaFiltros;
+    private ArrayList<Cliente> listaFiltros;
 
 //    private int personaFisica = 0;
 //    private boolean actualizarRfc = false;
@@ -128,7 +131,7 @@ public class MbClientes implements Serializable {
     }
 
     public void seleccionaCliente() {
-        this.cliente = this.clienteSeleccionado;
+        this.cliente = this.clienteSeleccion;
         int idx = this.clientes.indexOf(this.cliente);
         if (idx != -1) {
             this.indexClienteSeleccionado = idx;
@@ -307,8 +310,25 @@ public class MbClientes implements Serializable {
         }
     }
 
-    public void mttoContribuyente() {
-        this.mbContribuyente.mttoContribuyente(this.cliente.getContribuyente());
+//    public void mttoContribuyente() {
+//        this.mbContribuyente.mttoContribuyente(this.cliente.getContribuyente());
+//    }
+    public void buscarContribuyente() {
+        if (cliente.getContribuyente().getRfc().equals("")) {
+            Mensajes.mensajeAlert("Se requiere un rfc");
+        } else if (cliente.getContribuyente().getRfc().length() < 12 || cliente.getContribuyente().getRfc().length() > 13) {
+            Mensajes.mensajeAlert("Longitud del rfc no validas");
+        } else {
+            Utilerias utilerias = new Utilerias();
+            String error = utilerias.verificarRfc(cliente.getContribuyente().getRfc());
+            if (error.equals("")) {
+                mbContribuyente.buscarContribuyente(cliente.getContribuyente().getRfc());
+                Dialogs.abrirDialogo("dlgContribuyentes");
+            } else {
+                Mensajes.mensajeError(error);
+            }
+        }
+
     }
 
 //    public void validarContribuyente() {
@@ -383,16 +403,18 @@ public class MbClientes implements Serializable {
 //        mbClientesBancos.getMbBanco().cargarBancos(cliente.getIdCliente());
 //    }
     public void cancelar() {
-        if (this.indexClienteSeleccionado != -1) {
-            this.cliente = this.clientes.get(this.indexClienteSeleccionado);
-        } else {
-            this.cliente = null;
-        }
+        clienteSeleccion = null;
+
+//        if (this.indexClienteSeleccionado != -1) {
+//            this.cliente = this.clientes.get(this.indexClienteSeleccionado);
+//        } else {
+//            this.cliente = null;
+//        }
     }
 
     public void modificar() {
-        this.indexClienteSeleccionado = this.clientes.indexOf(this.cliente);
-        Cliente tmp = this.clientes.get(this.indexClienteSeleccionado);
+//        this.indexClienteSeleccionado = this.clientes.indexOf(this.cliente);
+        Cliente tmp = clienteSeleccion;
         this.cliente = new Cliente();
         this.cliente.setIdCliente(tmp.getIdCliente());
         this.cliente.setGrupo(tmp.getGrupo());
@@ -599,14 +621,6 @@ public class MbClientes implements Serializable {
         this.listaClientes = listaClientes;
     }
 
-    public Cliente getClienteSeleccionado() {
-        return clienteSeleccionado;
-    }
-
-    public void setClienteSeleccionado(Cliente clienteSeleccionado) {
-        this.clienteSeleccionado = clienteSeleccionado;
-    }
-
     public ArrayList<Cliente> getListaFiltros() {
         return listaFiltros;
     }
@@ -614,7 +628,13 @@ public class MbClientes implements Serializable {
     public void setListaFiltros(ArrayList<Cliente> listaFiltros) {
         this.listaFiltros = listaFiltros;
     }
-    
-    
-    
+
+    public Cliente getClienteSeleccion() {
+        return clienteSeleccion;
+    }
+
+    public void setClienteSeleccion(Cliente clienteSeleccion) {
+        this.clienteSeleccion = clienteSeleccion;
+    }
+
 }
