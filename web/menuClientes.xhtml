@@ -408,19 +408,30 @@
                                     <p:commandButton icon="#{mbClientes.mbDireccion.iconSearch}" 
                                                      title="#{mbClientes.mbDireccion.iconSearchTitle}" 
                                                      disabled="#{mbClientes.mbDireccion.direccion.pais.idPais!=1}"
-                                                     process="mttoDireccion" actionListener="#{mbClientes.mbDireccion.buscarAsentamientos()}"
+                                                     process="mttoDireccion" 
+                                                     actionListener="#{mbClientes.mbDireccion.buscarAsentamientos()}"
                                                      update="mttoDireccion" />
                                 </p:column>
                             </p:row>
-                            <p:row id="editarAsentamiento" rendered="#{mbClientes.mbDireccion.editarAsentamiento}" >
+                            <p:row id="editarAsentamiento" 
+                                   rendered="#{mbClientes.mbDireccion.editarAsentamiento== true}" >
                                 <p:column >
                                     <h:outputLabel value="Colonia:" styleClass="colorLetra" />
                                 </p:column>
-                                <p:column colspan="2" >
+                                <p:column>
                                     <p:inputText id="txtAsentamiento" value="#{mbClientes.mbDireccion.direccion.colonia}"/>
                                 </p:column>
+                                <p:column>
+                                    <p:commandButton 
+                                        icon="ui-icon-pencil"
+                                        actionListener="#{mbClientes.mbDireccion.setEditarAsentamiento(false)}" 
+                                        update="mttoDireccion"
+                                        title="Elegir Asentamiento"
+                                       />
+                                </p:column>
                             </p:row>
-                            <p:row id="seleccionarAsentamiento" rendered="#{!mbClientes.mbDireccion.editarAsentamiento}" >
+                            <p:row id="seleccionarAsentamiento" 
+                                   rendered="#{mbClientes.mbDireccion.editarAsentamiento== false}" >
                                 <p:column >
                                     <h:outputLabel value="Colonia:" styleClass="colorLetra" />
                                 </p:column>

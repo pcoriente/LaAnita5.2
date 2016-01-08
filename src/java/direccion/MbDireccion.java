@@ -380,6 +380,8 @@ public class MbDireccion implements Serializable {
     }
 
     public void setEditarAsentamiento(boolean editarAsentamiento) {
+        System.out.println("entro a editar el asentamiento");
+        System.out.println(editarAsentamiento+ "Este es el valor ");
         if (!editarAsentamiento && (this.listaAsentamientos == null || this.listaAsentamientos.isEmpty())) {
             FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "No hay asentamientos en la lista, proporcione un código postal y de click al botón BUSCAR");
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
