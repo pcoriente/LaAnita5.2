@@ -10,6 +10,7 @@ import contribuyentes.Contribuyente;
 import contribuyentes.DAOContribuyentes;
 import contribuyentes.MbContribuyentes;
 import direccion.MbDireccion;
+import direccion.dominio.Direccion;
 import esquemas.MbEsquemas;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -479,6 +480,7 @@ public class MbClientes implements Serializable {
                     Mensajes.mensajeSucces("El cliente se modifico correctamente");
                 }
                 clientes = null;
+                mbDireccion.setDireccion(new Direccion());
                 Dialogs.ocultarDialogo("dlgClientes");
 //                ok = true;
             } catch (SQLException ex) {
