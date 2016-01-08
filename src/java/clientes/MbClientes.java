@@ -448,7 +448,10 @@ public class MbClientes implements Serializable {
         if (validarClientes()) {
             try {
                 DAOClientes dao = new DAOClientes();
+
                 if (this.cliente.getIdCliente() == 0) {
+                    DAOContribuyentes daoC = new DAOContribuyentes();
+                    cliente.setContribuyente(daoC.obtenerContribuyenteRfc(cliente.getContribuyente().getRfc()));
                     cliente.setIdEsquema(mbEsquemas.getValorEsquema());
                     this.cliente.getDireccion().setIdDireccion(this.mbDireccion.agregar(this.cliente.getDireccion()));
                     this.cliente.setIdCliente(dao.agregar(this.convertir(this.cliente)));
@@ -458,6 +461,7 @@ public class MbClientes implements Serializable {
                     dao.modificar(this.convertir(this.cliente));
                     Mensajes.mensajeSucces("El cliente se modifico correctamente");
                 }
+                clientes = null;
                 Dialogs.ocultarDialogo("dlgClientes");
 //                ok = true;
             } catch (SQLException ex) {
