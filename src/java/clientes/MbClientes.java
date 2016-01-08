@@ -368,10 +368,9 @@ public class MbClientes implements Serializable {
             Mensajes.mensajeAlert("Se requiere un esquema");
         } else if (cliente.getDireccion().getCalle().equals("")) {
             Mensajes.mensajeAlert("Se requiere una direccion");
-        }
-//        else if (cliente.getDiasCredito() == 0) {
-//            Mensajes.mensajeAlert("Se requiere los dias de credito");
-//        }
+        } //        else if (cliente.getDiasCredito() == 0) {
+        //            Mensajes.mensajeAlert("Se requiere los dias de credito");
+        //        }
         else {
             ok = true;
         }
@@ -442,6 +441,8 @@ public class MbClientes implements Serializable {
         this.cliente.setDiasBloqueo(tmp.getDiasBloqueo());
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
+//          cl.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
+        cliente.setDireccion(this.mbDireccion.obtener(cliente.getDireccion().getIdDireccion()));
     }
 
     public void guardar() {
@@ -498,9 +499,10 @@ public class MbClientes implements Serializable {
         cte.getContribuyente().setContribuyente(to.getContribuyente());
         cte.getContribuyente().setIdRfc(to.getIdRfc());
         cte.getContribuyente().setRfc(to.getRfc());
-        cte.getContribuyente().setCurp(to.getCurp());
-        cte.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
-        cte.setDireccion(this.mbDireccion.obtener(to.getIdDireccion()));
+        cte.getDireccion().setIdDireccion(to.getIdDireccion());
+//        cte.getContribuyente().setCurp(to.getCurp());
+//        cte.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
+//        cte.setDireccion(this.mbDireccion.obtener(to.getIdDireccion()));
         cte.setFechaAlta(to.getFechaAlta());
         cte.setDiasCredito(to.getDiasCredito());
         cte.setLimiteCredito(to.getLimiteCredito());
