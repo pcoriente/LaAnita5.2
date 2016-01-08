@@ -368,9 +368,11 @@ public class MbClientes implements Serializable {
             Mensajes.mensajeAlert("Se requiere un esquema");
         } else if (cliente.getDireccion().getCalle().equals("")) {
             Mensajes.mensajeAlert("Se requiere una direccion");
-        } else if (cliente.getDiasCredito() == 0) {
-            Mensajes.mensajeAlert("Se requiere los dias de credito");
-        } else {
+        }
+//        else if (cliente.getDiasCredito() == 0) {
+//            Mensajes.mensajeAlert("Se requiere los dias de credito");
+//        }
+        else {
             ok = true;
         }
 
