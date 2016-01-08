@@ -65,6 +65,9 @@ public class DAOFormatos {
     public ArrayList<ClienteFormato> dameFormatos(int idGrupoClte) throws SQLException {
         ArrayList<ClienteFormato> lstFormatos = null;
         String sql = "SELECT * FROM  clientesFormatos WHERE idGrupoCte  = '" + idGrupoClte + "'";
+        System.out.println("**************************************************");
+        System.out.println(sql);
+        System.out.println("**************************************************");
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {

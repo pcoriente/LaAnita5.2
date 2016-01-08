@@ -70,6 +70,8 @@ public class MbContribuyentes implements Serializable {
     }
 
     public boolean grabar() {
+//        FALTA AGREGAR LA ALTA DE CONTRIBUYENTE
+        
         boolean ok = false;
         if (this.valida()) {
             try {

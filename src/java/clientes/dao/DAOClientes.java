@@ -55,7 +55,7 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, esq.idEsquema, esq.esquema\n"
                 + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
                 + "FROM clientes C\n"
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
@@ -80,15 +80,14 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.* , G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
-                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp, F.formato\n"
+        String sql = "SELECT C.* , G.grupoCte, G.codigoGrupo, esq.idEsquema, esq.esquema\n"
+                + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
                 + "FROM clientes C\n"
                 + "INNER JOIN esquemaNegociacion esq ON esq.idEsquema=C.idEsquema\n"
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte \n"
-                + "INNER JOIN clientesFormatos F on F.idGrupoCte=C.idGrupoCte\n"
                 + "INNER JOIN contribuyentes Y ON Y.idContribuyente = C.idContribuyente\n"
                 + "INNER JOIN contribuyentesRfc R ON R.idRfc = Y.idRfc ORDER BY C.idGrupoCte, Y.contribuyente";
-       
+
         System.out.println(sql);
         try {
             ResultSet rs = st.executeQuery(sql);
@@ -256,7 +255,7 @@ public class DAOClientes {
     public int agregar(TOCliente to) throws SQLException {
         int idCliente = 0;
         String strSQL = "INSERT INTO clientes (idGrupoCte, idEsquema, idContribuyente, idDireccion, fechaAlta, diasCredito, limiteCredito, desctoComercial, diasBloqueo) "
-                + "VALUES (" + to.getIdGrupoCte() + ", 2, " + to.getIdContribuyente() + ", " + to.getIdDireccion() + ", GETDATE(), " + to.getDiasCredito() + ", " + to.getLimiteCredito() + ", " + to.getDesctoComercial() + ", " + to.getDiasBloqueo() + ")";
+                + "VALUES (" + to.getIdGrupoCte() + ", '" + to.getIdEsquema() + "'  , " + to.getIdContribuyente() + ", " + to.getIdDireccion() + ", GETDATE(), " + to.getDiasCredito() + ", " + to.getLimiteCredito() + ", " + to.getDesctoComercial() + ", " + to.getDiasBloqueo() + ")";
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
