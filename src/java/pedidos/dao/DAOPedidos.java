@@ -49,7 +49,7 @@ public class DAOPedidos {
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
                 toPed.setEstatus(6);
-                
+
                 strSQL = "UPDATE A\n"
                         + "SET separados=A.separados-D.cantidad\n"
                         + "FROM movimientosDetalleAlmacen D\n"
@@ -105,7 +105,7 @@ public class DAOPedidos {
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
                 toPed.setEstatus(5);
-                
+
                 strSQL = "DELETE FROM pedidosDetalle\n"
                         + "WHERE idPedido=" + toPed.getReferencia() + " AND cantOrdenada+cantOrdenadaSinCargo=0";
                 st.executeUpdate(strSQL);
@@ -171,7 +171,7 @@ public class DAOPedidos {
 
                 strSQL = "DELETE FROM movimientosDetalleImpuestos WHERE idMovto=" + toPed.getIdMovto();
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "DELETE FROM comprobantes WHERE idComprobante=" + toPed.getIdComprobante();
                 st.executeUpdate(strSQL);
 
@@ -211,22 +211,20 @@ public class DAOPedidos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-//                if (toSimilar.isSimilar()) {
                 if (toSimilar.getIdPedido() == 0) {
-                    toSimilar.setIdPedido(toProd.getIdPedido());
-                    toSimilar.setIdMovto(toProd.getIdMovto());
-                    toSimilar.setCantOrdenadaSinCargo(cantidad);
-//                    toSimilar.setSimilar(false);
-//                    this.agregaProducto(cn, toPed, toSimilar);
-                    movimientos.Movimientos.agregaProductoOficina(cn, toSimilar, toPed.getIdImpuestoZona());
-                } else {
-                    toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
-
-                    strSQL = "UPDATE pedidosDetalle\n"
-                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + cantidad + "\n"
-                            + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toSimilar.getIdProducto();
-                    st.executeUpdate(strSQL);
+                    toSimilar.setIdPedido(toPed.getReferencia());
+                    toSimilar.setIdMovto(toPed.getIdMovto());
+                    
+                    this.agregaProductoPedido(cn, toPed, toSimilar);
                 }
+                toSimilar.setCantOrdenadaSinCargo(toSimilar.getCantOrdenadaSinCargo() + cantidad);
+                toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
+
+                strSQL = "UPDATE pedidosDetalle\n"
+                        + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + cantidad + "\n"
+                        + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toSimilar.getIdProducto();
+                st.executeUpdate(strSQL);
+
                 strSQL = "UPDATE pedidosDetalle\n"
                         + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo-" + cantidad + "\n"
                         + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProd.getIdProducto();
@@ -385,16 +383,22 @@ public class DAOPedidos {
         return similares;
     }
 
-    public void agregarProductoPedido(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+    private void agregaProductoPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         String strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCargo)\n"
                 + "VALUES (" + toProd.getIdPedido() + ", " + toProd.getIdProducto() + ", " + toProd.getCantOrdenada() + ", " + toProd.getCantOrdenadaSinCargo() + ", 0, 0)";
+        try (Statement st = cn.createStatement()) {
+            movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
+            movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
+
+            st.executeUpdate(strSQL);
+        }
+    }
+
+    public void agregarProductoPedido(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
-                movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
-
-                st.executeUpdate(strSQL);
+            try {
+                this.agregaProductoPedido(cn, toPed, toProd);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -531,7 +535,7 @@ public class DAOPedidos {
 
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = "=0";
-        if(estatus!=0) {
+        if (estatus != 0) {
             condicion = " IN (5, 6)";
         }
         ArrayList<TOPedido> pedidos = new ArrayList<>();
