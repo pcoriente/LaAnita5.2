@@ -439,6 +439,10 @@ public class MbClientes implements Serializable {
         this.cliente.setLimiteCredito(tmp.getLimiteCredito());
         this.cliente.setDescuentoComercial(tmp.getDescuentoComercial());
         this.cliente.setDiasBloqueo(tmp.getDiasBloqueo());
+        System.out.println("---------------------------");
+        System.out.println(tmp.getIdEsquema());
+        System.out.println("---------------------------");
+
         mbEsquemas.setValorEsquema(tmp.getIdEsquema());
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
@@ -510,6 +514,7 @@ public class MbClientes implements Serializable {
         cte.setLimiteCredito(to.getLimiteCredito());
         cte.setDescuentoComercial(to.getDesctoComercial());
         cte.setDiasBloqueo(to.getDiasBloqueo());
+        cte.setIdEsquema(to.getIdEsquema());
         return cte;
     }
 
