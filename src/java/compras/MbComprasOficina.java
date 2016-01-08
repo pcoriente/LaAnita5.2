@@ -309,7 +309,7 @@ public class MbComprasOficina implements Serializable {
         try {
             if (this.detalle.isEmpty()) {
                 Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
-            } else if (sumaPiezasOficina() == 0) {
+            } else if (this.sumaPiezasOficina() == 0) {
                 Mensajes.mensajeAlert("No hay piezas capturadas !!!");
             } else {
                 this.dao = new DAOComprasOficina();

@@ -190,7 +190,7 @@
                                          size="14" maxlength="12"
                                          readonly="#{mbVentas.venta.idPedido==0 or mbVentas.venta.estatus ge 7 or !mbVentas.locked}" >
                                 <f:convertNumber pattern="###,##0.0000" />
-                                <p:ajax event="change" process="@this" listener="#{mbVentas.actualizarProductoSinCargo()}"
+                                <p:ajax event="change" process="@this" listener="#{mbVentas.actualizarPedidoProductoSinCargo()}"
                                         update=":main:msgsEdicion panelEdicion" 
                                         oncomplete="" />
                             </p:inputText>
@@ -198,7 +198,8 @@
                         <p:column style="text-align: right;" >
                             <p:commandButton id="btnTraspasoSimilares" value="Cambiar" title="Cambiar sin canrgo a otro similar" 
                                              disabled="#{mbVentas.producto.cantSinCargo==0 or mbVentas.venta.estatus ge 7 or !mbVentas.locked}"
-                                             actionListener="#{mbVentas.traspasoSimilar()}" 
+                                             actionListener="#{mbVentas.traspasoSimilar()}"
+                                             update=":main:msgsEdicion :main:panelSimilares :main:detalleSimilares"
                                              oncomplete="handleAbrirSimilares(xhr, status, args);" />
                         </p:column>
                     </p:row>
@@ -409,7 +410,7 @@
                                              update=":main:msgs :main:msgs :main:listaDeVentas" 
                                              oncomplete="handleVenta(xhr, status, args);" />
                             <p:commandButton id="btnVentaCerrar" value="CERRAR" title="Cerrar la venta para surtir almacen" 
-                                             disabled="#{mbVentas.venta.total==0 or mbVentas.venta.estatus ge 7}"
+                                             disabled="#{mbVentas.venta.estatus ge 7}"
                                              process="@this" actionListener="#{mbVentas.cerrarVenta()}" 
                                              update=":main:msgsVenta :main:detalleVenta :main:totales" />
                             <p:commandButton id="btnSurtirOC" icon="ui-icon-gear" value="SURTIR OC" title="Surtir Orden de Compra" 
@@ -501,7 +502,8 @@
                             <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column >
-                            <p:selectOneMenu id="cliente" value="#{mbVentas.mbClientes.cliente}" style="width: 350px;" >
+                            <p:selectOneMenu id="cliente" value="#{mbVentas.mbClientes.cliente}" style="width: 350px;"
+                                             filter="true" filterMatchMode="contains" >
                                 <f:converter converterId="converters.miniCliente" />
                                 <f:selectItems value="#{mbVentas.mbClientes.listaClientes}" />
                                 <p:ajax event="change" listener="#{mbVentas.cambioDeCliente()}" 
@@ -543,7 +545,7 @@
                                 <p:commandButton id="btnCrearVenta" icon="ui-icon-document" value="Crear" title="Crear venta" 
                                                  disabled="#{mbVentas.mbTiendas.tienda.idTienda==0}"
                                                  process="@this" actionListener="#{mbVentas.crearVenta()}"
-                                                 update=":main:msgsNuevaVenta :main:listaDeVentas" 
+                                                 update=":main:msgsNuevaVenta :main:listaDeVentas :main:venta :main:detalleVenta :main:totales" 
                                                  oncomplete="nuevaVenta(xhr, status, args);" />
                                 <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Cancelar" title="Cancelar" 
                                                  immediate="true" onclick="PF('nuevaVentaDlg').hide();" />
@@ -556,13 +558,13 @@
         <script type="text/javascript" >
             function handleSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
-                    PF('SimilaresDlg').hide();
+                    PF('similaresDlg').hide();
                     PF('EdicionDlg').hide();
                 }
             }
             function handleAbrirSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
-                    PF('SimilaresDlg').show();
+                    PF('similaresDlg').show();
                 }
             }
             function handleEdicion(xhr, status, args) {
