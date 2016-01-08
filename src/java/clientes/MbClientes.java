@@ -325,6 +325,15 @@ public class MbClientes implements Serializable {
             String error = utilerias.verificarRfc(cliente.getContribuyente().getRfc().toUpperCase());
             if (error.equals("")) {
                 mbContribuyente.buscarContribuyente(cliente.getContribuyente().getRfc().toUpperCase());
+//              mbContribuyente.contribuyente.rfc
+                if (mbContribuyente.getContribuyente() == null) {
+                    mbContribuyente.setContribuyente(new Contribuyente());
+                }
+                mbContribuyente.getContribuyente().setRfc(cliente.getContribuyente().getRfc().toUpperCase());
+                if (mbContribuyente.getContribuyente().getRfc().length() == 13 && mbContribuyente.getContribuyente().getIdContribuyente() == 0) {
+                    mbContribuyente.setPersonaFisica(true);
+                }
+//                 this.personaFisica = true;
                 Dialogs.abrirDialogo("dlgContribuyentes");
             } else {
                 Mensajes.mensajeError(error);
