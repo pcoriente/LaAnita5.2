@@ -439,6 +439,7 @@ public class MbClientes implements Serializable {
         this.cliente.setLimiteCredito(tmp.getLimiteCredito());
         this.cliente.setDescuentoComercial(tmp.getDescuentoComercial());
         this.cliente.setDiasBloqueo(tmp.getDiasBloqueo());
+        mbEsquemas.setValorEsquema(tmp.getIdEsquema());
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
 //          cl.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
@@ -451,11 +452,11 @@ public class MbClientes implements Serializable {
         if (validarClientes()) {
             try {
                 DAOClientes dao = new DAOClientes();
-
+                cliente.setIdEsquema(mbEsquemas.getValorEsquema());
                 if (this.cliente.getIdCliente() == 0) {
                     DAOContribuyentes daoC = new DAOContribuyentes();
                     cliente.setContribuyente(daoC.obtenerContribuyenteRfc(cliente.getContribuyente().getRfc()));
-                    cliente.setIdEsquema(mbEsquemas.getValorEsquema());
+
                     this.cliente.getDireccion().setIdDireccion(this.mbDireccion.agregar(this.cliente.getDireccion()));
                     this.cliente.setIdCliente(dao.agregar(this.convertir(this.cliente)));
                     this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
@@ -483,6 +484,7 @@ public class MbClientes implements Serializable {
 //            this.indexClienteSeleccionado=clientes.indexOf(this.cliente);
 //        }
         this.cliente = new Cliente();
+        this.mbEsquemas.setValorEsquema(0);
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
