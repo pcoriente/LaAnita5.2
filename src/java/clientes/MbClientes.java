@@ -314,15 +314,15 @@ public class MbClientes implements Serializable {
 //        this.mbContribuyente.mttoContribuyente(this.cliente.getContribuyente());
 //    }
     public void buscarContribuyente() {
-        if (cliente.getContribuyente().getRfc().equals("")) {
+        if (cliente.getContribuyente().getRfc().toUpperCase().equals("")) {
             Mensajes.mensajeAlert("Se requiere un rfc");
-        } else if (cliente.getContribuyente().getRfc().length() < 12 || cliente.getContribuyente().getRfc().length() > 13) {
+        } else if (cliente.getContribuyente().getRfc().toUpperCase().length() < 12 || cliente.getContribuyente().getRfc().length() > 13) {
             Mensajes.mensajeAlert("Longitud del rfc no validas");
         } else {
             Utilerias utilerias = new Utilerias();
-            String error = utilerias.verificarRfc(cliente.getContribuyente().getRfc());
+            String error = utilerias.verificarRfc(cliente.getContribuyente().getRfc().toUpperCase());
             if (error.equals("")) {
-                mbContribuyente.buscarContribuyente(cliente.getContribuyente().getRfc());
+                mbContribuyente.buscarContribuyente(cliente.getContribuyente().getRfc().toUpperCase());
                 Dialogs.abrirDialogo("dlgContribuyentes");
             } else {
                 Mensajes.mensajeError(error);
@@ -405,11 +405,6 @@ public class MbClientes implements Serializable {
     public void cancelar() {
         clienteSeleccion = null;
 
-//        if (this.indexClienteSeleccionado != -1) {
-//            this.cliente = this.clientes.get(this.indexClienteSeleccionado);
-//        } else {
-//            this.cliente = null;
-//        }
     }
 
     public void modificar() {

@@ -80,8 +80,6 @@ public class MbTiendasFormatos implements Serializable {
     public void cargarListaCombo(int idGrupoClte) {
         try {
             listaFormatos = new ArrayList<SelectItem>();
-//            DAOTiendasFormatos dao = new DAOTiendasFormatos();
-//            DAOFormatos dao = DAOFormatos();
             DAOFormatos dao = new DAOFormatos();
             ClienteFormato fmto0 = new ClienteFormato();
             fmto0.setIdFormato(0);
