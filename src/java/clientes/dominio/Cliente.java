@@ -7,6 +7,7 @@ package clientes.dominio;
 import contactos.dominio.Contacto;
 import contribuyentes.Contribuyente;
 import direccion.dominio.Direccion;
+import esquemas.Dominio.EsquemaNegociacion;
 import formatos.dominio.ClienteFormato;
 import java.io.Serializable;
 import java.util.ArrayList;

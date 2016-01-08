@@ -10,6 +10,7 @@ import contribuyentes.Contribuyente;
 import contribuyentes.DAOContribuyentes;
 import contribuyentes.MbContribuyentes;
 import direccion.MbDireccion;
+import esquemas.MbEsquemas;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -46,8 +47,9 @@ public class MbClientes implements Serializable {
     private MbClientesBancos mbClientesBancos;
     @ManagedProperty(value = "#{mbTiendasFormatos}")
     private MbTiendasFormatos mbTiendasFormatos;
-
-    private int indexClienteSeleccionado;
+    @ManagedProperty(value = "#{mbEsquemas}")
+    private MbEsquemas mbEsquemas;
+//    private int indexClienteSeleccionado;
     private Cliente cliente;
     private Cliente clienteSeleccion;
     private ArrayList<Cliente> clientes, listaClientes;
@@ -69,7 +71,7 @@ public class MbClientes implements Serializable {
         this.mbDireccion = new MbDireccion();
         this.mbClientesBancos = new MbClientesBancos();
         this.mbTiendasFormatos = new MbTiendasFormatos();
-
+        this.mbEsquemas = new MbEsquemas();
         this.cliente = new Cliente();
     }
 
@@ -132,10 +134,10 @@ public class MbClientes implements Serializable {
 
     public void seleccionaCliente() {
         this.cliente = this.clienteSeleccion;
-        int idx = this.clientes.indexOf(this.cliente);
-        if (idx != -1) {
-            this.indexClienteSeleccionado = idx;
-        }
+//        int idx = this.clientes.indexOf(this.cliente);
+//        if (idx != -1) {
+//            this.indexClienteSeleccionado = idx;
+//        }
         this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
@@ -145,7 +147,7 @@ public class MbClientes implements Serializable {
         try {
             DAOClientes dao = new DAOClientes();
             if (this.cliente.getIdCliente() == 0) {
-                this.indexClienteSeleccionado = -1;
+//                this.indexClienteSeleccionado = -1;
                 this.listaClientes = new ArrayList<Cliente>();
                 this.cliente.setContribuyente(this.mbContribuyente.obtenerContribuyenteRfc(this.cliente.getContribuyente().getRfc()));
                 this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
@@ -161,10 +163,10 @@ public class MbClientes implements Serializable {
                     Mensajes.mensajeAlert("No se encontraron clientes con el contribuyente especificado !!!");
                 } else if (this.listaClientes.size() == 1) {
                     this.cliente = this.listaClientes.get(0);
-                    int idx = this.clientes.indexOf(this.cliente);
-                    if (idx != -1) {
-                        this.indexClienteSeleccionado = idx;
-                    }
+//                    int idx = this.clientes.indexOf(this.cliente);
+//                    if (idx != -1) {
+//                        this.indexClienteSeleccionado = idx;
+//                    }
                     this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
                 } else {
                     ok = true;
@@ -358,27 +360,41 @@ public class MbClientes implements Serializable {
 //    }
     public boolean validarClientes() {
         boolean ok = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
-        if (cliente.getFormato().getIdFormato() == 0) {
-            fMsg.setDetail("Error!! Formato de Cliente Requerido");
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-            context.addCallbackParam("ok", ok);
-        } else if (cliente.getContribuyente().getIdContribuyente() == 0) {
-            fMsg.setDetail("Error!! Contribuyente del Cliente Requerido");
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-            context.addCallbackParam("ok", ok);
-        } else if (cliente.getContribuyente().getIdRfc() == 0) {
-            fMsg.setDetail("Error!! RFC del Contribuyente Requerido");
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-            context.addCallbackParam("ok", ok);
+        if (cliente.getContribuyente().getRfc().equals("")) {
+            Mensajes.mensajeAlert("Se requiere una Rfc");
+        } else if (cliente.getGrupo().getIdGrupoCte() == 0) {
+            Mensajes.mensajeAlert("Se requiere un grupo");
+        } else if (mbEsquemas.getValorEsquema() == 0) {
+            Mensajes.mensajeAlert("Se requiere un esquema");
+        } else if (cliente.getDireccion().getCalle().equals("")) {
+            Mensajes.mensajeAlert("Se requiere una direccion");
         } else if (cliente.getDiasCredito() == 0) {
-            fMsg.setDetail("Error!! Dias de Credito Requerido");
-            FacesContext.getCurrentInstance().addMessage(null, fMsg);
-            context.addCallbackParam("ok", ok);
+            Mensajes.mensajeAlert("Se requiere los dias de credito");
         } else {
             ok = true;
         }
+
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "");
+//        if (cliente.getFormato().getIdFormato() == 0) {
+//            fMsg.setDetail("Error!! Formato de Cliente Requerido");
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//            context.addCallbackParam("ok", ok);
+//        } else if (cliente.getContribuyente().getIdContribuyente() == 0) {
+//            fMsg.setDetail("Error!! Contribuyente del Cliente Requerido");
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//            context.addCallbackParam("ok", ok);
+//        } else if (cliente.getContribuyente().getIdRfc() == 0) {
+//            fMsg.setDetail("Error!! RFC del Contribuyente Requerido");
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//            context.addCallbackParam("ok", ok);
+//        } else if (cliente.getDiasCredito() == 0) {
+//            fMsg.setDetail("Error!! Dias de Credito Requerido");
+//            FacesContext.getCurrentInstance().addMessage(null, fMsg);
+//            context.addCallbackParam("ok", ok);
+//        } else {
+//            ok = true;
+//        }
         return ok;
     }
 
@@ -422,42 +438,45 @@ public class MbClientes implements Serializable {
         this.cliente.setLimiteCredito(tmp.getLimiteCredito());
         this.cliente.setDescuentoComercial(tmp.getDescuentoComercial());
         this.cliente.setDiasBloqueo(tmp.getDiasBloqueo());
-        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
+//        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
     }
 
     public void guardar() {
-        boolean ok = false;
-        RequestContext context = RequestContext.getCurrentInstance();
-        if (this.validarClientes()) {
+//        boolean ok = false;
+//        RequestContext context = RequestContext.getCurrentInstance();
+        if (validarClientes()) {
             try {
                 DAOClientes dao = new DAOClientes();
                 if (this.cliente.getIdCliente() == 0) {
+                    cliente.setIdEsquema(mbEsquemas.getValorEsquema());
                     this.cliente.getDireccion().setIdDireccion(this.mbDireccion.agregar(this.cliente.getDireccion()));
                     this.cliente.setIdCliente(dao.agregar(this.convertir(this.cliente)));
                     this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
+                    Mensajes.mensajeSucces("El cliente se grabo correctamente !!!");
                 } else {
                     dao.modificar(this.convertir(this.cliente));
+                    Mensajes.mensajeSucces("El cliente se modifico correctamente");
                 }
-                Mensajes.mensajeSucces("El cliente se grabo correctamente !!!");
-                ok = true;
+                Dialogs.ocultarDialogo("dlgClientes");
+//                ok = true;
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
-        context.addCallbackParam("ok", ok);
+//        context.addCallbackParam("ok", ok);
     }
 
     public void nuevo() {
 //        if(this.cliente==null) {
-        this.indexClienteSeleccionado = -1;
+//        this.indexClienteSeleccionado = -1;
 //        } else {
 //            this.indexClienteSeleccionado=clientes.indexOf(this.cliente);
 //        }
         this.cliente = new Cliente();
-        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
+//        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
     private Cliente convertir(TOCliente to) {
@@ -630,6 +649,14 @@ public class MbClientes implements Serializable {
 
     public void setClienteSeleccion(Cliente clienteSeleccion) {
         this.clienteSeleccion = clienteSeleccion;
+    }
+
+    public MbEsquemas getMbEsquemas() {
+        return mbEsquemas;
+    }
+
+    public void setMbEsquemas(MbEsquemas mbEsquemas) {
+        this.mbEsquemas = mbEsquemas;
     }
 
 }

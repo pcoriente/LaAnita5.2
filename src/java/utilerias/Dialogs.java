@@ -18,4 +18,9 @@ public class Dialogs {
         context.execute("PF('" + nombreDelDialog + "').show();");
     }
 
+    public static void ocultarDialogo(String nombreDelDialog) {
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.execute("PF('" + nombreDelDialog + "').hide();");
+    }
+
 }

@@ -22,7 +22,8 @@
                             <p:row >
                                 <p:column style="width: 850px; text-align: right;" >
                                     <p:commandButton icon="ui-icon-document" title="Nuevo Cliente"
-                                                     process="@this" actionListener="#{mbClientes.nuevo()}" update=":form:panelClientes" 
+                                                     process="@this" actionListener="#{mbClientes.nuevo()}" 
+                                                     update=":form:panelClientes" 
                                                      oncomplete="PF('dlgClientes').show();" />
                                     <p:commandButton id="btnModificarCliente" icon="ui-icon-pencil" title="Modificar Cliente"
                                                      disabled="#{mbClientes.clienteSeleccion == null}"
@@ -71,10 +72,16 @@
                         </p:dataTable>
                     </p:panel>
                     <!--DLG SELECCIONACLIENTE-->
-                    <p:dialog widgetVar="dlgSeleccionarCliente" resizable="false" header="Seleccione un Cliente" modal="true" >
-                        <p:ajax event="close" listener="#{mbClientes.cancelar()}" update=":form:panelClientes" />
+                    <p:dialog widgetVar="dlgSeleccionarCliente" 
+                              resizable="false" 
+                              header="Seleccione un Cliente" 
+                              modal="true" >
+                        <p:ajax event="close" 
+                                listener="#{mbClientes.cancelar()}" 
+                                update=":form:panelClientes" />
                         <p:dataTable id="listaClientes" value="#{mbClientes.listaClientes}"
-                                     selectionMode="single" selection="#{mbClientes.clienteSeleccion}" 
+                                     selectionMode="single" 
+                                     selection="#{mbClientes.clienteSeleccion}" 
                                      var="c" rowKey="#{c.idCliente}" >
 
                             <p:column headerText="RFC" style="width: 100px;" >
@@ -162,7 +169,7 @@
                                                      actionListener="#{mbClientes.buscarContribuyente()}" 
                                                      process="@this txtRfcCliente"
                                                      update="growl :form:panelContribuyente" 
-                                                    />
+                                                     />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -174,20 +181,19 @@
                                                      filter="true" style="width: 250px" >
                                         <f:selectItems value="#{mbClientes.mbClientesGrupos.itemsClientesGrupos}" />
                                         <f:converter converterId="converters.ClientesGrupos" />
-                                        <p:ajax event="change" listener="#{mbClientes.cargarFormatos()}" update="cmbFormatos" />
+                                        <p:ajax event="change" listener="#{mbClientes.cargarFormatos()}" />
                                     </p:selectOneMenu>
                                 </p:column>
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel styleClass="colorLetra" value="Formato :"/>
+                                    <h:outputLabel styleClass="colorLetra" value="Esquema :"/>
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:selectOneMenu id="cmbFormatos" value="#{mbClientes.cliente.formato}"
-                                                     disabled="#{mbClientes.cliente.grupo.idGrupoCte==0}" 
-                                                     style="width: 250px;" >
-                                        <f:selectItems value="#{mbClientes.mbTiendasFormatos.listaFormatos}" />
-                                        <f:converter converterId="converter.formatos" />
+                                    <p:selectOneMenu id="cmbEsquemas" 
+                                                     value="#{mbClientes.mbEsquemas.valorEsquema}"
+                                                     style="width: 250px;">
+                                        <f:selectItems value="#{mbClientes.mbEsquemas.lst}" />
                                     </p:selectOneMenu> 
                                 </p:column>
                             </p:row>
@@ -260,9 +266,10 @@
                                 <p:row >
                                     <p:column colspan="3" style="text-align: right;" >
                                         <p:commandButton icon="ui-icon-disk" title="Guardar Cliente"
-                                                         process="@this panelClientes" actionListener="#{mbClientes.guardar()}"
+                                                         process="@this panelClientes" 
+                                                         actionListener="#{mbClientes.guardar()}"
                                                          update="growl :form:tablaClientesGrupos"
-                                                         oncomplete="nuevoCliente(xhr, status, args);" />
+                                                         />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Cancelar"
                                                          process="@this" 
                                                          update=":form:btnModificarCliente 
@@ -286,7 +293,7 @@
                                 </p:column>
                                 <p:column colspan="2" >
                                     <p:inputText id="txtRfc" 
-                                                 
+
                                                  value="#{mbClientes.mbContribuyente.contribuyente.rfc}" 
                                                  maxlength="13" >
                                         <p:ajax event="keyup" listener="#{mbClientes.mbContribuyente.dameStatusRfc()}" update="txtCurp" />
@@ -298,7 +305,8 @@
                                     <h:outputLabel styleClass="colorLetra" value="Contribuyente:"/>
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <p:inputText id="clienteContribuyente" value="#{mbClientes.mbContribuyente.contribuyente.contribuyente}" />
+                                    <p:inputText id="clienteContribuyente" 
+                                                 value="#{mbClientes.mbContribuyente.contribuyente.contribuyente}" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -332,7 +340,8 @@
                                                          actionListener="#{mbClientes.mbContribuyente.grabar()}"
                                                          update="growl panelContribuyente" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir" 
-                                                         process="@this" actionListener="#{mbClientes.mbContribuyente.validaSalir()}"
+                                                         process="@this" 
+                                                         actionListener="#{mbClientes.mbContribuyente.validaSalir()}"
                                                          update="growl :form:panelClientes"
                                                          oncomplete="validaContribuyente(xhr, status, args);"/>
                                     </p:column>

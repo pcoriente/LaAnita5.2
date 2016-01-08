@@ -255,7 +255,7 @@ public class DAOClientes {
     public int agregar(TOCliente to) throws SQLException {
         int idCliente = 0;
         String strSQL = "INSERT INTO clientes (idGrupoCte, idEsquema, idContribuyente, idDireccion, fechaAlta, diasCredito, limiteCredito, desctoComercial, diasBloqueo) "
-                + "VALUES (" + to.getIdGrupoCte() + ", 2, " + to.getIdContribuyente() + ", " + to.getIdDireccion() + ", GETDATE(), " + to.getDiasCredito() + ", " + to.getLimiteCredito() + ", " + to.getDesctoComercial() + ", " + to.getDiasBloqueo() + ")";
+                + "VALUES (" + to.getIdGrupoCte() + ", '" + to.getIdEsquema() + "'  , " + to.getIdContribuyente() + ", " + to.getIdDireccion() + ", GETDATE(), " + to.getDiasCredito() + ", " + to.getLimiteCredito() + ", " + to.getDesctoComercial() + ", " + to.getDiasBloqueo() + ")";
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
