@@ -175,7 +175,7 @@ public class DAOContribuyentes {
                 + "FROM contribuyentes C "
                 + "INNER JOIN contribuyentesRfc R ON R.idRfc=C.idRfc "
                 + "INNER JOIN direcciones D ON D.idDireccin=C.idDireccion "
-                + "WHERE R.rfc='" + rfc + "'";
+                + "WHERE R.rfc='" + rfc.toUpperCase() + "'";
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
