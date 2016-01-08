@@ -55,7 +55,7 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+        String sql = "SELECT C.*, G.grupoCte, G.codigoGrupo, esq.idEsquema, esq.esquema\n"
                 + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp\n"
                 + "FROM clientes C\n"
                 + "INNER JOIN clientesGrupos G ON G.idGrupoCte=C.idGrupoCte\n"
@@ -80,7 +80,7 @@ public class DAOClientes {
         ArrayList<TOCliente> lstClientes = new ArrayList<>();
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
-        String sql = "SELECT C.* , G.grupoCte, G.codigoGrupo, N.idEsquema, N.esquema\n"
+        String sql = "SELECT C.* , G.grupoCte, G.codigoGrupo, esq.idEsquema, esq.esquema\n"
                 + "     , Y.contribuyente, Y.idDireccion AS idDireccionFiscal, R.idRfc, R.rfc, R.curp, F.formato\n"
                 + "FROM clientes C\n"
                 + "INNER JOIN esquemaNegociacion esq ON esq.idEsquema=C.idEsquema\n"
