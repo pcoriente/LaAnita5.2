@@ -268,6 +268,7 @@ public class MbContribuyentes implements Serializable {
 //    }
 
     public Contribuyente buscarContribuyente(String rfc) {
+        contribuyente = new Contribuyente();
         String mensaje = "";
         try {
             Utilerias utilerias = new Utilerias();

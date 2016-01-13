@@ -271,6 +271,7 @@ public class DAOClientes {
                 + "SET idContribuyente = " + to.getIdContribuyente()
                 + ", diasCredito = " + to.getDiasCredito() + ", limiteCredito = " + to.getLimiteCredito()
                 + ", desctoComercial = " + to.getDesctoComercial() + ", diasBloqueo = " + to.getDiasBloqueo() + " "
+                + ", idEsquema = '" + to.getIdEsquema() + "' "
                 + "WHERE idCliente = " + to.getIdCliente();
         try {
             st.executeUpdate(strSQL);

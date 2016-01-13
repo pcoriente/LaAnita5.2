@@ -10,6 +10,7 @@ import contribuyentes.Contribuyente;
 import contribuyentes.DAOContribuyentes;
 import contribuyentes.MbContribuyentes;
 import direccion.MbDireccion;
+import direccion.dominio.Direccion;
 import esquemas.MbEsquemas;
 import java.io.Serializable;
 import java.sql.SQLException;
@@ -325,6 +326,15 @@ public class MbClientes implements Serializable {
             String error = utilerias.verificarRfc(cliente.getContribuyente().getRfc().toUpperCase());
             if (error.equals("")) {
                 mbContribuyente.buscarContribuyente(cliente.getContribuyente().getRfc().toUpperCase());
+//              mbContribuyente.contribuyente.rfc
+                if (mbContribuyente.getContribuyente() == null) {
+                    mbContribuyente.setContribuyente(new Contribuyente());
+                }
+                mbContribuyente.getContribuyente().setRfc(cliente.getContribuyente().getRfc().toUpperCase());
+                if (mbContribuyente.getContribuyente().getRfc().length() == 13 && mbContribuyente.getContribuyente().getIdContribuyente() == 0) {
+                    mbContribuyente.setPersonaFisica(true);
+                }
+//                 this.personaFisica = true;
                 Dialogs.abrirDialogo("dlgContribuyentes");
             } else {
                 Mensajes.mensajeError(error);
@@ -368,10 +378,9 @@ public class MbClientes implements Serializable {
             Mensajes.mensajeAlert("Se requiere un esquema");
         } else if (cliente.getDireccion().getCalle().equals("")) {
             Mensajes.mensajeAlert("Se requiere una direccion");
-        }
-//        else if (cliente.getDiasCredito() == 0) {
-//            Mensajes.mensajeAlert("Se requiere los dias de credito");
-//        }
+        } //        else if (cliente.getDiasCredito() == 0) {
+        //            Mensajes.mensajeAlert("Se requiere los dias de credito");
+        //        }
         else {
             ok = true;
         }
@@ -440,8 +449,15 @@ public class MbClientes implements Serializable {
         this.cliente.setLimiteCredito(tmp.getLimiteCredito());
         this.cliente.setDescuentoComercial(tmp.getDescuentoComercial());
         this.cliente.setDiasBloqueo(tmp.getDiasBloqueo());
+        System.out.println("---------------------------");
+        System.out.println(tmp.getIdEsquema());
+        System.out.println("---------------------------");
+
+        mbEsquemas.setValorEsquema(tmp.getIdEsquema());
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
         this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
+//          cl.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
+        cliente.setDireccion(this.mbDireccion.obtener(cliente.getDireccion().getIdDireccion()));
     }
 
     public void guardar() {
@@ -450,11 +466,11 @@ public class MbClientes implements Serializable {
         if (validarClientes()) {
             try {
                 DAOClientes dao = new DAOClientes();
-
+                cliente.setIdEsquema(mbEsquemas.getValorEsquema());
                 if (this.cliente.getIdCliente() == 0) {
                     DAOContribuyentes daoC = new DAOContribuyentes();
                     cliente.setContribuyente(daoC.obtenerContribuyenteRfc(cliente.getContribuyente().getRfc()));
-                    cliente.setIdEsquema(mbEsquemas.getValorEsquema());
+
                     this.cliente.getDireccion().setIdDireccion(this.mbDireccion.agregar(this.cliente.getDireccion()));
                     this.cliente.setIdCliente(dao.agregar(this.convertir(this.cliente)));
                     this.mbClientesBancos.cargarBancos(this.cliente.getIdCliente());
@@ -464,6 +480,7 @@ public class MbClientes implements Serializable {
                     Mensajes.mensajeSucces("El cliente se modifico correctamente");
                 }
                 clientes = null;
+                mbDireccion.setDireccion(new Direccion());
                 Dialogs.ocultarDialogo("dlgClientes");
 //                ok = true;
             } catch (SQLException ex) {
@@ -482,6 +499,7 @@ public class MbClientes implements Serializable {
 //            this.indexClienteSeleccionado=clientes.indexOf(this.cliente);
 //        }
         this.cliente = new Cliente();
+        this.mbEsquemas.setValorEsquema(0);
 //        this.mbTiendasFormatos.cargarListaCombo(this.cliente.getGrupo().getIdGrupoCte());
     }
 
@@ -498,14 +516,16 @@ public class MbClientes implements Serializable {
         cte.getContribuyente().setContribuyente(to.getContribuyente());
         cte.getContribuyente().setIdRfc(to.getIdRfc());
         cte.getContribuyente().setRfc(to.getRfc());
-        cte.getContribuyente().setCurp(to.getCurp());
-        cte.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
-        cte.setDireccion(this.mbDireccion.obtener(to.getIdDireccion()));
+        cte.getDireccion().setIdDireccion(to.getIdDireccion());
+//        cte.getContribuyente().setCurp(to.getCurp());
+//        cte.getContribuyente().setDireccion(this.mbDireccion.obtener(to.getIdDireccionFiscal()));
+//        cte.setDireccion(this.mbDireccion.obtener(to.getIdDireccion()));
         cte.setFechaAlta(to.getFechaAlta());
         cte.setDiasCredito(to.getDiasCredito());
         cte.setLimiteCredito(to.getLimiteCredito());
         cte.setDescuentoComercial(to.getDesctoComercial());
         cte.setDiasBloqueo(to.getDiasBloqueo());
+        cte.setIdEsquema(to.getIdEsquema());
         return cte;
     }
 
