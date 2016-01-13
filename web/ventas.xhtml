@@ -319,7 +319,8 @@
                     </p:row>
                 </p:panelGrid>
                 <p:dataTable id="detalleVenta" value="#{mbVentas.detalle}"
-                             var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                             var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single"
+                             scrollable="true" scrollWidth="810"
                              style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
                     <p:ajax event="rowSelect" listener="#{mbVentas.modificarProducto}"
                             update=":main:msgsVenta :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
@@ -330,6 +331,16 @@
                     </p:column>
                     <p:column headerText="Descripción" >
                         <h:outputText value="#{prod.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="Pedidas" style="width: 70px; text-align: right;" rendered="#{mbVentas.venta.idPedido!=0}" >
+                        <h:outputText value="#{prod.cantOrdenada}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Ped.Sin Cargo" style="width: 70px; text-align: right;" rendered="#{mbVentas.venta.idPedido!=0}" >
+                        <h:outputText value="#{prod.cantOrdenadaSinCargo}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
                     </p:column>
                     <p:column headerText="Con Cargo" style="width: 70px; text-align: right;" >
                         <h:outputText value="#{prod.cantFacturada}" >

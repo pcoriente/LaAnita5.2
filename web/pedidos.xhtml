@@ -198,7 +198,7 @@
                                 <p:inputText id="txtDesctoComercial" value="#{mbPedidos.pedido.desctoComercial}" readonly="true" size="6" />
                             </p:column>
                             <p:column style="width: 190px; text-align: right;" >
-                                <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Buscar" title="Buscar productos"
+                                <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Agregar" title="Agregar productos"
                                                  disabled="#{mbPedidos.pedido.estatus!=0}"
                                                  process="@this" actionListener="#{mbPedidos.buscarProductos(':main:msgsPedido :main:detallePedido')}" 
                                                  update="buscarProductos listaBuscarProductos" oncomplete="PF('buscarProductoDlg').show();" />
