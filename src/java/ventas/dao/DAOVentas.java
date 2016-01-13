@@ -1126,7 +1126,7 @@ public class DAOVentas {
     public ArrayList<TOVenta> obtenerVentasOficina(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = ">=7";
         if (estatus == 0) {
-            condicion = "<7";
+            condicion = "=CASE ISNULL(P.idPedido, 0) WHEN 0 THEN 0 ELSE 5 END";
         }
         if (fechaInicial == null) {
             fechaInicial = new Date();

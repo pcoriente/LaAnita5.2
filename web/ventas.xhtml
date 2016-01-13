@@ -320,7 +320,7 @@
                 </p:panelGrid>
                 <p:dataTable id="detalleVenta" value="#{mbVentas.detalle}"
                              var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single"
-                             scrollable="true" scrollWidth="810"
+                             scrollable="true" scrollWidth="910"
                              style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
                     <p:ajax event="rowSelect" listener="#{mbVentas.modificarProducto}"
                             update=":main:msgsVenta :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
@@ -353,16 +353,6 @@
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Precio Lista" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.costo}" >
-                            <f:convertNumber pattern="###,##0.000000" />
-                        </h:outputText>
-                    </p:column>
-                    <p:column headerText="% Descto" style="width: 55px; text-align: right;" >
-                        <h:outputText value="#{prod.desctoProducto1}" >
-                            <f:convertNumber pattern="#0.000000" />
-                        </h:outputText>
-                    </p:column>
-                    <p:column headerText="Unitario" style="width: 70px; text-align: right;" >
                         <h:outputText value="#{prod.unitario}" >
                             <f:convertNumber pattern="#,##0.000000" />
                         </h:outputText>

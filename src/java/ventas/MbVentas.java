@@ -239,9 +239,9 @@ public class MbVentas implements Serializable {
         boolean ok = false;
         try {
             if (this.detalle.isEmpty()) {
-                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+                Mensajes.mensajeAlert("No hay productos en la venta !!!");
             } else if (this.sumaPiezasOficina() == 0) {
-                Mensajes.mensajeAlert("No hay piezas capturadas !!!");
+                Mensajes.mensajeAlert("No hay cantidades capturadas !!!");
             } else {
                 TOVenta toVta = this.convertir(this.venta);
 
@@ -252,7 +252,7 @@ public class MbVentas implements Serializable {
                 this.venta.getComprobante().setTipo("2");
                 this.venta.getComprobante().setNumero(String.valueOf(toVta.getFolio()));
                 this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
-                Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
+                Mensajes.mensajeSucces("La venta se cerró correctamente !!!");
                 ok = true;
             }
         } catch (NamingException ex) {

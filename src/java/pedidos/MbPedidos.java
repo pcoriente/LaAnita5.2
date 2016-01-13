@@ -149,18 +149,33 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
+    public double sumaPiezas() {
+        double piezas = 0;
+        for (PedidoProducto p : this.detalle) {
+            piezas += (p.getCantFacturada() + p.getCantSinCargo());
+        }
+        return piezas;
+    }
+
     public void cerrarPedido() {
         boolean ok = false;
-        TOPedido toPed = this.convertir(this.pedido);
         try {
-            this.dao = new DAOPedidos();
-            this.dao.cerrarPedido(toPed);
-            this.pedido.setIdUsuario(toPed.getIdUsuario());
-            this.pedido.setPropietario(toPed.getPropietario());
-            this.pedido.setEstatus(toPed.getEstatus());
-            this.setLocked(this.pedido.getIdUsuario() == this.pedido.getPropietario());
-            Mensajes.mensajeSucces("El pedido se cerro correctamente !!!");
-            ok = true;
+            if (this.detalle.isEmpty()) {
+                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+            } else if (this.sumaPiezas() == 0) {
+                Mensajes.mensajeAlert("No hay cantidades capturadas !!!");
+            } else {
+                TOPedido toPed = this.convertir(this.pedido);
+
+                this.dao = new DAOPedidos();
+                this.dao.cerrarPedido(toPed);
+                this.pedido.setIdUsuario(toPed.getIdUsuario());
+                this.pedido.setPropietario(toPed.getPropietario());
+                this.pedido.setEstatus(toPed.getEstatus());
+                this.setLocked(this.pedido.getIdUsuario() == this.pedido.getPropietario());
+                Mensajes.mensajeSucces("El pedido se cerró correctamente !!!");
+                ok = true;
+            }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
@@ -169,7 +184,7 @@ public class MbPedidos implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     public void eliminarPedido() {
         boolean ok = false;
         TOPedido toPed = this.convertir(this.pedido);
@@ -476,7 +491,7 @@ public class MbPedidos implements Serializable {
             Mensajes.mensajeAlert("Debe seleccionar un almacen !!!");
         } else if (this.mbTiendas.getTienda() == null) {
             Mensajes.mensajeAlert("Debe seleccionar una tienda !!!");
-        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null || this.mbComprobantes.getMbMonedas().getSeleccionMoneda().getIdMoneda()==0) {
+        } else if (this.mbComprobantes.getMbMonedas().getSeleccionMoneda() == null || this.mbComprobantes.getMbMonedas().getSeleccionMoneda().getIdMoneda() == 0) {
             Mensajes.mensajeAlert("Debe seleccionar una moneda !!!");
         } else {
             ok = true;
