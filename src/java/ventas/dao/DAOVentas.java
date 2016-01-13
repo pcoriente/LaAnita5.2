@@ -1076,6 +1076,36 @@ public class DAOVentas {
             }
         }
     }
+    
+    public TOVenta obtenerVentaOficina(int idComprobante) throws SQLException {
+        String strSQL = "SELECT M.*\n"
+                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda\n"
+                + "     , ISNULL(P.canceladoMotivo, '') AS canceladoMotivo, ISNULL(P.canceladoFecha, '1900-01-01') AS canceladoFecha\n"
+                + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
+                + "FROM movimientos M\n"
+                + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
+                + "LEFT JOIN pedidos P ON P.idPedido=M.referencia\n"
+                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
+                + "WHERE C.idComprobante=" + idComprobante;
+        TOVenta toVta = new TOVenta();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs=st.executeQuery(strSQL);
+                if(rs.next()) {
+                    toVta=this.construir(rs);
+                }
+                movimientos.Movimientos.bloquearMovimientoOficina(cn, toVta, this.idUsuario);
+                cn.commit();
+            } catch (SQLException e) {
+                cn.rollback();
+                throw (e);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return toVta;
+    }
 
     private void construir(ResultSet rs, TOVenta toVta) throws SQLException {
         toVta.setIdPedidoOC(rs.getInt("idPedidoOC"));

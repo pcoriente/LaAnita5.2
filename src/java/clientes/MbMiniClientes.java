@@ -31,6 +31,21 @@ public class MbMiniClientes implements Serializable {
         this.inicializa();
     }
     
+    public void obtenerClientesCedis(int idCedis) {
+        this.listaClientes=new ArrayList<>();
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
+        try {
+            this.dao=new DAOClientes();
+            for(TOCliente c:this.dao.obtenerClientesCedis(idCedis)) {
+                this.listaClientes.add(new SelectItem(c, c.toString()));
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+    
     public void obtenerClientesCedis() {
         this.listaClientes=new ArrayList<>();
         this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
