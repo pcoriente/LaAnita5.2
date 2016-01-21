@@ -63,10 +63,10 @@
                             update=":main:msgs :main:venta :main:detalleVenta :main:totales"
                             oncomplete="abrirVenta(xhr, status, args);" />
 
-                    <p:column headerText="Cliente" style="width: 30%;" >
+                    <p:column headerText="Cliente" style="width: 40%;" >
                         <h:outputText value="#{vta.tienda.contribuyente}" />
                     </p:column>
-                    <p:column headerText="Tienda" style="width: 30%;" >
+                    <p:column headerText="Tienda" style="width: 38%;" >
                         <h:outputText value="#{vta.tienda.tienda}" />
                     </p:column>
                     <p:column headerText="Remisión" style="width: 7%;" >
@@ -77,7 +77,7 @@
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentas.zonaHoraria.ID}" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Pedido" style="width: 6%;" >
+                    <p:column headerText="Pedido" style="width: 7%;" >
                         <h:outputText value="#{vta.idPedido}" />
                     </p:column>
                 </p:dataTable>
@@ -190,7 +190,7 @@
                                          size="14" maxlength="12"
                                          readonly="#{mbVentas.venta.idPedido==0 or mbVentas.venta.estatus ge 7 or !mbVentas.locked}" >
                                 <f:convertNumber pattern="###,##0.0000" />
-                                <p:ajax event="change" process="@this" listener="#{mbVentas.actualizarPedidoProductoSinCargo()}"
+                                <p:ajax event="change" process="@this" listener="#{mbVentas.actualizarProductoSinCargo()}"
                                         update=":main:msgsEdicion panelEdicion" 
                                         oncomplete="" />
                             </p:inputText>
@@ -241,7 +241,13 @@
                     </p:row>
                     <f:facet name="footer" >
                         <p:row >
-                            <p:column colspan="5" style="text-align: right;" >
+                            <p:column style="text-align: left;" >
+                                <p:commandButton icon="ui-icon-trash" title="Eliminar un producto"
+                                                 process="@this" actionListener="#{mbVentas.eliminarProducto()}"
+                                                 update="msgsEdicion :main:msgsVenta :main:detalleVenta :main:totales"
+                                                 oncomplete="handleProductoEliminar(xhr, status, args);" />
+                            </p:column>
+                            <p:column colspan="4" style="text-align: right;" >
                                 <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
                                                  immediate="true" onclick="PF('EdicionDlg').hide();" />
                             </p:column>
@@ -311,7 +317,7 @@
                             <p:inputText id="txtDesctoComercial" value="#{mbVentas.venta.desctoComercial}" readonly="true" size="6" />
                         </p:column>
                         <p:column style="width: 190px; text-align: right;" >
-                            <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Buscar" title="Buscar productos"
+                            <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Agregar" title="Agregar productos"
                                              disabled="#{mbVentas.venta.estatus!=0 or !mbVentas.locked}"
                                              process="@this" actionListener="#{mbVentas.buscarProductos(':main:msgsVenta :main:detalleVenta :main:totales')}" 
                                              oncomplete="PF('buscarProductoDlg').show();" />
@@ -566,6 +572,11 @@
             function handleAbrirSimilares(xhr, status, args) {
                 if (!(args.validationFailed || !args.okSimilares)) {
                     PF('similaresDlg').show();
+                }
+            }
+            function handleProductoEliminar(xhr, status, args) {
+                if (!(args.validationFailed || !args.okProductoEliminar)) {
+                    PF('EdicionDlg').hide();
                 }
             }
             function handleEdicion(xhr, status, args) {

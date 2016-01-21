@@ -1,10 +1,13 @@
 package direccion.dominio;
+
 import java.io.Serializable;
+
 /**
  *
  * @author Julio
  */
 public class Direccion implements Serializable {
+
     private int idDireccion;
     private String calle;
     private String numeroExterior;
@@ -20,36 +23,38 @@ public class Direccion implements Serializable {
     private Asentamiento selAsentamiento;
 
     public Direccion() {
-        this.idDireccion=0;
-        this.calle="";
-        this.numeroExterior="";
-        this.numeroInterior="";
-        this.referencia="";
-        this.pais=new Pais();
-        this.codigoPostal="";
-        this.estado="";
-        this.municipio="";
-        this.localidad="";
-        this.colonia="";
-        this.numeroLocalizacion="";
+        this.idDireccion = 0;
+        this.calle = "";
+        this.numeroExterior = "";
+        this.numeroInterior = "";
+        this.referencia = "";
+        this.pais = new Pais();
+        this.codigoPostal = "";
+        this.estado = "";
+        this.municipio = "";
+        this.localidad = "";
+        this.colonia = "";
+        this.numeroLocalizacion = "";
     }
 
     @Override
     public String toString() {
-        return calle.isEmpty() ? "" : (calle + " " + numeroExterior + (numeroInterior.isEmpty()?"":" " + numeroInterior)
-                + (referencia.isEmpty()?"":"\n" + referencia)
-                + "\n" + (colonia.isEmpty()?"":colonia) 
-                + "\n" + (localidad.isEmpty() || localidad.equals(municipio)?"":localidad + ", ") + municipio + ", "+ estado
-                + "\n" + pais + ", "+codigoPostal);
+        return calle.isEmpty() ? "" : (calle + " " + numeroExterior + (numeroInterior.isEmpty() ? "" : " " + numeroInterior)
+                + (referencia.isEmpty() ? "" : "\n" + referencia)
+                + "\n" + (colonia.isEmpty() ? "" : colonia)
+                + "\n" + (localidad.isEmpty() || localidad.equals(municipio) ? "" : localidad + ", ") + municipio + ", " + estado
+                + "\n" + pais + ", " + codigoPostal);
     }
-    
+
     //DAAP 3/julio/2015 Para reporte orden de compra.
-     public String toString2() {
-        return calle.isEmpty() ? "" : (calle + " " + numeroExterior + " "+ (numeroInterior.isEmpty()?"":" " + numeroInterior)
-                + (referencia.isEmpty()?"":"" + referencia+" ")
-               + (colonia.isEmpty()?"":colonia) );
-//                + (localidad.isEmpty() || localidad.equals(municipio)?"":localidad + ", ") + municipio + ", "+ estado+", "
-//                 + pais + ", "+codigoPostal);
+    public String toString2() {
+        return calle.isEmpty() ? "" : (calle + " " + numeroExterior + " " + (numeroInterior.isEmpty() ? "" : " " + numeroInterior)
+                + (referencia.isEmpty() ? "" : "" + referencia + " ")
+                + (colonia.isEmpty() ? "" : colonia));
+    }
+
+    public String toString3() {
+        return (localidad.isEmpty() || localidad.equals(municipio) ? "" : localidad + ", ") + municipio + ", " + estado + ", " + pais + ", " + codigoPostal;
     }
 
 

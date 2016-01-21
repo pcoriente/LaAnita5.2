@@ -20,6 +20,8 @@ public class Pedido extends MovimientoOficina {
     private Date ordenDeCompraFecha;
     private String canceladoMotivo;
     private Date canceladoFecha;
+    private boolean especial;
+    private String electronico;
     private int idPedido;
 
     public Pedido() {
@@ -30,7 +32,7 @@ public class Pedido extends MovimientoOficina {
         this.ordenDeCompraFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
-        
+        this.electronico="";
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Comprobante comprobante) {
@@ -41,6 +43,7 @@ public class Pedido extends MovimientoOficina {
         this.ordenDeCompraFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
+        this.electronico="";
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Moneda moneda) {
@@ -51,6 +54,7 @@ public class Pedido extends MovimientoOficina {
         this.ordenDeCompraFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
+        this.electronico="";
     }
 
     @Override
@@ -137,5 +141,21 @@ public class Pedido extends MovimientoOficina {
 
     public void setCanceladoMotivo(String canceladoMotivo) {
         this.canceladoMotivo = canceladoMotivo;
+    }
+
+    public boolean isEspecial() {
+        return especial;
+    }
+
+    public void setEspecial(boolean especial) {
+        this.especial = especial;
+    }
+
+    public String getElectronico() {
+        return electronico;
+    }
+
+    public void setElectronico(String electronico) {
+        this.electronico = electronico;
     }
 }

@@ -16,7 +16,8 @@
             <ui:include src="wrapper.xhtml" />
             <h:form id="main" onkeypress="return event.keyCode !== 13;" >
                 <p:messages id="msgsPedidos" autoUpdate="false" showDetail="true" closable="true" />
-                <p:panel id="panelPedidos" header="Mantenimiento de Pedidos" style="float: left;" >
+                <p:panel id="panelPedidos" header="Mantenimiento de Pedidos" style="float: left;"
+                         rendered="#{not empty mbPedidos.acciones}" >
                     <p:panelGrid id="pedidos" >
                         <f:facet name="header" >
                             <p:row >
@@ -83,6 +84,9 @@
                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </h:outputText>
                         </p:column>
+                        <p:column headerText="Estatus" style="width: 30px;" >
+                            <h:outputText value="#{pedido.estatus}" />
+                        </p:column>
                     </p:dataTable>
                 </p:panel>
                 <p:dialog header="Edicion" widgetVar="EdicionDlg" closable="false" resizable="false" style="width: 600px;" modal="true" >
@@ -103,9 +107,9 @@
                             </p:column>
                             <p:column >
                                 <p:inputText value="#{mbPedidos.producto.cantOrdenada}" style="width: 80px;"
-                                             readonly="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked}"
+                                             readonly="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked or mbPedidos.pedido.especial}"
                                              converterMessage="El valor proporcionado no es un numero" >
-                                    <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
+                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                     <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProducto()}" 
                                             update="@this :main:msgsEdicion txtCantSinCargo btnSimilares :main:detallePedido :main:totales" />
                                 </p:inputText>
@@ -114,21 +118,32 @@
                                 <h:outputLabel value="CANT.SIN CARGO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <h:outputText id="txtCantSinCargo" value="#{mbPedidos.producto.cantOrdenadaSinCargo}" >
-                                    <f:convertNumber pattern="###,##0.0000" />
-                                </h:outputText>
+                                <p:inputText id="txtCantSinCargo" value="#{mbPedidos.producto.cantOrdenadaSinCargo}" style="width: 80px;"
+                                             readonly="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked or !mbPedidos.pedido.especial}"
+                                             converterMessage="El valor proporcionado no es un numero" >
+                                    <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
+                                    <p:ajax event="change" process="@this" listener="#{mbPedidos.actualizaProductoSinCargo()}" 
+                                            update=":main:msgsEdicion :main:detallePedido" />
+                                </p:inputText>
                             </p:column>
                             <p:column >
                                 <p:commandButton id="btnSimilares" icon="ui-icon-transfer-e-w" title="Traspasar sin cargo a similar"
-                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked or mbPedidos.producto.cantOrdenadaSinCargo==0}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked 
+                                                             or mbPedidos.producto.cantOrdenadaSinCargo==0 or mbPedidos.pedido.especial}"
                                                  process="@this" actionListener="#{mbPedidos.traspasoSimilar()}" 
-                                                 update=":main:msgsPedidos :main:panelSimilares :main:detalleSimilares"
+                                                 update=":main:msgsPedido :main:panelSimilares :main:detalleSimilares"
                                                  oncomplete="handleAbrirSimilares(xhr, status, args);" />
                             </p:column>
                         </p:row>
                         <f:facet name="footer" >
                             <p:row >
-                                <p:column colspan="5" style="text-align: right;" >
+                                <p:column >
+                                    <p:commandButton icon="ui-icon-trash" title="Eliminar producto"
+                                                     process="@this" actionListener="#{mbPedidos.eliminarProducto()}"
+                                                     update="msgsEdicion :main:msgsPedido :main:detallePedido :main:totales"
+                                                     oncomplete="handleProductoEliminar(xhr, status, args);" />
+                                </p:column>
+                                <p:column colspan="4" style="text-align: right;" >
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" value="Salir" title="Fin de edicion" 
                                                      immediate="true" onclick="PF('EdicionDlg').hide();" />
                                 </p:column>
@@ -265,7 +280,10 @@
                             </p:column>
                         </p:row>
                         <p:row >
-                            <p:column ></p:column>
+                            <p:column >
+                                <p:outputLabel rendered="#{mbPedidos.pedido.especial}" value="** ESPECIAL **"
+                                               style="font-weight: bold; color: red; font-size: medium; width: 150px;" />
+                            </p:column>
                             <p:column colspan="2" >
                                 <p:dataTable value="#{mbPedidos.impuestosTotales}" var="xx_imp" style="width: 280px;" >
                                     <p:column style="text-align: right; width: 98px;" >
@@ -286,7 +304,8 @@
                                                  process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
                                                  update=":main:msgsPedido" oncomplete="handlePedido(xhr, status, args);" />
                                 <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Cerrar pedido, ya no se podra modificar" 
-                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked}"
+                                                 disabled="#{mbPedidos.pedido.estatus!=0 or !mbPedidos.locked 
+                                                             or (mbPedidos.pedido.especial and !mbPedidos.mbAcciones.validarAccion('btnPedidoCerrar'))}"
                                                  process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
                                                  update=":main:msgsPedido :main:pedido :main:totales" />
                                 <p:commandButton id="btnPedidoCancelar" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar el pedido" 
@@ -395,26 +414,37 @@
                 </p:dialog>
                 <p:dialog widgetVar="nuevoPedidoDlg" closable="true" header="Crear un nuevo pedido" modal="true" resizable="false" >
                     <p:messages id="msgsNuevoPedido" autoUpdate="false" showDetail="true" closable="true" />
-                    <p:panelGrid id="nuevoPedido" >
+                    <p:panelGrid id="nuevoPedido" style="width: 870px;" >
+                        <p:row rendered="false" >
+                            <p:column style="width: 70px;" ></p:column>
+                            <p:column style="width: 60px;" ></p:column>
+                            <p:column style="width: 160px;" ></p:column>
+                            <p:column style="width: 60px;" ></p:column>
+                            <p:column style="width: 60px;" ></p:column>
+                            <p:column style="width: 70px;" ></p:column>
+                            <p:column ></p:column>
+                        </p:row>
                         <p:row >
-                            <p:column >
-                                <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
+                            <p:column style="width: 70px;" >
+                                <h:outputLabel for="cliente" value="CLIENTE :"
+                                               style="font-weight: bold; color: black; width: 69px;" />
                             </p:column>
-                            <p:column >
-                                <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}" style="width: 350px;"
-                                                 filter="true" filterMatchMode="contains" >
+                            <p:column colspan="4" >
+                                <p:selectOneMenu id="cliente" value="#{mbPedidos.mbClientes.cliente}"
+                                                 filter="true" filterMatchMode="contains" style="width: 400px;" >
                                     <f:converter converterId="converters.miniCliente" />
                                     <f:selectItems value="#{mbPedidos.mbClientes.listaClientes}" />
                                     <p:ajax event="change" listener="#{mbPedidos.cambioDeCliente()}" 
                                             update=":main:msgsNuevoPedido listaTiendas btnCrearPedido" />
                                 </p:selectOneMenu>
                             </p:column>
-                            <p:column >
-                                <h:outputLabel for="cboMoneda" value="MONEDA :" style="font-weight: bold; color: black;" />
+                            <p:column style="width: 70px;" >
+                                <h:outputLabel for="cboMoneda" value="MONEDA :"
+                                               style="font-weight: bold; color: black; width: 71px;" />
                             </p:column>
                             <p:column >
                                 <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbComprobantes.mbMonedas.seleccionMoneda}"
-                                                 style="width: 240px;" >
+                                                 style="width: 190px;">
                                     <f:converter converterId="converters.Moneda" />
                                     <f:selectItems value="#{mbPedidos.mbComprobantes.mbMonedas.listaMonedas}" />
                                     <p:ajax event="change" process="@this" />
@@ -422,11 +452,36 @@
                             </p:column>
                         </p:row>
                         <p:row >
-                            <p:column colspan="4" >
+                            <p:column colspan="2" >
+                                <h:outputLabel for="orden" value="ORDEN DE COMPRA :"
+                                               style="font-weight: bold; color: black; width: 148px;" />
+                            </p:column>
+                            <p:column style="width: 160px;" >
+                                <p:inputText id="orden" value="#{mbPedidos.pedido.ordenDeCompra}" maxlength="24" size="25" />
+                            </p:column>
+                            <p:column style="width: 60px;" >
+                                <h:outputLabel for="ordenFecha" value="FECHA :"
+                                               style="font-weight: bold; color: black; width: 57px;" />
+                            </p:column>
+                            <p:column colspan="2" >
+                                <p:calendar id="ordenFecha" value="#{mbPedidos.pedido.ordenDeCompraFecha}"
+                                            readonlyInput="true"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column >
+                                <p:selectBooleanCheckbox id="chkEspeciales" itemLabel="Especial (Solo sin cargo)"
+                                                         value="#{mbPedidos.pedido.especial}" style="width: 170px;" >
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column colspan="7" >
                                 <p:dataTable id="listaTiendas" widgetVar="listaTiendasDlg" value="#{mbPedidos.mbTiendas.tiendas}" 
                                              var="tienda" rowKey="#{tienda.idTienda}" selectionMode="single" selection="#{mbPedidos.mbTiendas.tienda}"
                                              scrollable="true" scrollHeight="200"
-                                             style="border:solid 1px; width: 910px;" emptyMessage="No existen tiendas" >
+                                             style="border:solid 1px; width: 850px;" emptyMessage="No existen tiendas" >
                                     <p:ajax event = "rowSelect" update=":main:btnCrearPedido" />
 
                                     <p:column headerText="TIENDA" style="width: 250px;" >
@@ -442,10 +497,10 @@
                         </p:row>
                         <f:facet name="footer" >
                             <p:row >
-                                <p:column colspan="4" style="text-align: right;" >
+                                <p:column colspan="7" style="text-align: right;" >
                                     <p:commandButton id="btnCrearPedido" icon="ui-icon-document" value="Crear" title="Crear pedido" 
                                                      disabled="#{mbPedidos.mbTiendas.tienda.idTienda==0}"
-                                                     process="@this" 
+                                                     process="nuevoPedido" 
                                                      actionListener="#{mbPedidos.crearPedido()}"
                                                      update=":main:msgsNuevoPedido :main:listaDePedidos :main:pedido :main:detallePedido :main:totales" 
                                                      oncomplete="nuevoPedido(xhr, status, args);" />
@@ -527,6 +582,11 @@
                 function handleAbrirSimilares(xhr, status, args) {
                     if (!(args.validationFailed || !args.okSimilares)) {
                         PF('similaresDlg').show();
+                    }
+                }
+                function handleProductoEliminar(xhr, status, args) {
+                    if (!(args.validationFailed || !args.okProductoEliminar)) {
+                        PF('EdicionDlg').hide();
                     }
                 }
                 function handleEdicion(xhr, status, args) {

@@ -15,6 +15,8 @@ public class TOPedido extends TOMovimientoOficina {
     private Date ordenDeCompraFecha;
     private Date canceladoFecha;
     private String canceladoMotivo;
+    private int especial;
+    private String electronico;
 
     public TOPedido() {
         super();
@@ -22,6 +24,7 @@ public class TOPedido extends TOMovimientoOficina {
         this.ordenDeCompraFecha=new Date();
         this.canceladoFecha=new Date();
         this.canceladoMotivo="";
+        this.electronico="";
     }
     
     public TOPedido(int idTipo) {
@@ -30,15 +33,8 @@ public class TOPedido extends TOMovimientoOficina {
         this.ordenDeCompraFecha=new Date();
         this.canceladoFecha=new Date();
         this.canceladoMotivo="";
+        this.electronico="";
     }
-    
-//    public int getIdTienda() {
-//        return idTienda;
-//    }
-//
-//    public void setIdTienda(int idTienda) {
-//        this.idTienda = idTienda;
-//    }
     
     public int getIdPedidoOC() {
         return idPedidoOC;
@@ -86,5 +82,21 @@ public class TOPedido extends TOMovimientoOficina {
 
     public void setCanceladoMotivo(String canceladoMotivo) {
         this.canceladoMotivo = canceladoMotivo;
+    }
+
+    public int getEspecial() {
+        return especial;
+    }
+
+    public void setEspecial(int especial) {
+        this.especial = especial;
+    }
+
+    public String getElectronico() {
+        return electronico;
+    }
+
+    public void setElectronico(String electronico) {
+        this.electronico = electronico;
     }
 }

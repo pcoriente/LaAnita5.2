@@ -4,6 +4,7 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
 import comprobantes.MbComprobantes;
+import comprobantes.dominio.Comprobante;
 import formatos.MbFormatos;
 import impuestos.dominio.ImpuestosProducto;
 import javax.inject.Named;
@@ -57,12 +58,12 @@ public class MbPedidos implements Serializable {
     private MbComprobantes mbComprobantes;
     private Pedido pedido;
     private ArrayList<Pedido> pedidos;
-    private ArrayList<ImpuestosProducto> impuestosTotales;
     private PedidoProducto producto, similar;
     private ArrayList<PedidoProducto> detalle, similares;
+    private ArrayList<ImpuestosProducto> impuestosTotales;
     private double cantTraspasar;
-    private String ordenDeCompra;
-    private Date ordenDeCompraFecha;
+//    private String ordenDeCompra;
+//    private Date ordenDeCompraFecha;
     private boolean pendientes;
     private Date fechaInicial;
     private boolean locked;
@@ -202,11 +203,30 @@ public class MbPedidos implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
+    
+    public void eliminarProducto() {
+        boolean ok = false;
+        TOPedido toPed = this.convertir(this.pedido);
+        TOProductoPedido toProd = this.convertir(this.producto);
+        try {
+            this.dao = new DAOPedidos();
+            ArrayList<TOProductoPedido> detalleSimilares=this.dao.eliminarProducto(toPed, toProd);
+            this.detalle.remove(this.producto);
+            this.totalResta(this.producto);
+            if(!detalleSimilares.isEmpty()) {
+                this.procesaSimilares(detalleSimilares);
+            }
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okProductoEliminar", ok);
+    }
 
     public void actualizaTraspasoSimilar() {
-//        int idx;
-//        PedidoProducto prod;
-//        PedidoProducto prodOld;
         boolean okSimilares = false;
         try {
             if (this.cantTraspasar > 0 && this.cantTraspasar <= this.producto.getCantSinCargo()) {
@@ -215,17 +235,6 @@ public class MbPedidos implements Serializable {
                 TOProductoPedido toSimilar = this.convertir(this.similar);
 
                 this.dao = new DAOPedidos();
-//                for (TOProductoPedido to : this.dao.trasferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar)) {
-//                    prod = this.convertir(to);
-//                    if ((idx = this.detalle.indexOf(prod)) != -1) {
-//                        prodOld = this.detalle.get(idx);
-//                        this.totalResta(prodOld);
-//                        this.detalle.set(idx, prod);
-//                    } else {
-//                        this.detalle.add(prod);
-//                    }
-//                    this.totalSuma(prod);
-//                }
                 this.procesaSimilares(this.dao.trasferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar));
                 okSimilares = true;
             }
@@ -280,13 +289,37 @@ public class MbPedidos implements Serializable {
         }
     }
 
+    public void actualizaProductoSinCargo() {
+        TOProductoPedido toProd = this.convertir(this.producto);
+        this.producto.setCantOrdenadaSinCargo(this.producto.getCantSinCargo());
+        if (toProd.getCantOrdenadaSinCargo() < 0) {
+            Mensajes.mensajeAlert("La cantidad sin cargo no debe ser menor que cero !!!");
+        } else if (toProd.getCantOrdenadaSinCargo() != toProd.getCantSinCargo()) {
+            try {
+                TOPedido toPed = this.convertir(this.pedido);
+
+                this.dao = new DAOPedidos();
+                this.dao.grabarProductoCantidadSinCargo(toPed, toProd);
+                
+                this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
+                this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            }
+        }
+    }
+
     public void actualizaProducto() {
         boolean ok = false;
+        TOProductoPedido toProd = this.convertir(this.producto);
+        this.producto.setCantOrdenada(this.producto.getCantFacturada());
         try {
-            if (this.producto.getCantOrdenada() != this.producto.getCantFacturada()) {
+            if (toProd.getCantOrdenada() < 0) {
+                Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
+            } else if (toProd.getCantOrdenada() != toProd.getCantFacturada()) {
                 TOPedido toPed = this.convertir(this.pedido);
-                TOProductoPedido toProd = this.convertir(this.producto);
-                this.producto.setCantOrdenada(this.producto.getCantFacturada());
 
                 this.dao = new DAOPedidos();
                 ArrayList<TOProductoPedido> listaSimilares = this.dao.grabarProductoCantidad(toPed, toProd);
@@ -294,29 +327,14 @@ public class MbPedidos implements Serializable {
                     this.totalResta(this.producto);
                     this.producto.setCantOrdenada(toProd.getCantOrdenada());
                     this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-                    this.producto.setCantFacturada(this.producto.getCantOrdenada());
-                    this.producto.setCantSinCargo(this.producto.getCantOrdenadaSinCargo());
+                    this.producto.setCantFacturada(toProd.getCantOrdenada());
+                    this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
                     this.totalSuma(this.producto);
                 } else {
-//                    int idx;
-//                    PedidoProducto prod;
-//                    for (TOProductoPedido to : listaSimilaresZZ) {
-//                        prod = this.convertir(to);
-//                        if ((idx = this.detalle.indexOf(prod)) != -1) {
-//                            if (prod.equals(this.producto)) {
-//                                this.setProducto(prod);
-//                            }
-//                            this.totalResta(this.detalle.get(idx));
-//                            this.detalle.set(idx, prod);
-//                        } else {
-//                            this.detalle.add(prod);
-//                        }
-//                        this.totalSuma(prod);
-//                    }
                     this.procesaSimilares(listaSimilares);
                 }
+                ok = true;
             }
-            ok = true;
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
@@ -477,6 +495,8 @@ public class MbPedidos implements Serializable {
         toMov.setOrdenDeCompraFecha(pedido.getOrdenDeCompraFecha());
         toMov.setCanceladoMotivo(pedido.getCanceladoMotivo());
         toMov.setCanceladoFecha(pedido.getCanceladoFecha());
+        toMov.setEspecial(pedido.isEspecial() ? 1 : 0);
+        toMov.setElectronico(pedido.getElectronico());
         movimientos.Movimientos.convertir(pedido, toMov);
         toMov.setIdComprobante(pedido.getComprobante().getIdComprobante());
         toMov.setIdImpuestoZona(pedido.getTienda().getIdImpuestoZona());
@@ -502,10 +522,13 @@ public class MbPedidos implements Serializable {
     public void crearPedido() {
         boolean ok = false;
         if (this.validar()) {
-            this.pedido = new Pedido(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbComprobantes.getMbMonedas().getSeleccionMoneda());
+//            this.pedido = new Pedido(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbComprobantes.getMbMonedas().getSeleccionMoneda());
+            this.pedido.setAlmacen(this.mbAlmacenes.getToAlmacen());
+            this.pedido.setTienda(this.mbTiendas.getTienda());
+            this.pedido.setComprobante(new Comprobante(this.pedido.getTipo().getIdTipo(), this.pedido.getAlmacen().getIdEmpresa(), this.pedido.getTienda().getIdTienda(), this.mbComprobantes.getMbMonedas().getSeleccionMoneda()));
             this.pedido.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
-            this.pedido.setOrdenDeCompra(this.ordenDeCompra);
-            this.pedido.setOrdenDeCompraFecha(this.ordenDeCompraFecha);
+//            this.pedido.setOrdenDeCompra(this.ordenDeCompra);
+//            this.pedido.setOrdenDeCompraFecha(this.ordenDeCompraFecha);
             TOPedido toPed = this.convertir(this.pedido);
             try {
                 this.dao = new DAOPedidos();
@@ -555,8 +578,9 @@ public class MbPedidos implements Serializable {
         this.mbClientes.nuevoCliente();
         this.mbTiendas.obtenerTiendasCliente(this.mbClientes.getCliente().getIdCliente());
         this.mbTiendas.nuevaTienda();
-        this.ordenDeCompra = "";
-        this.ordenDeCompraFecha = new Date();
+        this.pedido = new Pedido();
+//        this.ordenDeCompra = "";
+//        this.ordenDeCompraFecha = new Date();
     }
 
     private Pedido convertir(TOPedido to) {
@@ -566,10 +590,12 @@ public class MbPedidos implements Serializable {
         p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
         p.setCanceladoMotivo(to.getCanceladoMotivo());
         p.setCanceladoFecha(to.getCanceladoFecha());
+        p.setEspecial(to.getEspecial() == 1 ? true : false);
+        p.setElectronico(to.getElectronico());
         movimientos.Movimientos.convertir(to, p);
         this.mbClientes.setCliente(this.mbClientes.obtenerCliente(p.getTienda().getIdCliente()));
         // Si el pedido todavia esta pendiente, se actualiza con datos del cliente
-        // Si ya esta cerrada, se queda con lo que se leyo de la base
+        // Si ya esta cerrada, se queda con lo que se trajo de la base
         if (to.getEstatus() == 0) {
             p.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
             p.setDesctoProntoPago(0);
@@ -624,12 +650,13 @@ public class MbPedidos implements Serializable {
         for (TOProductoPedido to : listaSimilares) {
             prod = this.convertir(to);
             if ((idx = this.detalle.indexOf(prod)) != -1) {
-                this.totalResta(this.detalle.get(idx));
+                if(prod.equals(this.producto)) {
+                    this.setProducto(prod);
+                }
                 this.detalle.set(idx, prod);
             } else {
                 this.detalle.add(prod);
             }
-            this.totalSuma(prod);
         }
     }
 
@@ -656,22 +683,22 @@ public class MbPedidos implements Serializable {
     public void setSimilar(PedidoProducto similar) {
         this.similar = similar;
     }
-
-    public String getOrdenDeCompra() {
-        return ordenDeCompra;
-    }
-
-    public void setOrdenDeCompra(String ordenDeCompra) {
-        this.ordenDeCompra = ordenDeCompra;
-    }
-
-    public Date getOrdenDeCompraFecha() {
-        return ordenDeCompraFecha;
-    }
-
-    public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
-        this.ordenDeCompraFecha = ordenDeCompraFecha;
-    }
+//
+//    public String getOrdenDeCompra() {
+//        return ordenDeCompra;
+//    }
+//
+//    public void setOrdenDeCompra(String ordenDeCompra) {
+//        this.ordenDeCompra = ordenDeCompra;
+//    }
+//
+//    public Date getOrdenDeCompraFecha() {
+//        return ordenDeCompraFecha;
+//    }
+//
+//    public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
+//        this.ordenDeCompraFecha = ordenDeCompraFecha;
+//    }
 
     public boolean isLocked() {
         return locked;
@@ -818,7 +845,7 @@ public class MbPedidos implements Serializable {
 
     public ArrayList<Accion> getAcciones() {
         if (this.acciones == null) {
-            this.acciones = this.mbAcciones.obtenerAcciones(31);
+            this.acciones = this.mbAcciones.obtenerAcciones(36);
         }
         return acciones;
     }

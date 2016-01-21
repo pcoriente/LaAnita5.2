@@ -23,7 +23,7 @@
                                 <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="almacen" value="#{mbVentasAlmacen.mbAlmacenes.toAlmacen}" >
+                                <p:selectOneMenu id="almacen" value="#{mbVentasAlmacen.mbAlmacenes.toAlmacen}" style="width: 350px;" >
                                     <f:converter converterId="converters.TOAlmacenJSConverter" />
                                     <f:selectItems value="#{mbVentasAlmacen.mbAlmacenes.listaAlmacenes}" />
                                     <p:ajax event="change" listener="#{mbVentasAlmacen.obtenerVentas()}" 
@@ -31,7 +31,8 @@
                                 </p:selectOneMenu>
                             </p:column>
                             <p:column >
-                                <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbVentasAlmacen.pendientes}" >
+                                <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbVentasAlmacen.pendientes}"
+                                                         style="color: black; font-weight: bold; font-size: small;" >
                                     <p:ajax listener="#{mbVentasAlmacen.obtenerVentas()}" 
                                             update=":main:msgs fechaInicial listaDeVentas" />
                                 </p:selectBooleanCheckbox>
@@ -58,21 +59,21 @@
                             update=":main:msgs :main:venta :main:detalle" 
                             oncomplete="abrirVenta(xhr, status, args);" />
 
-                    <p:column headerText="Cliente" style="width: 30%;" >
+                    <p:column headerText="Cliente" style="width: 40%;" >
                         <h:outputText value="#{vta.tienda.contribuyente}" />
                     </p:column>
-                    <p:column headerText="Tienda" >
+                    <p:column headerText="Tienda" style="width: 38%;" >
                         <h:outputText value="#{vta.tienda.tienda}" />
                     </p:column>
-                    <p:column headerText="Remision" style="width: 60px;" >
+                    <p:column headerText="Remision" style="width: 7%;" >
                         <h:outputText value="#{vta.folio}" />
                     </p:column>
-                    <p:column headerText="Fecha" style="width: 70px;" >
+                    <p:column headerText="Fecha" style="width: 8%;" >
                         <h:outputText value="#{vta.fecha}" >
                             <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentasAlmacen.zonaHoraria.ID}" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Pedido" style="width: 6%;" >
+                    <p:column headerText="Pedido" style="width: 7%;" >
                         <h:outputText value="#{vta.idPedido}" />
                     </p:column>
                 </p:dataTable>
@@ -124,7 +125,7 @@
                 </p:dataTable>
             </p:dialog>
             <p:dialog header="Captura de la Venta" widgetVar="ventaDlg" resizable="false" modal="true" >
-                <p:ajax event="close" listener="#{mbVentasAlmacen.liberarVenta()}" />
+                <p:ajax event="close" listener="#{mbVentasAlmacen.salir()}" update=":main:msgs :main:listaDeVentas" />
                 <p:messages id="msgsVenta" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panelGrid id="venta" style="width: 910px;" >
                     <p:row >
@@ -163,8 +164,11 @@
                             </p:inputText>
                         </p:column>
                         <p:column colspan="2" style="text-align: right;" >
+                            <p:commandButton icon="ui-icon-print" title="Imprimir venta"
+                                                     disabled="#{mbVentasAlmacen.venta.estatus le 6}"
+                                                     ajax="false" immediate="true" action="#{mbVentasAlmacen.imprimir()}" />
                             <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Remisionar la venta"
-                                             disabled="#{!mbVentasAlmacen.pendientes}"
+                                             disabled="#{mbVentasAlmacen.venta.estatus ge 7}"
                                              process="@this" actionListener="#{mbVentasAlmacen.cerrarVentaAlmacen()}" 
                                              update=":main:msgs :main:listaDeVentas" 
                                              oncomplete="cerrarVenta(xhr, status, args);" />
@@ -175,7 +179,7 @@
                              var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 910px;" 
                              rowKey="#{prod.id}" selectionMode="single" selection="#{mbVentasAlmacen.loteOrigen}"
                              emptyMessage="No existen productos" >
-                    <p:ajax event = "rowSelect" listener="#{mBTraspasoAlmacen.inicializaTraspasoLote()}" 
+                    <p:ajax event = "rowSelect" listener="#{mbVentasAlmacen.inicializaTraspasoLote()}" 
                             update=":main:msgsVenta :main:panelSimilares :main:detalleSimilares" 
                             oncomplete="abrirSimilares(xhr, status, args);" />
 
