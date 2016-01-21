@@ -330,6 +330,7 @@ public class MbEntradasOficina implements Serializable {
             try {
                 this.dao = new DAOMovimientosOficina();
                 this.dao.agregarMovimiento(toMov, false);
+                this.entrada.setIdMovto(toMov.getIdMovto());
                 this.entrada.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
                 this.entrada.setIdUsuario(toMov.getIdUsuario());
                 this.entrada.setPropietario(toMov.getPropietario());
