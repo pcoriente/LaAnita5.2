@@ -323,16 +323,18 @@ public class MbPedidos implements Serializable {
 
                 this.dao = new DAOPedidos();
                 ArrayList<TOProductoPedido> listaSimilares = this.dao.grabarProductoCantidad(toPed, toProd);
-                if (listaSimilares.size() <= 1) {
+//                if (listaSimilares.size() <= 1) {
                     this.totalResta(this.producto);
                     this.producto.setCantOrdenada(toProd.getCantOrdenada());
                     this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
                     this.producto.setCantFacturada(toProd.getCantOrdenada());
                     this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
                     this.totalSuma(this.producto);
-                } else {
-                    this.procesaSimilares(listaSimilares);
-                }
+//                } else {
+                    if(!listaSimilares.isEmpty()) {
+                        this.procesaSimilares(listaSimilares);
+                    }
+//                }
                 ok = true;
             }
         } catch (NamingException ex) {
