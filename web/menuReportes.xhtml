@@ -31,7 +31,7 @@
                                          immediate="true"/>
                     </div>
 
-                    <p:panel header="MÃ³dulo de reportes">
+                    <p:panel header="Módulo  de reportes">
                         <p:panelGrid style="float: left" columns="2">
                             <h:outputText value="Almacenes:"/>
                             <p:selectOneMenu id="cmbAlmacenes"
@@ -45,17 +45,7 @@
                                         />
                             </p:selectOneMenu>
                         </p:panelGrid>
-                        <p:dataTable id="tablaExistencias" style="border:solid 1px; width: 800px;"
-                                     value="#{mbReportes.lst}"
-                                     var="listaReportes" rowKey="#{listaReportes.producto}"
-                                     emptyMessage="No hay información a mostrar">
-                            <p:column headerText="SKU">
-                                <h:outputText value="#{listaReportes.producto.cod_pro}" />
-                            </p:column>
-                            <p:column headerText="PRODUCTO" >
-                                <h:outputText value="#{listaReportes.producto.toString()}" />
-                            </p:column>
-                        </p:dataTable>
+                       
                     </p:panel>
                     <div align="right">
                         <p:commandButton value="Generar Reporte"
@@ -69,7 +59,7 @@
                                  var="listaReportes"
                                  scrollable="true"
                                  scrollHeight="370"
-                                 emptyMessage="No hay informaciÃ³n a mostrar">
+                                 emptyMessage="No hay información a mostrar">
                         <p:column headerText="SKU">
                             #{listaReportes.producto.cod_pro}
                         </p:column>
