@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"></meta>
+        <title>Devoluciones</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true" />
+            <p:panel header="DEVOLUCIONES SOBRE VENTAS" style="float: left"
+                     rendered="#{not empty mbDevoluciones.obtenerAcciones(13)}" >
+                <p:panelGrid id="encabezado" style="width: 910px;" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:selectOneMenu id="almacen" value="#{mbDevoluciones.mbAlmacenes.toAlmacen}" style="width: 350px;" >
+                                <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                <f:selectItems value="#{mbDevoluciones.mbAlmacenes.listaAlmacenes}" />
+                                <p:ajax event="change" listener="#{mbDevoluciones.actualizaComprobanteAlmacen()}"
+                                        update="msgs" />
+                            </p:selectOneMenu>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:selectOneMenu id="cliente" value="#{mbDevoluciones.mbClientes.cliente}" style="width: 500px;"
+                                             filter="true" filterMatchMode="contains" >
+                                <f:converter converterId="converters.miniCliente" />
+                                <f:selectItems value="#{mbDevoluciones.mbClientes.listaClientes}" />
+                                <p:ajax event="change" listener="#{mbDevoluciones.actualizaComprobanteCliente()}" 
+                                        update="msgs comprobanteComplete" />
+                            </p:selectOneMenu>
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="FACTURA :" style="font-weight: bold; color: red;" />
+                        </p:column>
+                        <p:column >
+                            <p:autoComplete id="comprobanteComplete" value="#{mbDevoluciones.mbComprobantes.seleccion}"
+                                            completeMethod="#{mbDevoluciones.mbComprobantes.completeComprobantes28}" 
+                                            var="c" itemValue="#{c}" itemLabel="#{c.toString()}" converter="converters.ComprobanteConverter" 
+                                            maxlength="16" size="16" forceSelection="true" >
+                            </p:autoComplete>
+                        </p:column>
+                        <p:column >
+                            <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Crear devolución" 
+                                             process="encabezado" actionListener="#{mbDevoluciones.nuevaDevolucion()}" 
+                                             update="msgs" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="detalleVenta" value="#{mbDevoluciones.detalle}"
+                             var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                             style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
+                    <p:ajax event="rowSelect" listener="#{mbDevoluciones.modificarProducto}"
+                            update=":main:msgsVenta :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
+
+                    <f:facet name="header" >Detalle de la Devolución</f:facet>
+                    <p:column headerText="SKU" style="width: 50px;" >
+                        <h:outputText value="#{prod.producto.cod_pro}" />
+                    </p:column>
+                    <p:column headerText="Descripción" >
+                        <h:outputText value="#{prod.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="Vendidas" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantVendida}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Devueltas" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantDevuelta}" >
+                            <f:convertNumber pattern="#,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Devolver" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantFacturada}" >
+                            <f:convertNumber pattern="#,##0.000" />
+                        </h:outputText>
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </h:form>
+    </body>
+</html>

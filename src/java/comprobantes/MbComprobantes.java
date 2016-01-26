@@ -201,6 +201,19 @@ public class MbComprobantes implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okComprobante", ok);
     }
+    
+    public ArrayList<TOComprobante> completeComprobantes28(String query) {
+        ArrayList<TOComprobante> lstComprobantes = null;
+        try {
+            this.dao = new DAOComprobantes();
+            lstComprobantes = this.dao.completeComprobantes28(this.idEmpresa, this.idReferencia, query);
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        return lstComprobantes;
+    }
 
     public ArrayList<TOComprobante> completeComprobantes(String query) {
         ArrayList<TOComprobante> lstComprobantes = null;

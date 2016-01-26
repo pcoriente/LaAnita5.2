@@ -11,6 +11,7 @@ public class TraspasoProductoReporte {
     private String sku;
     private String empaque;
     private double cantFacturada;
+    private double cantSinCargo;
     private double unitario;
     private String lote;
     private double loteCantidad;
@@ -45,6 +46,14 @@ public class TraspasoProductoReporte {
 
     public void setCantFacturada(double cantFacturada) {
         this.cantFacturada = cantFacturada;
+    }
+
+    public double getCantSinCargo() {
+        return cantSinCargo;
+    }
+
+    public void setCantSinCargo(double cantSinCargo) {
+        this.cantSinCargo = cantSinCargo;
     }
 
     public double getUnitario() {

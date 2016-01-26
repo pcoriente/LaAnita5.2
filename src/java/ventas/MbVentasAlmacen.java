@@ -4,27 +4,49 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
 import comprobantes.MbComprobantes;
+import direccion.MbDireccion;
+import direccion.dominio.Direccion;
 import formatos.MbFormatos;
+import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import mbMenuClientesGrupos.MbClientesGrupos;
+import movimientos.to.TOMovimientoProductoAlmacen;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
+import producto2.dominio.Producto;
+import rechazos.to.TORechazoProductoAlmacen;
 import tiendas.MbMiniTiendas;
+import traspasos.dominio.TraspasoProductoReporte;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 import ventas.dao.DAOVentas;
 import ventas.dominio.Venta;
 import ventas.dominio.VentaProductoAlmacen;
 import ventas.to.TOVenta;
+import ventas.to.TOVentaProducto;
 import ventas.to.TOVentaProductoAlmacen;
 
 /**
@@ -35,6 +57,8 @@ import ventas.to.TOVentaProductoAlmacen;
 @SessionScoped
 public class MbVentasAlmacen implements Serializable {
 
+    @ManagedProperty(value = "#{mbDireccion}")
+    private MbDireccion mbDireccion;
     @ManagedProperty(value = "#{mbAlmacenesJS}")
     private MbAlmacenesJS mbAlmacenes;
     @ManagedProperty(value = "#{mbMenuClientesGrupos}")
@@ -67,6 +91,7 @@ public class MbVentasAlmacen implements Serializable {
     public MbVentasAlmacen() throws NamingException {
         this.mbAcciones = new MbAcciones();
         this.mbAlmacenes = new MbAlmacenesJS();
+        this.mbDireccion = new MbDireccion();
 
         this.mbGrupos = new MbClientesGrupos();
         this.mbClientes = new MbMiniClientes();
@@ -76,6 +101,130 @@ public class MbVentasAlmacen implements Serializable {
         this.mbComprobantes = new MbComprobantes();
 
         this.inicializa();
+    }
+    
+    private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to) {
+        TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
+        toProd.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
+        toProd.setIdProducto(to.getIdProducto());
+        toProd.setLote(to.getLote());
+        toProd.setCantidad(to.getCantidad());
+        toProd.setFechaCaducidad(to.getFechaCaducidad());
+        return toProd;
+    }
+    
+    private TraspasoProductoReporte convertirProductoReporte(TOVentaProducto toProd) throws SQLException {
+        boolean ya = false;
+        Producto producto = this.mbBuscar.obtenerProducto(toProd.getIdProducto());
+        TraspasoProductoReporte rep = new TraspasoProductoReporte();
+        rep.setSku(producto.getCod_pro());
+        rep.setEmpaque(producto.toString());
+        rep.setCantFacturada(toProd.getCantFacturada());
+        rep.setCantSinCargo(toProd.getCantSinCargo());
+        rep.setUnitario(toProd.getUnitario());
+        for (TOMovimientoProductoAlmacen l : this.dao.obtenerProductoDetalle(this.venta.getIdMovtoAlmacen(), toProd.getIdProducto())) {
+            if (l.getCantidad() != 0) {
+                if (ya) {
+                    rep.getLotes().add(this.convertir(l));
+                } else {
+                    rep.setLote(l.getLote());
+                    rep.setLoteCantidad(l.getCantidad());
+                    ya = true;
+                }
+            }
+        }
+        return rep;
+    }
+
+    public void imprimir() {
+        Direccion dir;
+//        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
+//        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
+        try {
+            TOVenta toVta = this.convertir(this.venta);
+            
+            dir = this.mbDireccion.obtener(this.venta.getAlmacen().getIdDireccion());
+            String cedisDir = dir.toString2();
+            String cedisLoc = dir.toString3();
+            
+            this.mbClientes.setCliente(this.mbClientes.obtenerCliente(this.venta.getTienda().getIdCliente()));
+            dir = this.mbDireccion.obtener(this.mbClientes.getCliente().getIdDireccionFiscal());
+            String clienteDir = dir.toString2();
+            String clienteLoc = dir.toString3();
+            
+            dir = this.mbDireccion.obtener(this.venta.getTienda().getIdDireccion());
+            String tiendaDir = dir.toString2();
+            String tiendaLoc = dir.toString3();
+            
+            this.dao = new DAOVentas();
+            ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
+            for (TOVentaProducto to : this.dao.obtenerDetalleOficina(toVta, "")) {
+                if (to.getCantFacturada()+to.getCantSinCargo() != 0) {
+                    detalleReporte.add(this.convertirProductoReporte(to));
+                }
+            }
+            String sourceFileName = "C:\\Carlos Pat\\Reportes\\remision.jasper";
+            JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+            Map parameters = new HashMap();
+            parameters.put("empresa", this.venta.getAlmacen().getEmpresa());
+            parameters.put("cedis", this.venta.getAlmacen().getCedis());
+            parameters.put("almacen", this.venta.getAlmacen().getAlmacen());
+            parameters.put("cedisDir", cedisDir);
+            parameters.put("cedisLoc", cedisLoc);
+
+            parameters.put("clienteRFC", this.mbClientes.getCliente().getRfc());
+            parameters.put("cliente", this.mbClientes.getCliente().getContribuyente());
+            parameters.put("clienteDir", clienteDir);
+            parameters.put("clienteLoc", clienteLoc);
+            
+            parameters.put("tienda", "("+this.venta.getTienda().getCodigoTienda()+")"+this.venta.getTienda().getTienda());
+            parameters.put("tiendaDir", tiendaDir);
+            parameters.put("tiendaLoc", tiendaLoc);
+
+            parameters.put("pedido", this.venta.getIdPedido());
+            parameters.put("remision", this.venta.getFolio());
+            parameters.put("remisionFecha", this.venta.getFecha());
+
+            parameters.put("idUsuario", this.venta.getIdUsuario());
+
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=remision_" + this.venta.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+    }
+    
+    public void salir() {
+        try {
+            this.dao = new DAOVentas();
+            if (this.venta != null && this.isLocked()) {
+                TOVenta toVta = this.convertir(this.venta);
+                this.dao.liberarVentaAlmacen(toVta);
+                this.venta.setPropietario(0);
+                this.setLocked(false);
+            }
+            this.ventas = new ArrayList<>();
+            for (TOVenta to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
+                this.ventas.add(this.convertir(to));
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public void liberarVenta() {
@@ -108,6 +257,10 @@ public class MbVentasAlmacen implements Serializable {
 
             this.dao = new DAOVentas();
             this.dao.cerrarVentaAlmacen(toMov);
+            this.venta.setEstatus(toMov.getEstatus());
+            this.venta.setIdUsuario(toMov.getIdUsuario());
+            this.venta.setPropietario(toMov.getPropietario());
+            this.setLocked(this.venta.getIdUsuario()==this.venta.getPropietario());
             Mensajes.mensajeSucces("El pedido se cerró correctamente !!!");
             ok = true;
         } catch (NamingException ex) {
@@ -262,6 +415,14 @@ public class MbVentasAlmacen implements Serializable {
 
     private void inicializa() {
         this.inicializar();
+    }
+
+    public MbDireccion getMbDireccion() {
+        return mbDireccion;
+    }
+
+    public void setMbDireccion(MbDireccion mbDireccion) {
+        this.mbDireccion = mbDireccion;
     }
 
     public MbAlmacenesJS getMbAlmacenes() {

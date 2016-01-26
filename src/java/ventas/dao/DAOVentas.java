@@ -16,6 +16,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.to.TOMovimientoProductoAlmacen;
 import usuarios.dominio.UsuarioSesion;
 import ventas.to.TOVenta;
 import ventas.to.TOVentaProducto;
@@ -60,10 +61,9 @@ public class DAOVentas {
     }
 
     public void cerrarVentaAlmacen(TOVenta toVta) throws SQLException {
-        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
+            try {
                 toVta.setIdUsuario(this.idUsuario);
                 toVta.setEstatus(7);
 
@@ -71,9 +71,8 @@ public class DAOVentas {
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toVta);
 
                 movimientos.Movimientos.actualizaDetalleAlmacen(cn, toVta.getIdMovtoAlmacen(), false);
-
-                strSQL = "UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + toVta.getIdMovtoAlmacen();
-                st.executeUpdate(strSQL);
+                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toVta.getIdMovtoAlmacen(), this.idUsuario);
+                toVta.setPropietario(0);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -123,6 +122,14 @@ public class DAOVentas {
             cn.close();
         }
         return lotes;
+    }
+    
+    public ArrayList<TOMovimientoProductoAlmacen> obtenerProductoDetalle(int idMovtoAlmacen, int idProducto) throws SQLException {
+        ArrayList<TOMovimientoProductoAlmacen> productos = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            productos = movimientos.Movimientos.obtenerDetalleProducto(cn, idMovtoAlmacen, idProducto);
+        }
+        return productos;
     }
 
     private TOVentaProductoAlmacen construirProductoAlmacen(ResultSet rs) throws SQLException {
@@ -180,7 +187,7 @@ public class DAOVentas {
                 + "LEFT JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus=7 AND MA.estatus" + condicion + "\n";
-        if (estatus != 0) {
+        if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
         strSQL += "ORDER BY M.fecha DESC";
@@ -494,16 +501,17 @@ public class DAOVentas {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 toVta.setIdUsuario(this.idUsuario);
-                toVta.setPropietario(0);
                 toVta.setEstatus(7);
 
                 toVta.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toVta.getIdAlmacen(), toVta.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toVta);
 
                 movimientos.Movimientos.actualizaDetalleOficina(cn, toVta.getIdMovto(), toVta.getIdTipo(), false);
+                movimientos.Movimientos.liberarMovimientoOficina(cn, toVta.getIdMovto(), this.idUsuario);
+                toVta.setPropietario(0);
 
                 strSQL = "UPDATE comprobantes\n"
-                        + "SET tipo='2', numero='" + String.valueOf(toVta.getFolio()) + "'\n"
+                        + "SET tipo=2, numero='" + String.valueOf(toVta.getFolio()) + "'\n"
                         + "WHERE idComprobante=" + toVta.getIdComprobante();
                 st.executeUpdate(strSQL);
 
@@ -531,6 +539,41 @@ public class DAOVentas {
                 cn.setAutoCommit(true);
             }
         }
+    }
+
+    public ArrayList<TOVentaProducto> eliminarProducto(TOVenta toVta, TOVentaProducto toProd, double separados) throws SQLException, Exception {
+        String strSQL;
+        ArrayList<TOVentaProducto> similares = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                similares = this.actualizaProductoCantidad(cn, toVta, toProd, separados);
+
+                if (toProd.getCantSinCargo() == 0 && toVta.getReferencia() == 0) {
+                    strSQL = "DELETE FROM movimientosDetalle\n"
+                            + "WHERE idMovto=" + toProd.getIdMovto() + " AND idEmpaque=" + toProd.getIdProducto();
+                    st.executeUpdate(strSQL);
+
+                    strSQL = "DELETE FROM movimientosDetalleImpuestos\n"
+                            + "WHERE idMovto=" + toProd.getIdMovto() + " AND idEmpaque=" + toProd.getIdProducto();
+                    st.executeUpdate(strSQL);
+
+                    strSQL = "DELETE FROM movimientosDetalleAlmacen\n"
+                            + "WHERE idMovtoAlmacen=" + toVta.getIdMovtoAlmacen() + " AND idEmpaque=" + toProd.getIdProducto() + " AND cantidad=0";
+                    st.executeUpdate(strSQL);
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } catch (Exception ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.close();
+            }
+        }
+        return similares;
     }
 
     public void tranferirSinCargo(TOVenta toVta, TOVentaProducto toProd, TOVentaProducto toSimilar, int idZonaImpuestos, double cantidad) throws SQLException, Exception {
@@ -562,6 +605,21 @@ public class DAOVentas {
 //        return similares;
     }
 
+//    private String sqlSimilares(int idMovto, int idProducto) {
+//        return "SELECT ISNULL(D.cod_pro, '') AS cod_pro\n"
+//                + "     , ISNULL(D.cantOrdenada, 0) AS cantOrdenada, ISNULL(D.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
+//                + "     , ISNULL(D.idMovto, 0) AS idMovto, ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idEmpaque, S.idSimilar) AS idEmpaque\n"
+//                + "     , ISNULL(D.cantFacturada, 0) AS cantFacturada, ISNULL(D.cantSinCargo, 0) AS cantSinCargo\n"
+//                + "	, ISNULL(D.costoPromedio, 0) AS costoPromedio, ISNULL(D.costo, 0) AS costo\n"
+//                + "	, ISNULL(D.desctoProducto1, 0) AS desctoProducto1, ISNULL(D.desctoProducto2, 0) AS desctoProducto2\n"
+//                + "	, ISNULL(D.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(D.unitario, 0) AS unitario\n"
+//                + "	, ISNULL(D.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
+//                + "	, ISNULL(D.fecha, '1900-01-01') AS fecha, ISNULL(D.existenciaAnterior, 0) AS existenciaAnterior\n"
+//                + "FROM (" + this.sqlObtenProducto() + "\n"
+//                + "	WHERE M.idMovto=" + idMovto + ") D\n"
+//                + "RIGHT JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
+//                + "WHERE S.idEmpaque=" + idProducto + " AND S.idSimilar!=S.idEmpaque";
+//    }
     public ArrayList<TOVentaProducto> obtenerSimilares(int idMovto, int idProducto) throws SQLException {
         ArrayList<TOVentaProducto> productos = new ArrayList<>();
         String strSQL = "SELECT ISNULL(D.cod_pro, '') AS cod_pro\n"
@@ -573,14 +631,11 @@ public class DAOVentas {
                 + "	, ISNULL(D.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(D.unitario, 0) AS unitario\n"
                 + "	, ISNULL(D.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
                 + "	, ISNULL(D.fecha, '1900-01-01') AS fecha, ISNULL(D.existenciaAnterior, 0) AS existenciaAnterior\n"
-                + "FROM (SELECT E.cod_pro, PD.idPedido, PD.cantOrdenada, PD.cantOrdenadaSinCargo, D.*\n"
-                + "	FROM movimientosDetalle D\n"
-                + "	INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                + "     INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
-                + "	LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                + "FROM (" + this.sqlObtenProducto() + "\n"
                 + "	WHERE M.idMovto=" + idMovto + ") D\n"
                 + "RIGHT JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
                 + "WHERE S.idEmpaque=" + idProducto + " AND S.idSimilar!=S.idEmpaque";
+//        String strSQL = this.sqlSimilares(idMovto, idProducto);
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -592,8 +647,8 @@ public class DAOVentas {
         return productos;
     }
 
-    public void actualizarPedidoProductoSinCargo(TOVenta toMov, TOVentaProducto toProd, double cantSeparada) throws SQLException {
-        // Cuando esto capturando en pantalla de edicion, en una venta nueva
+    public void actualizarProductoSinCargo(TOVenta toMov, TOVentaProducto toProd, double cantSeparada) throws SQLException {
+        // Solo para capturar la cantidad sin cargo, cuando la venta es con pedido
         double cantSolicitada;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -619,82 +674,100 @@ public class DAOVentas {
         }
     }
 
-    private void liberaSimilaresSinCargo(Connection cn, TOVenta toMov, TOVentaProducto toProd, double cantSolicitada) throws SQLException {
-        String strSQL;
-        int idEmpaque;
-        double disponibles, cantSeparar;
-        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement(); Statement st2 = cn.createStatement()) {
-            ResultSet rs1;
-            // Obtiene los productos con cantSinCargo > 0 en el movimiento
-            strSQL = "SELECT D.idEmpaque, D.cantSinCargo\n"
-                    + "FROM (SELECT * FROM empaquesSimilares WHERE idEmpaque=" + toProd.getIdProducto() + ") S\n"
-                    + "INNER JOIN movimientosDetalle D ON D.idEmpaque=S.idSimilar\n"
-                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                    + "WHERE M.idMovto=" + toMov.getIdMovto() + " AND D.cantSinCargo > 0\n"
-                    + "ORDER BY CASE WHEN S.idSimilar=S.idEmpaque THEN 1 ELSE 0 END, M.referencia, D.cantFacturada, D.cantSinCargo";
+    private void liberaSimilaresSinCargo(Connection cn, TOVenta toVta, TOVentaProducto toProd, double cantSolicitada) throws SQLException, Exception {
+        double cantLiberada;
+        String strSQL = "SELECT D.idEmpaque, D.cantSinCargo, L.lote, L.fechaCaducidad, L.separados\n"
+                + "FROM empaquesSimilares S\n"
+                + "INNER JOIN movimientosDetalle D ON D.idEmpaque=S.idSimilar\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "INNER JOIN movimientosDetalleAlmacen DA ON DA.idMovtoAlmacen=M.idMovtoAlmacen AND DA.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=DA.idEmpaque AND L.lote=DA.lote\n"
+                + "WHERE D.idMovto=" + toVta.getIdMovto() + " AND S.idEmpaque=" + toProd.getIdProducto() + " AND D.cantSinCargo > 0\n"
+                + "ORDER BY IIF(S.idEmpaque=S.idSimilar, 0, 1), L.fechaCaducidad DESC";
+        try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next() && cantSolicitada != 0) {
-                idEmpaque = rs.getInt("idEmpaque");
-                disponibles = rs.getInt("cantSinCargo");
-                strSQL = "SELECT M.idMovtoAlmacen, M.idMovto, D.idEmpaque, D.lote, L.fechaCaducidad, ISNULL(P.idPedido, 0) AS idPedido\n"
-                        + "FROM movimientos M\n"
-                        + "INNER JOIN movimientosDetalleAlmacen D ON D.idMovtoAlmacen=M.idMovtoAlmacen\n"
-                        + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=D.idEmpaque AND L.lote=D.lote\n"
-                        + "INNER JOIN (SELECT * FROM empaquesSimilares WHERE idEmpaque=" + toProd.getIdProducto() + ") S ON S.idSimilar=D.idEmpaque\n"
-                        + "LEFT JOIN pedidosDetalle P ON P.idPedido=M.referencia AND P.idEmpaque=D.idEmpaque\n"
-                        + "WHERE M.idMovto=" + toMov.getIdMovto() + " AND D.idEmpaque=" + idEmpaque + "\n"
-                        + "ORDER BY L.fechaCaducidad DESC";
-                rs1 = st1.executeQuery(strSQL);
-                while (rs1.next() && cantSolicitada != 0) {
-                    if (disponibles < cantSolicitada) {
-                        cantSeparar = disponibles;
-                    } else {
-                        cantSeparar = cantSolicitada;
-                    }
-                    disponibles -= cantSeparar;
-                    cantSolicitada -= cantSeparar;
-
-                    strSQL = "UPDATE movimientosDetalleAlmacen\n"
-                            + "SET cantidad=cantidad-" + cantSeparar + "\n"
-                            + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs1.getString("lote") + "'";
-                    st2.executeUpdate(strSQL);
-
-                    strSQL = "UPDATE almacenesLotes\n"
-                            + "SET separados=separados-" + cantSeparar + "\n"
-                            + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs1.getString("lote") + "'";
-                    st2.executeUpdate(strSQL);
-
-                    strSQL = "UPDATE movimientosDetalle\n"
-                            + "SET cantSinCargo=cantSinCargo-" + cantSeparar + "\n"
-                            + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idEmpaque;
-                    st2.executeUpdate(strSQL);
-
-                    strSQL = "UPDATE almacenesEmpaques\n"
-                            + "SET separados=separados-" + cantSeparar + "\n"
-                            + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
-                    st2.executeUpdate(strSQL);
-                }
+                cantLiberada = movimientos.Movimientos.liberarLote(cn, toVta, rs.getInt("idEmpaque"), rs.getString("lote"), cantSolicitada, "cantSinCargo");
+                cantSolicitada -= cantLiberada;
             }
         }
     }
 
+//    private void liberaSimilaresSinCargoOld(Connection cn, TOVenta toVta, TOVentaProducto toProd, double cantSolicitada) throws SQLException {
+//        String strSQL;
+//        int idEmpaque;
+//        double disponibles, cantSeparar;
+//        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement(); Statement st2 = cn.createStatement()) {
+//            ResultSet rs1;
+//            // Obtiene los productos con cantSinCargo > 0 en el movimiento
+//            strSQL = "SELECT D.idEmpaque, D.cantSinCargo\n"
+//                    + "FROM (SELECT * FROM empaquesSimilares WHERE idEmpaque=" + toProd.getIdProducto() + ") S\n"
+//                    + "INNER JOIN movimientosDetalle D ON D.idEmpaque=S.idSimilar\n"
+//                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                    + "LEFT JOIN pedidosDetalle P ON P.idPedido=M.referencia AND P.idEmpaque=D.idEmpaque\n"
+//                    + "WHERE M.idMovto=" + toVta.getIdMovto() + " AND D.cantSinCargo > 0\n"
+//                    + "ORDER BY CASE WHEN S.idSimilar=S.idEmpaque THEN 0 ELSE 1 END, CASE WHEN ISNULL(P.idEmpaque, 0)!=0 THEN 0 ELSE 1 END";
+//            ResultSet rs = st.executeQuery(strSQL);
+//            while (rs.next() && cantSolicitada != 0) {
+//                idEmpaque = rs.getInt("idEmpaque");
+//                disponibles = rs.getInt("cantSinCargo");
+//                strSQL = "SELECT M.idMovtoAlmacen, M.idMovto, D.idEmpaque, D.lote, L.fechaCaducidad, ISNULL(P.idPedido, 0) AS idPedido\n"
+//                        + "FROM movimientos M\n"
+//                        + "INNER JOIN movimientosDetalleAlmacen D ON D.idMovtoAlmacen=M.idMovtoAlmacen\n"
+//                        + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=D.idEmpaque AND L.lote=D.lote\n"
+//                        + "INNER JOIN (SELECT * FROM empaquesSimilares WHERE idEmpaque=" + toProd.getIdProducto() + ") S ON S.idSimilar=D.idEmpaque\n"
+//                        + "LEFT JOIN pedidosDetalle P ON P.idPedido=M.referencia AND P.idEmpaque=D.idEmpaque\n"
+//                        + "WHERE M.idMovto=" + toVta.getIdMovto() + " AND D.idEmpaque=" + idEmpaque + "\n"
+//                        + "ORDER BY L.fechaCaducidad DESC";
+//                rs1 = st1.executeQuery(strSQL);
+//                while (rs1.next() && cantSolicitada != 0) {
+//                    if (disponibles < cantSolicitada) {
+//                        cantSeparar = disponibles;
+//                    } else {
+//                        cantSeparar = cantSolicitada;
+//                    }
+//                    disponibles -= cantSeparar;
+//                    cantSolicitada -= cantSeparar;
+//
+//                    strSQL = "UPDATE movimientosDetalleAlmacen\n"
+//                            + "SET cantidad=cantidad-" + cantSeparar + "\n"
+//                            + "WHERE idMovtoAlmacen=" + toVta.getIdMovtoAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs1.getString("lote") + "'";
+//                    st2.executeUpdate(strSQL);
+//
+//                    strSQL = "UPDATE almacenesLotes\n"
+//                            + "SET separados=separados-" + cantSeparar + "\n"
+//                            + "WHERE idAlmacen=" + toVta.getIdAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs1.getString("lote") + "'";
+//                    st2.executeUpdate(strSQL);
+//
+//                    strSQL = "UPDATE movimientosDetalle\n"
+//                            + "SET cantSinCargo=cantSinCargo-" + cantSeparar + "\n"
+//                            + "WHERE idMovto=" + toVta.getIdMovto() + " AND idEmpaque=" + idEmpaque;
+//                    st2.executeUpdate(strSQL);
+//
+//                    strSQL = "UPDATE almacenesEmpaques\n"
+//                            + "SET separados=separados-" + cantSeparar + "\n"
+//                            + "WHERE idAlmacen=" + toVta.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
+//                    st2.executeUpdate(strSQL);
+//                }
+//            }
+//        }
+//    }
+//
     private void separaSimilaresSinCargo(Connection cn, TOVenta toMov, TOVentaProducto toProd, double cantSolicitada) throws SQLException, Exception {
-        String strSQL;
         int idEmpaque;
-        double disponibles, cantSeparar, cantSeparada;
+        ArrayList<String> empaques = new ArrayList<>();
         TOVentaProducto toSimilar = new TOVentaProducto();
-        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
-            ResultSet rs1;
-            // Calcula los disponibles entre todos los similares
-            strSQL = "SELECT ISNULL(SUM(CASE WHEN L.disponibles <= E.existencia-E.separados THEN L.disponibles\n"
-                    + "			ELSE E.existencia-E.separados END), 0) AS disponibles\n"
-                    + "FROM (SELECT L.idEmpaque, SUM(L.existencia-L.separados) AS disponibles\n"
-                    + "	  FROM empaquesSimilares S\n"
-                    + "	  INNER JOIN almacenesLotes L ON L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=S.idSimilar\n"
-                    + "	  WHERE S.idEmpaque=" + toProd.getIdProducto() + "\n"
-                    + "	  GROUP BY L.idEmpaque) L\n"
-                    + "INNER JOIN almacenesEmpaques E ON E.idEmpaque=L.idEmpaque\n"
-                    + "WHERE E.idAlmacen=" + toMov.getIdAlmacen();
+        // Calcula los disponibles entre todos los similares
+        String strSQL = "SELECT ISNULL(SUM(CASE WHEN L.disponibles <= E.existencia-E.separados THEN L.disponibles\n"
+                + "			ELSE E.existencia-E.separados END), 0) AS disponibles\n"
+                + "FROM (SELECT L.idEmpaque, SUM(L.existencia-L.separados) AS disponibles\n"
+                + "	  FROM empaquesSimilares S\n"
+                + "	  INNER JOIN almacenesLotes L ON L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=S.idSimilar\n"
+                + "	  WHERE S.idEmpaque=" + toProd.getIdProducto() + "\n"
+                + "	  GROUP BY L.idEmpaque) L\n"
+                + "INNER JOIN almacenesEmpaques E ON E.idEmpaque=L.idEmpaque\n"
+                + "WHERE E.idAlmacen=" + toMov.getIdAlmacen();
+        try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 // Calculo disponibles (minimo disponible entre almacen y oficina) de los empaques similares
@@ -703,108 +776,171 @@ public class DAOVentas {
                     throw new Exception("No hay existencia suficiente entre similares !!!");
                 }
             }
-            idEmpaque = 0;
-            cantSeparada = 0;
-            // Obteniendo todos los similares con disponibles
-            strSQL = "SELECT ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idMovto, 0) AS idMovto, L.idEmpaque, L.lote\n"
-                    + "FROM (SELECT  M.idMovto, M.referencia AS idPedido, D.idEmpaque\n"
+            // Obteniendo todos los lotes en empaques similares con disponibles
+            strSQL = "SELECT ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idMovto, 0) AS idMovto, L.idEmpaque, L.lote, P.idImpuesto\n"
+                    + "FROM (SELECT M.idMovto, M.referencia AS idPedido, D.idEmpaque\n"
                     + "      FROM movimientosDetalle D\n"
                     + "      INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                     + "      WHERE D.idMovto=" + toMov.getIdMovto() + ") D\n"
                     + "RIGHT JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
                     + "INNER JOIN almacenesLotes L ON L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=S.idSimilar\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=L.idEmpaque\n"
+                    + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
                     + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND L.existencia-L.separados > 0\n"
                     + "ORDER BY IIF(S.idSimilar=S.idEmpaque, 0, 1), ISNULL(D.idPedido, 0) DESC, ISNULL(D.idMovto, 0) DESC, L.idEmpaque, L.fechaCaducidad";
             rs = st.executeQuery(strSQL);
             while (rs.next() && cantSolicitada != 0) {
                 // Para todos los lotes con existencia disponible en los empaques similares
                 // Sin importar si el empaque esta o no en el movimiento
-                if (idEmpaque != rs.getInt("idEmpaque")) {
-                    if (idEmpaque != 0) {
-                        // Suma los separados a la cantidad sin cargo del empaque en cuestion
-                        strSQL = "UPDATE movimientosDetalle\n"
-                                + "SET cantSinCargo=cantSinCargo+" + cantSeparada + "\n"
-                                + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idEmpaque;
-                        st1.executeUpdate(strSQL);
-
-                        // Separa los empaques en el almacen correspondiente
-                        strSQL = "UPDATE almacenesEmpaques set separados=separados+" + cantSeparada + "\n"
-                                + "WHERE idAlmacen" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
-                        st1.executeUpdate(strSQL);
-                    }
-                    idEmpaque = rs.getInt("idEmpaque");
-                    cantSeparada = 0;
-                    if (rs.getInt("idMovto") == 0) {
-                        toSimilar.setIdPedido(0);
-                        toSimilar.setIdMovto(toMov.getIdMovto());
-                        toSimilar.setIdProducto(idEmpaque);
-                        toSimilar.setCantOrdenada(0);
-                        toSimilar.setCantOrdenadaSinCargo(0);
-                        toSimilar.setCantFacturada(0);
-                        toSimilar.setCantSinCargo(0);
-                        toSimilar.setCostoPromedio(0);
-                        this.agregaProducto(cn, toMov, toSimilar);
-                    }
+                idEmpaque = rs.getInt("idEmpaque");
+                if (rs.getInt("idMovto") == 0 && empaques.indexOf(String.valueOf(idEmpaque)) == -1) {
+                    toSimilar.setIdPedido(0);
+                    toSimilar.setIdMovto(toMov.getIdMovto());
+                    toSimilar.setIdProducto(idEmpaque);
+                    toSimilar.setCantOrdenada(0);
+                    toSimilar.setCantOrdenadaSinCargo(0);
+                    toSimilar.setCantFacturada(0);
+                    toSimilar.setCantSinCargo(0);
+                    toSimilar.setCostoPromedio(0);
+                    toSimilar.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
+                    this.agregaProducto(cn, toMov, toSimilar);
+                    empaques.add(String.valueOf(idEmpaque));
                 }
-                // Calcula los disponibles de un lote del empaque de la consulta anterior
-                strSQL = "SELECT ISNULL(D.idMovtoAlmacen, 0) AS idMovtoAlmacen\n"
-                        + "     , CASE WHEN L.existencia-L.separados <= E.existencia-E.separados\n"
-                        + "             THEN L.existencia-L.separados\n"
-                        + "             ELSE E.existencia-E.separados END AS disponibles\n"
-                        + "FROM almacenesLotes L\n"
-                        + "INNER JOIN almacenesEmpaques E ON E.idAlmacen=L.idAlmacen AND E.idEmpaque=L.idEmpaque\n"
-                        + "LEFT JOIN movimientosDetalleAlmacen D ON D.idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND D.idEmpaque=L.idEmpaque AND D.lote=L.lote\n"
-                        + "WHERE L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=" + idEmpaque + " AND L.lote='" + rs.getString("lote") + "'";
-                rs1 = st1.executeQuery(strSQL);
-                if (rs1.next() && cantSolicitada != 0) {
-                    // Si tiene registro en almacenesEmpaques
-                    disponibles = rs1.getDouble("disponibles");
-                    if (disponibles > 0) {
-                        // Si tiene disponibles
-                        if (disponibles < cantSolicitada) {
-                            cantSeparar = disponibles;
-                        } else {
-                            cantSeparar = cantSolicitada;
-                        }
-                        cantSeparada += cantSeparar;
-                        cantSolicitada -= cantSeparar;
-
-                        if (rs1.getInt("idMovtoAlmacen") == 0) {
-                            // Si el lote no existe
-                            strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
-                                    + "VALUES (" + toMov.getIdMovtoAlmacen() + ", " + idEmpaque + ", '" + rs.getString("lote") + "', 0, '', 0)";
-                            st1.executeUpdate(strSQL);
-                        }
-                        strSQL = "UPDATE movimientosDetalleAlmacen\n"
-                                + "SET cantidad=cantidad+" + cantSeparar + "\n"
-                                + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs.getString("lote") + "'";
-                        st1.executeUpdate(strSQL);
-
-                        // Separa los lotes en el almacen correspondiente
-                        strSQL = "UPDATE almacenesLotes\n"
-                                + "SET separados=separados+" + cantSeparar + "\n"
-                                + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs.getString("lote") + "'";
-                        st1.executeUpdate(strSQL);
-                    }
-                }
-            }
-            if (cantSolicitada == 0) {
-                // Suma los separados a la cantidad sin cargo del empaque en cuestion
-                strSQL = "UPDATE movimientosDetalle\n"
-                        + "SET cantSinCargo=cantSinCargo+" + cantSeparada + "\n"
-                        + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idEmpaque;
-                st1.executeUpdate(strSQL);
-
-                // Separa los empaques en el almacen correspondiente
-                strSQL = "UPDATE almacenesEmpaques set separados=separados+" + cantSeparada + "\n"
-                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
-                st1.executeUpdate(strSQL);
-            } else {
-                throw new SQLException("Error en la logica de los separados, algo anda mal !!!");
+                cantSolicitada -= movimientos.Movimientos.separarLote(cn, toMov, idEmpaque, rs.getString("lote"), cantSolicitada, "cantSinCargo");
             }
         }
     }
 
+//    private void separaSimilaresSinCargoOld(Connection cn, TOVenta toMov, TOVentaProducto toProd, double cantSolicitada) throws SQLException, Exception {
+//        String strSQL;
+//        int idEmpaque;
+//        double disponibles, cantSeparar, cantSeparada;
+//        TOVentaProducto toSimilar = new TOVentaProducto();
+//        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+//            ResultSet rs1;
+//            // Calcula los disponibles entre todos los similares
+//            strSQL = "SELECT ISNULL(SUM(CASE WHEN L.disponibles <= E.existencia-E.separados THEN L.disponibles\n"
+//                    + "			ELSE E.existencia-E.separados END), 0) AS disponibles\n"
+//                    + "FROM (SELECT L.idEmpaque, SUM(L.existencia-L.separados) AS disponibles\n"
+//                    + "	  FROM empaquesSimilares S\n"
+//                    + "	  INNER JOIN almacenesLotes L ON L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=S.idSimilar\n"
+//                    + "	  WHERE S.idEmpaque=" + toProd.getIdProducto() + "\n"
+//                    + "	  GROUP BY L.idEmpaque) L\n"
+//                    + "INNER JOIN almacenesEmpaques E ON E.idEmpaque=L.idEmpaque\n"
+//                    + "WHERE E.idAlmacen=" + toMov.getIdAlmacen();
+//            ResultSet rs = st.executeQuery(strSQL);
+//            if (rs.next()) {
+//                // Calculo disponibles (minimo disponible entre almacen y oficina) de los empaques similares
+//                if (rs.getDouble("disponibles") < cantSolicitada) {
+//                    // Si no hay suficientes disponibles se aborta la transaccion
+//                    throw new Exception("No hay existencia suficiente entre similares !!!");
+//                }
+//            }
+//            idEmpaque = 0;
+//            cantSeparada = 0;
+//            // Obteniendo todos los similares con disponibles
+//            strSQL = "SELECT ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idMovto, 0) AS idMovto, L.idEmpaque, L.lote, P.idImpuesto\n"
+//                    + "FROM (SELECT M.idMovto, M.referencia AS idPedido, D.idEmpaque\n"
+//                    + "      FROM movimientosDetalle D\n"
+//                    + "      INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+//                    + "      WHERE D.idMovto=" + toMov.getIdMovto() + ") D\n"
+//                    + "RIGHT JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
+//                    + "INNER JOIN almacenesLotes L ON L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=S.idSimilar\n"
+//                    + "INNER JOIN empaques E ON E.idEmpaque=L.idEmpaque\n"
+//                    + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+//                    + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND L.existencia-L.separados > 0\n"
+//                    + "ORDER BY IIF(S.idSimilar=S.idEmpaque, 0, 1), ISNULL(D.idPedido, 0) DESC, ISNULL(D.idMovto, 0) DESC, L.idEmpaque, L.fechaCaducidad";
+//            rs = st.executeQuery(strSQL);
+//            while (rs.next() && cantSolicitada != 0) {
+//                // Para todos los lotes con existencia disponible en los empaques similares
+//                // Sin importar si el empaque esta o no en el movimiento
+//                if (idEmpaque != rs.getInt("idEmpaque")) {
+//                    if (idEmpaque != 0) {
+//                        // Suma los separados a la cantidad sin cargo del empaque en cuestion
+//                        strSQL = "UPDATE movimientosDetalle\n"
+//                                + "SET cantSinCargo=cantSinCargo+" + cantSeparada + "\n"
+//                                + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idEmpaque;
+//                        st1.executeUpdate(strSQL);
+//
+//                        // Separa los empaques en el almacen correspondiente
+//                        strSQL = "UPDATE almacenesEmpaques set separados=separados+" + cantSeparada + "\n"
+//                                + "WHERE idAlmacen" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
+//                        st1.executeUpdate(strSQL);
+//                    }
+//                    idEmpaque = rs.getInt("idEmpaque");
+//                    cantSeparada = 0;
+//                    if (rs.getInt("idMovto") == 0) {
+//                        toSimilar.setIdPedido(0);
+//                        toSimilar.setIdMovto(toMov.getIdMovto());
+//                        toSimilar.setIdProducto(idEmpaque);
+//                        toSimilar.setCantOrdenada(0);
+//                        toSimilar.setCantOrdenadaSinCargo(0);
+//                        toSimilar.setCantFacturada(0);
+//                        toSimilar.setCantSinCargo(0);
+//                        toSimilar.setCostoPromedio(0);
+//                        toSimilar.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
+//                        this.agregaProducto(cn, toMov, toSimilar);
+//                    }
+//                }
+//                // Calcula los disponibles de un lote del empaque de la consulta anterior
+//                strSQL = "SELECT ISNULL(D.idMovtoAlmacen, 0) AS idMovtoAlmacen\n"
+//                        + "     , CASE WHEN L.existencia-L.separados <= E.existencia-E.separados\n"
+//                        + "             THEN L.existencia-L.separados\n"
+//                        + "             ELSE E.existencia-E.separados END AS disponibles\n"
+//                        + "FROM almacenesLotes L\n"
+//                        + "INNER JOIN almacenesEmpaques E ON E.idAlmacen=L.idAlmacen AND E.idEmpaque=L.idEmpaque\n"
+//                        + "LEFT JOIN movimientosDetalleAlmacen D ON D.idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND D.idEmpaque=L.idEmpaque AND D.lote=L.lote\n"
+//                        + "WHERE L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=" + idEmpaque + " AND L.lote='" + rs.getString("lote") + "'";
+//                rs1 = st1.executeQuery(strSQL);
+//                if (rs1.next() && cantSolicitada != 0) {
+//                    // Si tiene registro en almacenesEmpaques
+//                    disponibles = rs1.getDouble("disponibles");
+//                    if (disponibles > 0) {
+//                        // Si tiene disponibles
+//                        if (disponibles < cantSolicitada) {
+//                            cantSeparar = disponibles;
+//                        } else {
+//                            cantSeparar = cantSolicitada;
+//                        }
+//                        cantSeparada += cantSeparar;
+//                        cantSolicitada -= cantSeparar;
+//
+//                        if (rs1.getInt("idMovtoAlmacen") == 0) {
+//                            // Si el lote no existe
+//                            strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
+//                                    + "VALUES (" + toMov.getIdMovtoAlmacen() + ", " + idEmpaque + ", '" + rs.getString("lote") + "', 0, '', 0)";
+//                            st1.executeUpdate(strSQL);
+//                        }
+//                        strSQL = "UPDATE movimientosDetalleAlmacen\n"
+//                                + "SET cantidad=cantidad+" + cantSeparar + "\n"
+//                                + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs.getString("lote") + "'";
+//                        st1.executeUpdate(strSQL);
+//
+//                        // Separa los lotes en el almacen correspondiente
+//                        strSQL = "UPDATE almacenesLotes\n"
+//                                + "SET separados=separados+" + cantSeparar + "\n"
+//                                + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque + " AND lote='" + rs.getString("lote") + "'";
+//                        st1.executeUpdate(strSQL);
+//                    }
+//                }
+//            }
+//            if (cantSolicitada == 0) {
+//                // Suma los separados a la cantidad sin cargo del empaque en cuestion
+//                strSQL = "UPDATE movimientosDetalle\n"
+//                        + "SET cantSinCargo=cantSinCargo+" + cantSeparada + "\n"
+//                        + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idEmpaque;
+//                st1.executeUpdate(strSQL);
+//
+//                // Separa los empaques en el almacen correspondiente
+//                strSQL = "UPDATE almacenesEmpaques set separados=separados+" + cantSeparada + "\n"
+//                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idEmpaque;
+//                st1.executeUpdate(strSQL);
+//            } else {
+//                throw new SQLException("Error en la logica de los separados, algo anda mal !!!");
+//            }
+//        }
+//    }
+//
     private ArrayList<TOVentaProducto> obtenDetalleSimilares(Connection cn, int idMovto, int idProducto) throws SQLException {
         ArrayList<TOVentaProducto> similares = new ArrayList<>();
         String strSQL = "SELECT E.cod_pro, D.*, ISNULL(PD.idPedido, 0) AS idPedido\n"
@@ -815,7 +951,8 @@ public class DAOVentas {
                 + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
                 + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
-                + "WHERE D.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto;
+                + "WHERE D.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto + "\n"
+                + "ORDER BY CASE WHEN S.idEmpaque=S.idSimilar THEN 0 ELSE 1 END";
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
@@ -872,10 +1009,8 @@ public class DAOVentas {
                                 this.liberaSimilaresSinCargo(cn, toVta, toProd, cantSolicitada);
                             }
                             similares = this.obtenDetalleSimilares(cn, toVta.getIdMovto(), toProd.getIdProducto());
-                            if (similares.size() == 1) {
-                                toProd.setCantSinCargo(cantSinCargoOrig);
-                                similares.clear();
-                            }
+                            toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
+                            similares.remove(0);
                         }
                     } else {
                         // Si no hay similares, atiende solamente las piezas sin cargo del producto en cuestion
@@ -895,10 +1030,8 @@ public class DAOVentas {
                     if (cantSolicitada > 0) {
                         this.liberaSimilaresSinCargo(cn, toVta, toProd, cantSolicitada);
                         similares = this.obtenDetalleSimilares(cn, toVta.getIdMovto(), toProd.getIdProducto());
-                        if (similares.size() == 1) {
-                            toProd.setCantSinCargo(0);
-                            similares.clear();
-                        }
+                        toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
+                        similares.remove(0);
                     }
                 } else if (cantSinCargoOrig > 0) {
                     movimientos.Movimientos.liberar(cn, toVta, toProd.getIdProducto(), cantSinCargoOrig, "cantSinCargo");
@@ -906,7 +1039,6 @@ public class DAOVentas {
                 }
             }
         }
-//        return incompleta;
         return similares;
     }
 
@@ -961,13 +1093,7 @@ public class DAOVentas {
 
     public TOVentaProducto obtenerProductoOficina(Connection cn, int idMovto, int idProducto) throws SQLException {
         TOVentaProducto toProd = null;
-        String strSQL = "SELECT E.cod_pro, MD.*, ISNULL(PD.idPedido, 0) AS idPedido\n"
-                + "         , ISNULL(PD.cantOrdenada-PD.cantSurtida, 0) AS cantOrdenada\n"
-                + "         , ISNULL(PD.cantOrdenadaSinCargo-cantSurtidaSinCargo, 0) AS cantOrdenadaSinCargo\n"
-                + "FROM movimientosDetalle MD\n"
-                + "INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
-                + "INNER JOIN empaques E ON E.idEmpaque=MD.idEmpaque\n"
-                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=MD.idEmpaque\n"
+        String strSQL = this.sqlObtenProducto() + "\n"
                 + "WHERE MD.idMovto=" + idMovto + " AND MD.idEmpaque=" + idProducto;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -988,15 +1114,19 @@ public class DAOVentas {
         return toProd;
     }
 
-    private ArrayList<TOVentaProducto> obtenDetalleOficina(Connection cn, TOVenta toVta) throws SQLException {
-        ArrayList<TOVentaProducto> detalle = new ArrayList<>();
-        String strSQL = "SELECT E.cod_pro, MD.*, ISNULL(PD.idPedido, 0) AS idPedido\n"
+    private String sqlObtenProducto() {
+        return "SELECT E.cod_pro, MD.*, ISNULL(PD.idPedido, 0) AS idPedido\n"
                 + "         , ISNULL(PD.cantOrdenada-PD.cantSurtida, 0) AS cantOrdenada\n"
                 + "         , ISNULL(PD.cantOrdenadaSinCargo-cantSurtidaSinCargo, 0) AS cantOrdenadaSinCargo\n"
                 + "FROM movimientosDetalle MD\n"
                 + "INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=MD.idEmpaque\n"
-                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=MD.idEmpaque\n"
+                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=MD.idEmpaque";
+    }
+
+    private ArrayList<TOVentaProducto> obtenDetalleOficina(Connection cn, TOVenta toVta) throws SQLException {
+        ArrayList<TOVentaProducto> detalle = new ArrayList<>();
+        String strSQL = this.sqlObtenProducto() + "\n"
                 + "WHERE MD.idMovto=" + toVta.getIdMovto();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -1057,7 +1187,7 @@ public class DAOVentas {
                 toVta.setPropietario(this.idUsuario);
 
                 TOComprobante to = new TOComprobante(toVta.getIdTipo(), toVta.getIdEmpresa(), toVta.getIdReferencia(), idMoneda);
-                to.setTipo('1');
+                to.setTipo(1);
                 to.setNumero(String.valueOf(toVta.getReferencia()));
                 to.setIdUsuario(this.idUsuario);
                 to.setPropietario(0);
@@ -1075,6 +1205,36 @@ public class DAOVentas {
                 cn.setAutoCommit(true);
             }
         }
+    }
+
+    public TOVenta obtenerVentaOficina(int idComprobante) throws SQLException {
+        String strSQL = "SELECT M.*\n"
+                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda\n"
+                + "     , ISNULL(P.canceladoMotivo, '') AS canceladoMotivo, ISNULL(P.canceladoFecha, '1900-01-01') AS canceladoFecha\n"
+                + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
+                + "FROM movimientos M\n"
+                + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
+                + "LEFT JOIN pedidos P ON P.idPedido=M.referencia\n"
+                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
+                + "WHERE C.idComprobante=" + idComprobante;
+        TOVenta toVta = new TOVenta();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    toVta = this.construir(rs);
+                }
+                movimientos.Movimientos.bloquearMovimientoOficina(cn, toVta, this.idUsuario);
+                cn.commit();
+            } catch (SQLException e) {
+                cn.rollback();
+                throw (e);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return toVta;
     }
 
     private void construir(ResultSet rs, TOVenta toVta) throws SQLException {
@@ -1096,7 +1256,7 @@ public class DAOVentas {
     public ArrayList<TOVenta> obtenerVentasOficina(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = ">=7";
         if (estatus == 0) {
-            condicion = "<7";
+            condicion = "=CASE ISNULL(P.idPedido, 0) WHEN 0 THEN 0 ELSE 5 END";
         }
         if (fechaInicial == null) {
             fechaInicial = new Date();

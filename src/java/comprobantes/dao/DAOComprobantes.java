@@ -182,6 +182,24 @@ public class DAOComprobantes {
             }
         }
     }
+    
+    public ArrayList<TOComprobante> completeComprobantes28(int idEmpresa, int idCliente, String strComprobante) throws SQLException {
+        ArrayList<TOComprobante> comprobantes = new ArrayList<>();
+        String strSQL = "SELECT *\n"
+                + "FROM comprobantes C\n"
+                + "INNER JOIN clientesTiendas T ON T.idTienda=C.idReferencia\n"
+                + "WHERE C.idTipoMovto=28 AND C.idEmpresa=" + idEmpresa + " AND T.idCliente=" + idCliente + " AND numero like '%" + strComprobante + "%'\n"
+                + "ORDER BY numero";
+        try (Connection cn = ds.getConnection()) {
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    comprobantes.add(this.construir(rs));
+                }
+            }
+        }
+        return comprobantes;
+    }
 
     public ArrayList<TOComprobante> completeComprobantes(int idTipoMovto, int idEmpresa, int idReferencia, String strComprobante) throws SQLException {
         ArrayList<TOComprobante> comprobantes = new ArrayList<>();

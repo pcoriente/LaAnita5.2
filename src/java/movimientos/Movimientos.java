@@ -307,10 +307,10 @@ public class Movimientos {
                         + "FROM clientesBoletinesDetalle B\n"
                         + "INNER JOIN clientesBoletines L ON L.idBoletin=B.idBoletin\n"
                         + "WHERE L.idEmpresa=" + idEmpresa + "\n"
-                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=" + idTienda + "))\n"
+                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
@@ -352,10 +352,10 @@ public class Movimientos {
                         + "FROM clientesListasDetalle B\n"
                         + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
                         + "WHERE L.idEmpresa=" + idEmpresa + "\n"
-                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=0 AND B.idFormato=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idCliente=" + idCliente + " AND B.idFormato=" + idFormato + " AND B.idTienda=" + idTienda + "))\n"
+                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
+                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
@@ -453,7 +453,7 @@ public class Movimientos {
         String strSQL = "SELECT D.lote, D.cantidad, ISNULL(A.separados, 0) AS separados\n"
                 + "FROM movimientosDetalleAlmacen D\n"
                 + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                 + "WHERE D.idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND D.idEmpaque=" + idProducto + "\n"
                 + "ORDER BY A.fechaCaducidad DESC";
         try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
@@ -512,6 +512,111 @@ public class Movimientos {
             }
         }
     }
+    
+    public static double liberarLote(Connection cn, TOMovimientoOficina toMov, int idProducto, String lote, double cantSolicitada, String campo) throws SQLException, Exception {
+        double disponibles, cantidad, cantLiberada = 0;
+        String strSQL = "SELECT CASE WHEN '" + campo + "'='cantFacturada'\n"
+                + "                     THEN D.cantFacturada ELSE D.cantSinCargo END AS disponibles, DA.cantidad\n"
+                + "FROM movimientosDetalle D\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "INNER JOIN movimientosDetalleAlmacen DA ON DA.idMovtoAlmacen=M.idMovtoAlmacen AND DA.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN almacenesLotes L ON L.idAlmacen=M.idAlmacen AND L.idEmpaque=DA.idEmpaque AND L.lote=DA.lote\n"
+                + "WHERE D.idMovto=" + toMov.getIdMovto() + " AND D.idEmpaque=" + idProducto + " AND DA.lote='" + lote + "'\n";
+        try (Statement st = cn.createStatement()) {
+            cantidad = 0;
+            disponibles = 0;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                cantidad = rs.getDouble("cantidad");
+                disponibles = rs.getDouble("disponibles");
+            }
+            if (disponibles != 0 && cantidad != 0) {
+                if (disponibles < 0) {
+                    throw new Exception(campo + " negativa !!!");
+                } else if (disponibles < cantSolicitada) {
+                    cantLiberada = disponibles;
+                } else {
+                    cantLiberada = cantSolicitada;
+                }
+                if(cantidad < 0) {
+                    throw new Exception("Cantidad negativa para idEmpaque="+idProducto+", lote='"+lote+"' en movimientos almacén");
+                } else if(rs.getDouble("cantidad") < cantLiberada) {
+                    cantLiberada = rs.getDouble("cantidad");
+                }
+                strSQL = "UPDATE movimientosDetalleAlmacen\n"
+                        + "SET cantidad=cantidad-" + cantLiberada + "\n"
+                        + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE almacenesLotes\n"
+                        + "SET separados=separados-" + cantLiberada + "\n"
+                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalle\n"
+                        + "SET " + campo + "=" + campo + "-" + cantLiberada + "\n"
+                        + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE almacenesEmpaques\n"
+                        + "SET separados=separados-" + cantLiberada + "\n"
+                        + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+            }
+        }
+        return cantLiberada;
+    }
+
+    public static double separarLote(Connection cn, TOMovimientoOficina toMov, int idProducto, String lote, double cantSolicitada, String campo) throws SQLException, Exception {
+        double disponibles, cantSeparada = cantSolicitada;
+        String strSQL = "SELECT L.lote\n"
+                + "	, IIF(L.existencia-L.separados <= A.existencia-A.separados\n"
+                + "	, L.existencia-L.separados, A.existencia-A.separados) AS disponibles\n"
+                + "FROM almacenesLotes L\n"
+                + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=L.idAlmacen AND A.idEmpaque=L.idEmpaque\n"
+                + "WHERE L.idAlmacen=" + toMov.getIdAlmacen() + " AND L.idEmpaque=" + idProducto + " AND L.lote='" + lote + "'";
+        try (Statement st = cn.createStatement()) {
+            disponibles = 0;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                disponibles = rs.getDouble("disponibles");
+            }
+            if (disponibles != 0) {
+                if (disponibles < 0) {
+                    throw new Exception("Error de existencia: disponibles negativos !!!");
+                } else if (disponibles < cantSolicitada) {
+                    cantSeparada = disponibles;
+                }
+            } else {
+                throw new Exception("El producto no cuenta con existencia (1) !!!");
+            }
+            strSQL = "UPDATE almacenesEmpaques\n"
+                    + "SET separados=separados+" + cantSeparada + "\n"
+                    + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE movimientosDetalle\n"
+                    + "SET " + campo + "=" + campo + "+" + cantSeparada + "\n"
+                    + "WHERE idMovto=" + toMov.getIdMovto() + " AND idEmpaque=" + idProducto;
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE almacenesLotes\n"
+                    + "SET separados=separados+" + cantSeparada + "\n"
+                    + "WHERE idAlmacen=" + toMov.getIdAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE movimientosDetalleAlmacen\n"
+                    + "SET cantidad=cantidad+" + cantSeparada + "\n"
+                    + "WHERE idMovtoAlmacen=" + toMov.getIdMovtoAlmacen() + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+            int n = st.executeUpdate(strSQL);
+            if (n == 0) {
+                strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
+                        + "VALUES (" + toMov.getIdMovtoAlmacen() + ", " + idProducto + ", '" + lote + "', " + cantSeparada + ", '', 0)";
+                st.executeUpdate(strSQL);
+            }
+        }
+        return cantSeparada;
+    }
 
     // Solo para DAOVentas
     public static double separar(Connection cn, TOMovimientoOficina toMov, int idProducto, double cantSolicitada, String campo) throws SQLException, Exception {
@@ -534,7 +639,7 @@ public class Movimientos {
                     disponibles = rs.getDouble("disponiblesAlmacen");
                 }
                 if (disponibles != 0) {
-                    if(disponibles < 0 ) {
+                    if (disponibles < 0) {
                         throw new Exception("Error de existencia: disponibles negativos !!!");
                     } else if (disponibles < cantSolicitada) {
                         throw new Exception("No hay existencia requerida. Disponibles=" + disponibles + " !!!");
