@@ -7,6 +7,7 @@ import comprobantes.MbComprobantes;
 import direccion.MbDireccion;
 import direccion.dominio.Direccion;
 import formatos.MbFormatos;
+import impuestos.dominio.ImpuestosProducto;
 import java.io.IOException;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -42,8 +43,10 @@ import tiendas.MbMiniTiendas;
 import traspasos.dominio.TraspasoProductoReporte;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
+import utilerias.Numero_a_Letra;
 import ventas.dao.DAOVentas;
 import ventas.dominio.Venta;
+import ventas.dominio.VentaProducto;
 import ventas.dominio.VentaProductoAlmacen;
 import ventas.to.TOVenta;
 import ventas.to.TOVentaProducto;
@@ -81,6 +84,7 @@ public class MbVentasAlmacen implements Serializable {
     private ArrayList<Venta> ventas;
     private VentaProductoAlmacen loteOrigen, loteDestino;
     private ArrayList<VentaProductoAlmacen> detalle, empaqueLotes;
+    private ArrayList<ImpuestosProducto> impuestosTotales;
     private double cantTraspasar;
     private boolean pendientes;
     private Date fechaInicial;
@@ -135,6 +139,39 @@ public class MbVentasAlmacen implements Serializable {
         }
         return rep;
     }
+    
+    private void totalSuma(VentaProducto prod) {
+        int index;
+        ImpuestosProducto nuevo;
+        movimientos.Movimientos.sumaTotales(prod, this.venta);
+        for (ImpuestosProducto impuesto : prod.getImpuestos()) {
+            if ((index = this.impuestosTotales.indexOf(impuesto)) == -1) {
+                nuevo = new ImpuestosProducto();
+                nuevo.setAcreditable(impuesto.isAcreditable());
+                nuevo.setAcumulable(impuesto.isAcumulable());
+                nuevo.setAplicable(impuesto.isAplicable());
+                nuevo.setIdImpuesto(impuesto.getIdImpuesto());
+                nuevo.setImporte(impuesto.getImporte() * prod.getCantFacturada());
+                nuevo.setImpuesto(impuesto.getImpuesto());
+                nuevo.setModo(impuesto.getModo());
+                nuevo.setValor(impuesto.getValor());
+                this.impuestosTotales.add(nuevo);
+            } else {
+                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantFacturada());
+            }
+        }
+    }
+
+    private VentaProducto convertir(TOVentaProducto toProd) throws SQLException {
+        VentaProducto prod = new VentaProducto();
+        prod.setIdPedido(toProd.getIdPedido());
+        prod.setCantOrdenada(toProd.getCantOrdenada());
+        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        movimientos.Movimientos.convertir(toProd, prod);
+        prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
+        return prod;
+    }
 
     public void imprimir() {
         Direccion dir;
@@ -156,9 +193,21 @@ public class MbVentasAlmacen implements Serializable {
             String tiendaDir = dir.toString2();
             String tiendaLoc = dir.toString3();
             
-            this.dao = new DAOVentas();
+            double peso=0;
+            double volumen=0;
+            this.venta.setSubTotal(0);
+            this.venta.setDescuento(0);
+            this.venta.setImpuesto(0);
+            this.venta.setTotal(0);
+            VentaProducto prod;
+            this.impuestosTotales = new ArrayList<>();
             ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
+            this.dao = new DAOVentas();
             for (TOVentaProducto to : this.dao.obtenerDetalleOficina(toVta, "")) {
+                prod = this.convertir(to);
+                peso+=prod.getProducto().getPeso()*(prod.getCantFacturada()+prod.getCantSinCargo());
+                volumen+=prod.getProducto().getVolumen()*(prod.getCantFacturada()+prod.getCantSinCargo());
+                this.totalSuma(prod);
                 if (to.getCantFacturada()+to.getCantSinCargo() != 0) {
                     detalleReporte.add(this.convertirProductoReporte(to));
                 }
@@ -176,14 +225,26 @@ public class MbVentasAlmacen implements Serializable {
             parameters.put("cliente", this.mbClientes.getCliente().getContribuyente());
             parameters.put("clienteDir", clienteDir);
             parameters.put("clienteLoc", clienteLoc);
+            parameters.put("formaPago", this.mbClientes.getCliente().getDiasCredito()==0?"Contado":"Crédito "+this.mbClientes.getCliente().getDiasCredito()+" días");
             
-            parameters.put("tienda", "("+this.venta.getTienda().getCodigoTienda()+")"+this.venta.getTienda().getTienda());
+            parameters.put("tienda", "("+this.venta.getTienda().getCodigoTienda()+") "+this.venta.getTienda().getTienda());
             parameters.put("tiendaDir", tiendaDir);
             parameters.put("tiendaLoc", tiendaLoc);
 
             parameters.put("pedido", this.venta.getIdPedido());
+            parameters.put("pedidoFecha", this.venta.getPedidoFecha());
             parameters.put("remision", this.venta.getFolio());
             parameters.put("remisionFecha", this.venta.getFecha());
+            parameters.put("peso", peso);
+            parameters.put("volumen", volumen);
+            
+            parameters.put("subTotal", this.venta.getSubTotal());
+            parameters.put("descuento", this.venta.getDescuento());
+            parameters.put("impuestos", this.impuestosTotales);
+            parameters.put("total", this.venta.getTotal());
+//            parameters.put("letras", utilerias.NumerosALetrasConvertidor.convertNumberToLetter(this.venta.getTotal()));
+            Numero_a_Letra numeroALetra = new Numero_a_Letra();
+            parameters.put("letras", numeroALetra.Convertir(String.valueOf((double)Math.round(this.venta.getTotal()*100)/100), true, this.venta.getComprobante().getMoneda()));
 
             parameters.put("idUsuario", this.venta.getIdUsuario());
 

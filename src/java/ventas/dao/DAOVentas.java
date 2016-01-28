@@ -179,8 +179,9 @@ public class DAOVentas {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOVenta> ventas = new ArrayList<>();
         String strSQL = "SELECT M.*\n"
-                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda\n"
+                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda, ISNULL(P.fecha, '1900-01-01') AS pedidoFecha\n"
                 + "     , ISNULL(P.canceladoMotivo, '') AS canceladoMotivo, ISNULL(P.canceladoFecha, '1900-01-01') AS canceladoFecha\n"
+                + "     , ISNULL(P.especial, 0) AS especial, ISNULL(P.electronico, '') AS electronico\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=M.idMovtoAlmacen\n"
@@ -293,7 +294,7 @@ public class DAOVentas {
                 }
                 int idMovto;
                 // Obtiene el movimiento original (el primer idMovto) del pedido, para con este crear el nuevo
-                strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.canceladoMotivo, P.canceladoFecha\n"
+                strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.fecha AS pedidoFecha, P.canceladoMotivo, P.canceladoFecha, P.especial, P.electronico\n"
                         + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                         + "FROM movimientos M\n"
                         + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
@@ -357,7 +358,7 @@ public class DAOVentas {
 
     public ArrayList<TOVenta> obtenerPedidos(int idAlmacen) throws SQLException {
         ArrayList<TOVenta> ventas = new ArrayList<>();
-        String strSQL = "SELECT P.idPedidoOC, P.idMoneda, P.canceladoMotivo, P.canceladoFecha\n"
+        String strSQL = "SELECT P.idPedidoOC, P.idMoneda, P.fecha AS pedidoFecha, P.canceladoMotivo, P.canceladoFecha, P.especial, P.electronico\n"
                 + "	, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "	, 0 AS idMovto, 28 AS idTipo, 0 AS idEmpresa, " + idAlmacen + " AS idAlmacen, 0 AS folio, 0 AS idComprobante, T.idImpuestoZona\n"
                 + "	, 0 AS desctoComercial, 0 AS desctoProntoPago, P.fecha, 0 AS idUsuario, 1 AS tipoDeCambio\n"
@@ -446,7 +447,7 @@ public class DAOVentas {
 
     private void generaPedidoVenta(Connection cn, int idPedido) throws SQLException {
         // Obtiene el movimiento original (el primer idMovto) del pedido, para con este crear el nuevo
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.canceladoMotivo, P.canceladoFecha\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.fecha AS pedidoFecha, P.idMoneda, P.canceladoMotivo, P.canceladoFecha, P.especial, P.electronico\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
@@ -1209,8 +1210,9 @@ public class DAOVentas {
 
     public TOVenta obtenerVentaOficina(int idComprobante) throws SQLException {
         String strSQL = "SELECT M.*\n"
-                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda\n"
+                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda, ISNULL(P.fecha, '1900-01-01') AS pedidoFecha\n"
                 + "     , ISNULL(P.canceladoMotivo, '') AS canceladoMotivo, ISNULL(P.canceladoFecha, '1900-01-01') AS canceladoFecha\n"
+                + "     , ISNULL(P.especial, 0) AS especial, ISNULL(P.electronico, '') AS electronico\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
@@ -1240,10 +1242,13 @@ public class DAOVentas {
     private void construir(ResultSet rs, TOVenta toVta) throws SQLException {
         toVta.setIdPedidoOC(rs.getInt("idPedidoOC"));
         toVta.setIdMoneda(rs.getInt("idMoneda"));
+        toVta.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
+        toVta.setCanceladoMotivo(rs.getString("canceladoMotivo"));
+        toVta.setCanceladoFecha(new java.util.Date(rs.getTimestamp("canceladoFecha").getTime()));
+        toVta.setEspecial(rs.getInt("especial"));
+        toVta.setElectronico(rs.getString("electronico"));
         toVta.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         toVta.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
-        toVta.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-        toVta.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
         movimientos.Movimientos.construirMovimientoOficina(rs, toVta);
     }
 
@@ -1264,8 +1269,9 @@ public class DAOVentas {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOVenta> ventas = new ArrayList<>();
         String strSQL = "SELECT M.*\n"
-                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda\n"
+                + "     , ISNULL(P.idPedidoOC, 0) AS idPedidoOC, ISNULL(P.idMoneda, 0) AS idMoneda, ISNULL(P.fecha, '1900-01-01') AS pedidoFecha\n"
                 + "     , ISNULL(P.canceladoMotivo, '') AS canceladoMotivo, ISNULL(P.canceladoFecha, '1900-01-01') AS canceladoFecha\n"
+                + "     , ISNULL(P.especial, 0) AS especial, ISNULL(P.electronico, '') AS electronico\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "LEFT JOIN pedidos P ON P.idPedido=M.referencia\n"

@@ -485,7 +485,7 @@ public class DAOTraspasos {
                 + "     , 0 AS idUsuario, 1 AS tipoDeCambio, S.idAlmacen AS idReferencia, S.idSolicitud AS referencia\n"
                 + "     , 0 AS propietario, 0 AS estatus, 0 AS idMovtoAlmacen\n"
                 + "FROM solicitudes S\n"
-                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.idUsuarioOrigen=0 AND S.estatus=5 AND envio=0\n"
+                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.idUsuarioOrigen=0 AND S.estatus=1 AND envio=0\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {

@@ -577,12 +577,13 @@ public class DAOPedidos {
         TOPedido to = new TOPedido();
         to.setIdPedidoOC(rs.getInt("idPedidoOC"));
         to.setIdMoneda(rs.getInt("idMoneda"));
-        to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
-        to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
+        to.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
         to.setCanceladoMotivo(rs.getString("canceladoMotivo"));
         to.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
         to.setEspecial(rs.getInt("especial"));
         to.setElectronico(rs.getString("electronico"));
+        to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
+        to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
         movimientos.Movimientos.construirMovimientoOficina(rs, to);
         return to;
     }
@@ -593,7 +594,7 @@ public class DAOPedidos {
             condicion = " IN (5, 6)";
         }
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.canceladoFecha, P.canceladoMotivo, P.especial, P.electronico\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.idMoneda, P.fecha AS pedidoFecha, P.canceladoFecha, P.canceladoMotivo, P.especial, P.electronico\n"
                 + "     , ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"

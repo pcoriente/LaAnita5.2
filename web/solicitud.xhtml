@@ -23,79 +23,56 @@
                                 <p:column >
                                     <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
                                 </p:column>
-                                <p:column colspan="3" >
-                                    <p:selectOneMenu value="#{mbSolicitud.almacen}" style="width: 450px;" >
+                                <p:column >
+                                    <p:selectOneMenu value="#{mbSolicitud.almacen}" style="width: 360px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbSolicitud.listaAlmacenes}" />
-                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
-                                                update=":main:msgs almacenOrigen btnNuevaSolicitud" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column colspan="3" >
-                                    <p:selectOneMenu id="cedisOrigen" value="#{mbSolicitud.mbCedis.cedis}" style="width: 450px;" >
-                                        <f:converter converterId="converters.MiniCedis" />
-                                        <f:selectItems value="#{mbSolicitud.mbCedis.listaMiniCedis}" />
-                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
-                                                update=":main:msgs almacenOrigen" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column >
-                                    <p:selectOneMenu id="almacenOrigen" value="#{mbSolicitud.mbAlmacenes.toAlmacen}" style="width: 450px;" 
-                                                     disabled="#{mbSolicitud.mbCedis.cedis.idCedis==0}" >
-                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
-                                        <f:selectItems value="#{mbSolicitud.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbSolicitud.obtenerSolicitudes()}" 
                                                 update=":main:msgs :main:lstSolicitudes btnNuevaSolicitud" />
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
-                                    <h:outputLabel for="pendientes" value="PENDIENTES :" style="font-weight: bold; color: red;" />
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES" value="#{mbSolicitud.pendientes}"
+                                                             style="color: black; font-weight: bold; font-size: small;" >
+                                        <p:ajax listener="#{mbSolicitud.obtenerSolicitudes()}" 
+                                                update=":main:msgs fechaInicial :main:lstSolicitudes" />
+                                    </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneRadio id="pendientes" value="#{mbSolicitud.pendientes}" style="background-color: #ccc" >
-                                        <f:selectItem itemLabel="Completar" itemValue="0" />
-                                        <f:selectItem itemLabel="Recibir" itemValue="1" />
-                                        <p:ajax listener="#{mbSolicitud.obtenerSolicitudes()}" 
+                                    <p:calendar id="fechaInicial" value="#{mbSolicitud.fechaInicial}"
+                                                readonlyInput="true" disabled="#{mbSolicitud.almacen.idAlmacen==0 || mbSolicitud.pendientes}"
+                                                locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" listener="#{mbSolicitud.obtenerSolicitudes()}" 
                                                 update=":main:msgs :main:lstSolicitudes" />
-                                    </p:selectOneRadio>
+                                    </p:calendar>
                                 </p:column>
-                            </p:row>
-                            <f:facet name="footer" >
-                                <p:row >
-                                    <p:column colspan="4" style="text-align: right;" >
+                                    <p:column style="text-align: right;" >
                                         <p:commandButton id="btnNuevaSolicitud" icon="ui-icon-document" title="Nueva Solicitud" 
-                                                         disabled="#{mbSolicitud.almacen.idAlmacen==0 or mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
-                                                         process="@this" actionListener="#{mbSolicitud.nuevaSolicitud()}" update="main" />
+                                                         disabled="#{mbSolicitud.almacen.idAlmacen==0}"
+                                                         process="@this" update=":main:nuevaSolicitud"
+                                                         oncomplete="PF('nuevaSolicitudDlg').show();" />
                                         <p:commandButton icon="ui-icon-home" title="Salir" 
                                                          action="#{mbSolicitud.terminar()}" immediate="true" ajax="false" />
                                     </p:column>
                                 </p:row>
-                            </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="lstSolicitudes" value="#{mbSolicitud.solicitudes}" style="border:solid 1px; width: 410px;"
+                        <p:dataTable id="lstSolicitudes" value="#{mbSolicitud.solicitudes}" style="border:solid 1px;"
                                      var="solicitud" rowKey="#{solicitud.idSolicitud}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbSolicitud.obtenerDetalle}" update="main" />
-                            
+
+                            <p:column headerText="AL ALMACEN" style="width: 300px;" >
+                                <h:outputText value="#{solicitud.almacenOrigen}" />
+                            </p:column>
                             <p:column headerText="FOLIO" style="width: 60px;" >
                                 <h:outputText value="#{solicitud.folio}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 130px;" >
+                            <p:column headerText="FECHA" style="width: 120px;" >
                                 <h:outputText value="#{solicitud.fecha}" >
-                                    <f:convertDateTime pattern="dd/MMM/yyyy hh:mm:ss a" locale="es_MX" timeZone="#{mbSolicitud.zonaHoraria.ID}" />
+                                    <f:convertDateTime pattern="dd/MMM/yyyy hh:mm a" locale="es_MX" timeZone="#{mbSolicitud.zonaHoraria.ID}" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="SOLICITO" style="width: 60px; text-align: right" >
+                            <p:column headerText="SOLICITA" style="width: 60px; text-align: right" >
                                 <h:outputText value="#{solicitud.idUsuario}" />
                             </p:column>
                             <p:column headerText="ESTATUS" style="width: 60px; text-align: right" >
@@ -111,15 +88,7 @@
                                     <h:outputLabel value="SOLICITA :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.almacen}" readonly="true" size="52" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column >
-                                    <p:inputText value="#{mbSolicitud.mbAlmacenes.toAlmacen.cedis}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.solicitud.almacen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <p:row >
@@ -127,7 +96,7 @@
                                     <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbSolicitud.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbSolicitud.solicitud.almacenOrigen}" readonly="true" size="52" />
                                 </p:column>
                             </p:row>
                             <f:facet name="footer" >
@@ -148,7 +117,7 @@
                                                          process="@this" disabled="#{mbSolicitud.solicitud.estatus==0}"
                                                          ajax="false" immediate="true" action="#{mbSolicitud.imprimir()}" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar solicitud"
-                                                         disabled="#{(mbSolicitud.solicitud.estatus!=0 and mbSolicitud.solicitud.idUsuarioOrigen!=0) or !mbSolicitud.locked}"
+                                                         disabled="#{sbSolicitud.solicitud.estatus ge 2 or !mbSolicitud.locked}"
                                                          process="@this" actionListener="#{mbSolicitud.eliminar()}"
                                                          update="main" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
@@ -171,12 +140,12 @@
                             <p:column headerText="Solicitada" style="width: 100px;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
-                                        <h:outputText value="#{prod.cantSolicitada}" >
+                                        <h:outputText value="#{prod.cajasSolicitadas}" >
                                             <f:convertNumber pattern="###,##0.000" />
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{prod.cantSolicitada}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                        <p:inputText value="#{prod.cajasSolicitadas}" style="width:80px;" onblur="" label="CANTIDAD" 
                                                      readonly="#{mbSolicitud.solicitud.estatus!=0 or !mbSolicitud.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
@@ -250,6 +219,47 @@
                                                  update=":main:msgs :main:detalleSolicitud" oncomplete="PF('buscarProductoDlg').hide()" />
                             </f:facet>
                         </p:dataTable>
+                    </p:dialog>
+                    <p:dialog header="Crear solicitud" widgetVar="nuevaSolicitudDlg" resizable="false" style="width: 600px;" modal="true" >
+                        <p:messages id="msgsNueva" showDetail="true" closable="true" />
+                        <p:panelGrid id="nuevaSolicitud" >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL CEDIS :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="cedisOrigen" value="#{mbSolicitud.mbCedis.cedis}" style="width: 450px;" >
+                                        <f:converter converterId="converters.MiniCedis" />
+                                        <f:selectItems value="#{mbSolicitud.mbCedis.listaMiniCedis}" />
+                                        <p:ajax event="change" listener="#{mbSolicitud.cargaAlmacenesCedisEmpresa()}" 
+                                                update=":main:msgs almacenOrigen btnCrearSolicitud" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="AL ALMACEN :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:selectOneMenu id="almacenOrigen" value="#{mbSolicitud.mbAlmacenes.toAlmacen}" style="width: 450px;" 
+                                                     disabled="#{mbSolicitud.mbCedis.cedis.idCedis==0}" >
+                                        <f:converter converterId="converters.TOAlmacenJSConverter" />
+                                        <f:selectItems value="#{mbSolicitud.mbAlmacenes.listaAlmacenes}" />
+                                        <p:ajax event="change" update=":main:msgs btnCrearSolicitud" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <f:facet name="footer" >
+                                <p:row >
+                                    <p:column colspan="2" style="text-align: right;" >
+                                        <p:commandButton id="btnCrearSolicitud" icon="ui-icon-disk" title="Crear solicitud" 
+                                                         disabled="#{mbSolicitud.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                         process="@this" actionListener="#{mbSolicitud.crearSolicitud()}" 
+                                                         update="main" />
+                                    </p:column>
+                                </p:row>
+                            </f:facet>
+                        </p:panelGrid>
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">

@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -62,7 +63,8 @@ public class MbSolicitud implements Serializable {
     private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
-    private String pendientes;
+    private boolean pendientes;
+    private Date fechaInicial;
     private boolean modoEdicion;
     private MiniCedis cedis;
     private TOAlmacenJS almacen;
@@ -103,6 +105,7 @@ public class MbSolicitud implements Serializable {
         prod.setIdSolicitud(toProd.getIdSolicitud());
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         prod.setCantSolicitada(toProd.getCantSolicitada());
+        prod.setCajasSolicitadas(toProd.getCantSolicitada()/prod.getProducto().getPiezas());
         return prod;
     }
 
@@ -129,7 +132,7 @@ public class MbSolicitud implements Serializable {
     }
 
     private Solicitud convertir(TOSolicitud toMov) {
-        Solicitud mov = new Solicitud(this.mbAlmacenes.getToAlmacen(), this.getAlmacen());
+        Solicitud mov = new Solicitud(this.getAlmacen(), this.mbAlmacenes.obtenerAlmacen(toMov.getIdAlmacenOrigen()));
         mov.setIdSolicitud(toMov.getIdSolicitud());
         mov.setFolio(toMov.getFolio());
         mov.setFecha(toMov.getFecha());
@@ -140,13 +143,17 @@ public class MbSolicitud implements Serializable {
         return mov;
     }
 
-    public void obtenerSolicitudes() {
+    private void obtenSolicitudes() throws NamingException, SQLException {
         this.solicitudes = new ArrayList<>();
+        this.dao = new DAOSolicitudes();
+        for (TOSolicitud to : this.dao.obtenerSolicitudes(this.getAlmacen().getIdAlmacen(), this.pendientes ? 0 : 1, this.fechaInicial)) {
+            this.solicitudes.add(this.convertir(to));
+        }
+    }
+
+    public void obtenerSolicitudes() {
         try {
-            this.dao = new DAOSolicitudes();
-            for (TOSolicitud to : this.dao.obtenerSolicitudes(this.getAlmacen().getIdAlmacen(), "0".equals(this.pendientes) ? 0 : 5)) {
-                this.solicitudes.add(this.convertir(to));
-            }
+            this.obtenSolicitudes();
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -158,7 +165,8 @@ public class MbSolicitud implements Serializable {
         MovimientoOficinaProductoReporte rep = new MovimientoOficinaProductoReporte();
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
-        rep.setCantFacturada(prod.getCantSolicitada());
+        rep.setCantFacturada(prod.getCantSolicitada()/prod.getProducto().getPiezas());
+        rep.setPeso(rep.getCantFacturada()*prod.getProducto().getPeso());
         return rep;
     }
 
@@ -212,9 +220,10 @@ public class MbSolicitud implements Serializable {
         this.mbAlmacenes.setListaAlmacenes(null);
         this.listaAlmacenes = this.mbAlmacenes.getListaAlmacenes();
         this.almacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
-        this.mbCedis.cargaMiniCedisTodos();
+        this.mbCedis.cargaMiniCedisZona();
         this.mbBuscar.inicializar();
-        this.pendientes = "0";
+        this.pendientes = true;
+        this.fechaInicial = new Date();
         this.solicitudes = new ArrayList<>();
         this.setLocked(false);
     }
@@ -254,8 +263,14 @@ public class MbSolicitud implements Serializable {
 
     public void salir() {
         this.modoEdicion = false;
-        this.obtenerSolicitudes();
         this.liberar();
+        try {
+            this.obtenSolicitudes();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     private void liberar() {
@@ -266,7 +281,7 @@ public class MbSolicitud implements Serializable {
             try {
                 this.dao = new DAOSolicitudes();
                 this.dao.liberar(this.solicitud.getIdSolicitud());
-                ok=true;
+                ok = true;
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
@@ -278,21 +293,19 @@ public class MbSolicitud implements Serializable {
     }
 
     public void gestionar() {
-        if (this.producto.getCantSolicitada() < 0) {
-            this.producto.setCantSolicitada(this.producto.getSeparados());
+        this.producto.setCantSolicitada(this.producto.getCajasSolicitadas()*this.producto.getProducto().getPiezas());
+        TOSolicitudProducto toProd = this.convertir(this.producto);
+        this.producto.setCajasSolicitadas(this.producto.getSeparados()/this.producto.getProducto().getPiezas());
+        this.producto.setCantSolicitada(this.producto.getSeparados());
+        if (toProd.getCantSolicitada() < 0) {
             Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
-//        } else if (this.solicitud.getIdUsuario()!=this.solicitud.getPropietario()) {
-//            this.producto.setCantSolicitada(this.producto.getSeparados());
-//            Mensajes.mensajeAlert("Operacion invalida. No es propietario de la solicitud !!!");
-        } else if (this.producto.getCantSolicitada() != this.producto.getSeparados()) {
-            TOSolicitudProducto toProd = this.convertir(this.producto);
-            this.producto.setCantSolicitada(this.producto.getSeparados());
+        } else if (toProd.getCantSolicitada() != this.producto.getSeparados()) {
             try {
                 this.dao = new DAOSolicitudes();
                 this.dao.modificarProducto(toProd);
-
                 this.producto.setCantSolicitada(toProd.getCantSolicitada());
                 this.producto.setSeparados(toProd.getCantSolicitada());
+                this.producto.setCajasSolicitadas(toProd.getCantSolicitada()/this.producto.getProducto().getPiezas());
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
@@ -371,7 +384,7 @@ public class MbSolicitud implements Serializable {
         return toMov;
     }
 
-    public void nuevaSolicitud() {
+    public void crearSolicitud() {
         this.detalle = new ArrayList<>();
         this.solicitud = new Solicitud(this.getAlmacen(), this.mbAlmacenes.getToAlmacen());
         TOSolicitud toMov = this.convertir(this.solicitud);
@@ -401,8 +414,13 @@ public class MbSolicitud implements Serializable {
     }
 
     public void cargaAlmacenesCedisEmpresa() {
-        this.getMbAlmacenes().cargaAlmacenesEmpresa(this.mbCedis.getCedis().getIdCedis(), this.almacen.getIdEmpresa(), this.almacen.getIdAlmacen());
-        this.solicitudes = new ArrayList<>();
+        try {
+            this.getMbAlmacenes().cargaAlmacenesEmpresa(this.mbCedis.getCedis().getIdCedis(), this.almacen.getIdEmpresa(), this.almacen.getIdAlmacen());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public TraspasoProducto getResSolicitudProducto() {
@@ -469,12 +487,20 @@ public class MbSolicitud implements Serializable {
         this.listaAlmacenes = listaAlmacenes;
     }
 
-    public String getPendientes() {
+    public boolean isPendientes() {
         return pendientes;
     }
 
-    public void setPendientes(String pendientes) {
+    public void setPendientes(boolean pendientes) {
         this.pendientes = pendientes;
+    }
+
+    public Date getFechaInicial() {
+        return fechaInicial;
+    }
+
+    public void setFechaInicial(Date fechaInicial) {
+        this.fechaInicial = fechaInicial;
     }
 
     public boolean isModoEdicion() {

@@ -9,6 +9,7 @@ public class MovimientoOficinaProductoReporte {
     private String empaque;
     private double cantFacturada;
     private double unitario;
+    private double peso;
 
     public String getSku() {
         return sku;
@@ -40,5 +41,13 @@ public class MovimientoOficinaProductoReporte {
 
     public void setUnitario(double unitario) {
         this.unitario = unitario;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
     }
 }

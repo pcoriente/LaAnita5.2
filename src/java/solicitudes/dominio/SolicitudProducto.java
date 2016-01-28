@@ -10,6 +10,7 @@ import producto2.dominio.Producto;
 public class SolicitudProducto {
     private int idSolicitud;
     private Producto producto;
+    private double cajasSolicitadas;
     private double cantSolicitada;
     private double separados;
     
@@ -62,6 +63,14 @@ public class SolicitudProducto {
 
     public void setProducto(Producto producto) {
         this.producto = producto;
+    }
+
+    public double getCajasSolicitadas() {
+        return cajasSolicitadas;
+    }
+
+    public void setCajasSolicitadas(double cajasSolicitadas) {
+        this.cajasSolicitadas = cajasSolicitadas;
     }
 
     public double getCantSolicitada() {

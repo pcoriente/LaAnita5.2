@@ -493,12 +493,13 @@ public class MbPedidos implements Serializable {
         TOPedido toMov = new TOPedido();
         toMov.setIdPedidoOC(pedido.getIdPedidoOC());
         toMov.setIdMoneda(pedido.getComprobante().getMoneda().getIdMoneda());
-        toMov.setOrdenDeCompra(pedido.getOrdenDeCompra());
-        toMov.setOrdenDeCompraFecha(pedido.getOrdenDeCompraFecha());
+        toMov.setPedidoFecha(pedido.getPedidoFecha());
         toMov.setCanceladoMotivo(pedido.getCanceladoMotivo());
         toMov.setCanceladoFecha(pedido.getCanceladoFecha());
         toMov.setEspecial(pedido.isEspecial() ? 1 : 0);
         toMov.setElectronico(pedido.getElectronico());
+        toMov.setOrdenDeCompra(pedido.getOrdenDeCompra());
+        toMov.setOrdenDeCompraFecha(pedido.getOrdenDeCompraFecha());
         movimientos.Movimientos.convertir(pedido, toMov);
         toMov.setIdComprobante(pedido.getComprobante().getIdComprobante());
         toMov.setIdImpuestoZona(pedido.getTienda().getIdImpuestoZona());
@@ -588,12 +589,13 @@ public class MbPedidos implements Serializable {
     private Pedido convertir(TOPedido to) {
         Pedido p = new Pedido(this.mbAlmacenes.obtenerAlmacen(to.getIdAlmacen()), this.mbTiendas.obtenerTienda(to.getIdReferencia()), this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
         p.setIdPedidoOC(to.getIdPedidoOC());
-        p.setOrdenDeCompra(to.getOrdenDeCompra());
-        p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
+        p.setPedidoFecha(to.getPedidoFecha());
         p.setCanceladoMotivo(to.getCanceladoMotivo());
         p.setCanceladoFecha(to.getCanceladoFecha());
         p.setEspecial(to.getEspecial() == 1 ? true : false);
         p.setElectronico(to.getElectronico());
+        p.setOrdenDeCompra(to.getOrdenDeCompra());
+        p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
         movimientos.Movimientos.convertir(to, p);
         this.mbClientes.setCliente(this.mbClientes.obtenerCliente(p.getTienda().getIdCliente()));
         // Si el pedido todavia esta pendiente, se actualiza con datos del cliente

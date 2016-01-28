@@ -11,6 +11,7 @@ public class TOPedido extends TOMovimientoOficina {
 //    private int idTienda;
     private int idPedidoOC;
     private int idMoneda;
+    private Date pedidoFecha;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
     private Date canceladoFecha;
@@ -20,6 +21,7 @@ public class TOPedido extends TOMovimientoOficina {
 
     public TOPedido() {
         super();
+        this.pedidoFecha=new Date();
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
         this.canceladoFecha=new Date();
@@ -29,6 +31,7 @@ public class TOPedido extends TOMovimientoOficina {
     
     public TOPedido(int idTipo) {
         super(idTipo);
+        this.pedidoFecha=new Date();
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
         this.canceladoFecha=new Date();
@@ -50,6 +53,14 @@ public class TOPedido extends TOMovimientoOficina {
 
     public void setIdMoneda(int idMoneda) {
         this.idMoneda = idMoneda;
+    }
+    
+    public Date getPedidoFecha() {
+        return pedidoFecha;
+    }
+
+    public void setPedidoFecha(Date pedidoFecha) {
+        this.pedidoFecha = pedidoFecha;
     }
 
     public String getOrdenDeCompra() {

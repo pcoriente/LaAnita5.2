@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.naming.Context;
@@ -84,7 +86,7 @@ public class DAOSolicitudes {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                to.setEstatus(5);
+                to.setEstatus(1);
                 to.setIdUsuario(this.idUsuario);
                 to.setPropietario(this.idUsuario);
                 to.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, to.getIdAlmacen(), 53));
@@ -135,20 +137,18 @@ public class DAOSolicitudes {
                 strSQL = "SELECT propietario, estatus, idUsuarioOrigen FROM solicitudes WHERE idSolicitud=" + toSolicitud.getIdSolicitud();
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
+                    toSolicitud.setIdUsuario(this.idUsuario);
                     toSolicitud.setIdUsuarioOrigen(rs.getInt("idUsuarioOrigen"));
                     toSolicitud.setEstatus(rs.getInt("estatus"));
                     propietario = rs.getInt("propietario");
-                    if(toSolicitud.getIdUsuarioOrigen()!=0) {
-                        toSolicitud.setPropietario(0);
-                    } else if (propietario == 0) {
+                    if (propietario != 0) {
+                        toSolicitud.setPropietario(propietario);
+                    } else {
                         strSQL = "UPDATE solicitudes SET propietario=" + this.idUsuario + "\n"
                                 + "WHERE idSolicitud=" + toSolicitud.getIdSolicitud();
                         st.executeUpdate(strSQL);
                         toSolicitud.setPropietario(this.idUsuario);
-                    } else {
-                        toSolicitud.setPropietario(propietario);
                     }
-                    toSolicitud.setIdUsuario(this.idUsuario);
                 } else {
                     throw new SQLException("La solicitud ya no existe !!!");
                 }
@@ -200,12 +200,23 @@ public class DAOSolicitudes {
         return toMov;
     }
 
-    public ArrayList<TOSolicitud> obtenerSolicitudes(int idAlmacen, int estatus) throws SQLException {
+    public ArrayList<TOSolicitud> obtenerSolicitudes(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
+        String condicion = ">=1";
+        if (estatus == 0) {
+            condicion = "=0";
+        }
+        if (fechaInicial == null) {
+            fechaInicial = new Date();
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOSolicitud> solicitudes = new ArrayList<>();
         String strSQL = "SELECT *\n"
                 + "FROM solicitudes\n"
-                + "WHERE idAlmacen=" + idAlmacen + " AND estatus=" + estatus + " AND envio=0\n"
-                + "ORDER BY fecha DESC";
+                + "WHERE idAlmacen=" + idAlmacen + " AND estatus" + condicion + " AND envio=0\n";
+        if (estatus != 0) {
+            strSQL += "         AND CONVERT(date, fecha) >= '" + format.format(fechaInicial) + "'\n";
+        }
+        strSQL+="ORDER BY fecha DESC";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

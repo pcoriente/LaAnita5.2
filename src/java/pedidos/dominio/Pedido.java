@@ -16,45 +16,49 @@ public class Pedido extends MovimientoOficina {
     private TOTienda tienda;
     private Comprobante comprobante;
     private int idPedidoOC;
-    private String ordenDeCompra;
-    private Date ordenDeCompraFecha;
+    private Date pedidoFecha;
     private String canceladoMotivo;
     private Date canceladoFecha;
     private boolean especial;
     private String electronico;
+    private String ordenDeCompra;
+    private Date ordenDeCompraFecha;
     private int idPedido;
 
     public Pedido() {
         super(new MovimientoTipo(28, "VENTA"));
         this.tienda=new TOTienda();
         this.comprobante=new Comprobante();
-        this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
         this.electronico="";
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Comprobante comprobante) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=comprobante;
-        this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
         this.electronico="";
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Moneda moneda) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=new Comprobante(super.getTipo().getIdTipo(), almacen.getIdEmpresa(), tienda.getIdTienda(), moneda);
-        this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
         this.canceladoFecha=new Date();
         this.electronico="";
+        this.ordenDeCompra="";
+        this.ordenDeCompraFecha=new Date();
     }
 
     @Override
@@ -93,6 +97,14 @@ public class Pedido extends MovimientoOficina {
 
     public void setIdPedidoOC(int idPedidoOC) {
         this.idPedidoOC = idPedidoOC;
+    }
+
+    public Date getPedidoFecha() {
+        return pedidoFecha;
+    }
+
+    public void setPedidoFecha(Date pedidoFecha) {
+        this.pedidoFecha = pedidoFecha;
     }
 
     public TOTienda getTienda() {

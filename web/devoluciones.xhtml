@@ -15,7 +15,7 @@
         <h:form id="main" onkeypress="return event.keyCode !== 13;" >
             <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true" />
             <p:panel header="DEVOLUCIONES SOBRE VENTAS" style="float: left"
-                     rendered="#{not empty mbDevoluciones.obtenerAcciones(13)}" >
+                     rendered="#{not empty mbDevoluciones.obtenerAcciones(1040)}" >
                 <p:panelGrid id="encabezado" style="width: 910px;" >
                     <p:row >
                         <p:column >
@@ -58,15 +58,15 @@
                         <p:column >
                             <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Crear devolución" 
                                              process="encabezado" actionListener="#{mbDevoluciones.nuevaDevolucion()}" 
-                                             update="msgs" />
+                                             update="msgs :main:detalle" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>
-                <p:dataTable id="detalleVenta" value="#{mbDevoluciones.detalle}"
-                             var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
+                <p:dataTable id="detalle" value="#{mbDevoluciones.detalle}"
+                             var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                              style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
-                    <p:ajax event="rowSelect" listener="#{mbDevoluciones.modificarProducto}"
-                            update=":main:msgsVenta :main:panelEdicion" oncomplete="abrirEdicion(xhr, status, args);" />
+                    <p:ajax event="cellEdit" listener="#{mbDevoluciones.onCellEdit}"
+                            update="@this :main:msgs :main:panelLotes :main:detalleLotes" />
 
                     <f:facet name="header" >Detalle de la Devolución</f:facet>
                     <p:column headerText="SKU" style="width: 50px;" >
@@ -80,18 +80,96 @@
                             <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
+                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantVendidaSinCargo}" >
+                            <f:convertNumber pattern="###,##0.000" />
+                        </h:outputText>
+                    </p:column>
                     <p:column headerText="Devueltas" style="width: 70px; text-align: right;" >
                         <h:outputText value="#{prod.cantDevuelta}" >
                             <f:convertNumber pattern="#,##0.000" />
                         </h:outputText>
                     </p:column>
+                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantDevueltaSinCargo}" >
+                            <f:convertNumber pattern="#,##0.000" />
+                        </h:outputText>
+                    </p:column>
                     <p:column headerText="Devolver" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantFacturada}" >
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{prod.cantFacturada}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{prod.cantFacturada}" readonly="#{mbDevoluciones.devolucion.estatus!=0}" >
+                                    <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                    <p:ajax event="change" listener="#{mbDevoluciones.gestionar()}"
+                                            update=":main:msgs detalle :main:panelLotes :main:detalleLotes"
+                                            oncomplete="abrirLotesFacturadosDlg(xhr, status, args);" />
+                                </p:inputText>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                        <h:outputText value="#{prod.cantSinCargo}" >
                             <f:convertNumber pattern="#,##0.000" />
                         </h:outputText>
                     </p:column>
                 </p:dataTable>
             </p:panel>
+            <p:dialog header="Lotes Facturados a devolver" widgetVar="lotesFacturadosDlg" closable="true" resizable="false" style="width: 710px;" modal="true" >
+                <p:messages id="msgsLotes" showDetail="true" autoUpdate="true" closable="true" />
+                <p:panelGrid id="panelLotes" columns="6" >
+                    <h:outputLabel value="Vendidas :" style="font-weight: bold; color: black;" />
+                    <p:inputText id="txtVendidas" value="#{mbDevoluciones.producto.cantVendida}" size="14" readonly="true" >
+                        <f:convertNumber pattern="###,##0.0000" />
+                    </p:inputText>
+
+                    <h:outputLabel value="Devueltas :" style="font-weight: bold; color: black;" />
+                    <p:inputText id="txtDevueltas" value="#{mbDevoluciones.producto.cantDevuelta}" size="14" readonly="true" >
+                        <f:convertNumber pattern="###,##0.0000" />
+                    </p:inputText>
+                    
+                    <h:outputLabel value="Disponibles :" style="font-weight: bold; color: black;" />
+                    <p:inputText id="txtDisponibles" value="#{mbDevoluciones.producto.cantVendida-mbDevoluciones.producto.cantDevuelta-mbDevoluciones.producto.cantFacturada}" size="14" readonly="true" >
+                        <f:convertNumber pattern="###,##0.0000" />
+                    </p:inputText>
+                </p:panelGrid>
+                <p:dataTable id="detalleLotes" value="#{mbDevoluciones.detalleAlmacen}" 
+                             var="lte" scrollable="true" scrollHeight="200" style="width: 710px;"
+                             rowKey="#{lte.id}" selectionMode="single" >
+                    <p:ajax event = "rowSelect" />
+
+                    <f:facet name="header">Lote devuelto</f:facet>
+
+                    <p:column headerText="Lote" style="width: 70px;" >
+                        <h:outputText value="#{lte.lote}" />
+                    </p:column>
+                    <p:column headerText="Vendidos" style="width: 70px;" >
+                        <h:outputText value="#{lte.cantVendida}" />
+                    </p:column>
+                    <p:column headerText="Devueltos" style="width: 70px;" >
+                        <h:outputText value="#{lte.cantDevuelta}" />
+                    </p:column>
+                    <p:column headerText="Disponibles" style="width: 70px;" >
+                        <h:outputText value="#{lte.cantVendida-lte.cantDevuelta-lte.cantidad}" />
+                    </p:column>
+                    <p:column headerText="Cantidad" style="width: 70px;" >
+                        <h:outputText value="#{lte.cantidad}" />
+                    </p:column>
+
+                </p:dataTable>
+            </p:dialog>
         </h:form>
+        <script type="text/javascript" >
+            function abrirLotesFacturadosDlg(xhr, status, args) {
+                if (!(args.validationFailed || !args.okProducto)) {
+                    PF('lotesFacturadosDlg').show();
+                }
+            }
+        </script>
     </body>
 </html>

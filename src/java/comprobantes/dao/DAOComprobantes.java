@@ -190,6 +190,10 @@ public class DAOComprobantes {
                 + "INNER JOIN clientesTiendas T ON T.idTienda=C.idReferencia\n"
                 + "WHERE C.idTipoMovto=28 AND C.idEmpresa=" + idEmpresa + " AND T.idCliente=" + idCliente + " AND numero like '%" + strComprobante + "%'\n"
                 + "ORDER BY numero";
+        strSQL = "SELECT *\n"
+                + "FROM comprobantes C\n"
+                + "WHERE C.idTipoMovto=28 AND C.numero like '%" + strComprobante + "%'\n"
+                + "ORDER BY numero";
         try (Connection cn = ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

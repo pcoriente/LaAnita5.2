@@ -7,15 +7,22 @@ import comprobantes.MbComprobantes;
 import devoluciones.dao.DAODevoluciones;
 import devoluciones.dominio.Devolucion;
 import devoluciones.dominio.DevolucionProducto;
+import devoluciones.dominio.DevolucionProductoAlmacen;
 import devoluciones.to.TODevolucionProducto;
+import devoluciones.to.TODevolucionProductoAlmacen;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.naming.NamingException;
 import movimientos.to.TOMovimientoOficina;
+import org.primefaces.context.RequestContext;
+import org.primefaces.event.CellEditEvent;
+import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
 import tiendas.MbMiniTiendas;
 import usuarios.MbAcciones;
@@ -47,6 +54,10 @@ public class MbDevoluciones implements Serializable {
     private boolean modoEdicion;
     private Devolucion devolucion;
     private ArrayList<DevolucionProducto> detalle;
+    private DevolucionProducto producto;
+    private int idMovtoAlmacen;
+    private ArrayList<DevolucionProductoAlmacen> detalleAlmacen;
+    private double cantDevolver;
     private DAODevoluciones dao;
 
     public MbDevoluciones() throws NamingException {
@@ -59,17 +70,90 @@ public class MbDevoluciones implements Serializable {
 
         this.inicializar();
     }
-    
+
+    private DevolucionProductoAlmacen convertir(TODevolucionProductoAlmacen toProd) {
+        DevolucionProductoAlmacen prod = new DevolucionProductoAlmacen(this.producto.getProducto());
+        prod.setCantVendida(toProd.getCantVendida());
+        prod.setCantDevuelta(toProd.getCantDevuelta());
+        movimientos.Movimientos.convertir(toProd, prod);
+        return prod;
+    }
+
+    private TODevolucionProducto convertir(DevolucionProducto prod) {
+        TODevolucionProducto toProd = new TODevolucionProducto();
+        toProd.setCantVendida(prod.getCantVendida());
+        toProd.setCantVendidaSinCargo(prod.getCantVendidaSinCargo());
+        toProd.setCantDevuelta(prod.getCantDevuelta());
+        toProd.setCantDevueltaSinCargo(prod.getCantDevueltaSinCargo());
+        movimientos.Movimientos.convertir(prod, toProd);
+        return toProd;
+    }
+
+    public void modificarProducto(SelectEvent event) {
+        this.producto = (DevolucionProducto) event.getObject();
+
+        this.detalleAlmacen = new ArrayList<>();
+        try {
+            this.dao = new DAODevoluciones();
+            for (TODevolucionProductoAlmacen to : this.dao.obtenerDetalleAlmacen(this.idMovtoAlmacen, this.devolucion.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto())) {
+                this.detalleAlmacen.add(this.convertir(to));
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+    }
+
+    public void gestionar() {
+        boolean ok = false;
+        this.cantDevolver = this.producto.getCantFacturada();
+        this.producto.setCantFacturada(this.producto.getSeparados() - this.producto.getCantSinCargo());
+        if (this.producto.getCantVendida() - this.producto.getCantDevuelta() >= this.cantDevolver) {
+            this.detalleAlmacen = new ArrayList<>();
+            try {
+                this.dao = new DAODevoluciones();
+                for (TODevolucionProductoAlmacen to : this.dao.obtenerDetalleAlmacen(this.idMovtoAlmacen, this.devolucion.getIdMovtoAlmacen(), this.producto.getProducto().getIdProducto())) {
+                    this.detalleAlmacen.add(this.convertir(to));
+                }
+                ok = true;
+            } catch (NamingException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+            } catch (SQLException ex) {
+                Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+            }
+        } else {
+            Mensajes.mensajeAlert("La cantidad no debe ser mayor que la cantidad pendiente !!!");
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okProducto", ok);
+    }
+
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+        this.producto = this.detalle.get(event.getRowIndex());
+        if (newValue != null && newValue != oldValue) {
+            oldValue = newValue;
+        } else {
+            newValue = oldValue;
+            Mensajes.mensajeAlert("Checar que pasa ( onCellEdit ) !!!");
+        }
+    }
+
     private DevolucionProducto convertir(TODevolucionProducto toProd) throws SQLException {
         DevolucionProducto prod = new DevolucionProducto();
         prod.setCantVendida(toProd.getCantVendida());
+        prod.setCantVendidaSinCargo(toProd.getCantVendidaSinCargo());
         prod.setCantDevuelta(toProd.getCantDevuelta());
+        prod.setCantDevueltaSinCargo(toProd.getCantDevueltaSinCargo());
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         movimientos.Movimientos.convertir(toProd, prod);
+        prod.setSeparados(toProd.getCantFacturada() + toProd.getCantSinCargo());
         prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
         return prod;
     }
-    
+
     private TOMovimientoOficina convertir(Devolucion devolucion) {
         TOMovimientoOficina toDev = new TOMovimientoOficina();
         movimientos.Movimientos.convertir(devolucion, toDev);
@@ -92,6 +176,7 @@ public class MbDevoluciones implements Serializable {
             try {
                 DAOVentas daoVtas = new DAOVentas();
                 TOVenta toVta = daoVtas.obtenerVentaOficina(this.mbComprobantes.getSeleccion().getIdComprobante());
+                this.idMovtoAlmacen = toVta.getIdMovtoAlmacen();
                 if (toVta.getIdUsuario() == toVta.getPropietario()) {
                     this.mbComprobantes.convierteSeleccion();
                     this.mbTiendas.setTienda(this.mbTiendas.obtenerTienda(toVta.getIdReferencia()));
@@ -99,11 +184,17 @@ public class MbDevoluciones implements Serializable {
                     this.devolucion = new Devolucion(this.mbAlmacenes.getToAlmacen(), this.mbTiendas.getTienda(), this.mbComprobantes.getComprobante());
                     this.devolucion.setIdMovtoVenta(toVta.getIdMovto());
                     TOMovimientoOficina toDev = this.convertir(this.devolucion);
-                    
+
                     this.dao = new DAODevoluciones();
-                    for(TODevolucionProducto toProd : this.dao.crear(toDev)) {
+                    for (TODevolucionProducto toProd : this.dao.crear(toDev, this.idMovtoAlmacen, this.mbComprobantes.getComprobante().getMoneda().getIdMoneda())) {
                         this.detalle.add(this.convertir(toProd));
                     }
+                    this.devolucion.setIdMovto(toDev.getIdMovto());
+                    this.devolucion.setIdMovtoAlmacen(toDev.getIdMovtoAlmacen());
+                    this.devolucion.getComprobante().setIdComprobante(toDev.getIdComprobante());
+                    this.devolucion.setPropietario(toDev.getPropietario());
+                    this.devolucion.setIdUsuario(toDev.getIdUsuario());
+                    this.devolucion.setEstatus(toDev.getEstatus());
                 } else {
                     Mensajes.mensajeAlert("La venta esta siendo utilizada por otro usuario !!!");
                 }
@@ -142,7 +233,7 @@ public class MbDevoluciones implements Serializable {
 
     public ArrayList<Accion> getAcciones() {
         if (this.acciones == null) {
-            this.acciones = this.mbAcciones.obtenerAcciones(31);
+            this.acciones = this.mbAcciones.obtenerAcciones(1040);
         }
         return acciones;
     }
@@ -205,5 +296,45 @@ public class MbDevoluciones implements Serializable {
 
     public void setModoEdicion(boolean modoEdicion) {
         this.modoEdicion = modoEdicion;
+    }
+
+    public Devolucion getDevolucion() {
+        return devolucion;
+    }
+
+    public void setDevolucion(Devolucion devolucion) {
+        this.devolucion = devolucion;
+    }
+
+    public ArrayList<DevolucionProducto> getDetalle() {
+        return detalle;
+    }
+
+    public void setDetalle(ArrayList<DevolucionProducto> detalle) {
+        this.detalle = detalle;
+    }
+
+    public DevolucionProducto getProducto() {
+        return producto;
+    }
+
+    public void setProducto(DevolucionProducto producto) {
+        this.producto = producto;
+    }
+
+    public ArrayList<DevolucionProductoAlmacen> getDetalleAlmacen() {
+        return detalleAlmacen;
+    }
+
+    public void setDetalleAlmacen(ArrayList<DevolucionProductoAlmacen> detalleAlmacen) {
+        this.detalleAlmacen = detalleAlmacen;
+    }
+
+    public double getCantDevolver() {
+        return cantDevolver;
+    }
+
+    public void setCantDevolver(double cantDevolver) {
+        this.cantDevolver = cantDevolver;
     }
 }

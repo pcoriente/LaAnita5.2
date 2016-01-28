@@ -24,7 +24,7 @@ public class Numero_a_Letra {
     }
 
     public String Convertir(String numero, boolean mayusculas, Moneda moneda) {
-        String literal = "Son ";
+        String literal = "Son: ";
         String parte_decimal = " " + moneda.getPrefijo()+ " ";
         //si el numero utiliza (.) en lugar de (,) -> se reemplaza
         numero = numero.replace(".", ",");
