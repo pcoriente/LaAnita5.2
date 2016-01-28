@@ -7,6 +7,7 @@ package menuReportesExistencias.reportes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import javax.faces.context.FacesContext;
@@ -27,14 +28,17 @@ import net.sf.jasperreports.engine.util.JRLoader;
  */
 public class Reportes {
 
-    public static void generarReporteArrayList(ArrayList<TOExistencias> lista, String rutaArchivoCompilado, String nombreDelArchivo) throws JRException, IOException {
+    public static void generarReporteArrayList(ArrayList<TOExistencias> lista, String rutaArchivoCompilado, String nombreDelArchivo, String almacen) throws JRException, IOException {
 //        String ruta = "C:\\Reportes\\ordenCompraDaap.pdf";
 //        String ubicacionCompilado = "C:\\Reportes\\ordenCompra.jasper";
         JasperPrint jasperprint;
         JasperReport report;
-//        Map<String, Object> parametros = new HashMap<String, Object>();
+        Map<String, Object> parametros = new HashMap<String, Object>();
+        Date d = new Date();
+        parametros.put("fecha", utilerias.Utilerias.darFormatoFecha(d));
+        parametros.put("almacen", almacen);
         report = (JasperReport) JRLoader.loadObjectFromFile(rutaArchivoCompilado);
-        jasperprint = JasperFillManager.fillReport(report, null, new JRBeanCollectionDataSource(lista));
+        jasperprint = JasperFillManager.fillReport(report, parametros, new JRBeanCollectionDataSource(lista));
         HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
         httpServletResponse.addHeader("Content-disposition", "attachment; filename=rOrdenCompra" + nombreDelArchivo + ".pdf");
         ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
