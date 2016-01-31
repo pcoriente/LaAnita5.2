@@ -9,6 +9,7 @@ import movimientos.to.TOProductoOficina;
 public class TOTraspasoProducto extends TOProductoOficina {
 //    private int idSolicitud;
     private double cantSolicitada;
+    private double cantTraspasada;
     
     public TOTraspasoProducto() {
         super();
@@ -20,5 +21,13 @@ public class TOTraspasoProducto extends TOProductoOficina {
 
     public void setCantSolicitada(double cantSolicitada) {
         this.cantSolicitada = cantSolicitada;
+    }
+
+    public double getCantTraspasada() {
+        return cantTraspasada;
+    }
+
+    public void setCantTraspasada(double cantTraspasada) {
+        this.cantTraspasada = cantTraspasada;
     }
 }

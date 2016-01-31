@@ -41,7 +41,7 @@ public class DAOMovimientos {
         String strSQL = "SELECT D.lote, D.cantidad, ISNULL(A.separados, 0) AS separados\n"
                 + "FROM movimientosDetalleAlmacen D\n"
                 + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
-                + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                 + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto + "\n"
                 + "ORDER BY A.fechaCaducidad DESC";
         try (Connection cn = this.ds.getConnection()) {

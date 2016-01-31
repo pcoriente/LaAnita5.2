@@ -23,7 +23,7 @@
                                 <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:selectOneMenu id="almacen" value="#{mBTraspasoAlmacen.almacen}" >
+                                <p:selectOneMenu id="almacen" value="#{mBTraspasoAlmacen.almacen}" style="width: 350px;" >
                                     <f:converter converterId="converters.TOAlmacenJSConverter" />
                                     <f:selectItems value="#{mBTraspasoAlmacen.listaAlmacenes}" />
                                     <p:ajax event="change" listener="#{mBTraspasoAlmacen.obtenerTraspasosAlmacen()}" 
@@ -53,7 +53,7 @@
                 </p:panelGrid>
                 <p:dataTable id="listaDeTraspasos" value="#{mBTraspasoAlmacen.traspasos}" 
                              var="traspaso" rowKey="#{traspaso.idMovto}" selectionMode="single" 
-                             style="border:solid 1px; width: 910px;" emptyMessage="No existen traspasos" >
+                             style="border:solid 1px; width: 750px;" emptyMessage="No existen traspasos" >
                     <p:ajax event="rowSelect" listener="#{mBTraspasoAlmacen.obtenerDetalleAlmacen}" 
                             update=":main:msgsTraspasos :main:traspaso :main:detalleTraspaso" 
                             oncomplete="abrirTraspaso(xhr, status, args);" />
@@ -61,8 +61,8 @@
                     <p:column headerText="SOLICITUD" style="width: 60px;" >
                         <h:outputText value="#{traspaso.solicitudFolio}" />
                     </p:column>
-                    <p:column headerText="CEDIS" style="width: 150px;" >
-                        <h:outputText value="#{traspaso.almacenDestino.cedis}" />
+                    <p:column headerText="FOLIO" style="width: 60px;" >
+                        <h:outputText value="#{traspaso.folio}" />
                     </p:column>
                     <p:column headerText="ALMACEN" >
                         <h:outputText value="#{traspaso.almacenDestino.toString()}" />
@@ -73,7 +73,7 @@
                         </h:outputText>
                     </p:column>
                     <p:column headerText="ESTATUS" style="width: 60px; text-align: right;" >
-                        <h:outputText value="#{traspaso.estatus}" />
+                        <h:outputText value="#{traspaso.estatus==5?'Pendiente':'Cerrado'}" />
                     </p:column>
                 </p:dataTable>
             </p:panel>
@@ -88,7 +88,7 @@
 
                     <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
                     <p:inputText id="txtCantTraspasar" value="#{mBTraspasoAlmacen.cantTraspasar}"
-                                 readonly="#{!mBTraspasoAlmacen.locked}"
+                                 readonly="#{mBTraspasoAlmacen.traspaso.estatus!=5 or !mBTraspasoAlmacen.locked}"
                                  size="14" validatorMessage="cantidad a traspasar [ 0 - #{mBTraspasoAlmacen.loteOrigen.cantidad} ]" >
                         <f:validateDoubleRange minimum="0.0" maximum="#{mBTraspasoAlmacen.loteOrigen.cantidad}" />
                         <p:ajax event="keyup" update="msgsSimilares" />
@@ -118,24 +118,15 @@
                     </f:facet>
                 </p:dataTable>
             </p:dialog>
-            <p:dialog header="Captura del Traspaso" widgetVar="traspasoDlg" resizable="false" modal="true" >
-                <p:ajax event="close" listener="#{mBTraspasoAlmacen.liberarTraspaso()}" />
+            <p:dialog header="Captura del Traspaso" widgetVar="traspasoDlg" resizable="false" modal="true" closable="false" >
                 <p:messages id="msgsTraspaso" autoUpdate="false" showDetail="true" closable="true" />
-                <p:panelGrid id="traspaso" style="width: 910px;" >
+                <p:panelGrid id="traspaso" style="width: 630px;" >
                     <p:row >
                         <p:column >
-                            <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                            <h:outputLabel value="Almacén :" style="font-weight: bold; color: red; width: 70px;" />
                         </p:column>
-                        <p:column colspan="2" >
-                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacen}" readonly="true" size="52" />
-                        </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel value="Al CEDIS :" style="font-weight: bold; color: red;" />
-                        </p:column>
-                        <p:column colspan="2" >
-                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacenDestino.cedis}" readonly="true" size="52" />
+                        <p:column colspan="2" style="width: 400px;" >
+                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacen}" readonly="true" size="60" />
                         </p:column>
                     </p:row>
                     <p:row >
@@ -143,16 +134,13 @@
                             <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red;" />
                         </p:column>
                         <p:column >
-                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacenDestino.toString()}" readonly="true" size="52" />
+                            <p:inputText value="#{mBTraspasoAlmacen.traspaso.almacenDestino}" readonly="true" size="60" />
                         </p:column>
                         <p:column style="text-align: right;" >
                             <p:commandButton id="btnGrabarSolicitud" icon="ui-icon-disk" title="Grabar traspaso" 
                                              disabled="#{mBTraspasoAlmacen.traspaso.estatus!=5 or !mBTraspasoAlmacen.locked}"
                                              process="@this" actionListener="#{mBTraspasoAlmacen.cerrarAlmacen()}" 
-                                             update="main" />
-                            <p:commandButton icon="ui-icon-print" title="Imprimir Lotes del traspaso"
-                                             disabled="#{mBTraspasoAlmacen.traspaso.estatus!=7}"
-                                             ajax="false" immediate="true" action="#{mBTraspasoAlmacen.imprimir()}" />
+                                             update="msgsTraspaso traspaso" />
                             <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
                                              process="@this" actionListener="#{mBTraspasoAlmacen.salir()}" 
                                              update="main" />
@@ -160,7 +148,7 @@
                     </p:row>
                 </p:panelGrid>
                 <p:dataTable id="detalleTraspaso" value="#{mBTraspasoAlmacen.detalleAlmacen}"
-                             var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 910px;" 
+                             var="prod" scrollable="true" scrollHeight="200" style="border:solid 1px; width: 630px;" 
                              rowKey="#{prod.id}" selectionMode="single" selection="#{mBTraspasoAlmacen.loteOrigen}"
                              emptyMessage="No existen productos" >
                     <p:ajax event = "rowSelect" listener="#{mBTraspasoAlmacen.inicializaTraspasoLote()}" 
@@ -175,10 +163,10 @@
                     <p:column headerText="Producto" >
                         <h:outputText value="#{prod.producto.toString()}" />
                     </p:column>
-                    <p:column headerText="Lote" style="width: 80px; text-align: right;" >
+                    <p:column headerText="Lote" style="width: 60px; text-align: right;" >
                         <h:outputText value="#{prod.lote}" />
                     </p:column>
-                    <p:column headerText="Cantidad" style="width: 100px; text-align: right;" >
+                    <p:column headerText="Cantidad" style="width: 60px; text-align: right;" >
                         <h:outputText value="#{prod.cantidad}" >
                             <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>

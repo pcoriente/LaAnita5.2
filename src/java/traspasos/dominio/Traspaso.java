@@ -29,27 +29,9 @@ public class Traspaso extends MovimientoOficina {
         this.solicitudFecha = new Date();
         this.almacenDestino = almacenDestino;
     }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 29 * hash + this.idSolicitud;
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Traspaso other = (Traspaso) obj;
-        if (this.idSolicitud != other.idSolicitud) {
-            return false;
-        }
-        return true;
+    
+    public String getId() {
+        return String.valueOf(this.idSolicitud)+String.valueOf(super.getIdMovto());
     }
     
     public int getIdSolicitud() {

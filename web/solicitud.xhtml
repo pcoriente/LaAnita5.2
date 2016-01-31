@@ -48,7 +48,7 @@
                                 </p:column>
                                     <p:column style="text-align: right;" >
                                         <p:commandButton id="btnNuevaSolicitud" icon="ui-icon-document" title="Nueva Solicitud" 
-                                                         disabled="#{mbSolicitud.almacen.idAlmacen==0}"
+                                                         disabled="#{mbSolicitud.almacen.idAlmacen==0}" actionListener="#{mbSolicitud.nueva()}"
                                                          process="@this" update=":main:nuevaSolicitud"
                                                          oncomplete="PF('nuevaSolicitudDlg').show();" />
                                         <p:commandButton icon="ui-icon-home" title="Salir" 
@@ -76,7 +76,7 @@
                                 <h:outputText value="#{solicitud.idUsuario}" />
                             </p:column>
                             <p:column headerText="ESTATUS" style="width: 60px; text-align: right" >
-                                <h:outputText value="#{solicitud.estatus==0?'Pendiente':solicitud.idUsuarioOrigen==0?'Solicitada':'Aceptada'}" />
+                                <h:outputText value="#{solicitud.estatus==0?'Pendiente':solicitud.estatus==1?'Solicitada':solicitud.estatus==2?'Rechazada':solicitud.estatus==3?'Aceptada':solicitud.estatus==5?'Surtiendo':solicitud.estatus==6?'Cancelada':'Cerrada'}" />
                             </p:column>
                         </p:dataTable>
                     </p:panel>
@@ -117,7 +117,7 @@
                                                          process="@this" disabled="#{mbSolicitud.solicitud.estatus==0}"
                                                          ajax="false" immediate="true" action="#{mbSolicitud.imprimir()}" />
                                         <p:commandButton icon="ui-icon-trash" title="Eliminar solicitud"
-                                                         disabled="#{sbSolicitud.solicitud.estatus ge 2 or !mbSolicitud.locked}"
+                                                         disabled="#{mbSolicitud.solicitud.estatus ge 2 or !mbSolicitud.locked}"
                                                          process="@this" actionListener="#{mbSolicitud.eliminar()}"
                                                          update="main" />
                                         <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
@@ -126,31 +126,30 @@
                                 </p:row>
                             </f:facet>
                         </p:panelGrid>
-                        <p:dataTable id="detalleSolicitud" value="#{mbSolicitud.detalle}" style="border:solid 1px;"
+                        <p:dataTable id="detalleSolicitud" value="#{mbSolicitud.detalle}" style="border:solid 1px; width: 545px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
                             <p:ajax event="cellEdit" listener="#{mbSolicitud.onCellEdit}" update=":main:msgs" />
 
-                            <p:column headerText="SKU" width="64"  >
+                            <p:column headerText="SKU" style="width: 50px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" />
                             </p:column>
-                            <p:column headerText="Producto" width="500" >
+                            <p:column headerText="Producto" style="width: 350px;" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
-                            <p:column headerText="Solicitada" style="width: 100px;" >
+                            <p:column headerText="Solicitada" style="width: 75px;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
                                         <h:outputText value="#{prod.cajasSolicitadas}" >
-                                            <f:convertNumber pattern="###,##0.000" />
+                                            <f:convertNumber pattern="###,##0" />
                                         </h:outputText>
                                     </f:facet>
                                     <f:facet name="input">
-                                        <p:inputText value="#{prod.cajasSolicitadas}" style="width:80px;" onblur="" label="CANTIDAD" 
+                                        <p:inputText value="#{prod.cajasSolicitadas}" onblur="" label="CANTIDAD" 
                                                      readonly="#{mbSolicitud.solicitud.estatus!=0 or !mbSolicitud.locked}" >
-                                            <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
-                                            <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
-                                            <p:ajax event="change" 
-                                                    process="@this" listener="#{mbSolicitud.gestionar()}"
+                                            <f:validateDoubleRange minimum="0" maximum="999999" />
+                                            <f:convertNumber maxIntegerDigits="6" />
+                                            <p:ajax event="change" process="@this" listener="#{mbSolicitud.gestionar()}"
                                                     update=":main:msgs detalleSolicitud" />
                                         </p:inputText>
                                     </f:facet>

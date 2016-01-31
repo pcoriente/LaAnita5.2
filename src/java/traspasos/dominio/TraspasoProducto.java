@@ -8,6 +8,7 @@ import movimientos.dominio.ProductoOficina;
  */
 public class TraspasoProducto extends ProductoOficina {
     private double cantSolicitada;
+    private double cantTraspasada;
 //    private ArrayList<ProductoAlmacen> lotes;
     
     public TraspasoProducto() {
@@ -30,4 +31,12 @@ public class TraspasoProducto extends ProductoOficina {
 //    public void setLotes(ArrayList<ProductoAlmacen> lotes) {
 //        this.lotes = lotes;
 //    }
+//
+    public double getCantTraspasada() {
+        return cantTraspasada;
+    }
+
+    public void setCantTraspasada(double cantTraspasada) {
+        this.cantTraspasada = cantTraspasada;
+    }
 }

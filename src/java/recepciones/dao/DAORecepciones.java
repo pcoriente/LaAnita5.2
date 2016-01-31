@@ -194,7 +194,7 @@ public class DAORecepciones {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                this.generaRechazo(cn, mov);
+//                this.generaRechazo(cn, mov);
 
                 mov.setIdUsuario(this.idUsuario);
                 mov.setPropietario(0);
@@ -358,7 +358,7 @@ public class DAORecepciones {
         if (estatus != 0) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
-        strSQL += "ORDER BY M.fecha DESC";
+        strSQL += "ORDER BY M.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

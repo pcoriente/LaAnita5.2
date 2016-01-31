@@ -24,7 +24,7 @@
                                     <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.almacen}" style="width: 400px;" >
+                                    <p:selectOneMenu id="almacenDestino" value="#{mbRecepcion.almacen}" style="width: 385px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbRecepcion.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbRecepcion.obtenerRecepciones()}" 
@@ -52,7 +52,7 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px"
+                        <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px; width: 680px;"
                                      var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.obtenerDetalle}" update="main" />
@@ -63,11 +63,8 @@
                             <p:column headerText="TRASPASO" style="width: 60px; text-align: right;" >
                                 <h:outputText value="#{recepcion.traspasoFolio}" />
                             </p:column>
-                            <p:column headerText="CEDIS" style="width: 150px;" >
-                                <h:outputText value="#{recepcion.almacenOrigen.cedis}" />
-                            </p:column>
                             <p:column headerText="ALMACEN" >
-                                <h:outputText value="#{recepcion.almacenOrigen.almacen}" />
+                                <h:outputText value="#{recepcion.almacenOrigen}" />
                             </p:column>
                             <p:column headerText="FECHA" style="width: 130px;" >
                                 <h:outputText value="#{recepcion.traspasoFecha}" >
@@ -77,11 +74,11 @@
                             
                         </p:dataTable>
                     </p:panel>
-                    <p:panel id="mantenimiento" header="RECEPCION DE TRASPASO" rendered="#{mbRecepcion.modoEdicion}" >
+                    <p:panel id="mantenimiento" header="RECEPCION" rendered="#{mbRecepcion.modoEdicion}" >
                         <p:panelGrid id="mantenimientoEnvio" >
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Al Almacen :" style="font-weight: bold; color: red; width: 95px;" />
+                                    <h:outputLabel value="Almacén :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column colspan="2" >
                                     <p:inputText value="#{mbRecepcion.recepcion.almacen}" readonly="true" size="52" />
@@ -89,15 +86,7 @@
                             </p:row>
                             <p:row >
                                 <p:column >
-                                    <h:outputLabel value="Del CEDIS :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column colspan="2" >
-                                    <p:inputText value="#{mbRecepcion.recepcion.almacenOrigen.cedis}" readonly="true" size="52" />
-                                </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="Del Almacen :" style="font-weight: bold; color: red;" />
+                                    <h:outputLabel value="Del Almacén :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
                                     <p:inputText value="#{mbRecepcion.recepcion.almacenOrigen.toString()}" readonly="true" size="52" />

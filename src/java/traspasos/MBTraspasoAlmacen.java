@@ -65,21 +65,27 @@ public class MBTraspasoAlmacen implements Serializable {
     public void imprimir() {}
 
     public void cerrarAlmacen() {
-        boolean ok = false;
+//        boolean ok = false;
         try {
             TOTraspaso toMov = this.convertir(this.traspaso);
 
             this.dao = new DAOTraspasos();
             this.dao.cerrarAlmacen(toMov);
+            this.traspaso.setFolio(toMov.getFolio());
+            this.traspaso.setFecha(toMov.getFecha());
+            this.traspaso.setEstatus(toMov.getEstatus());
+            this.traspaso.setIdUsuario(toMov.getIdUsuario());
+            this.traspaso.setPropietario(toMov.getPropietario());
+            this.setLocked(toMov.getIdUsuario()==toMov.getPropietario());
             Mensajes.mensajeSucces("El traspaso se cerró correctamente !!!");
-            ok = true;
+//            ok = true;
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
-        RequestContext context = RequestContext.getCurrentInstance();
-        context.addCallbackParam("okTraspaso", ok);
+//        RequestContext context = RequestContext.getCurrentInstance();
+//        context.addCallbackParam("okTraspaso", ok);
     }
 
     public void actualizaTraspasoLote() {
@@ -197,9 +203,9 @@ public class MBTraspasoAlmacen implements Serializable {
             for (TOTraspasoProductoAlmacen toProd : this.dao.obtenerDetalleAlmacen(toTraspaso)) {
                 this.detalleAlmacen.add(this.convertirAlmacenProducto(toProd));
             }
+            this.traspaso.setEstatus(toTraspaso.getEstatus());
             this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
             this.traspaso.setPropietario(toTraspaso.getPropietario());
-            this.traspaso.setEstatus(toTraspaso.getEstatus());
             this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
             ok = true;
         } catch (SQLException ex) {

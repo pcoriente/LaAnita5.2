@@ -219,11 +219,13 @@ public class MbRecepcion implements Serializable {
             try {
                 this.dao = new DAORecepciones();
                 this.dao.grabar(toMov);
+                this.recepcion.setFolio(toMov.getFolio());
                 this.recepcion.setFecha(toMov.getFecha());
+                this.recepcion.setEstatus(toMov.getEstatus());
                 this.recepcion.setIdUsuario(toMov.getIdUsuario());
                 this.recepcion.setPropietario(toMov.getPropietario());
-                this.recepcion.setEstatus(toMov.getEstatus());
-                Mensajes.mensajeSucces("La recepcion se grabo correctamente !!!");
+                this.setLocked(this.recepcion.getIdUsuario()==this.recepcion.getPropietario());
+                Mensajes.mensajeSucces("La recepción se grabo correctamente !!!");
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
             } catch (NamingException ex) {
@@ -243,8 +245,8 @@ public class MbRecepcion implements Serializable {
         toProd.setCantidad(this.lote.getCantidad());
         if (cantSolicitada < 0) {
             Mensajes.mensajeAlert("Cantidad recibida no puede ser menor que cero");
-        } else if (cantSolicitada > this.lote.getCantTraspasada()) {
-            Mensajes.mensajeAlert("Cantidad recibida mayor que cantidad traspasada");
+//        } else if (cantSolicitada > this.lote.getCantTraspasada()) {
+//            Mensajes.mensajeAlert("Cantidad recibida mayor que cantidad traspasada");
         } else {
             try {
                 this.dao = new DAORecepciones();
@@ -350,9 +352,9 @@ public class MbRecepcion implements Serializable {
             for (TORecepcionProducto p : this.dao.obtenerDetalle(toRecepcion)) {
                 this.detalle.add(this.convertir(p));
             }
+            this.recepcion.setEstatus(toRecepcion.getEstatus());
             this.recepcion.setIdUsuario(toRecepcion.getIdUsuario());
             this.recepcion.setPropietario(toRecepcion.getPropietario());
-            this.recepcion.setEstatus(toRecepcion.getEstatus());
             this.setLocked(this.recepcion.getIdUsuario()==this.recepcion.getPropietario());
             this.modoEdicion = true;
         } catch (SQLException ex) {

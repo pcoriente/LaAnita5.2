@@ -220,7 +220,6 @@ public class MbSolicitud implements Serializable {
         this.mbAlmacenes.setListaAlmacenes(null);
         this.listaAlmacenes = this.mbAlmacenes.getListaAlmacenes();
         this.almacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
-        this.mbCedis.cargaMiniCedisZona();
         this.mbBuscar.inicializar();
         this.pendientes = true;
         this.fechaInicial = new Date();
@@ -421,6 +420,11 @@ public class MbSolicitud implements Serializable {
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
+    }
+    
+    public void nueva() {
+        this.mbCedis.cargaMiniCedisZona();
+        this.cargaAlmacenesCedisEmpresa();
     }
 
     public TraspasoProducto getResSolicitudProducto() {

@@ -33,7 +33,7 @@ public class Solicitudes {
             if (rs.next()) {
                 toTraspaso.setEstatus(rs.getInt("estatus"));
                 propietario = rs.getInt("propietario");
-                if (toTraspaso.getEstatus() == estatus && propietario == 0) {
+                if (propietario == 0) {
                     strSQL = "UPDATE solicitudes SET propietario=" + idUsuario + "\n"
                             + "WHERE idSolicitud=" + toTraspaso.getReferencia();
                     st.executeUpdate(strSQL);
