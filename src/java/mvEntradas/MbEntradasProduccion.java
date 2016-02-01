@@ -105,6 +105,7 @@ public class MbEntradasProduccion implements Serializable {
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
+        rep.setPiezas(prod.getProducto().getPiezas());
         rep.setUnitario(prod.getUnitario());
         for (TOMovimientoProductoAlmacen l : this.dao.obtenerProductoDetalle(this.entrada.getIdMovtoAlmacen(), prod.getProducto().getIdProducto())) {
             if (l.getCantidad() != 0) {
@@ -113,6 +114,7 @@ public class MbEntradasProduccion implements Serializable {
                 } else {
                     rep.setLote(l.getLote());
                     rep.setLoteCantidad(l.getCantidad());
+                    rep.setPiezas(rep.getPiezas());
                     ya = true;
                 }
             }
@@ -131,7 +133,7 @@ public class MbEntradasProduccion implements Serializable {
                     detalleReporte.add(this.convertirProductoReporte(p));
                 }
             }
-            String sourceFileName = "C:\\Carlos Pat\\Reportes\\Traspaso.jasper";
+            String sourceFileName = "C:\\Carlos Pat\\Reportes\\produccion.jasper";
             JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
             Map parameters = new HashMap();
             parameters.put("empresa", this.entrada.getAlmacen().getEmpresa());
@@ -141,9 +143,8 @@ public class MbEntradasProduccion implements Serializable {
 
             parameters.put("concepto", this.entrada.getTipo().getTipo());
 
-            parameters.put("capturaFolio", this.entrada.getFolio());
-            parameters.put("capturaFecha", formatoFecha.format(this.entrada.getFecha()));
-            parameters.put("capturaHora", formatoHora.format(this.entrada.getFecha()));
+            parameters.put("folio", this.entrada.getFolio());
+            parameters.put("fecha", this.entrada.getFecha());
 
             parameters.put("idUsuario", this.entrada.getIdUsuario());
 

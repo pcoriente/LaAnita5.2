@@ -91,13 +91,14 @@ public class MbTraspaso implements Serializable {
         this.inicializa();
     }
     
-    private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to) {
+    private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to, int piezas) {
         TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
         toProd.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
         toProd.setIdProducto(to.getIdProducto());
         toProd.setLote(to.getLote());
         toProd.setCantidad(to.getCantidad());
         toProd.setFechaCaducidad(to.getFechaCaducidad());
+        toProd.setPiezas(piezas);
         return toProd;
     }
 
@@ -107,11 +108,12 @@ public class MbTraspaso implements Serializable {
         rep.setSku(prod.getProducto().getCod_pro());
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
+        rep.setPiezas(prod.getProducto().getPiezas());
         rep.setUnitario(prod.getUnitario());
         for (TOMovimientoProductoAlmacen l : this.daoAlm.obtenerDetalleProducto(this.traspaso.getIdMovtoAlmacen(), prod.getProducto().getIdProducto())) {
             if (l.getCantidad() != 0) {
                 if (ya) {
-                    rep.getLotes().add(this.convertir(l));
+                    rep.getLotes().add(this.convertir(l, rep.getPiezas()));
                 } else {
                     rep.setLote(l.getLote());
                     rep.setLoteCantidad(l.getCantidad());

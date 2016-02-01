@@ -83,7 +83,7 @@ public class MbRecepcion implements Serializable {
         this.inicializa();
     }
     
-    private TORechazoProductoAlmacen convertir(TORecepcionProductoAlmacen to) {
+    private TORechazoProductoAlmacen convertir(TORecepcionProductoAlmacen to, int piezas) {
         TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
         toProd.setCantRecibida(0);
         toProd.setCantTraspasada(to.getCantTraspasada());
@@ -91,6 +91,7 @@ public class MbRecepcion implements Serializable {
         toProd.setIdProducto(to.getIdProducto());
         toProd.setLote(to.getLote());
         toProd.setCantidad(to.getCantidad());
+        toProd.setPiezas(piezas);
         return toProd;
     }
 
@@ -101,10 +102,11 @@ public class MbRecepcion implements Serializable {
         rep.setEmpaque(prod.getProducto().toString());
         rep.setCantFacturada(prod.getCantFacturada());
         rep.setUnitario(prod.getUnitario());
+        rep.setPiezas(prod.getProducto().getPiezas());
         for (TORecepcionProductoAlmacen l : prod.getLotes()) {
             if (l.getCantidad() != 0) {
                 if (ya) {
-                    rep.getLotes().add(this.convertir(l));
+                    rep.getLotes().add(this.convertir(l, rep.getPiezas()));
                 } else {
                     rep.setLote(l.getLote());
                     rep.setLoteCantidad(l.getCantidad());

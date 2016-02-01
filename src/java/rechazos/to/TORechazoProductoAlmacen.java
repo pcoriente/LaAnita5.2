@@ -9,6 +9,7 @@ import movimientos.to.TOMovimientoProductoAlmacen;
 public class TORechazoProductoAlmacen extends TOMovimientoProductoAlmacen {
     private double cantTraspasada;
     private double cantRecibida;
+    private int piezas;
     
     public TORechazoProductoAlmacen() {
         super();
@@ -28,5 +29,13 @@ public class TORechazoProductoAlmacen extends TOMovimientoProductoAlmacen {
 
     public void setCantRecibida(double cantRecibida) {
         this.cantRecibida = cantRecibida;
+    }
+
+    public int getPiezas() {
+        return piezas;
+    }
+
+    public void setPiezas(int piezas) {
+        this.piezas = piezas;
     }
 }
