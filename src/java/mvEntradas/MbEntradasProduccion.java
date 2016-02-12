@@ -483,6 +483,7 @@ public class MbEntradasProduccion implements Serializable {
         this.pendientes = true;
         this.fechaInicial = new Date();
         this.fechaReporte = new Date();
+        this.entradas = new ArrayList<>();
     }
 
     public void inicializar() {
