@@ -320,6 +320,11 @@ public class Movimientos {
                     if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
                         boletin.set(0, rs.getDouble("conCargo"));
                         boletin.set(1, rs.getDouble("sinCargo"));
+                        double resto = boletin.get(0) % boletin.get(1);
+                        if(resto != 0) {
+                            boletin.set(0, boletin.get(0)/resto);
+                            boletin.set(1, boletin.get(1)/resto);
+                        }
                     }
                 }
             } else {

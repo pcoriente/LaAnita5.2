@@ -71,7 +71,7 @@
                         <p:column headerText="Pedido" style="width: 50px;" >
                             <h:outputText value="#{pedido.pedidoFolio}" />
                         </p:column>
-                        <p:column headerText="Fecha" style="width: 85px;" >
+                        <p:column headerText="Fecha" style="width: 95px;" >
                             <h:outputText value="#{pedido.pedidoFecha}" >
                                 <f:convertDateTime pattern="dd/MM/yyyy hh:mm a" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </h:outputText>
@@ -286,8 +286,8 @@
                                     <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                                 </p:inputText>
                             </p:column>
-                            <p:column colspan="2" style="width: 210px;" >
-                                <h:outputLabel for="txtDesctoComercial" value="DESCUENTO COMERCIAL :" style="font-weight: bold; color: black;" />
+                            <p:column colspan="2" style="width: 210px; text-align: right;" >
+                                <h:outputLabel for="txtDesctoComercial" value="DESCUENTO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column style="width: 90px;" >
                                 <p:inputText id="txtDesctoComercial" value="#{mbPedidos.pedido.desctoComercial}" readonly="true" size="6" />
