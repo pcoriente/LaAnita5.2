@@ -148,7 +148,7 @@ public class DAOComprasOficina {
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toDevolucion, true);
 
                 strSQL = "INSERT INTO movimientosDetalle\n"
-                        + "SELECT " + toDevolucion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0\n"
+                        + "SELECT " + toDevolucion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0, 0\n"
                         + "FROM movimientosDetalle WHERE idMovto=" + idMovtoCompra;
                 st.executeUpdate(strSQL);
 
@@ -589,7 +589,7 @@ public class DAOComprasOficina {
                     + "	   , 0 AS costoPromedio, OCD.costoOrdenado AS costo\n"
                     + "	   , OCD.descuentoProducto AS desctoProducto1, OCD.descuentoProducto2 AS desctoProducto2\n"
                     + "	   , OCD.desctoConfidencial, 0 AS unitario, OCD.idImpuestosGrupo AS idImpuestoGrupo\n"
-                    + "	   , '' AS fecha, 0 AS existenciaAnterior\n"
+                    + "	   , '' AS fecha, 0 AS existenciaAnterior, 0 AS ctoPromAnterior\n"
                     + "FROM (SELECT M.referencia, MAD.idEmpaque, SUM(MAD.cantidad) AS cantidad\n"
                     + "      FROM movimientos M\n"
                     + "      INNER JOIN movimientosAlmacen MA ON MA.idAlmacen=M.idAlmacen AND MA.idTipo=M.idTipo AND MA.idReferencia=M.idReferencia AND MA.referencia=M.referencia AND MA.idComprobante=M.idComprobante\n"

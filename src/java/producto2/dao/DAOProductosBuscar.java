@@ -273,6 +273,8 @@ public class DAOProductosBuscar {
         to.setDun14(rs.getString("dun14"));
         to.setPeso(rs.getDouble("peso"));
         to.setVolumen(rs.getDouble("volumen"));
+        to.setSufijo(rs.getString("sufijo"));
+        to.setDiasCaducidad(rs.getInt("diasCaducidad"));
         return to;
     }
     
@@ -293,6 +295,7 @@ public class DAOProductosBuscar {
         String strSQL=""
                 + "SELECT e.idEmpaque, e.cod_pro, e.idProducto, e.piezas, e.idSubEmpaque, e.dun14, e.peso, e.volumen\n"
                 + "     , u.idUnidad as idUnidadEmpaque, u.unidad as unidadEmpaque, u.abreviatura as abreviaturaEmpaque\n"
+                + "     , e.sufijo, e.diasCaducidad\n"
                 + "FROM empaques e\n"
                 + "INNER JOIN empaquesUnidades u ON u.idUnidad=e.idUnidadEmpaque\n";
         return strSQL;

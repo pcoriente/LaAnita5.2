@@ -371,17 +371,21 @@ public class MbVentasAlmacen implements Serializable {
     public void inicializaTraspasoLote() {
         boolean ok = false;
         try {
-            this.empaqueLotes = new ArrayList<>();
-            this.dao = new DAOVentas();
-            for (TOVentaProductoAlmacen to : this.dao.obtenerLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen))) {
-                this.empaqueLotes.add(this.convertirAlmacenProducto(to));
-            }
-            if (this.empaqueLotes.isEmpty()) {
-                Mensajes.mensajeAlert("No hay lotes con existencia disponible para traspasar !!");
+            if(this.venta.getEstatus()!=5) {
+                Mensajes.mensajeAlert("La venta ya ha sido cerrada !!!");
             } else {
-                this.cantTraspasar = 0;
-                this.loteDestino = null;
-                ok = true;
+                this.empaqueLotes = new ArrayList<>();
+                this.dao = new DAOVentas();
+                for (TOVentaProductoAlmacen to : this.dao.obtenerLotesDisponibles(this.venta.getAlmacen().getIdAlmacen(), this.convertirAlmacenProducto(this.loteOrigen))) {
+                    this.empaqueLotes.add(this.convertirAlmacenProducto(to));
+                }
+                if (this.empaqueLotes.isEmpty()) {
+                    Mensajes.mensajeAlert("No hay lotes con existencia disponible para traspasar !!");
+                } else {
+                    this.cantTraspasar = 0;
+                    this.loteDestino = null;
+                    ok = true;
+                }
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());

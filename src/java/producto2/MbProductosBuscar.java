@@ -267,6 +267,8 @@ public class MbProductosBuscar implements Serializable {
         p.setDun14(to.getDun14());
         p.setPeso(to.getPeso());
         p.setVolumen(to.getVolumen());
+        p.setSufijo(to.getSufijo());
+        p.setDiasCaducidad(to.getDiasCaducidad());
         return p;
     }
 

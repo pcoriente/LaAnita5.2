@@ -13,18 +13,22 @@ import tiendas.to.TOTienda;
  * @author jesc
  */
 public class Venta extends MovimientoOficina {
+    private int idPedido;
     private TOTienda tienda;
     private Comprobante comprobante;
     private int idPedidoOC;
-//    private int idMoneda;
+    private int pedidoFolio;
     private Date pedidoFecha;
-    private String canceladoMotivo;
-    private Date canceladoFecha;
+    private int diasCredito;
     private boolean especial;
+    private int pedidoIdUsuario;
+    private String canceladoMotivo;
+//    private Date canceladoFecha;
+    private int pedidoEstatus;
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
-    private int idPedido;
+    
     
     public Venta() {
         super(new MovimientoTipo(28, "VENTA"));
@@ -32,7 +36,7 @@ public class Venta extends MovimientoOficina {
         this.comprobante=new Comprobante();
         this.pedidoFecha=new Date();
         this.canceladoMotivo="";
-        this.canceladoFecha=new Date();
+//        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
@@ -44,7 +48,7 @@ public class Venta extends MovimientoOficina {
         this.comprobante=comprobante;
         this.pedidoFecha=new Date();
         this.canceladoMotivo="";
-        this.canceladoFecha=new Date();
+//        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
@@ -56,10 +60,18 @@ public class Venta extends MovimientoOficina {
         this.comprobante=new Comprobante(super.getTipo().getIdTipo(), almacen.getIdEmpresa(), tienda.getIdTienda(), moneda);
         this.pedidoFecha=new Date();
         this.canceladoMotivo="";
-        this.canceladoFecha=new Date();
+//        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+    }
+
+    public int getIdPedido() {
+        return idPedido;
+    }
+
+    public void setIdPedido(int idPedido) {
+        this.idPedido = idPedido;
     }
 
     public TOTienda getTienda() {
@@ -86,13 +98,77 @@ public class Venta extends MovimientoOficina {
         this.idPedidoOC = idPedidoOC;
     }
 
-//    public int getIdMoneda() {
-//        return idMoneda;
+    public int getPedidoFolio() {
+        return pedidoFolio;
+    }
+
+    public void setPedidoFolio(int pedidoFolio) {
+        this.pedidoFolio = pedidoFolio;
+    }
+
+    public Date getPedidoFecha() {
+        return pedidoFecha;
+    }
+
+    public void setPedidoFecha(Date pedidoFecha) {
+        this.pedidoFecha = pedidoFecha;
+    }
+
+    public int getDiasCredito() {
+        return diasCredito;
+    }
+
+    public void setDiasCredito(int diasCredito) {
+        this.diasCredito = diasCredito;
+    }
+
+    public boolean isEspecial() {
+        return especial;
+    }
+
+    public void setEspecial(boolean especial) {
+        this.especial = especial;
+    }
+
+    public int getPedidoIdUsuario() {
+        return pedidoIdUsuario;
+    }
+
+    public void setPedidoIdUsuario(int pedidoIdUsuario) {
+        this.pedidoIdUsuario = pedidoIdUsuario;
+    }
+
+    public String getCanceladoMotivo() {
+        return canceladoMotivo;
+    }
+
+    public void setCanceladoMotivo(String canceladoMotivo) {
+        this.canceladoMotivo = canceladoMotivo;
+    }
+
+//    public Date getCanceladoFecha() {
+//        return canceladoFecha;
 //    }
 //
-//    public void setIdMoneda(int idMoneda) {
-//        this.idMoneda = idMoneda;
+//    public void setCanceladoFecha(Date canceladoFecha) {
+//        this.canceladoFecha = canceladoFecha;
 //    }
+//
+    public int getPedidoEstatus() {
+        return pedidoEstatus;
+    }
+
+    public void setPedidoEstatus(int pedidoEstatus) {
+        this.pedidoEstatus = pedidoEstatus;
+    }
+
+    public String getElectronico() {
+        return electronico;
+    }
+
+    public void setElectronico(String electronico) {
+        this.electronico = electronico;
+    }
 
     public String getOrdenDeCompra() {
         return ordenDeCompra;
@@ -108,53 +184,5 @@ public class Venta extends MovimientoOficina {
 
     public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
         this.ordenDeCompraFecha = ordenDeCompraFecha;
-    }
-
-    public Date getPedidoFecha() {
-        return pedidoFecha;
-    }
-
-    public void setPedidoFecha(Date pedidoFecha) {
-        this.pedidoFecha = pedidoFecha;
-    }
-
-    public String getCanceladoMotivo() {
-        return canceladoMotivo;
-    }
-
-    public void setCanceladoMotivo(String canceladoMotivo) {
-        this.canceladoMotivo = canceladoMotivo;
-    }
-
-    public Date getCanceladoFecha() {
-        return canceladoFecha;
-    }
-
-    public void setCanceladoFecha(Date canceladoFecha) {
-        this.canceladoFecha = canceladoFecha;
-    }
-
-    public boolean isEspecial() {
-        return especial;
-    }
-
-    public void setEspecial(boolean especial) {
-        this.especial = especial;
-    }
-
-    public String getElectronico() {
-        return electronico;
-    }
-
-    public void setElectronico(String electronico) {
-        this.electronico = electronico;
-    }
-
-    public int getIdPedido() {
-        return idPedido;
-    }
-
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
     }
 }

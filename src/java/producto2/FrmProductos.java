@@ -193,6 +193,8 @@ public class FrmProductos implements Serializable {
             this.producto.setPeso(0);
             this.producto.setVolumen(0);
             this.producto.setDun14("");
+            this.producto.setSufijo("");
+            this.producto.setDiasCaducidad(0);
             this.mbBuscar.getMbUpc().nuevo(0);
             this.mbBuscar.getMbUpc().cargaListaUpcs();
             fMsg.setSeverity(FacesMessage.SEVERITY_INFO);

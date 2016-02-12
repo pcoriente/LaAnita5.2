@@ -9,6 +9,8 @@ import producto2.dominio.Producto;
  */
 public class PedidoProducto extends ProductoOficina {
     private int idPedido;
+    private double cajas;
+    private double cajasSinCargo;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private boolean similar;
@@ -28,6 +30,22 @@ public class PedidoProducto extends ProductoOficina {
 
     public void setIdPedido(int idPedido) {
         this.idPedido = idPedido;
+    }
+
+    public double getCajas() {
+        return cajas;
+    }
+
+    public void setCajas(double cajas) {
+        this.cajas = cajas;
+    }
+
+    public double getCajasSinCargo() {
+        return cajasSinCargo;
+    }
+
+    public void setCajasSinCargo(double cajasSinCargo) {
+        this.cajasSinCargo = cajasSinCargo;
     }
 
     public double getCantOrdenada() {

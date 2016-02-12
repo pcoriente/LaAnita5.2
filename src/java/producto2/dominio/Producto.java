@@ -16,6 +16,8 @@ public class Producto {
     private String dun14;
     private double peso;
     private double volumen;
+    private String sufijo;
+    private int diasCaducidad;
 
     public Producto() {
         this.cod_pro = "";
@@ -24,6 +26,7 @@ public class Producto {
         this.empaque = new Empaque();
         this.subProducto = new SubProducto();
         this.dun14 = "";
+        this.sufijo = "";
     }
 
     public Producto(Articulo articulo, Upc upc) {
@@ -33,6 +36,7 @@ public class Producto {
         this.empaque = new Empaque();
         this.subProducto = new SubProducto();
         this.dun14 = "";
+        this.sufijo = "";
     }
 
 //    public String toString() {
@@ -192,5 +196,21 @@ public class Producto {
 
     public void setUpc(Upc upc) {
         this.upc = upc;
+    }
+
+    public String getSufijo() {
+        return sufijo;
+    }
+
+    public void setSufijo(String sufijo) {
+        this.sufijo = sufijo;
+    }
+
+    public int getDiasCaducidad() {
+        return diasCaducidad;
+    }
+
+    public void setDiasCaducidad(int diasCaducidad) {
+        this.diasCaducidad = diasCaducidad;
     }
 }

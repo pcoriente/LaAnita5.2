@@ -51,15 +51,13 @@ public class DAOTraspasos {
 
                 toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toTraspaso);
-                strSQL = "UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen();
-                st.executeUpdate(strSQL);
                 movimientos.Movimientos.actualizaDetalleAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), false);
+                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), this.idUsuario);
 
-                toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
-                movimientos.Movimientos.grabaMovimientoOficina(cn, toTraspaso);
-                strSQL = "UPDATE movimientos SET propietario=0 WHERE idMovto=" + toTraspaso.getIdMovto();
-                st.executeUpdate(strSQL);
                 movimientos.Movimientos.actualizaDetalleOficina(cn, toTraspaso.getIdMovto(), toTraspaso.getIdTipo(), false);
+                strSQL="UPDATE movimientos SET estatus=" + toTraspaso.getEstatus() + " WHERE idMovto=" + toTraspaso.getIdMovto();
+                st.executeUpdate(strSQL);
+                movimientos.Movimientos.liberarMovimientoOficina(cn, toTraspaso.getIdMovto(), this.idUsuario);
 
                 // ------------------------- SECCION: CREAR RECEPCION ---------------------
 
@@ -78,8 +76,8 @@ public class DAOTraspasos {
                 toRecepcion.setReferencia(toTraspaso.getIdMovto());
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toRecepcion, false);
 
-                strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior)\n"
-                        + "SELECT " + toRecepcion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0\n"
+                strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior)\n"
+                        + "SELECT " + toRecepcion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0, 0\n"
                         + "FROM movimientosDetalle WHERE idMovto=" + toTraspaso.getIdMovto();
                 st.executeUpdate(strSQL);
 
@@ -393,16 +391,14 @@ public class DAOTraspasos {
                 toTraspaso.setPropietario(0);
                 toTraspaso.setEstatus(5);
 
-                movimientos.Movimientos.grabaMovimientoAlmacen(cn, toTraspaso);
-                strSQL = "UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen();
+                strSQL="UPDATE movimientosAlmacen SET estatus=" + toTraspaso.getEstatus() + "\n"
+                        + "WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
+                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), this.idUsuario);
 
-                //toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
+                toTraspaso.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toTraspaso.getIdAlmacen(), toTraspaso.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, toTraspaso);
-                strSQL = "UPDATE movimientos SET propietario=0 WHERE idMovto=" + toTraspaso.getIdMovto();
-                st.executeUpdate(strSQL);
-
-                //movimientos.Movimientos.actualizaDetalleOficina(cn, toTraspaso.getIdMovto(), toTraspaso.getIdTipo(), false);
+                movimientos.Movimientos.liberarMovimientoOficina(cn, toTraspaso.getIdMovto(), this.idUsuario);
 
                 strSQL = "UPDATE solicitudes SET estatus=5 WHERE idSolicitud=" + toTraspaso.getReferencia();
                 st.executeUpdate(strSQL);
@@ -431,7 +427,7 @@ public class DAOTraspasos {
             strSQL = "INSERT INTO movimientosDetalle\n"
                     + "SELECT " + toMov.getIdMovto() + " AS idMovto, SD.idEmpaque, 0 AS cantFacturada, 0 AS cantSinCargo\n"
                     + "     , 0 AS costoPromedio, 0 AS costo, 0 AS desctoProducto1, 0 AS desctoProducto2, 0 AS desctoConfidencial\n"
-                    + "     , 0 AS unitario, P.idImpuesto AS idImpuestoGrupo, '' AS fecha, 0 AS existentencioAnterior\n"
+                    + "     , 0 AS unitario, P.idImpuesto AS idImpuestoGrupo, '' AS fecha, 0 AS existentencioAnterior, 0 AS ctoPromAnterior\n"
                     + "FROM (SELECT S.idSolicitud, D.idEmpaque, SUM(D.cantFacturada) AS cantTraspasada\n"
                     + "     FROM movimientos M\n"
                     + "     INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"

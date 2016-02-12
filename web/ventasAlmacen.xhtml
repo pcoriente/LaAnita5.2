@@ -74,7 +74,7 @@
                         </h:outputText>
                     </p:column>
                     <p:column headerText="Pedido" style="width: 7%;" >
-                        <h:outputText value="#{vta.idPedido}" />
+                        <h:outputText value="#{vta.pedidoFolio}" />
                     </p:column>
                 </p:dataTable>
             </p:panel>
@@ -88,7 +88,7 @@
 
                     <h:outputLabel for="txtCantTraspasar" value="Cant.Traspasar :" style="font-weight: bold; color: black;" />
                     <p:inputText id="txtCantTraspasar" value="#{mbVentasAlmacen.cantTraspasar}"
-                                    readonly="#{not mbVentasAlmacen.locked}"
+                                    readonly="#{mbVentasAlmacen.venta.estatus!=5 or !mbVentasAlmacen.locked}"
                                     size="14" validatorMessage="cantidad a traspasar [ 0 - #{mbVentasAlmacen.loteOrigen.cantidad} ]" >
                         <f:validateDoubleRange minimum="0.0" maximum="#{mbVentasAlmacen.loteOrigen.cantidad}" />
                         <p:ajax event="keyup" update="msgsSimilares" />
@@ -153,13 +153,13 @@
                             <h:outputLabel for="txtPedido" value="PEDIDO:" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column style="width: 70px;" >
-                            <p:inputText id="txtPedido" value="#{mbVentasAlmacen.venta.idPedido}" readonly="true" size="6" />
+                            <p:inputText id="txtPedido" value="#{mbVentasAlmacen.venta.pedidoFolio}" readonly="true" size="6" />
                         </p:column>
                         <p:column style="width: 70px;" >
                             <h:outputLabel for="txtFecha" value="FECHA:" style="font-weight: bold; color: black;" />
                         </p:column>
                         <p:column style="width: 170px;" >
-                            <p:inputText id="txtFecha" value="#{mbVentasAlmacen.venta.fecha}" readonly="true" size="11" >
+                            <p:inputText id="txtFecha" value="#{mbVentasAlmacen.venta.pedidoFecha}" readonly="true" size="11" >
                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentasAlmacen.zonaHoraria.ID}" />
                             </p:inputText>
                         </p:column>

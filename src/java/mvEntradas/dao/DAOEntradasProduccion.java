@@ -14,10 +14,9 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
-import movimientos.to.TOMovimientoOficina;
 import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoOficina;
-import mvEntradas.to.TOEntradaProduccionProducto;
+import mvEntradas.to.TOEntradaProduccion;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -57,15 +56,23 @@ public class DAOEntradasProduccion {
         }
     }
 
-    public ArrayList<TOProductoOficina> grabar(TOMovimientoOficina toMov) throws SQLException {
+    public ArrayList<TOProductoOficina> grabar(TOEntradaProduccion toMov) throws SQLException {
+        String strSQL;
         ArrayList<TOProductoOficina> productos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try {
+            try (Statement st = cn.createStatement()) {
                 toMov.setEstatus(7);
 
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
+                
+                strSQL="UPDATE D\n"
+                        + "SET lote=CONCAT(lote, E.sufijo)\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovtoAlmacen=" + toMov.getIdMovtoAlmacen();
+                st.executeUpdate(strSQL);
 
                 movimientos.Movimientos.actualizaDetalleAlmacen(cn, toMov.getIdMovtoAlmacen(), true);
 
@@ -86,7 +93,7 @@ public class DAOEntradasProduccion {
         return productos;
     }
 
-    public void cancelarMovimiento(int idMovto, int idMovtoAlmacen) throws SQLException {
+    public void eliminar(int idMovto, int idMovtoAlmacen) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -101,6 +108,9 @@ public class DAOEntradasProduccion {
                 st.executeUpdate(strSQL);
 
                 strSQL = "DELETE FROM movimientos WHERE idMovto=" + idMovto;
+                st.executeUpdate(strSQL);
+                
+                strSQL = "DELETE FROM entradasProduccion WHERE idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
 
                 cn.commit();
@@ -174,7 +184,7 @@ public class DAOEntradasProduccion {
         return productos;
     }
 
-    public ArrayList<TOProductoOficina> obtenerDetalle(TOMovimientoOficina toMov) throws SQLException {
+    public ArrayList<TOProductoOficina> obtenerDetalle(TOEntradaProduccion toMov) throws SQLException {
         ArrayList<TOProductoOficina> productos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -207,13 +217,21 @@ public class DAOEntradasProduccion {
             }
         }
     }
+    
+    private TOEntradaProduccion construir(ResultSet rs) throws SQLException {
+        TOEntradaProduccion toEnt = new TOEntradaProduccion();
+        toEnt.setFechaReporte(new java.util.Date(rs.getDate("fechaReporte").getTime()));
+        movimientos.Movimientos.construirMovimientoOficina(rs, toEnt);
+        return toEnt;
+    }
 
-    public ArrayList<TOMovimientoOficina> obtenerEntradas(int idAlmacen, int idTipo, int estatus, Date fechaInicial) throws SQLException {
+    public ArrayList<TOEntradaProduccion> obtenerEntradas(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        ArrayList<TOMovimientoOficina> entradas = new ArrayList<>();
-        String strSQL = "SELECT M.*\n"
+        ArrayList<TOEntradaProduccion> entradas = new ArrayList<>();
+        String strSQL = "SELECT M.*, P.fechaReporte\n"
                 + "FROM movimientos M\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=" + idTipo + " AND M.estatus=" + estatus + "\n";
+                + "INNER JOIN entradasProduccion P ON P.idMovto=M.idMovto\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo IN (3,18) AND M.estatus=" + estatus + "\n";
         if (estatus == 7) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
@@ -223,7 +241,7 @@ public class DAOEntradasProduccion {
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                entradas.add(movimientos.Movimientos.construirMovimientoOficina(rs));
+                entradas.add(construir(rs));
             }
         } finally {
             cn.close();
@@ -231,16 +249,22 @@ public class DAOEntradasProduccion {
         return entradas;
     }
 
-    public void crearEntrada(TOMovimientoOficina toMov) throws SQLException {
+    public void crearEntrada(TOEntradaProduccion toEnt) throws SQLException {
+        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try {
-                toMov.setIdUsuario(this.idUsuario);
-                toMov.setPropietario(this.idUsuario);
-                toMov.setEstatus(0);
+            try (Statement st = cn.createStatement()) {
+                toEnt.setIdUsuario(this.idUsuario);
+                toEnt.setPropietario(this.idUsuario);
+                toEnt.setEstatus(0);
 
-                movimientos.Movimientos.agregaMovimientoAlmacen(cn, toMov, false);
-                movimientos.Movimientos.agregaMovimientoOficina(cn, toMov, false);
+                movimientos.Movimientos.agregaMovimientoAlmacen(cn, toEnt, false);
+                movimientos.Movimientos.agregaMovimientoOficina(cn, toEnt, false);
+                
+                java.sql.Date fechaReporte = new java.sql.Date(toEnt.getFechaReporte().getTime());
+                strSQL="INSERT INTO entradasProduccion (idMovto, fechaReporte)\n"
+                        + "VALUES ("+toEnt.getIdMovto()+", '"+fechaReporte.toString()+"')";
+                st.executeUpdate(strSQL);
 
                 cn.commit();
             } catch (SQLException ex) {

@@ -1421,7 +1421,7 @@ public class DAOMovimientosOld {
         to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
         to.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-        to.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
+//        to.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
         this.construirMovimiento(rs, to);
         return to;
     }

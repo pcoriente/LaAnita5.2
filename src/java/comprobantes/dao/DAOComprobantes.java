@@ -183,17 +183,18 @@ public class DAOComprobantes {
         }
     }
     
-    public ArrayList<TOComprobante> completeComprobantes28(int idEmpresa, int idCliente, String strComprobante) throws SQLException {
+    public ArrayList<TOComprobante> completeComprobantes28(int idAlmacen, String strComprobante) throws SQLException {
         ArrayList<TOComprobante> comprobantes = new ArrayList<>();
+//        String strSQL = "SELECT *\n"
+//                + "FROM comprobantes C\n"
+//                + "INNER JOIN clientesTiendas T ON T.idTienda=C.idReferencia\n"
+//                + "WHERE C.idTipoMovto=28 AND C.idEmpresa=" + idEmpresa + " AND T.idCliente=" + idCliente + " AND numero like '%" + strComprobante + "%'\n"
+//                + "ORDER BY numero";
         String strSQL = "SELECT *\n"
-                + "FROM comprobantes C\n"
-                + "INNER JOIN clientesTiendas T ON T.idTienda=C.idReferencia\n"
-                + "WHERE C.idTipoMovto=28 AND C.idEmpresa=" + idEmpresa + " AND T.idCliente=" + idCliente + " AND numero like '%" + strComprobante + "%'\n"
-                + "ORDER BY numero";
-        strSQL = "SELECT *\n"
-                + "FROM comprobantes C\n"
-                + "WHERE C.idTipoMovto=28 AND C.numero like '%" + strComprobante + "%'\n"
-                + "ORDER BY numero";
+                + "FROM movimientos M\n"
+                + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus=7 AND C.numero like '%" + strComprobante + "%'\n"
+                + "ORDER BY C.numero";
         try (Connection cn = ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);

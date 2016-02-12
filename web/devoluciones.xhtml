@@ -13,15 +13,15 @@
     <body>
         <ui:include src="wrapper.xhtml" />
         <h:form id="main" onkeypress="return event.keyCode !== 13;" >
-            <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true" />
+            <p:messages style="float: left; width: 900px;" id="msgs" autoUpdate="false" showDetail="true" closable="true" />
             <p:panel header="DEVOLUCIONES SOBRE VENTAS" style="float: left"
-                     rendered="#{not empty mbDevoluciones.obtenerAcciones(1040)}" >
-                <p:panelGrid id="encabezado" style="width: 910px;" >
+                     rendered="#{not empty mbDevoluciones.obtenerAcciones(1040) and not mbDevoluciones.modoEdicion}" >
+                <p:panelGrid id="encabezado" style="width: 900px;" >
                     <p:row >
-                        <p:column >
+                        <p:column style="width: 80px;" >
                             <h:outputLabel for="almacen" value="ALMACEN :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="2" >
+                        <p:column >
                             <p:selectOneMenu id="almacen" value="#{mbDevoluciones.mbAlmacenes.toAlmacen}" style="width: 350px;" >
                                 <f:converter converterId="converters.TOAlmacenJSConverter" />
                                 <f:selectItems value="#{mbDevoluciones.mbAlmacenes.listaAlmacenes}" />
@@ -29,44 +29,121 @@
                                         update="msgs" />
                             </p:selectOneMenu>
                         </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel for="cliente" value="CLIENTE :" style="font-weight: bold; color: black;" />
+                        <p:column style="width: 80px;" >
+                            <h:outputLabel value="FACTURA :" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="2" >
-                            <p:selectOneMenu id="cliente" value="#{mbDevoluciones.mbClientes.cliente}" style="width: 500px;"
-                                             filter="true" filterMatchMode="contains" >
-                                <f:converter converterId="converters.miniCliente" />
-                                <f:selectItems value="#{mbDevoluciones.mbClientes.listaClientes}" />
-                                <p:ajax event="change" listener="#{mbDevoluciones.actualizaComprobanteCliente()}" 
-                                        update="msgs comprobanteComplete" />
-                            </p:selectOneMenu>
-                        </p:column>
-                    </p:row>
-                    <p:row >
-                        <p:column >
-                            <h:outputLabel value="FACTURA :" style="font-weight: bold; color: red;" />
-                        </p:column>
-                        <p:column >
+                        <p:column style="width: 130px;" >
                             <p:autoComplete id="comprobanteComplete" value="#{mbDevoluciones.mbComprobantes.seleccion}"
                                             completeMethod="#{mbDevoluciones.mbComprobantes.completeComprobantes28}" 
                                             var="c" itemValue="#{c}" itemLabel="#{c.toString()}" converter="converters.ComprobanteConverter" 
                                             maxlength="16" size="16" forceSelection="true" >
+                                <p:ajax event="itemSelect" listener="#{mbDevoluciones.obtenerDevoluciones()}"
+                                        update="msgs btnNuevo listaDevoluciones" />
                             </p:autoComplete>
                         </p:column>
-                        <p:column >
-                            <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Crear devolución" 
+                        <p:column style="width: 110px; text-align: right;" >
+                            <p:commandButton id="btnNuevo" icon="ui-icon-document" title="Nueva devolución"
+                                             disabled="#{mbDevoluciones.pendientes}"
                                              process="encabezado" actionListener="#{mbDevoluciones.nuevaDevolucion()}" 
-                                             update="msgs :main:detalle" />
+                                             update="main" />
+                            <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
+                                             ajax="false" action="#{mbDevoluciones.terminar()}" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="listaDevoluciones" value="#{mbDevoluciones.listaDevoluciones}"
+                             var="dev" rowKey="#{dev.idMovto}" selectionMode="single" selection="#{mbDevoluciones.devolucion}"
+                             style="border:solid 1px; width: 900px;" emptyMessage="No existen devoluciones" >
+                    <p:ajax event="rowSelect" listener="#{mbDevoluciones.obtenerDetalle()}" update="main" />
+
+                    <f:facet name="header" >Lista de devoluciones</f:facet>
+
+                    <p:column headerText="Cliente" style="width: 250px;" >
+                        <h:outputText value="#{dev.tienda.contribuyente}" />
+                    </p:column>
+                    <p:column headerText="Tienda" style="width: 250px;" >
+                        <h:outputText value="#{dev.tienda}" />
+                    </p:column>
+                    <p:column headerText="Fecha" style="width: 70px;" >
+                        <h:outputText value="#{dev.fecha}" >
+                            <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbDevoluciones.zonaHoraria.ID}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Comprobante" style="width: 80px;" >
+                        <h:outputText value="#{dev.comprobante}" />
+                    </p:column>
+                    <p:column headerText="idUsuario" style="width: 50px;" >
+                        <h:outputText value="#{dev.idUsuario}" />
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+            <p:confirmDialog global="true" >
+                <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+            <p:panel id="mantenimiento" style="float: left;" header="DEVOLUCION SOBRE VENTA" rendered="#{mbDevoluciones.modoEdicion}" >
+                <p:panelGrid id="encabezado2" style="width: 900px;" >
+                    <p:row >
+                        <p:column style="width: 105px;" >
+                            <h:outputLabel value="Almacén :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column style="width: 310px;" >
+                            <p:inputText value="#{mbDevoluciones.devolucion.almacen}" readonly="true" size="45" />
+                        </p:column>
+                        <p:column style="width: 65px;" >
+                            <h:outputLabel value="Factura :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText value="#{mbDevoluciones.mbComprobantes.seleccion}" readonly="true" size="20" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="Cliente :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText value="#{mbDevoluciones.devolucion.tienda.contribuyente}" readonly="true" size="45" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel value="Tienda :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText value="#{mbDevoluciones.devolucion.tienda.tienda}" readonly="true" size="45" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel value="Comprobante :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText value="#{mbDevoluciones.devolucion.comprobante}" readonly="true" size="20" />
+                        </p:column>
+                        <p:column colspan="2" style="text-align: right;" >
+                            <p:commandButton icon="ui-icon-print" title="Imprimir Devolución"
+                                                     disabled="#{mbDevoluciones.devolucion.estatus le 6}"
+                                                     ajax="false" immediate="true" action="#{mbDevoluciones.imprimir()}" />
+                            <p:commandButton id="btnEliminar" icon="ui-icon-trash" title="Eliminar Devolución" 
+                                             disabled="#{mbDevoluciones.devolucion.estatus!=0 or !mbDevoluciones.locked}"
+                                             process="@this" actionListener="#{mbDevoluciones.eliminar()}" update="main" >
+                                <p:confirm header="Eliminar Devolución" message="Confirma ?" icon="ui-icon-alert"  />
+                            </p:commandButton>
+                            <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar Devolución" 
+                                             disabled="#{mbDevoluciones.devolucion.estatus!=0 or !mbDevoluciones.locked}"
+                                             process="@this" actionListener="#{mbDevoluciones.grabar()}" update="main" >
+                                <p:confirm header="Grabar Devolución" message="Confirma ?" icon="ui-icon-alert"  />
+                            </p:commandButton>
+                            <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Terminar"
+                                             process="@this" actionListener="#{mbDevoluciones.salir()}" 
+                                             update="main" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>
                 <p:dataTable id="detalle" value="#{mbDevoluciones.detalle}"
-                             var="prod" rowKey="#{prod.producto.idProducto}" editable="true" editMode="cell"
-                             style="border:solid 1px; width: 910px;" emptyMessage="No existen productos" >
-                    <p:ajax event="cellEdit" listener="#{mbDevoluciones.onCellEdit}"
-                            update="@this :main:msgs :main:panelLotes :main:detalleLotes" />
+                             var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single"
+                             style="border:solid 1px; width: 900px;" emptyMessage="No existen productos" >
+                    <p:ajax event="rowSelect" listener="#{mbDevoluciones.modificarProducto}"
+                            update=":main:msgs :main:panelLotes :main:detalleLotes"
+                            oncomplete="abrirLotesFacturadosDlg(xhr, status, args);" />
 
                     <f:facet name="header" >Detalle de la Devolución</f:facet>
                     <p:column headerText="SKU" style="width: 50px;" >
@@ -75,47 +152,29 @@
                     <p:column headerText="Descripción" >
                         <h:outputText value="#{prod.producto.toString()}" />
                     </p:column>
-                    <p:column headerText="Vendidas" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantVendida}" >
+                    <p:column headerText="Vendidas" style="width: 60px; text-align: right;" >
+                        <h:outputText value="#{prod.cantVendida+prod.cantVendidaSinCargo}" >
                             <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantVendidaSinCargo}" >
-                            <f:convertNumber pattern="###,##0.000" />
-                        </h:outputText>
-                    </p:column>
-                    <p:column headerText="Devueltas" style="width: 70px; text-align: right;" >
+                    <p:column headerText="Devueltas" style="width: 60px; text-align: right;" >
                         <h:outputText value="#{prod.cantDevuelta}" >
-                            <f:convertNumber pattern="#,##0.000" />
+                            <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantDevueltaSinCargo}" >
-                            <f:convertNumber pattern="#,##0.000" />
+                    <p:column headerText="Devolver" style="width: 60px; text-align: right;" >
+                        <h:outputText value="#{prod.cantFacturada}" >
+                            <f:convertNumber pattern="###,##0.000" />
                         </h:outputText>
                     </p:column>
-                    <p:column headerText="Devolver" style="width: 70px; text-align: right;" >
-                        <p:cellEditor>
-                            <f:facet name="output">
-                                <h:outputText value="#{prod.cantFacturada}" >
-                                    <f:convertNumber pattern="###,##0.000" />
-                                </h:outputText>
-                            </f:facet>
-                            <f:facet name="input">
-                                <p:inputText value="#{prod.cantFacturada}" readonly="#{mbDevoluciones.devolucion.estatus!=0}" >
-                                    <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
-                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
-                                    <p:ajax event="change" listener="#{mbDevoluciones.gestionar()}"
-                                            update=":main:msgs detalle :main:panelLotes :main:detalleLotes"
-                                            oncomplete="abrirLotesFacturadosDlg(xhr, status, args);" />
-                                </p:inputText>
-                            </f:facet>
-                        </p:cellEditor>
+                    <p:column headerText="Unitario" style="width: 60px; text-align: right;" >
+                        <h:outputText value="#{prod.unitario}" >
+                            <f:convertNumber pattern="###,##0.00" />
+                        </h:outputText>
                     </p:column>
-                    <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
-                        <h:outputText value="#{prod.cantSinCargo}" >
-                            <f:convertNumber pattern="#,##0.000" />
+                    <p:column headerText="Importe" style="width: 60px; text-align: right;" >
+                        <h:outputText value="#{prod.unitario*prod.cantFacturada}" >
+                            <f:convertNumber pattern="###,##0.00" />
                         </h:outputText>
                     </p:column>
                 </p:dataTable>
@@ -124,7 +183,7 @@
                 <p:messages id="msgsLotes" showDetail="true" autoUpdate="true" closable="true" />
                 <p:panelGrid id="panelLotes" columns="6" >
                     <h:outputLabel value="Vendidas :" style="font-weight: bold; color: black;" />
-                    <p:inputText id="txtVendidas" value="#{mbDevoluciones.producto.cantVendida}" size="14" readonly="true" >
+                    <p:inputText id="txtVendidas" value="#{mbDevoluciones.producto.cantVendida+mbDevoluciones.producto.cantVendidaSinCargo}" size="14" readonly="true" >
                         <f:convertNumber pattern="###,##0.0000" />
                     </p:inputText>
 
@@ -132,16 +191,15 @@
                     <p:inputText id="txtDevueltas" value="#{mbDevoluciones.producto.cantDevuelta}" size="14" readonly="true" >
                         <f:convertNumber pattern="###,##0.0000" />
                     </p:inputText>
-                    
+
                     <h:outputLabel value="Disponibles :" style="font-weight: bold; color: black;" />
-                    <p:inputText id="txtDisponibles" value="#{mbDevoluciones.producto.cantVendida-mbDevoluciones.producto.cantDevuelta-mbDevoluciones.producto.cantFacturada}" size="14" readonly="true" >
+                    <p:inputText id="txtDisponibles" value="#{mbDevoluciones.producto.cantVendida+mbDevoluciones.producto.cantVendidaSinCargo-mbDevoluciones.producto.cantDevuelta-mbDevoluciones.producto.cantFacturada}" size="14" readonly="true" >
                         <f:convertNumber pattern="###,##0.0000" />
                     </p:inputText>
                 </p:panelGrid>
-                <p:dataTable id="detalleLotes" value="#{mbDevoluciones.detalleAlmacen}" 
-                             var="lte" scrollable="true" scrollHeight="200" style="width: 710px;"
-                             rowKey="#{lte.id}" selectionMode="single" >
-                    <p:ajax event = "rowSelect" />
+                <p:dataTable id="detalleLotes" value="#{mbDevoluciones.detalleAlmacen}" editable="true" editMode="cell" 
+                             var="lte" rowKey="#{lte.id}" scrollable="true" scrollRows="10" style="width: 710px;" >
+                    <p:ajax event="cellEdit" listener="#{mbDevoluciones.onCellEdit}" />
 
                     <f:facet name="header">Lote devuelto</f:facet>
 
@@ -157,10 +215,25 @@
                     <p:column headerText="Disponibles" style="width: 70px;" >
                         <h:outputText value="#{lte.cantVendida-lte.cantDevuelta-lte.cantidad}" />
                     </p:column>
-                    <p:column headerText="Cantidad" style="width: 70px;" >
-                        <h:outputText value="#{lte.cantidad}" />
+                    <p:column headerText="Devolver" style="width: 70px;" >
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{lte.cantidad}" >
+                                    <f:convertNumber pattern="###,##0.000" />
+                                </h:outputText>
+                            </f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{lte.cantidad}" style="width:70px;" onblur="" label="CANTIDAD" 
+                                             readonly="#{mbDevoluciones.devolucion.estatus!=0 or !mbDevoluciones.locked}" >
+                                    <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
+                                    <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
+                                    <p:ajax event="change" 
+                                            process="@this" listener="#{mbDevoluciones.gestionar()}"
+                                            update=":main:msgsLotes :main:panelLotes :main:detalleLotes :main:detalle" />
+                                </p:inputText>
+                            </f:facet>
+                        </p:cellEditor>
                     </p:column>
-
                 </p:dataTable>
             </p:dialog>
         </h:form>

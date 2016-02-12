@@ -17,12 +17,15 @@ public class TOProducto {
     private String dun14;
     private double peso;
     private double volumen;
+    private String sufijo;
+    private int diasCaducidad;
     
     public TOProducto() {
         this.cod_pro="";
         this.empaque=new Empaque();
         this.subProducto=new SubProducto();
         this.dun14="";
+        this.sufijo="";
     }
 
     public int getIdProducto() {
@@ -95,5 +98,21 @@ public class TOProducto {
 
     public void setVolumen(double volumen) {
         this.volumen = volumen;
+    }
+
+    public String getSufijo() {
+        return sufijo;
+    }
+
+    public void setSufijo(String sufijo) {
+        this.sufijo = sufijo;
+    }
+
+    public int getDiasCaducidad() {
+        return diasCaducidad;
+    }
+
+    public void setDiasCaducidad(int diasCaducidad) {
+        this.diasCaducidad = diasCaducidad;
     }
 }

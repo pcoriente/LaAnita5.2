@@ -27,6 +27,7 @@ public class MbComprobantes implements Serializable {
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
     private int idTipoMovto;
+    private int idAlmacen;
     private int idEmpresa;
     private int idReferencia;
     private Comprobante comprobante;
@@ -206,7 +207,7 @@ public class MbComprobantes implements Serializable {
         ArrayList<TOComprobante> lstComprobantes = null;
         try {
             this.dao = new DAOComprobantes();
-            lstComprobantes = this.dao.completeComprobantes28(this.idEmpresa, this.idReferencia, query);
+            lstComprobantes = this.dao.completeComprobantes28(this.idAlmacen, query);
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
@@ -303,6 +304,14 @@ public class MbComprobantes implements Serializable {
 
     public void setIdEmpresa(int idEmpresa) {
         this.idEmpresa = idEmpresa;
+    }
+
+    public int getIdAlmacen() {
+        return idAlmacen;
+    }
+
+    public void setIdAlmacen(int idAlmacen) {
+        this.idAlmacen = idAlmacen;
     }
 
     public int getIdReferencia() {

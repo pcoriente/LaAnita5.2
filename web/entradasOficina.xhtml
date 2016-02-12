@@ -27,7 +27,7 @@
                                     <p:selectOneMenu id="almacen" value="#{mbEntradasOficina.mbAlmacenes.toAlmacen}" style="width: 400px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbEntradasOficina.mbAlmacenes.listaAlmacenes}" />
-                                        <p:ajax event="change" listener="#{mbEntradasAlmacen.obtenerEntradas()}"
+                                        <p:ajax event="change" listener="#{mbEntradasOficina.obtenerEntradas()}"
                                                 update=":main:msgs :main:listaPendientes" />
                                     </p:selectOneMenu>
                                 </p:column>
@@ -35,7 +35,7 @@
                                     <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
                                                              style="font-weight: bold; color: black;"
                                                              value="#{mbEntradasOficina.pendientes}" >
-                                        <p:ajax event="change" process="@this" listener="#{mbEntradasAlmacen.obtenerEntradas()}"
+                                        <p:ajax event="change" process="@this" listener="#{mbEntradasOficina.obtenerEntradas()}"
                                                 update=":main:msgs fechaInicial :main:listaPendientes" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>

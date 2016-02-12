@@ -19,6 +19,7 @@ import mbMenuClientesGrupos.MbClientesGrupos;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import producto2.MbProductosBuscar;
+import producto2.dominio.Producto;
 import tiendas.MbMiniTiendas;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
@@ -209,13 +210,13 @@ public class MbVentas implements Serializable {
 
     public void eliminarVenta() {
         boolean ok = false;
-        this.locked = false;
         try {
             TOVenta toMov = this.convertir(this.venta);
 
             this.dao = new DAOVentas();
             this.dao.eliminarVentaOficina(toMov);
             this.ventas.remove(this.venta);
+            this.setLocked(false);
             this.venta = null;
             ok = true;
         } catch (NamingException ex) {
@@ -225,6 +226,33 @@ public class MbVentas implements Serializable {
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
+    }
+    
+    public void cancelarVenta() {
+        boolean ok = false;
+        try {
+            TOVenta toVta = this.convertir(this.venta);
+
+            this.dao = new DAOVentas();
+            this.dao.cancelarVenta(toVta);
+            for(VentaProducto prod : this.detalle) {
+                prod.setCantFacturada(0);
+                prod.setCantSinCargo(0);
+            }
+            this.venta.setPedidoEstatus(toVta.getPedidoEstatus());
+            this.venta.setPropietario(toVta.getPropietario());
+            this.venta.setIdUsuario(toVta.getIdUsuario());
+            this.venta.setEstatus(toVta.getEstatus());
+            this.setLocked(this.venta.getIdUsuario()==this.venta.getPropietario());
+            Mensajes.mensajeSucces("La venta se canceló correctamente !!!");
+            ok = true;
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okVenta", ok);
     }
 
     public double sumaPiezasOficina() {
@@ -251,8 +279,7 @@ public class MbVentas implements Serializable {
                 this.venta.setEstatus(toVta.getEstatus());
                 this.venta.setIdUsuario(toVta.getIdUsuario());
                 this.venta.setPropietario(toVta.getPropietario());
-                this.venta.getComprobante().setTipo("2");
-                this.venta.getComprobante().setNumero(String.valueOf(toVta.getFolio()));
+                this.venta.setComprobante(this.mbComprobantes.obtenerComprobante(toVta.getIdComprobante()));
                 this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
                 Mensajes.mensajeSucces("La venta se cerró correctamente !!!");
                 ok = true;
@@ -359,7 +386,7 @@ public class MbVentas implements Serializable {
             Mensajes.mensajeAlert("La cantidad sin cargo no debe ser menor que cero !!!");
         } else if (toProd.getCantSinCargo() > toProd.getCantOrdenadaSinCargo()) {
             Mensajes.mensajeAlert("La cantidad sin cargo no debe ser mayor a la cantidad ordenada sin cargo !!!");
-        } else if (toProd.getCantSinCargo() != toProd.getCantOrdenadaSinCargo()) {
+        } else if (toProd.getCantSinCargo() != this.producto.getCantSinCargo()) {
             TOVenta toMov = this.convertir(this.venta);
             try {
                 this.dao = new DAOVentas();
@@ -489,7 +516,7 @@ public class MbVentas implements Serializable {
             try {
                 this.dao = new DAOVentas();
                 this.dao.agregarProducto(toVta, toProd);
-                this.producto = this.convertir(toProd);
+                this.producto = this.convertir(toProd, this.producto.getProducto());
 //                this.producto.setIdMovto(toProd.getIdMovto());
 //                this.producto.setIdPedido(toProd.getIdPedido());
                 this.detalle.add(this.producto);
@@ -536,6 +563,16 @@ public class MbVentas implements Serializable {
                 this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantFacturada());
             }
         }
+    }
+    
+    private VentaProducto convertir(TOVentaProducto toProd, Producto producto) throws SQLException {
+        VentaProducto prod = new VentaProducto(producto);
+        prod.setIdPedido(toProd.getIdPedido());
+        prod.setCantOrdenada(toProd.getCantOrdenada());
+        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+        movimientos.Movimientos.convertir(toProd, prod);
+        prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
+        return prod;
     }
 
     private VentaProducto convertir(TOVentaProducto toProd) throws SQLException {
@@ -618,6 +655,7 @@ public class MbVentas implements Serializable {
                 this.venta.setIdMovto(toVta.getIdMovto());
                 this.venta.setIdMovtoAlmacen(toVta.getIdMovtoAlmacen());
                 this.venta.getComprobante().setIdComprobante(toVta.getIdComprobante());
+                this.venta.setIdPedido(toVta.getReferencia());
                 this.venta.setFecha(toVta.getFecha());
                 this.venta.setIdUsuario(toVta.getIdUsuario());
                 this.venta.setPropietario(toVta.getPropietario());
@@ -669,6 +707,7 @@ public class MbVentas implements Serializable {
             // Si ya esta cerrada, se queda con lo que se leyo de la base
             vta.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
             vta.setDesctoProntoPago(0);
+            vta.setDiasCredito(this.mbClientes.getCliente().getDiasCredito());
         }
         return vta;
     }

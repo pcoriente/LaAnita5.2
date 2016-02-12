@@ -18,20 +18,21 @@
                     <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
                     <p:panel id="encabezado" header="ENTRADAS DE PRODUCCION"
                              rendered="#{not empty mbEntradasProduccion.obtenerAcciones(27) and not mbEntradasProduccion.modoEdicion}">
-                        <p:panelGrid id="encabezadoSalida" >
+                        <p:panelGrid id="encabezadoSalida" style="width: 900px;" >
                             <p:row >
-                                <p:column >
-                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: red;" />
+                                <p:column style="width: 80px;" >
+                                    <h:outputLabel value="ALMACEN :" style="font-weight: bold; color: black;" />
                                 </p:column>
                                 <p:column >
-                                    <p:selectOneMenu id="almacen" value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" style="width: 400px;" >
+                                    <p:selectOneMenu id="almacen" value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}"
+                                                     style="width: 345px;" >
                                         <f:converter converterId="converters.TOAlmacenJSConverter" />
                                         <f:selectItems value="#{mbEntradasProduccion.mbAlmacenes.listaAlmacenes}" />
                                         <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
-                                                update=":main:msgs listaDeEntradas" />
+                                                update=":main:msgs btnNueva listaDeEntradas" />
                                     </p:selectOneMenu>
                                 </p:column>
-                                <p:column >
+                                <p:column style="width: 100px;" >
                                     <p:selectBooleanCheckbox id="chkTodosLosPedios" itemLabel="PENDIENTES"
                                                              style="font-weight: bold; color: black;"
                                                              value="#{mbEntradasProduccion.pendientes}" >
@@ -39,7 +40,7 @@
                                                 update=":main:msgs fechaInicial listaDeEntradas" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
-                                <p:column >
+                                <p:column style="width: 175px;" >
                                     <p:calendar id="fechaInicial" value="#{mbEntradasProduccion.fechaInicial}"
                                                 disabled="#{mbEntradasProduccion.pendientes}"
                                                 readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
@@ -47,38 +48,31 @@
                                                 update=":main:msgs listaDeEntradas" />
                                     </p:calendar>
                                 </p:column>
-                            </p:row>
-                            <p:row >
-                                <p:column >
-                                    <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
-                                </p:column>
-                                <p:column >
-                                    <p:selectOneMenu id="concepto" value="#{mbEntradasProduccion.tipo}" style="width: 400px;" >
-                                        <f:converter converterId="converters.MovimientoTipo" />
-                                        <f:selectItems value="#{mbEntradasProduccion.listaMovimientosTipos}" />
-                                        <p:ajax event="change" listener="#{mbEntradasProduccion.obtenerEntradas()}"
-                                                update=":main:msgs listaDeEntradas" />
-                                    </p:selectOneMenu>
-                                </p:column>
-                                <p:column colspan="2" style="text-align: right;" >
-                                    <p:commandButton id="btnNueva" icon="ui-icon-document" title="Crear nueva entrada" 
-                                                     process="@this" actionListener="#{mbEntradasProduccion.crearEntrada()}" update="main" />
+                                <p:column style="text-align: right; width: 65px;" >
+                                    <p:commandButton id="btnNueva" icon="ui-icon-document" title="Crear nueva entrada"
+                                                     disabled="#{mbEntradasProduccion.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                     process="@this" onclick="PF('nuevaDlg').show();" />
                                     <p:commandButton id="btnTerminar" icon="ui-icon-home" title="Salir" 
                                                      process="@this" action="#{mbEntradasProduccion.terminar()}" />
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
                         <p:dataTable id="listaDeEntradas" widgetVar="listaDeEntradas"
-                                     value="#{mbEntradasProduccion.entradas}" style="border: solid 1px; width: 800px;"
+                                     value="#{mbEntradasProduccion.entradas}" style="border: solid 1px; width: 900px;"
                                      var="entrada" rowKey="#{entrada.idMovtoAlmacen}" selectionMode="single"
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax event="rowSelect" listener="#{mbEntradasProduccion.obtenerDetalle}" update=":main" />
 
-                            <p:column headerText="ALMACEN" style="width: 300px;" >
+                            <p:column headerText="ALMACEN" style="width: 250px;" >
                                 <h:outputText value="#{entrada.almacen}" />
                             </p:column>
-                            <p:column headerText="TIPO" style="width: 300px;" >
+                            <p:column headerText="CONCEPTO" style="width: 250px;" >
                                 <h:outputText value="#{entrada.tipo}" />
+                            </p:column>
+                            <p:column headerText="REPORTE" style="width: 55px;" >
+                                <h:outputText value="#{entrada.fechaReporte}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
                             </p:column>
                             <p:column headerText="FOLIO" style="width: 45px;" >
                                 <h:outputText value="#{entrada.folio}" />
@@ -90,6 +84,42 @@
                             </p:column>
                         </p:dataTable>
                     </p:panel>
+                    <p:dialog id="nuevaDlg" widgetVar="nuevaDlg" header="NUEVA ENTRADA" resizable="false" modal="true" width="550" >
+                        <p:panelGrid >
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="CONCEPTO :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:selectOneMenu id="concepto" value="#{mbEntradasProduccion.tipo}" style="width: 350px;" >
+                                        <f:converter converterId="converters.MovimientoTipo" />
+                                        <f:selectItems value="#{mbEntradasProduccion.listaMovimientosTipos}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column >
+                                    <h:outputLabel value="REPORTE :" style="font-weight: bold; color: red;" />
+                                </p:column>
+                                <p:column >
+                                    <p:calendar id="fechaReporte" value="#{mbEntradasProduccion.fechaReporte}"
+                                                readonlyInput="true" locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" />
+                                    </p:calendar>
+                                </p:column>
+                                <p:column style="text-align: right;" >
+                                    <p:commandButton id="btnCrearNueva" icon="ui-icon-document" title="Crear nueva entrada" 
+                                                     process="@this" actionListener="#{mbEntradasProduccion.crearEntrada()}"
+                                                     update="main" />
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                    </p:dialog>
+                    <p:confirmDialog global="true" >
+                        <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                    </p:confirmDialog>
                     <p:panel id="mantenimiento" header="ENTRADA DE PRODCCION" rendered="#{mbEntradasProduccion.modoEdicion}" >
                         <p:panelGrid >
                             <p:row >
@@ -97,16 +127,20 @@
                                     <h:outputLabel value="Almacen :" style="font-weight: bold; color: red; width: 95px;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbEntradasProduccion.mbAlmacenes.toAlmacen}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbEntradasProduccion.entrada.almacen}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar entrada" 
                                                      disabled="#{mbEntradasProduccion.entrada.estatus!=0}" 
-                                                     process="@this" actionListener="#{mbEntradasProduccion.grabar()}" update=":main" />
-                                    <p:commandButton id="btnCancelar" icon="ui-icon-cancel" title="Cancelar entrada de almacén"
+                                                     process="@this" actionListener="#{mbEntradasProduccion.grabar()}" update=":main" >
+                                        <p:confirm header="Grabar entrada" message="Confirma ?" icon="ui-icon-alert"  />
+                                    </p:commandButton>
+                                    <p:commandButton id="btnEliminar" icon="ui-icon-trash" title="Eliminar entrada"
                                                      disabled="#{mbEntradasProduccion.entrada.estatus!=0}"
-                                                     process="@this" actionListener="#{mbEntradasProduccion.cancelar()}" 
-                                                     update=":main" />
+                                                     process="@this" actionListener="#{mbEntradasProduccion.eliminar()}" 
+                                                     update=":main" >
+                                        <p:confirm header="Eliminar Entrada" message="Confirma ?" icon="ui-icon-alert"  />
+                                    </p:commandButton>
                                     <p:commandButton icon="ui-icon-print" title="Imprimir entrada"
                                                      disabled="#{mbEntradasProduccion.entrada.estatus==0}"
                                                      ajax="false" immediate="true" action="#{mbEntradasProduccion.imprimir()}" />
@@ -120,7 +154,7 @@
                                     <h:outputLabel value="Concepto :" style="font-weight: bold; color: red;" />
                                 </p:column>
                                 <p:column >
-                                    <p:inputText value="#{mbEntradasProduccion.tipo}" readonly="true" size="52" />
+                                    <p:inputText value="#{mbEntradasProduccion.entrada.tipo}" readonly="true" size="52" />
                                 </p:column>
                                 <p:column style="text-align: right;" >
                                     <p:commandButton id="btnBuscarEmpaques" icon="ui-icon-search" title="Buscar Productos"
@@ -144,6 +178,12 @@
                             <p:column headerText="Producto" width="500" >
                                 <h:outputText value="#{prod.producto.toString()}" />
                             </p:column>
+                            <p:column headerText="Sufijo" width="64" >
+                                <h:outputText value="#{prod.producto.sufijo}" />
+                            </p:column>
+                            <p:column headerText="Caducidad" width="80" >
+                                <h:outputText value="#{prod.producto.diasCaducidad} dias" />
+                            </p:column>
                             <p:column headerText="Cantidad" width="64" >
                                 <h:outputText value="#{prod.cantFacturada}" />
                             </p:column>
@@ -160,7 +200,7 @@
                                 <p:column style="text-align: left" >
                                     <p:inputText id="txtLote" value="#{mbEntradasProduccion.lote.lote}" maxlength="10" size="10" />
                                 </p:column>
-                                <p:column colspan="2" >
+                                <p:column >
                                     <p:commandButton id="btnAgregarLote" icon="ui-icon-disk" title="Nuevo lote" 
                                                      process="@this txtLote" actionListener="#{mbEntradasProduccion.agregarLote()}" 
                                                      update=":main:msgs2 :main:listaLotes" 

@@ -909,10 +909,11 @@ public class Movimientos {
 
             if (suma) {
                 strSQL = "INSERT INTO almacenesLotes\n"
-                        + "SELECT M.idAlmacen, D.idEmpaque, D.lote, DATEADD(DAY, 365, L.fecha), 0, 0, 0\n"
+                        + "SELECT M.idAlmacen, D.idEmpaque, D.lote, DATEADD(DAY, E.diasCaducidad, L.fecha), 0, 0, 0\n"
                         + "FROM movimientosDetalleAlmacen D\n"
                         + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                         + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
                         + "LEFT JOIN almacenesLotes AL ON AL.idAlmacen=M.idAlmacen AND AL.idEmpaque=D.idEmpaque AND AL.lote=D.lote\n"
                         + "WHERE M.idMovtoAlmacen=" + idMovtoAlmacen + " AND AL.idAlmacen IS NULL";
                 st.executeUpdate(strSQL);
@@ -1009,7 +1010,17 @@ public class Movimientos {
                         + "LEFT JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + idMovto + " AND A.idAlmacen IS NULL";
                 st.executeUpdate(strSQL);
-
+            }
+            strSQL = "UPDATE D\n"
+                    + "SET fecha=GETDATE(), existenciaAnterior=A.existencia, ctoPromAnterior=E.costoUnitarioPromedio\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                    + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
+                    + "WHERE D.idMovto=" + idMovto;
+            st.executeUpdate(strSQL);
+            
+            if(suma) {
                 if (idTipo == 1) { // Compra con o sin orden de compra
                     strSQL = "UPDATE D\n"
                             + "SET costoPromedio=ROUND(D.unitario*D.cantFacturada/(D.cantFacturada+D.cantSinCargo), 6)\n"
@@ -1034,7 +1045,7 @@ public class Movimientos {
                             + "INNER JOIN proveedoresProductos P ON P.idEmpresa=M.idEmpresa AND P.idProveedor=M.idReferencia AND P.idEmpaque=D.idEmpaque\n"
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
-                } else if (idTipo == 3 || idTipo == 18) {    // Entrada de producto terminado y semiterminado
+                } else if (idTipo == 3 || idTipo == 18) {    // Entrada de producto terminado o semiterminado
                     strSQL = "UPDATE MD\n" // Toma el costo de la formula
                             + "SET MD.costoPromedio=F.costoUnitarioPromedio, MD.costo=F.costoUnitarioPromedio, MD.unitario=F.costoUnitarioPromedio\n"
                             + "FROM movimientosDetalle MD\n"
@@ -1042,7 +1053,9 @@ public class Movimientos {
                             + "INNER JOIN formulas F ON F.idEmpresa=M.idEmpresa AND F.idEmpaque=MD.idEmpaque\n"
                             + "WHERE MD.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
-                } else if (idTipo != 9) { // Las recepciones ya traen el costo del traspaso
+                } else if (idTipo != 9 && idTipo != 2) {
+                    // Las recepciones (9) ya traen el costo del traspaso
+                    // Las devoluciones sobre venta (2) ya traen el costo de la venta
                     // Todos los demas movimientos, se actualizan con el costo promedio de la empresa
                     strSQL = "UPDATE D\n"
                             + "SET costoPromedio=E.costoUnitarioPromedio, costo=E.costoUnitarioPromedio, unitario=E.costoUnitarioPromedio\n"
@@ -1078,6 +1091,7 @@ public class Movimientos {
                             + "WHERE D.idMovto=" + idMovto;
                     st.executeUpdate(strSQL);
                 } else if (idTipo == 34) { // Cancelacion de compra
+                    // Ya trae el costo promedio de la compra
                     strSQL = "UPDATE E\n"
                             + "SET costoUnitarioPromedio=ROUND(((E.costoUnitarioPromedio*E.existencia - D.costoPromedio*(D.cantFacturada+D.cantSinCargo))/(E.existencia-D.cantFacturada-D.cantSinCargo)),6)\n"
                             + "	, idMovtoUltimaCompra=CASE WHEN M.idTipo=1 THEN M.idMovto ELSE E.idMovtoUltimaCompra END\n"
@@ -1096,14 +1110,6 @@ public class Movimientos {
                     st.executeUpdate(strSQL);
                 }
             }
-            strSQL = "UPDATE D\n"
-                    + "SET fecha=GETDATE(), existenciaAnterior=A.existencia\n"
-                    + "FROM movimientosDetalle D\n"
-                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                    + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
-                    + "WHERE D.idMovto=" + idMovto;
-            st.executeUpdate(strSQL);
-
             strSQL = "UPDATE A\n"
                     + "SET existencia=A.existencia" + (suma ? "+" : "-") + "(D.cantFacturada+D.cantSinCargo)\n"
                     + "     , separados=A.separados" + (suma ? "" : "-(D.cantFacturada+D.cantSinCargo)") + "\n"
@@ -1243,8 +1249,8 @@ public class Movimientos {
     }
 
     public static void agregaProductoOficina(Connection cn, TOProductoOficina to, int idZonaImpuestos) throws SQLException {
-        String strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior) "
-                + "VALUES (" + to.getIdMovto() + ", " + to.getIdProducto() + ", " + to.getCantFacturada() + ", " + to.getCantSinCargo() + ", " + to.getCostoPromedio() + ", " + to.getCosto() + ", " + to.getDesctoProducto1() + ", " + to.getDesctoProducto2() + ", " + to.getDesctoConfidencial() + ", " + to.getUnitario() + ", " + to.getIdImpuestoGrupo() + ", '', 0)";
+        String strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior) "
+                + "VALUES (" + to.getIdMovto() + ", " + to.getIdProducto() + ", " + to.getCantFacturada() + ", " + to.getCantSinCargo() + ", " + to.getCostoPromedio() + ", " + to.getCosto() + ", " + to.getDesctoProducto1() + ", " + to.getDesctoProducto2() + ", " + to.getDesctoConfidencial() + ", " + to.getUnitario() + ", " + to.getIdImpuestoGrupo() + ", '', 0, 0)";
         try (Statement st = cn.createStatement()) {
             st.executeUpdate(strSQL);
 
@@ -1378,6 +1384,10 @@ public class Movimientos {
             if (rs.next()) {
                 to.setIdMovto(rs.getInt("idMovto"));
             }
+//            if(to.getIdComprobante()!=0) {
+//                strSQL="UPDATE comprobantes SET numero=" + String.valueOf(to.getIdMovto()) + " WHERE idComprobante=" + to.getIdComprobante();
+//                st.executeUpdate(strSQL);
+//            }
             rs = st.executeQuery("SELECT fecha FROM movimientos WHERE idMovto=" + to.getIdMovto());
             if (rs.next()) {
                 to.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));

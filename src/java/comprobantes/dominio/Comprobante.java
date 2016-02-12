@@ -55,8 +55,15 @@ public class Comprobante {
     
     @Override
     public String toString() {
-//        return (this.tipo.equals("3")?"Factura: "+this.serie+"-":(this.tipo.equals("2")?"Remision: ":"Interno: "))+this.numero;
-        return (this.tipo.equals("3")? "Factura " + this.serie + "-" : (this.tipo.equals("2")? "Remision " : "Interno ")) + this.numero;
+        String str="";
+        switch (this.idTipoMovto) {
+            case 1: case 28:
+                str=(this.tipo.equals("3")? "Factura " + this.serie + "-" : this.tipo.equals("2")? "Remision " : "Interno ") + this.numero;
+                break;
+            case 2:
+                str=(this.tipo.equals("3")? "Nota Cred. " + this.serie + "-" : this.tipo.equals("2")? "Folio " : "Interno ") + this.numero;
+        }
+        return str;
     }
 
     @Override

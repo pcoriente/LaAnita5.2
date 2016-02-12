@@ -98,8 +98,8 @@ public class DAORecepciones {
                 toRechazo.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toRechazo.getIdAlmacen(), toRechazo.getIdTipo()));
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toRechazo, true);
 
-                strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior)\n"
-                        + "SELECT " + toRechazo.getIdMovto() + ", DS.idEmpaque, DS.cantFacturada-DE.cantFacturada AS cantFacturada, 0, DS.unitario, DS.costo, 0, 0, 0, DS.unitario, DS.idImpuestoGrupo, '', 0\n"
+                strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior)\n"
+                        + "SELECT " + toRechazo.getIdMovto() + ", DS.idEmpaque, DS.cantFacturada-DE.cantFacturada AS cantFacturada, 0, DS.unitario, DS.costo, 0, 0, 0, DS.unitario, DS.idImpuestoGrupo, '', 0, 0\n"
                         + "FROM movimientosDetalle DE\n"
                         + "INNER JOIN movimientos M ON M.idMovto=DE.idMovto\n"
                         + "INNER JOIN movimientosDetalle DS ON DS.idMovto=M.referencia AND DS.idEmpaque=DE.idEmpaque\n"
@@ -107,10 +107,11 @@ public class DAORecepciones {
                 int n = st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE D\n"
-                        + "SET D.fecha=GETDATE(), D.existenciaAnterior=A.existencia\n"
+                        + "SET D.fecha=GETDATE(), D.existenciaAnterior=A.existencia, D.ctoPromAnterior=E.costoUnitarioPromedio\n"
                         + "FROM movimientosDetalle D\n"
                         + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                         + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                        + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                         + "WHERE D.idMovto=" + toRechazo.getIdMovto();
                 if (st.executeUpdate(strSQL) != n) {
                     throw new SQLException("(idMovto=" + toRecepcion.getIdMovto() + ") No se encontro empaque en almacen !!!");

@@ -590,6 +590,20 @@
                                 </p:column>
                             </p:row>
                             <p:row>
+                                <p:column >
+                                    <h:outputLabel for="sufijo" value="SUFIJO :" style="font-weight: bold; color: black; width: 90px;" />
+                                </p:column>
+                                <p:column >
+                                    <p:inputText id="sufijo" value="#{frmProductos.producto.sufijo}" maxlength="10" size="12" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <h:outputLabel for="diasCaducidad" value="CADUCIDAD :" style="font-weight: bold; color: black; width: 120px; text-align: right;" />
+                                </p:column>
+                                <p:column colspan="2" >
+                                    <p:inputText id="diasCaducidad" value="#{frmProductos.producto.diasCaducidad}" maxlength="10" size="12" /><h:outputText style="font-weight: bold; font-size: small;" value=" DIAS" />
+                                </p:column>
+                            </p:row>
+                            <p:row>
                                 <p:column>
                                     <h:outputLabel for="dun14" value="DUN14 :" style="font-weight: bold; color: black; width: 90px;" />
                                 </p:column>
