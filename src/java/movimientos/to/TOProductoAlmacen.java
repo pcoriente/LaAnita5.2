@@ -1,5 +1,7 @@
 package movimientos.to;
 
+import java.util.Objects;
+
 /**
  *
  * @author jesc
@@ -18,6 +20,36 @@ public class TOProductoAlmacen {
         this.idMovtoAlmacen = idMovtoAlmacen;
         this.idProducto = idProducto;
         this.lote = "";
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + this.idMovtoAlmacen;
+        hash = 89 * hash + this.idProducto;
+        hash = 89 * hash + Objects.hashCode(this.lote);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TOProductoAlmacen other = (TOProductoAlmacen) obj;
+        if (this.idMovtoAlmacen != other.idMovtoAlmacen) {
+            return false;
+        }
+        if (this.idProducto != other.idProducto) {
+            return false;
+        }
+        if (!Objects.equals(this.lote, other.lote)) {
+            return false;
+        }
+        return true;
     }
 
     public int getIdMovtoAlmacen() {

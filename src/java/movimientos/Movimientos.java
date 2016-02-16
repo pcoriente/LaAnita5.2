@@ -282,6 +282,23 @@ public class Movimientos {
     }
 
 //    ==================================== OFICINA ===================================
+    private static double mcd(double num1, double num2) {
+        // Maximo comun divisor
+        double numero;
+        if(num2 > num1) {
+            numero = num1;
+            num1 = num2;
+            num2 = numero;
+        }
+        if(num2==0) return 1;
+        while (num2 > 1) {
+            numero = num1;
+            num1 = num2;
+            num2 = numero % num1;
+        }
+        return num2 == 0 ? num1 : 1;
+    }
+
     public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, int idProducto) throws SQLException {
         ArrayList<Double> boletin;
         String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
@@ -320,11 +337,9 @@ public class Movimientos {
                     if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
                         boletin.set(0, rs.getDouble("conCargo"));
                         boletin.set(1, rs.getDouble("sinCargo"));
-                        double resto = boletin.get(0) % boletin.get(1);
-                        if(resto != 0) {
-                            boletin.set(0, boletin.get(0)/resto);
-                            boletin.set(1, boletin.get(1)/resto);
-                        }
+                        double mcd = mcd(boletin.get(0), boletin.get(1));
+                        boletin.set(0, boletin.get(0) / mcd);
+                        boletin.set(1, boletin.get(1) / mcd);
                     }
                 }
             } else {
@@ -517,7 +532,7 @@ public class Movimientos {
             }
         }
     }
-    
+
     public static double liberarLote(Connection cn, TOMovimientoOficina toMov, int idProducto, String lote, double cantSolicitada, String campo) throws SQLException, Exception {
         double disponibles, cantidad, cantLiberada = 0;
         String strSQL = "SELECT CASE WHEN '" + campo + "'='cantFacturada'\n"
@@ -543,9 +558,9 @@ public class Movimientos {
                 } else {
                     cantLiberada = cantSolicitada;
                 }
-                if(cantidad < 0) {
-                    throw new Exception("Cantidad negativa para idEmpaque="+idProducto+", lote='"+lote+"' en movimientos almacén");
-                } else if(rs.getDouble("cantidad") < cantLiberada) {
+                if (cantidad < 0) {
+                    throw new Exception("Cantidad negativa para idEmpaque=" + idProducto + ", lote='" + lote + "' en movimientos almacén");
+                } else if (rs.getDouble("cantidad") < cantLiberada) {
                     cantLiberada = rs.getDouble("cantidad");
                 }
                 strSQL = "UPDATE movimientosDetalleAlmacen\n"
@@ -1024,8 +1039,8 @@ public class Movimientos {
                     + "INNER JOIN empresasEmpaques E ON E.idEmpresa=M.idEmpresa AND E.idEmpaque=D.idEmpaque\n"
                     + "WHERE D.idMovto=" + idMovto;
             st.executeUpdate(strSQL);
-            
-            if(suma) {
+
+            if (suma) {
                 if (idTipo == 1) { // Compra con o sin orden de compra
                     strSQL = "UPDATE D\n"
                             + "SET costoPromedio=ROUND(D.unitario*D.cantFacturada/(D.cantFacturada+D.cantSinCargo), 6)\n"

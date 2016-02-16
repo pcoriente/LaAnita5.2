@@ -93,7 +93,7 @@ public class DAOMovimientosAlmacen {
             cn.setAutoCommit(false);
             try {
                 toMov.setEstatus(7);
-                
+
                 toMov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toMov.getIdAlmacen(), toMov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, toMov);
 
@@ -186,13 +186,11 @@ public class DAOMovimientosAlmacen {
 
     public boolean validaLote(TOMovimientoProductoAlmacen lote) throws SQLException {
         boolean ok = false;
-        String strSQL;
+        String strSQL = "SELECT DATEADD(DAY, COALESCE((SELECT diasCaducidad FROM empaques WHERE idEmpaque=" + lote.getIdProducto() + "), 0), L.fecha) AS fechaCaducidad\n"
+                + "FROM lotes L\n"
+                + "WHERE L.lote=SUBSTRING('" + lote.getLote() + "', 1, 4)";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
-//                strSQL = "SELECT fecha FROM lotes WHERE lote=SUBSTRING('" + lote + "', 1, 4)";
-                strSQL = "SELECT DATEADD(DAY, 365, L.fecha) AS fechaCaducidad\n"
-                        + "FROM lotes L\n"
-                        + "WHERE L.lote=SUBSTRING('" + lote.getLote() + "', 1, 4)";
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     lote.setFechaCaducidad(new java.util.Date(rs.getDate("fechaCaducidad").getTime()));

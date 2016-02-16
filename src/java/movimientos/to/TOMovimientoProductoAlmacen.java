@@ -20,6 +20,27 @@ public class TOMovimientoProductoAlmacen extends TOProductoAlmacen {
         this.fechaCaducidad = new Date();
     }
 
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+//        final TOMovimientoProductoAlmacen other = (TOMovimientoProductoAlmacen) obj;
+        if(!super.equals(obj)) {
+            return false;
+        }
+        return true;
+    }
+
     public double getSeparados() {
         return separados;
     }

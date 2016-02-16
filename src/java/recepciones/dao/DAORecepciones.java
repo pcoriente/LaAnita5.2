@@ -174,7 +174,7 @@ public class DAORecepciones {
             }
         }
     }
-    
+
     public void liberarRecepcion(TORecepcion toRecepcion) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -203,18 +203,18 @@ public class DAORecepciones {
 
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoAlmacen(cn, mov);
-                
-                strSQL="UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + mov.getIdMovtoAlmacen();
+
+                strSQL = "UPDATE movimientosAlmacen SET propietario=0 WHERE idMovtoAlmacen=" + mov.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
 
                 movimientos.Movimientos.actualizaDetalleAlmacen(cn, mov.getIdMovtoAlmacen(), true);
-                
+
                 mov.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, mov.getIdAlmacen(), mov.getIdTipo()));
                 movimientos.Movimientos.grabaMovimientoOficina(cn, mov);
-                
-                strSQL="UPDATE movimientos SET propietario=0 WHERE idMovto=" + mov.getIdMovto();
+
+                strSQL = "UPDATE movimientos SET propietario=0 WHERE idMovto=" + mov.getIdMovto();
                 st.executeUpdate(strSQL);
-                
+
                 movimientos.Movimientos.actualizaDetalleOficina(cn, mov.getIdMovto(), mov.getIdTipo(), true);
 
                 cn.commit();
@@ -280,12 +280,14 @@ public class DAORecepciones {
     }
 
     public ArrayList<TORecepcionProductoAlmacen> obtenerDetalleProducto(int idMovtoAlmacen, int idProducto) throws SQLException {
-        String strSQL = "SELECT DT.cantidad AS cantTraspasada, D.*, A.fechaCaducidad\n"
+        String strSQL = "SELECT ISNULL(DT.cantidad, 0) AS cantTraspasada, D.*, ISNULL(A.fechaCaducidad, DATEADD(DAY, E.diasCaducidad, L.fecha)) AS fechaCaducidad\n"
                 + "FROM movimientosDetalleAlmacen D\n"
                 + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN lotes L ON L.lote=SUBSTRING(D.lote, 1, 4)\n"
+                + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                 + "INNER JOIN movimientosAlmacen T ON T.idMovtoAlmacen=M.referencia\n"
                 + "LEFT JOIN movimientosDetalleAlmacen DT ON DT.idMovtoAlmacen=T.idMovtoAlmacen AND DT.idEmpaque=D.idEmpaque AND DT.lote=D.lote\n"
-                + "INNER JOIN almacenesLotes A ON A.idAlmacen=T.idAlmacen AND A.idEmpaque=DT.idEmpaque AND A.lote=DT.lote\n"
                 + "WHERE D.idMovtoAlmacen=" + idMovtoAlmacen + " AND D.idEmpaque=" + idProducto;
         ArrayList<TORecepcionProductoAlmacen> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
@@ -324,7 +326,7 @@ public class DAORecepciones {
                     productos.add(this.construirProducto(rs));
                 }
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toRecepcion, this.idUsuario);
-                
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -356,7 +358,7 @@ public class DAORecepciones {
                 + "INNER JOIN movimientos T ON T.idMovto=M.referencia\n"
                 + "INNER JOIN solicitudes S ON S.idSolicitud=T.referencia\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=9 AND M.estatus=" + estatus + "\n";
-        if (estatus != 0) {
+        if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
         strSQL += "ORDER BY M.fecha";

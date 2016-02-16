@@ -3,7 +3,6 @@ package recepciones.dominio;
 import java.util.ArrayList;
 import movimientos.dominio.ProductoOficina;
 import recepciones.to.TORecepcionProductoAlmacen;
-import rechazos.to.TORechazoProductoAlmacen;
 
 /**
  *

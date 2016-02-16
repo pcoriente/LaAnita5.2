@@ -22,6 +22,7 @@ import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import movimientos.dao.DAOMovimientosAlmacen;
 import movimientos.dominio.MovimientoTipo;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
@@ -234,9 +235,45 @@ public class MbRecepcion implements Serializable {
                 Mensajes.mensajeError(ex.getMessage());
             }
         }
-
+    }
+    
+    public void agregarLote() {
+        boolean ok = false;
+        ArrayList<String> turnos = new ArrayList<>();
+        turnos.add("1");
+        turnos.add("2");
+        turnos.add("3");
+        turnos.add("4");
+        try {
+            DAOMovimientosAlmacen daoAlm = new DAOMovimientosAlmacen();
+            if (this.lote.getLote().length() != 5) {
+                Mensajes.mensajeAlert("La longitud de un lote debe ser 5 caracteres !!!");
+            } else if (turnos.indexOf(this.lote.getLote().substring(4, 5)) == -1) {
+                Mensajes.mensajeAlert("Turno incorrecto. Debe ser (1, 2, 3, 4) !!!");
+            } else if (!daoAlm.validaLote(this.lote)) {
+                Mensajes.mensajeAlert("Lote no valido !!!");
+            } else if (this.producto.getLotes().indexOf(this.lote) == -1) {
+                daoAlm.agregarProducto(this.lote);
+                this.producto.getLotes().add(this.lote);
+                ok = true;
+            } else {
+                Mensajes.mensajeAlert("El lote ya se encuetra en el producto !!!");
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okLotes", ok);
     }
 
+    public void nuevoLote() {
+        this.lote = new TORecepcionProductoAlmacen();
+        this.lote.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
+        this.lote.setIdProducto(this.producto.getProducto().getIdProducto());
+    }
+    
     public void gestionar() {
         double cantSolicitada = this.lote.getCantidad();
         this.lote.setCantidad(this.lote.getSeparados());
