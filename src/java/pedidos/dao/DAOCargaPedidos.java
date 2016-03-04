@@ -97,25 +97,25 @@ public class DAOCargaPedidos {
 
         }
     }
-
-    public int validaTienda(int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {
-        int idTienda = 0;
-        Connection cn = ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-
-            String sq = "SELECT cT.idTienda from clientesTiendas cT \n"
-                    + "inner join clientesTiendasCodigos cTC on cTC.idTienda = cT.idTienda\n"
-                    + "inner join clientes c on c.idCliente=cT.idCliente\n"
-                    + "where codigoTienda =" + codigoTienda + " and c.idGrupoCte=" + idGrupoCte + (idFormato != 0 ? " and cT.idFormato = " + idFormato : "");
-            ResultSet rs = st.executeQuery(sq);
-            if (rs.next()) {
-                idTienda = rs.getInt("idTienda");
-            } else {
-                throw new SQLException("El Numero de Tienda " + codigoTienda + " no Existe");
-            }
-        }
-        return idTienda;
-    }
+//Esta consulta se paso a la clase tiendas 
+//    public int validaTienda(int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {
+//        int idTienda = 0;
+//        Connection cn = ds.getConnection();
+//        try (Statement st = cn.createStatement()) {
+//
+//            String sq = "SELECT cT.idTienda from clientesTiendas cT \n"
+//                    + "inner join clientesTiendasCodigos cTC on cTC.idTienda = cT.idTienda\n"
+//                    + "inner join clientes c on c.idCliente=cT.idCliente\n"
+//                    + "where codigoTienda =" + codigoTienda + " and c.idGrupoCte=" + idGrupoCte + (idFormato != 0 ? " and cT.idFormato = " + idFormato : "");
+//            ResultSet rs = st.executeQuery(sq);
+//            if (rs.next()) {
+//                idTienda = rs.getInt("idTienda");
+//            } else {
+//                throw new SQLException("El Numero de Tienda " + codigoTienda + " no Existe");
+//            }
+//        }
+//        return idTienda;
+//    }
 
     public HashMap leeEntregasWallMart() throws SQLException {
         Connection cn = ds.getConnection();
