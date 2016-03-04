@@ -7,10 +7,13 @@ package pedidos.LeerTextuales;
 
 import Message.Mensajes;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -87,62 +90,74 @@ public class LeerTextuales {
         return lstPedidoSamsClub;
     }
 
-    public ArrayList<Chedraui> leerArchivoCHedraui(File file) throws IOException {
-        ArrayList<Chedraui> lstChedarui = new ArrayList<Chedraui>();
-        BufferedReader in = new BufferedReader(new FileReader(file));
-        String registro;
+//    public void leerArchivoCHedraui(String lectura) throws IOException {
+    public ArrayList<Chedraui> leerArchivoCHedraui(String lectura) throws IOException {
+        String registro;;
         String anio;
         String mes;
         String dia;
         String fecha;
-        registro = in.readLine();
-        while ((registro = in.readLine()) != null) {
-            String[] pedidoArray;
-            pedidoArray = registro.split(",");
-            Chedraui che = new Chedraui();
-            che.setOrdenCompra(pedidoArray[0]);
-            anio = pedidoArray[2].substring(0, 4);
-            mes = pedidoArray[2].substring(4, 6);
-            dia = pedidoArray[2].substring(6);
-            fecha = anio + "-" + mes + "-" + dia;
-            try {
-                che.setFechaEmbarque(Date.valueOf(fecha));
-            } catch (Exception e) {
-                System.err.println(e.getMessage());
-            }
-            anio = pedidoArray[3].substring(0, 4);
-            mes = pedidoArray[3].substring(4, 6);
-            dia = pedidoArray[3].substring(6);
-            fecha = anio + "-" + mes + "-" + dia;
-            try {
-                che.setFechaCancelacion(Date.valueOf(fecha));
-            } catch (Exception e) {
-                System.err.println(e);
-            }
-            try {
-                che.setCodigoTienda(Integer.parseInt(pedidoArray[4].substring(0, 5)));
-            } catch (NumberFormatException e) {
-                Message.Mensajes.mensajeError(e.getMessage());
-                break;
-            }
-            che.setUpc(pedidoArray[5].substring(2, 13));
-            che.setEmpaque(pedidoArray[8]);
-            try {
-                che.setCantidad(Double.parseDouble(pedidoArray[9]));
-            } catch (NumberFormatException ex) {
-                Mensajes.mensajeError(ex.getMessage());
-            }
-            che.setCosto(Double.parseDouble(pedidoArray[10]));
-            anio = pedidoArray[12].substring(0, 4);
-            mes = pedidoArray[12].substring(4, 6);
-            dia = pedidoArray[12].substring(6);
-            fecha = anio + "-" + mes + "-" + dia;
-            che.setFechaElaboracion(Date.valueOf(fecha));
-            che.setNumeroProveedor(pedidoArray[13]);
-            lstChedarui.add(che);
-        }
 
-        return lstChedarui;
+        ArrayList<Chedraui> lstChedarui = new ArrayList<>();
+        // Abrimos el archivo
+        FileInputStream fstream = new FileInputStream(lectura);
+        // Creamos el Buffer de Lectura
+        try ( // Creamos el objeto de entrada
+                DataInputStream entrada = new DataInputStream(fstream)) {
+            // Creamos el Buffer de Lectura
+            BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
+
+            // Leer el archivo linea por linea
+            registro = buffer.readLine();
+            while ((registro = buffer.readLine()) != null) {
+                System.out.println(registro);
+                String[] pedidoArray;
+                pedidoArray = registro.split(",");
+                Chedraui che = new Chedraui();
+                che.setOrdenCompra(pedidoArray[0]);
+                anio = pedidoArray[2].substring(0, 4);
+                mes = pedidoArray[2].substring(4, 6);
+                dia = pedidoArray[2].substring(6);
+                fecha = anio + "-" + mes + "-" + dia;
+                try {
+                    che.setFechaEmbarque(Date.valueOf(fecha));
+                } catch (Exception e) {
+                    System.err.println(e.getMessage());
+                }
+                anio = pedidoArray[3].substring(0, 4);
+                mes = pedidoArray[3].substring(4, 6);
+                dia = pedidoArray[3].substring(6);
+                fecha = anio + "-" + mes + "-" + dia;
+                try {
+                    che.setFechaCancelacion(Date.valueOf(fecha));
+                } catch (Exception e) {
+                    System.err.println(e);
+                }
+                try {
+                    che.setCodigoTienda(Integer.parseInt(pedidoArray[4].substring(0, 5)));
+                } catch (NumberFormatException e) {
+                    Message.Mensajes.mensajeError(e.getMessage());
+                    break;
+                }
+                che.setUpc(pedidoArray[5].substring(2, 13));
+                che.setEmpaque(pedidoArray[8]);
+                try {
+                    che.setCantidad(Double.parseDouble(pedidoArray[9]));
+                } catch (NumberFormatException ex) {
+                    Mensajes.mensajeError(ex.getMessage());
+                }
+                che.setCosto(Double.parseDouble(pedidoArray[10]));
+                anio = pedidoArray[12].substring(0, 4);
+                mes = pedidoArray[12].substring(4, 6);
+                dia = pedidoArray[12].substring(6);
+                fecha = anio + "-" + mes + "-" + dia;
+                che.setFechaElaboracion(Date.valueOf(fecha));
+                che.setNumeroProveedor(pedidoArray[13]);
+                lstChedarui.add(che);
+            }
+            entrada.close();
+            return lstChedarui;
+        }
     }
 
     public ArrayList<Imss> leerArchivoImss(File archivoTexto) throws IOException {

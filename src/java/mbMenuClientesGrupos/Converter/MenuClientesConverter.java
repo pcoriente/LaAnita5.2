@@ -29,34 +29,43 @@ public class MenuClientesConverter implements Converter {
         ClienteGrupo cg = null;
         try {
             int id = Integer.parseInt(value);
-            DAOClientesGrupo dao = new DAOClientesGrupo();
+//            DAOClientesGrupo dao = new DAOClientesGrupo();
             if (id == 0) {
                 cg = new ClienteGrupo();
-                cg.setIdGrupoCte(0);
-                cg.setGrupoCte("Nuevo Cliente");
+//                cg.setIdGrupoCte(0);
+//                cg.setGrupoCte("Nuevo Cliente");
             } else {
-                try {
-                    cg = dao.dameClientesGrupo(id);
-                } catch (SQLException ex) {
-                    ResourceBundle bundle = ResourceBundle.getBundle("messages");
-                    FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
-                    msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-                    Logger.getLogger(MenuClientesConverter.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                DAOClientesGrupo dao = new DAOClientesGrupo();
+                cg = dao.dameClientesGrupo(id);
+
+//                try {
+//                    cg = dao.dameClientesGrupo(id);
+//                } catch (SQLException ex) {
+//                    ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//                    FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
+//                    msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//                    Logger.getLogger(MenuClientesConverter.class.getName()).log(Level.SEVERE, null, ex);
+//                }
             }
-        } catch (NamingException ex) {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
-            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
-            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
-            Logger.getLogger(MenuClientesConverter.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Throwable ex) {
+//            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+//            FacesMessage msg = new FacesMessage(bundle.getString("Mensaje_conversion_Pais_getAsObject"));
+//            msg.setSeverity(FacesMessage.SEVERITY_ERROR);
+//            Logger.getLogger(MenuClientesConverter.class.getName()).log(Level.SEVERE, null, ex);
         }
         return cg;
     }
 
     @Override
     public String getAsString(FacesContext context, UIComponent component, Object value) {
-        ClienteGrupo clientesGrupos = (ClienteGrupo) value;
-        String dato = Integer.toString(clientesGrupos.getIdGrupoCte());
+        String dato = null;
+        try {
+            ClienteGrupo clientesGrupos = (ClienteGrupo) value;
+            dato = Integer.toString(clientesGrupos.getIdGrupoCte());
+//        String dato = Integer.toString(clientesGrupos.getIdGrupoCte());
+        } catch (Throwable ex) {
+
+        }
         return dato;
     }
 }

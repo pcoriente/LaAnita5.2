@@ -41,6 +41,7 @@ public class MbMiniEmpresa implements Serializable {
             e0.setIdEmpresa(0);
             e0.setCodigoEmpresa("0");
             e0.setNombreComercial("Seleccione Empresa");
+            System.out.println("estoy seleccionando empresa");
             listaEmpresas.add(new SelectItem(e0, e0.toString()));
 
             ArrayList<MiniEmpresa> empresas = this.dao.obtenerMiniEmpresas();

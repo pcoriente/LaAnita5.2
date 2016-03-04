@@ -20,23 +20,24 @@ import clientes.to.TOCliente;
 @Named(value = "mbMiniClientes")
 @SessionScoped
 public class MbMiniClientes implements Serializable {
+
     private int idClienteGpo;
 //    private int idFormato;
     private ArrayList<SelectItem> listaClientes;
     private ArrayList<TOCliente> clientes;
     private TOCliente cliente;
     private DAOClientes dao;
-    
+
     public MbMiniClientes() {
         this.inicializa();
     }
-    
+
     public void obtenerClientesCedis(int idCedis) {
-        this.listaClientes=new ArrayList<>();
+        this.listaClientes = new ArrayList<>();
         this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
         try {
-            this.dao=new DAOClientes();
-            for(TOCliente c:this.dao.obtenerClientesCedis(idCedis)) {
+            this.dao = new DAOClientes();
+            for (TOCliente c : this.dao.obtenerClientesCedis(idCedis)) {
                 this.listaClientes.add(new SelectItem(c, c.toString()));
             }
         } catch (NamingException ex) {
@@ -45,13 +46,13 @@ public class MbMiniClientes implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public void obtenerClientesCedis() {
-        this.listaClientes=new ArrayList<>();
+        this.listaClientes = new ArrayList<>();
         this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
         try {
-            this.dao=new DAOClientes();
-            for(TOCliente c:this.dao.obtenerClientesCedis()) {
+            this.dao = new DAOClientes();
+            for (TOCliente c : this.dao.obtenerClientesCedis()) {
                 this.listaClientes.add(new SelectItem(c, c.toString()));
             }
         } catch (NamingException ex) {
@@ -60,15 +61,15 @@ public class MbMiniClientes implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public TOCliente obtenerCliente(int idCliente) {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "obtenerCliente");
-        TOCliente mini=null;
+        TOCliente mini = null;
         try {
-            this.dao=new DAOClientes();
-            mini=this.dao.obtenerCliente(idCliente);
-            ok=true;
+            this.dao = new DAOClientes();
+            mini = this.dao.obtenerCliente(idCliente);
+            ok = true;
         } catch (SQLException ex) {
             fMsg.setDetail(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -79,18 +80,18 @@ public class MbMiniClientes implements Serializable {
         }
         return mini;
     }
-    
+
     public void cargarClientesGrupo(int idGrupo) {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargarClientesGrupo");
-        this.listaClientes=new ArrayList<>();
+        this.listaClientes = new ArrayList<>();
         this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
         try {
-            this.dao=new DAOClientes();
-            for(TOCliente c:this.dao.obtenerClientesGrupo(idGrupo)) {
+            this.dao = new DAOClientes();
+            for (TOCliente c : this.dao.obtenerClientesGrupo(idGrupo)) {
                 this.listaClientes.add(new SelectItem(c, c.toString()));
             }
-            ok=true;
+            ok = true;
         } catch (NamingException ex) {
             fMsg.setDetail(ex.getMessage());
         } catch (SQLException ex) {
@@ -100,7 +101,7 @@ public class MbMiniClientes implements Serializable {
             FacesContext.getCurrentInstance().addMessage(null, fMsg);
         }
     }
-    
+
 //    public void cargarMiniClientes(int idFormato) {
 //        this.idFormato=idFormato;
 //        this.miniClientes=null;
@@ -113,7 +114,6 @@ public class MbMiniClientes implements Serializable {
 //            this.listaMiniClientes.add(new SelectItem(c, c.toString()));
 //        }
 //    }
-    
 //    private void cargaMiniClientes() {
 //        boolean ok = false;
 //        FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargaMiniClientes");
@@ -131,27 +131,26 @@ public class MbMiniClientes implements Serializable {
 //            FacesContext.getCurrentInstance().addMessage(null, fMsg);
 //        }
 //    }
-    
     public void inicializar() {
         this.inicializa();
     }
-    
+
     private void inicializa() {
         this.inicializaLocales();
     }
-    
+
     private void inicializaLocales() {
-        this.idClienteGpo=0;
+        this.idClienteGpo = 0;
 //        this.idFormato=0;
 //        this.cargarMiniClientes(0);
         this.cargarClientesGrupo(0);
         this.nuevoCliente();
     }
-    
+
     public void nuevoCliente() {
-        this.cliente=new TOCliente();
+        this.cliente = new TOCliente();
     }
-    
+
     // ANTES INICIO **************************************************************
     //    @ManagedProperty(value = "#{mbContribuyentes}")
     //    private MbContribuyentes mbContribuyentes;
@@ -224,6 +223,9 @@ public class MbMiniClientes implements Serializable {
     //        this.idFormato = idFormato;
     //    }
     public ArrayList<SelectItem> getListaClientes() {
+        if (this.listaClientes == null) {
+            this.obtenerClientesCedis();
+        }
         return listaClientes;
     }
 
