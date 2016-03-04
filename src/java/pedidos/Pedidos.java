@@ -1,5 +1,6 @@
 package pedidos;
 
+import comprobantes.to.TOComprobante;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +16,53 @@ import pedidos.to.TOProductoPedido;
  * @author jesc
  */
 public class Pedidos {
+
+    public static void agregarPedido(Connection cn, TOPedido toPed, int idMoneda) throws SQLException {
+        String strSQL, fechaOrden = "";
+        try (Statement st = cn.createStatement()) {
+            if (!toPed.getOrdenDeCompra().isEmpty()) {
+                fechaOrden = new java.sql.Date(toPed.getOrdenDeCompraFecha().getTime()).toString();
+            }
+            strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha, entregaFolio, entregaFecha, entregaFechaMaxima)\n"
+                    + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "', '', '', '')";
+            st.executeUpdate(strSQL);
+
+            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
+            if (rs.next()) {
+                toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
+            }
+            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
+                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0, 0, 0, 0, 0)";
+            st.executeUpdate(strSQL);
+
+            rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
+            if (rs.next()) {
+                toPed.setReferencia(rs.getInt("idPedido"));
+            }
+            TOComprobante toComprobante = new TOComprobante();
+            toComprobante.setIdTipoMovto(toPed.getIdTipo());
+            toComprobante.setIdEmpresa(toPed.getIdEmpresa());
+            toComprobante.setIdReferencia(toPed.getIdReferencia());
+            toComprobante.setTipo(1);
+            toComprobante.setSerie("");
+            toComprobante.setNumero("");
+            toComprobante.setFechaFactura(toPed.getFecha());
+            toComprobante.setIdMoneda(idMoneda);
+            toComprobante.setIdUsuario(toPed.getIdUsuario());
+            toComprobante.setPropietario(0);
+            toComprobante.setEstatus(5);
+            toComprobante.setCerradoAlmacen(false);
+            toComprobante.setCerradoOficina(false);
+            comprobantes.Comprobantes.agregar(cn, toComprobante);
+
+            toPed.setIdComprobante(toComprobante.getIdComprobante());
+            movimientos.Movimientos.agregaMovimientoAlmacen(cn, toPed, false);
+            movimientos.Movimientos.agregaMovimientoOficina(cn, toPed, false);
+
+            strSQL = "UPDATE comprobantes SET numero=" + String.valueOf(toPed.getIdMovto()) + " WHERE idComprobante=" + toPed.getIdComprobante();
+            st.executeUpdate(strSQL);
+        }
+    }
 
     public static void liberarPedido(Connection cn, TOPedido toPedido, int idUsuario) throws SQLException {
         movimientos.Movimientos.liberarMovimientoOficina(cn, toPedido.getIdMovto(), idUsuario);

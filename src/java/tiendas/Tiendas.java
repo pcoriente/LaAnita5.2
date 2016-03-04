@@ -12,9 +12,23 @@ import tiendas.to.TOTienda;
  */
 public class Tiendas {
     
+    public static TOTienda validaTienda(Connection cn, int codigoTienda) throws SQLException {
+        TOTienda toTienda = null;
+        String strSQL = Tiendas.sqlTienda() + "\n"
+                + "WHERE TC.codigoTienda=" + codigoTienda;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if(rs.next()) {
+                toTienda = construir(rs);
+            }
+        }
+        return toTienda;
+    }
+    
     public static TOTienda obtenerTienda(Connection cn, int idTienda) throws SQLException {
         TOTienda toTienda = null;
-        String strSQL = Tiendas.sqlTienda() + " WHERE T.idTienda=" + idTienda;
+        String strSQL = Tiendas.sqlTienda() + "\n"
+                + "WHERE T.idTienda=" + idTienda;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if(rs.next()) {
