@@ -50,6 +50,9 @@ public class TOPedido extends TOMovimientoOficina {
 //        this.canceladoFecha=new Date();
         this.canceladoMotivo = "";
         this.electronico = "";
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
 
     public int getIdPedidoOC() {

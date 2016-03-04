@@ -59,7 +59,7 @@ public class DAOCargaPedidos {
             try {
                 for (Chedraui che : chedraui) {
                     if (!che.getOrdenCompra().equals(oc)) {
-                        toTienda = Tiendas.validaTienda(cn, che.getCodigoTienda());
+                        toTienda = Tiendas.validaTienda(cn, che.getCodigoTienda(), idGpoCte, idFto);
                         if (toTienda == null) {
                             throw new SQLException("La Tienda " + che.getCodigoTienda() + " No Existe");
                         }
@@ -67,7 +67,7 @@ public class DAOCargaPedidos {
                         toPed.setIdEmpresa(idEmp);
                         toPed.setOrdenDeCompra(oc);
                         toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-                       
+                        toPed.setTipoDeCambio(1);
                         toPed.setIdImpuestoZona(idGpoCte);
                         toPed.setIdReferencia(toTienda.getIdTienda());
                         toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());

@@ -11,33 +11,33 @@ import tiendas.to.TOTienda;
  * @author jesc
  */
 public class Tiendas {
-    
-    public static TOTienda validaTienda(Connection cn, int codigoTienda) throws SQLException {
+
+    public static TOTienda validaTienda(Connection cn, int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {
         TOTienda toTienda = null;
         String strSQL = Tiendas.sqlTienda() + "\n"
-                + "WHERE TC.codigoTienda=" + codigoTienda;
+                + "WHERE TC.codigoTienda=" + codigoTienda + " AND C.idGrupoCte=" + idGrupoCte + (idFormato != 0 ? " AND T.idFormato=" + idFormato : "");
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
-            if(rs.next()) {
+            if (rs.next()) {
                 toTienda = construir(rs);
             }
         }
         return toTienda;
     }
-    
+
     public static TOTienda obtenerTienda(Connection cn, int idTienda) throws SQLException {
         TOTienda toTienda = null;
         String strSQL = Tiendas.sqlTienda() + "\n"
                 + "WHERE T.idTienda=" + idTienda;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
-            if(rs.next()) {
+            if (rs.next()) {
                 toTienda = construir(rs);
             }
         }
         return toTienda;
     }
-    
+
     public static TOTienda construir(ResultSet rs) throws SQLException {
         TOTienda to = new TOTienda();
         to.setIdTienda(rs.getInt("idTienda"));
@@ -53,7 +53,7 @@ public class Tiendas {
         to.setEstado(rs.getInt("estado"));
         return to;
     }
-    
+
     public static String sqlTienda() {
         return "SELECT T.*, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
                 + "FROM clientesTiendas T\n"
@@ -61,5 +61,4 @@ public class Tiendas {
                 + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
                 + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda";
     }
-    
 }
