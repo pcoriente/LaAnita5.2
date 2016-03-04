@@ -50,7 +50,7 @@ import usuarios.dominio.Accion;
 @Named(value = "mbCargaPedidos")
 @SessionScoped
 public class MbCargaPedidos implements Serializable {
-
+    
     private String destination = "c:\\textuales\\";
     @ManagedProperty(value = "#{mbMiniEmpresas}")
     private MbMiniEmpresas mbEmpresas;
@@ -63,20 +63,20 @@ public class MbCargaPedidos implements Serializable {
     @ManagedProperty(value = "#{mbFormatos}")
     private MbFormatos mbFormatos;
     private ArrayList<SelectItem> lstFormatos = new ArrayList<>();
-
+    
     @ManagedProperty(value = "#{mbMiniTiendas}")
     private MbMiniTiendas mbTiendas;
-
+    
     @ManagedProperty(value = "#{mbAlmacenesJS}")
     private MbAlmacenesJS mbAlmacenes;
-
+    
     @ManagedProperty(value = "#{mbGruposBancos}")
     private MbGruposBancos mbGruposBancos = new MbGruposBancos();
-
+    
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
-
+    
     private ArrayList<Chedraui> chedraui;
     private DAOPedidos daoPed;
     private DAOCargaPedidos dao;
@@ -93,9 +93,9 @@ public class MbCargaPedidos implements Serializable {
         this.mbAcciones = new MbAcciones();
         this.daoPed = new DAOPedidos();
         this.dao = new DAOCargaPedidos();
-
+        
     }
-
+    
     public void upload(FileUploadEvent event) {
         try {
             copyFile(event.getFile().getFileName(), event.getFile().getInputstream());
@@ -121,7 +121,7 @@ public class MbCargaPedidos implements Serializable {
                     break;
                 case 188:
                     chedraui = leerTextuales.leerArchivoCHedraui(entrada);
-                    this.dao.crearPedidos(idEmp,idGpoCte,idFto,chedraui,event.getFile().getFileName());
+                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, chedraui, event.getFile().getFileName());
 //                    String oc = "";
 //                    TOTienda toTienda;
 //                    TOPedido toPed = new TOPedido(28);
@@ -148,7 +148,10 @@ public class MbCargaPedidos implements Serializable {
 //                leerTextuales.leerArchivoCHedraui(entrada);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
+        
     }
 
     //        System.out.println("nombre del archivo " + destino);
@@ -223,14 +226,14 @@ public class MbCargaPedidos implements Serializable {
             lstFormatos.add(new SelectItem(cf, cf.toString()));
         }
     }
-
+    
     public void cargarInformacion() {
 //        mbClientesGrupos.getMbFormatos().setLstFormatos(null);
 //        mbGruposBancos.setLstGruposBancos(null);
 //        mbClientesGrupos.getMbFormatos().cargarListaFormatos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());
 //        mbGruposBancos.cargarGruposBancos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());
     }
-
+    
     public void copyFile(String fileName, InputStream in) {
         try {
             try (OutputStream salida = new FileOutputStream(new File(destination + fileName))) {
@@ -247,53 +250,53 @@ public class MbCargaPedidos implements Serializable {
             System.out.println(e.getMessage());
         }
     }
-
+    
     public String terminar() {
         this.mbEmpresas.setEmpresa(new MiniEmpresa());
         this.mbEmpresas.setListaEmpresas(null);
-
+        
         this.mbClientesGrupos = new MbClientesGrupos();
         return "index.xhtml";
     }
-
+    
     public MbClientesGrupos getMbClientesGrupos() {
         return mbClientesGrupos;
     }
-
+    
     public void setMbClientesGrupos(MbClientesGrupos mbClientesGrupos) {
         this.mbClientesGrupos = mbClientesGrupos;
     }
-
+    
     public MbFormatos getMbFormatos() {
         return mbFormatos;
     }
-
+    
     public void setMbFormatos(MbFormatos mbFormatos) {
         this.mbFormatos = mbFormatos;
     }
-
+    
     public ArrayList<SelectItem> getLstFormatos() {
         return lstFormatos;
     }
-
+    
     public void setLstFormatos(ArrayList<SelectItem> lstFormatos) {
         this.lstFormatos = lstFormatos;
     }
-
+    
     public MbGruposBancos getMbGruposBancos() {
         return mbGruposBancos;
     }
-
+    
     public void setMbGruposBancos(MbGruposBancos mbGruposBancos) {
         this.mbGruposBancos = mbGruposBancos;
     }
-
+    
     public MbMiniEmpresas getMbEmpresas() {
         return mbEmpresas;
     }
-
+    
     public void setMbEmpresas(MbMiniEmpresas mbEmpresas) {
         this.mbEmpresas = mbEmpresas;
     }
-
+    
 }
