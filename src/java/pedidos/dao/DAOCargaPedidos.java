@@ -19,6 +19,7 @@ import leyenda.dao.DAOBancosLeyendas;
 import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
 import pedidos.to.TOPedido;
+import tiendas.Tiendas;
 import tiendas.to.TOTienda;
 import usuarios.dominio.UsuarioSesion;
 
@@ -51,21 +52,32 @@ public class DAOCargaPedidos {
         TOTienda toTienda;
         TOPedido toPed = new TOPedido(28);
         toPed.setElectronico(electronico);
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                for (Chedraui che : chedraui) {
+                    if (!che.getOrdenCompra().equals(oc)) {
+                       
+                        oc = che.getOrdenCompra();
+                        toPed.setIdEmpresa(idEmp);
+                        toPed.setOrdenDeCompra(oc);
+                        toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
+                        toPed.setIdImpuestoZona(idGpoCte);
+                        toPed.setIdReferencia(toTienda.getIdTienda());
+                        toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
+                        this.daoPed.agregarPedido(toPed, 1);
+                    }
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
 
-        for (Chedraui che : chedraui) {
-            if (!che.getOrdenCompra().equals(oc)) {
-                toTienda = this.mbTiendas.obtenerTienda(this.dao.validaTienda(che.getCodigoTienda(), idGpoCte, idFto));
-                oc = che.getOrdenCompra();
-                toPed.setIdEmpresa(idEmp);
-                toPed.setOrdenDeCompra(oc);
-                toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-                toPed.setIdImpuestoZona(idGpoCte);
-                toPed.setIdReferencia(toTienda.getIdTienda());
-                toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
-                this.daoPed.agregarPedido(toPed, 1);
             }
-        }
 
+        }
     }
 
     public int validaTienda(int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {
