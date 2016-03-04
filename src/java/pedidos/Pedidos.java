@@ -20,19 +20,24 @@ public class Pedidos {
     public static void agregarPedido(Connection cn, TOPedido toPed, int idMoneda) throws SQLException {
         String strSQL, fechaOrden = "";
         try (Statement st = cn.createStatement()) {
+            ResultSet rs;
             if (!toPed.getOrdenDeCompra().isEmpty()) {
                 fechaOrden = new java.sql.Date(toPed.getOrdenDeCompraFecha().getTime()).toString();
             }
-            strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha, entregaFolio, entregaFecha, entregaFechaMaxima)\n"
-                    + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "', '"+toPed.getEntregaFolio()+"', '"+toPed.getEntregaFecha()+"', '"+toPed.getEntregaFechaMaxima()+"')";
-            st.executeUpdate(strSQL);
+            if("".equals(toPed.getOrdenDeCompra())) {
+                strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha, entregaFolio, entregaFecha, entregaFechaMaxima)\n"
+                        + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "', '"+toPed.getEntregaFolio()+"', '"+toPed.getEntregaFecha()+"', '"+toPed.getEntregaFechaMaxima()+"')";
+                st.executeUpdate(strSQL);
 
-            ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
-            if (rs.next()) {
-                toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
+                rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
+                if (rs.next()) {
+                    toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
+                }
             }
-            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
-                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0, 0, 0, 0, 0)";
+//            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
+//                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0, 0, 0, 0, 0)";
+            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, estatus)\n"
+                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0)";
             st.executeUpdate(strSQL);
 
             rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
