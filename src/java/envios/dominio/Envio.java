@@ -1,9 +1,9 @@
 package envios.dominio;
 
-import almacenes.dominio.MiniAlmacen;
 import cedis.dominio.MiniCedis;
 import java.util.ArrayList;
 import java.util.Date;
+import traspasos.dominio.Traspaso;
 
 /**
  *
@@ -12,37 +12,65 @@ import java.util.Date;
 public class Envio {
     private int idEnvio;
     private MiniCedis cedis;
-    private MiniAlmacen almacen;
+    private int folioEnvio;
     private Date generado;
-    private Date enviado;
-    private double peso;
-    private int status;
+//    private Date fechaEstatus;
+    private Date fechaEnvio;
+    private Date fechaFletera;
+    private Date fechaAnita;
+    private Date fechaQuimicos;
+    private int diasInventario;
     private int prioridad;
-    private int idChofer;
-    private int idCamion;
-    private ArrayList<EnvioPedido> pedidos;
+    private int idUsuario;
+//    private int propietario;
+    private int estatus;
+//    private ArrayList<Traspaso> traspasos;
     
     public Envio() {
-        this.cedis=new MiniCedis();
-        this.almacen=new MiniAlmacen();
-        this.generado=new Date();
-        this.enviado=new Date();
-        this.peso=0;
-        this.pedidos=new ArrayList<EnvioPedido>();
+        this.cedis = new MiniCedis();
+        this.generado = new Date();
+//        this.fechaEstatus = new Date();
+        this.fechaEnvio = new Date();
+        this.fechaFletera = new Date();
+        this.fechaAnita = new Date();
+        this.fechaQuimicos = new Date();
     }
     
-    public Envio(MiniCedis cedis, MiniAlmacen almacen) {
+    public Envio(MiniCedis cedis) {
         this.cedis=cedis;
-        this.almacen=almacen;
-        this.generado=new Date();
-        this.enviado=new Date();
-        this.peso=0;
-        this.pedidos=new ArrayList<EnvioPedido>();
+        this.generado = new Date();
+//        this.fechaEstatus = new Date();
+        this.fechaEnvio = new Date();
+        this.fechaFletera = new Date();
+        this.fechaAnita = new Date();
+        this.fechaQuimicos = new Date();
+    }
+    
+    @Override
+    public String toString() {
+        return "--"+String.format("%08d", this.folioEnvio)+"--";
     }
 
     @Override
-    public String toString() {
-        return (this.idEnvio==0?"Nuevo Envio":String.format("%06d", this.idEnvio));
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + this.idEnvio;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Envio other = (Envio) obj;
+        if (this.idEnvio != other.idEnvio) {
+            return false;
+        }
+        return true;
     }
 
     public int getIdEnvio() {
@@ -61,12 +89,12 @@ public class Envio {
         this.cedis = cedis;
     }
 
-    public MiniAlmacen getAlmacen() {
-        return almacen;
+    public int getFolioEnvio() {
+        return folioEnvio;
     }
 
-    public void setAlmacen(MiniAlmacen almacen) {
-        this.almacen = almacen;
+    public void setFolioEnvio(int folioEnvio) {
+        this.folioEnvio = folioEnvio;
     }
 
     public Date getGenerado() {
@@ -77,40 +105,52 @@ public class Envio {
         this.generado = generado;
     }
 
-    public Date getEnviado() {
-        return enviado;
+//    public Date getFechaEstatus() {
+//        return fechaEstatus;
+//    }
+//
+//    public void setFechaEstatus(Date fechaEstatus) {
+//        this.fechaEstatus = fechaEstatus;
+//    }
+//
+    public Date getFechaEnvio() {
+        return fechaEnvio;
     }
 
-    public void setEnviado(Date enviado) {
-        this.enviado = enviado;
+    public void setFechaEnvio(Date fechaEnvio) {
+        this.fechaEnvio = fechaEnvio;
     }
 
-    public double getPeso() {
-        return peso;
+    public Date getFechaFletera() {
+        return fechaFletera;
     }
 
-    public void setPeso(double peso) {
-        this.peso = peso;
-    }
-    
-    public int getStatus() {
-        return status;
+    public void setFechaFletera(Date fechaFletera) {
+        this.fechaFletera = fechaFletera;
     }
 
-    public String getEstatus() {
-        String msg="";
-        if(this.status==0) {
-            msg="Abierto";
-        } else if(this.status==1) {
-            msg="Cerrado";
-        } else {
-            msg="Enviado";
-        }
-        return msg;
+    public Date getFechaAnita() {
+        return fechaAnita;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setFechaAnita(Date fechaAnita) {
+        this.fechaAnita = fechaAnita;
+    }
+
+    public Date getFechaQuimicos() {
+        return fechaQuimicos;
+    }
+
+    public void setFechaQuimicos(Date fechaQuimicos) {
+        this.fechaQuimicos = fechaQuimicos;
+    }
+
+    public int getDiasInventario() {
+        return diasInventario;
+    }
+
+    public void setDiasInventario(int diasInventario) {
+        this.diasInventario = diasInventario;
     }
 
     public int getPrioridad() {
@@ -121,27 +161,27 @@ public class Envio {
         this.prioridad = prioridad;
     }
 
-    public int getIdChofer() {
-        return idChofer;
+    public int getIdUsuario() {
+        return idUsuario;
     }
 
-    public void setIdChofer(int idChofer) {
-        this.idChofer = idChofer;
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
-    public int getIdCamion() {
-        return idCamion;
+//    public int getPropietario() {
+//        return propietario;
+//    }
+//
+//    public void setPropietario(int propietario) {
+//        this.propietario = propietario;
+//    }
+//
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setIdCamion(int idCamion) {
-        this.idCamion = idCamion;
-    }
-
-    public ArrayList<EnvioPedido> getPedidos() {
-        return pedidos;
-    }
-
-    public void setPedidos(ArrayList<EnvioPedido> pedidos) {
-        this.pedidos = pedidos;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

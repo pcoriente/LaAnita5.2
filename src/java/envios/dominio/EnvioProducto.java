@@ -1,52 +1,21 @@
 package envios.dominio;
 
-import producto2.dominio.Empaque;
-import producto2.dominio.Producto;
+import traspasos.dominio.TraspasoProducto;
 
 /**
  *
  * @author jesc
  */
-public class EnvioProducto {
+public class EnvioProducto extends TraspasoProducto {
     private int idEnvio;
-    private int idMovto;
-    private Producto producto;
-    private double enviados;
-    private double pendientes;
-    private double peso;
-    private double pesoTotal;
-
-    public EnvioProducto() {}
-
-    public EnvioProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    @Override
-    public String toString() {
-        return this.producto.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 11 * hash + (this.producto != null ? this.producto.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final EnvioProducto other = (EnvioProducto) obj;
-        if (this.producto != other.producto && (this.producto == null || !this.producto.equals(other.producto))) {
-            return false;
-        }
-        return true;
+    private int idSolicitud;
+    private double estadistica;
+    private double sugerido;
+    private double sugerido2;
+    private double cantSolicitada2;
+    
+    public EnvioProducto() {
+        super();
     }
 
     public int getIdEnvio() {
@@ -57,51 +26,43 @@ public class EnvioProducto {
         this.idEnvio = idEnvio;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
-    public Producto getProducto() {
-        return producto;
+    public double getEstadistica() {
+        return estadistica;
     }
 
-    public void setProducto(Producto producto) {
-        this.producto = producto;
+    public void setEstadistica(double estadistica) {
+        this.estadistica = estadistica;
     }
 
-    public double getEnviados() {
-        return enviados;
+    public double getSugerido() {
+        return sugerido;
     }
 
-    public void setEnviados(double enviados) {
-        this.enviados = enviados;
+    public void setSugerido(double sugerido) {
+        this.sugerido = sugerido;
     }
 
-    public double getPendientes() {
-        return pendientes;
+    public double getSugerido2() {
+        return sugerido2;
     }
 
-    public void setPendientes(double pendientes) {
-        this.pendientes = pendientes;
+    public void setSugerido2(double sugerido2) {
+        this.sugerido2 = sugerido2;
     }
 
-    public double getPeso() {
-        return peso;
+    public double getCantSolicitada2() {
+        return cantSolicitada2;
     }
 
-    public void setPeso(double peso) {
-        this.peso = peso;
-    }
-
-    public double getPesoTotal() {
-        return pesoTotal;
-    }
-
-    public void setPesoTotal(double pesoTotal) {
-        this.pesoTotal = pesoTotal;
+    public void setCantSolicitada2(double cantSolicitada2) {
+        this.cantSolicitada2 = cantSolicitada2;
     }
 }

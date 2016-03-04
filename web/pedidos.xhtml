@@ -17,7 +17,7 @@
             <h:form id="main" onkeypress="return event.keyCode !== 13;" >
                 <p:messages id="msgsPedidos" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panel id="panelPedidos" header="Mantenimiento de Pedidos" style="float: left;"
-                         rendered="#{not empty mbPedidos.acciones}" >
+                         rendered="#{not empty mbPedidos.obtenerAcciones(36)}" >
                     <p:panelGrid id="pedidos" >
                         <f:facet name="header" >
                             <p:row >
@@ -60,7 +60,7 @@
                     </p:panelGrid>
                     <p:dataTable id="listaDePedidos" value="#{mbPedidos.pedidos}" 
                                  var="pedido" rowKey="#{pedido.idPedido}" selectionMode="single" 
-                                 style="border:solid 1px; width: 855px;" emptyMessage="No existen pedidos" >
+                                 style="border:solid 1px; width: 910px;" emptyMessage="No existen pedidos" >
                         <p:ajax event="rowSelect" listener="#{mbPedidos.obtenerDetalle}" 
                                 update=":main:msgsPedidos :main:pedido :main:detallePedido :main:totales" 
                                 oncomplete="abrirPedido(xhr, status, args);" />
@@ -75,6 +75,9 @@
                             <h:outputText value="#{pedido.pedidoFecha}" >
                                 <f:convertDateTime pattern="dd/MM/yyyy hh:mm a" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </h:outputText>
+                        </p:column>
+                        <p:column headerText="Entrega" style="width: 50px;" >
+                            <h:outputText value="#{pedido.idEnvio!=0?'Agregado':pedido.directo?'Directo':''}" />
                         </p:column>
                         <p:column headerText="Usuario" style="width: 50px;" >
                             <h:outputText value="#{pedido.pedidoIdUsuario}" />
@@ -239,7 +242,7 @@
                             <p:column style="width: 80px;" >
                                 <h:outputLabel for="txtFormato" value="CLIENTE:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column colspan="3" style="width: 330px;" >
+                            <p:column colspan="4" style="width: 330px;" >
                                 <p:inputText id="txtFormato" value="#{mbPedidos.pedido.tienda.contribuyente}" readonly="true" size="45" />
                             </p:column>
                             <p:column style="width: 90px;" >
@@ -253,7 +256,7 @@
                             <p:column colspan="2" style="width: 180px;" >
                                 <h:outputLabel for="ordenDeCompra" value="ORDEN DE COMPRA:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column colspan="2" style="width: 230px;" >
+                            <p:column colspan="3" style="width: 230px;" >
                                 <p:inputText id="ordenDeCompra" value="#{mbPedidos.pedido.ordenDeCompra}" readonly="true" size="29" />
                             </p:column>
                             <p:column style="width: 90px;" >
@@ -275,18 +278,21 @@
                             <p:column style="width: 80px;" >
                                 <h:outputLabel for="txtPedido" value="PEDIDO:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column style="width: 90px;" >
+                            <p:column style="width: 70px;" >
                                 <p:inputText id="txtPedido" value="#{mbPedidos.pedido.pedidoFolio}" readonly="true" size="6" />
                             </p:column>
-                            <p:column style="width: 70px;" >
+                            <p:column style="width: 50px;" >
                                 <h:outputLabel for="txtFecha" value="FECHA:" style="font-weight: bold; color: black;" />
                             </p:column>
-                            <p:column style="width: 170px;" >
-                                <p:inputText id="txtFecha" value="#{mbPedidos.pedido.pedidoFecha}" readonly="true" size="11" >
+                            <p:column style="width: 70px;" >
+                                <p:inputText id="txtFecha" value="#{mbPedidos.pedido.pedidoFecha}" readonly="true" size="11" style="width: 60px;" >
                                     <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                                 </p:inputText>
                             </p:column>
-                            <p:column colspan="2" style="width: 210px; text-align: right;" >
+                            <p:column colspan="2" >
+                                <h:outputLabel value="#{mbPedidos.pedido.directo?'Entrega Directa':'Entrega Almacén'}" style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="text-align: right;" >
                                 <h:outputLabel for="txtDesctoComercial" value="DESCUENTO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column style="width: 90px;" >
@@ -528,8 +534,11 @@
                                 </p:calendar>
                             </p:column>
                             <p:column >
+                                <p:selectBooleanCheckbox id="chkDirecto" itemLabel="Directo"
+                                                         value="#{mbPedidos.pedido.directo}" style="width: 75px;" >
+                                </p:selectBooleanCheckbox>
                                 <p:selectBooleanCheckbox id="chkEspeciales" itemLabel="Especial (Solo sin cargo)"
-                                                         value="#{mbPedidos.pedido.especial}" style="width: 170px;" >
+                                                         value="#{mbPedidos.pedido.especial}" style="width: 145px;" >
                                 </p:selectBooleanCheckbox>
                             </p:column>
                         </p:row>

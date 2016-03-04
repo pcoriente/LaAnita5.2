@@ -15,11 +15,15 @@ public class TOPedido extends TOMovimientoOficina {
     private int especial;
     private int pedidoIdUsuario;
     private String canceladoMotivo;
-//    private Date canceladoFecha;
     private int pedidoEstatus;
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private int directo;
+    private double peso;
+    private int idEnvio;
+    private int orden;
+    private int envioEstatus;
 
     public TOPedido() {
         super();
@@ -135,5 +139,45 @@ public class TOPedido extends TOMovimientoOficina {
 
     public void setElectronico(String electronico) {
         this.electronico = electronico;
+    }
+
+    public int getDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(int directo) {
+        this.directo = directo;
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public int getOrden() {
+        return orden;
+    }
+
+    public void setOrden(int orden) {
+        this.orden = orden;
+    }
+
+    public int getEnvioEstatus() {
+        return envioEstatus;
+    }
+
+    public void setEnvioEstatus(int envioEstatus) {
+        this.envioEstatus = envioEstatus;
     }
 }

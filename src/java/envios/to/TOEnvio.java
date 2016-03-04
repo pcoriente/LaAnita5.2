@@ -9,26 +9,28 @@ import java.util.Date;
 public class TOEnvio {
     private int idEnvio;
     private int idCedis;
-    private int idEmpresa;
-    private int idAlmacen;
+    private int folioEnvio;
     private Date generado;
-    private Date enviado;
-    private double peso;
-    private int status;
+//    private Date fechaEstatus;
+    private Date fechaEnvio;
+    private Date fechaFletera;
+    private Date fechaAnita;
+    private Date fechaQuimicos;
+    private int diasInventario;
     private int prioridad;
-    private int idChofer;
-    private int idCamion;
+    private int idUsuario;
+//    private int propietario;
+    private int estatus;
 
     @Override
     public String toString() {
-        return "--"+String.format("%08d", this.idEnvio)+"--";
-        //return Integer.toString(this.idEnvio);
+        return "--"+String.format("%08d", this.folioEnvio)+"--";
     }
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 43 * hash + this.idEnvio;
+        int hash = 7;
+        hash = 67 * hash + this.idEnvio;
         return hash;
     }
 
@@ -47,19 +49,6 @@ public class TOEnvio {
         return true;
     }
 
-    public TOEnvio() {
-        this.generado=new Date();
-        this.enviado=new Date();
-    }
-
-    public TOEnvio(int idCedis, int idEmpresa, int idAlmacen) {
-        this.idCedis = idCedis;
-        this.idEmpresa = idEmpresa;
-        this.idAlmacen = idAlmacen;
-        this.generado=new Date();
-        this.enviado=new Date();
-    }
-
     public int getIdEnvio() {
         return idEnvio;
     }
@@ -76,20 +65,12 @@ public class TOEnvio {
         this.idCedis = idCedis;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
+    public int getFolioEnvio() {
+        return folioEnvio;
     }
 
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
-    }
-
-    public int getIdAlmacen() {
-        return idAlmacen;
-    }
-
-    public void setIdAlmacen(int idAlmacen) {
-        this.idAlmacen = idAlmacen;
+    public void setFolioEnvio(int folioEnvio) {
+        this.folioEnvio = folioEnvio;
     }
 
     public Date getGenerado() {
@@ -100,28 +81,52 @@ public class TOEnvio {
         this.generado = generado;
     }
 
-    public Date getEnviado() {
-        return enviado;
+//    public Date getFechaEstatus() {
+//        return fechaEstatus;
+//    }
+//
+//    public void setFechaEstatus(Date fechaEstatus) {
+//        this.fechaEstatus = fechaEstatus;
+//    }
+//
+    public Date getFechaEnvio() {
+        return fechaEnvio;
     }
 
-    public void setEnviado(Date enviado) {
-        this.enviado = enviado;
+    public void setFechaEnvio(Date fechaEnvio) {
+        this.fechaEnvio = fechaEnvio;
     }
 
-    public double getPeso() {
-        return peso;
+    public Date getFechaFletera() {
+        return fechaFletera;
     }
 
-    public void setPeso(double peso) {
-        this.peso = peso;
+    public void setFechaFletera(Date fechaFletera) {
+        this.fechaFletera = fechaFletera;
     }
 
-    public int getStatus() {
-        return status;
+    public Date getFechaAnita() {
+        return fechaAnita;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setFechaAnita(Date fechaAnita) {
+        this.fechaAnita = fechaAnita;
+    }
+
+    public Date getFechaQuimicos() {
+        return fechaQuimicos;
+    }
+
+    public void setFechaQuimicos(Date fechaQuimicos) {
+        this.fechaQuimicos = fechaQuimicos;
+    }
+
+    public int getDiasInventario() {
+        return diasInventario;
+    }
+
+    public void setDiasInventario(int diasInventario) {
+        this.diasInventario = diasInventario;
     }
 
     public int getPrioridad() {
@@ -132,19 +137,27 @@ public class TOEnvio {
         this.prioridad = prioridad;
     }
 
-    public int getIdChofer() {
-        return idChofer;
+    public int getIdUsuario() {
+        return idUsuario;
     }
 
-    public void setIdChofer(int idChofer) {
-        this.idChofer = idChofer;
+    public void setIdUsuario(int idUsuario) {
+        this.idUsuario = idUsuario;
     }
 
-    public int getIdCamion() {
-        return idCamion;
+//    public int getPropietario() {
+//        return propietario;
+//    }
+//
+//    public void setPropietario(int propietario) {
+//        this.propietario = propietario;
+//    }
+//
+    public int getEstatus() {
+        return estatus;
     }
 
-    public void setIdCamion(int idCamion) {
-        this.idCamion = idCamion;
+    public void setEstatus(int estatus) {
+        this.estatus = estatus;
     }
 }

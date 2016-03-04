@@ -8,6 +8,9 @@ import producto2.dominio.Producto;
  * @author jesc
  */
 public class PedidoProducto extends ProductoOficina {
+    private int idEnvio;
+    private double cantEnviada;
+    private double cantEnviada2;
     private int idPedido;
     private double cajas;
     private double cajasSinCargo;
@@ -22,6 +25,30 @@ public class PedidoProducto extends ProductoOficina {
 
     public PedidoProducto(Producto producto) {
         super(producto);
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public double getCantEnviada() {
+        return cantEnviada;
+    }
+
+    public void setCantEnviada(double cantEnviada) {
+        this.cantEnviada = cantEnviada;
+    }
+
+    public double getCantEnviada2() {
+        return cantEnviada2;
+    }
+
+    public void setCantEnviada2(double cantEnviada2) {
+        this.cantEnviada2 = cantEnviada2;
     }
 
     public int getIdPedido() {

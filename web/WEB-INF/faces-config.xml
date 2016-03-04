@@ -13,11 +13,6 @@
     </converter>
     
     <converter>
-        <converter-id>converter.envios</converter-id>
-        <converter-class>envios.converters.EnvioConverter</converter-class>
-    </converter>
-    
-    <converter>
         <converter-id>converter.formatos</converter-id>
         <converter-class>formatos.Converter.ConverterFormatos</converter-class>
     </converter>
@@ -27,6 +22,10 @@
         <converter-class>agentes.converter.AgentesConverter</converter-class>
     </converter>
     
+    <converter>
+        <converter-id>converter.envioTraspaso</converter-id>
+        <converter-class>envios.converters.EnvioTraspasoConverter</converter-class>
+    </converter>
     
     <converter>
         <converter-id>converter.rutas</converter-id>

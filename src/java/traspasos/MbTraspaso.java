@@ -219,13 +219,13 @@ public class MbTraspaso implements Serializable {
         }
     }
 
-    public TOTraspasoProducto convertir(TraspasoProducto prod) {
-        TOTraspasoProducto toProd = new TOTraspasoProducto();
-        toProd.setCantSolicitada(prod.getCantSolicitada());
-        toProd.setCantTraspasada(prod.getCantTraspasada());
-        movimientos.Movimientos.convertir(prod, toProd);
-        return toProd;
-    }
+//    public TOTraspasoProducto convertir(TraspasoProducto prod) {
+//        TOTraspasoProducto toProd = new TOTraspasoProducto();
+//        toProd.setCantSolicitada(prod.getCantSolicitada());
+//        toProd.setCantTraspasada(prod.getCantTraspasada());
+//        movimientos.Movimientos.convertir(prod, toProd);
+//        return toProd;
+//    }
 
     public void gestionar() {
         if (this.producto.getCantFacturada() < 0) {
@@ -379,22 +379,22 @@ public class MbTraspaso implements Serializable {
         context.addCallbackParam("okTraspaso", ok);
     }
 
-    private TraspasoProducto convertir(TOTraspasoProducto toProd) throws SQLException {
-        TraspasoProducto prod = new TraspasoProducto();
-        prod.setCantSolicitada(toProd.getCantSolicitada());
-        prod.setCantTraspasada(toProd.getCantTraspasada());
-        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
-        movimientos.Movimientos.convertir(toProd, prod);
-        return prod;
-    }
-
+//    private TraspasoProducto convertir(TOTraspasoProducto toProd) throws SQLException {
+//        TraspasoProducto prod = new TraspasoProducto();
+//        prod.setCantSolicitada(toProd.getCantSolicitada());
+//        prod.setCantTraspasada(toProd.getCantTraspasada());
+//        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+//        movimientos.Movimientos.convertir(toProd, prod);
+//        return prod;
+//    }
+//
     private void obtenDetalleTraspaso() {
         this.detalle = new ArrayList<>();
         TOTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
             this.dao = new DAOTraspasos();
             for (TOTraspasoProducto to : this.dao.obtenerDetalleTraspaso(toTraspaso)) {
-                this.detalle.add(this.convertir(to));
+                this.detalle.add(Traspasos.convertir(to, this.mbBuscar.obtenerProducto(to.getIdProducto())));
             }
             this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
             this.traspaso.setPropietario(toTraspaso.getPropietario());
@@ -413,7 +413,7 @@ public class MbTraspaso implements Serializable {
         try {
             this.dao = new DAOTraspasos();
             for (TOTraspasoProducto to : this.dao.obtenerDetalleSolicitud(toTraspaso)) {
-                this.detalle.add(this.convertir(to));
+                this.detalle.add(Traspasos.convertir(to, this.mbBuscar.obtenerProducto(to.getIdProducto())));
             }
             this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
             this.traspaso.setPropietario(toTraspaso.getPropietario());

@@ -61,17 +61,10 @@ public class DAOSolicitudes {
     }
 
     public void liberar(int idSolicitud) throws SQLException {
-        String strSQL = "SELECT propietario FROM solicitudes WHERE idSolicitud=" + idSolicitud;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    if (rs.getInt("propietario") == this.idUsuario) {
-                        strSQL = "UPDATE solicitudes SET propietario=0 WHERE idSolicitud=" + idSolicitud;
-                        st.executeUpdate(strSQL);
-                    }
-                }
+            try {
+                solicitudes.Solicitudes.liberarSolicitud(cn, idSolicitud, this.idUsuario);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -175,29 +168,20 @@ public class DAOSolicitudes {
     }
 
     public void agregarProducto(TOSolicitudProducto to) throws SQLException {
-        String strSQL;
-        try (Connection cn = this.ds.getConnection()) {
-            try (Statement st = cn.createStatement()) {
-                strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
-                        + "VALUES (" + to.getIdSolicitud() + ", " + to.getIdProducto() + ", " + to.getCantSolicitada() + ")";
-                st.executeUpdate(strSQL);
-            }
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
+            String strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
+                    + "VALUES (" + to.getIdSolicitud() + ", " + to.getIdProducto() + ", " + to.getCantSolicitada() + ")";
+            st.executeUpdate(strSQL);
+        } finally {
+            cn.close();
         }
     }
 
     private TOSolicitud construir(ResultSet rs) throws SQLException {
-        TOSolicitud toMov = new TOSolicitud();
-        toMov.setIdSolicitud(rs.getInt("idSolicitud"));
-        toMov.setIdEmpresa(rs.getInt("idEmpresa"));
-        toMov.setIdAlmacen(rs.getInt("idAlmacen"));
-        toMov.setFolio(rs.getInt("folio"));
-        toMov.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
-        toMov.setIdAlmacenOrigen(rs.getInt("idAlmacenOrigen"));
-        toMov.setIdUsuarioOrigen(rs.getInt("idUsuarioOrigen"));
-        toMov.setIdUsuario(rs.getInt("idUsuario"));
-        toMov.setPropietario(rs.getInt("propietario"));
-        toMov.setEstatus(rs.getInt("estatus"));
-        return toMov;
+        TOSolicitud toSol = new TOSolicitud();
+        solicitudes.Solicitudes.construir(toSol, rs);
+        return toSol;
     }
 
     public ArrayList<TOSolicitud> obtenerSolicitudes(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
@@ -216,7 +200,7 @@ public class DAOSolicitudes {
         if (estatus != 0) {
             strSQL += "         AND CONVERT(date, fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
-        strSQL+="ORDER BY fecha DESC";
+        strSQL += "ORDER BY fecha DESC";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
@@ -229,26 +213,15 @@ public class DAOSolicitudes {
     }
 
     public void agregar(TOSolicitud toMov) throws SQLException {
-        String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
+            try {
                 toMov.setEstatus(0);
                 toMov.setIdUsuario(this.idUsuario);
                 toMov.setPropietario(this.idUsuario);
-                strSQL = "INSERT INTO solicitudes (idEmpresa, idAlmacen, folio, fecha, idAlmacenOrigen, idUsuarioOrigen, idUsuario, propietario, estatus, envio)\n"
-                        + "VALUES (" + toMov.getIdEmpresa() + " ," + toMov.getIdAlmacen() + ", 0, GETDATE(), " + toMov.getIdAlmacenOrigen() + ", 0, " + toMov.getIdUsuario() + ", " + toMov.getPropietario() + ", " + toMov.getEstatus() + ", 0)";
-                st.executeUpdate(strSQL);
 
-                ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idSolicitud");
-                if (rs.next()) {
-                    toMov.setIdSolicitud(rs.getInt("idSolicitud"));
-                }
-                strSQL = "SELECT fecha FROM solicitudes WHERE idSolicitud=" + toMov.getIdSolicitud();
-                rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    toMov.setFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
-                }
+                solicitudes.Solicitudes.agrega(cn, toMov);
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

@@ -20,65 +20,81 @@ import usuarios.dominio.UsuarioSesion;
  * @author jsolis
  */
 public class DAOMiniCedis {
+
     private int idZona;
     private int idCedis;
     private DataSource ds;
-    
+
     public DAOMiniCedis() throws NamingException {
         try {
             FacesContext context = FacesContext.getCurrentInstance();
             ExternalContext externalContext = context.getExternalContext();
             HttpSession httpSession = (HttpSession) externalContext.getSession(false);
             UsuarioSesion usuarioSesion = (UsuarioSesion) httpSession.getAttribute("usuarioSesion");
-            this.idZona=usuarioSesion.getUsuario().getIdCedisZona();
-            this.idCedis=usuarioSesion.getUsuario().getIdCedis();
-            
+            this.idZona = usuarioSesion.getUsuario().getIdCedisZona();
+            this.idCedis = usuarioSesion.getUsuario().getIdCedis();
+
             Context cI = new InitialContext();
-            ds = (DataSource) cI.lookup("java:comp/env/"+usuarioSesion.getJndi());
+            ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
         } catch (NamingException ex) {
-            throw(ex);
+            throw (ex);
         }
     }
-    
+
+    public ArrayList<MiniCedis> obtenerCedisPlanta(Boolean planta) throws SQLException {
+        ArrayList<MiniCedis> lista = new ArrayList<>();
+        String strSQL = "SELECT idCedis, cedis FROM cedis WHERE idCedisPlanta=" + this.idCedis;
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                    lista.add(this.construirMini(rs));
+            }
+        } finally {
+            cn.close();
+        }
+        return lista;
+    }
+
     public MiniCedis obtenerDefaultMiniCedis() throws SQLException {
-        MiniCedis to=null;
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
+        MiniCedis to = null;
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
         try {
-            ResultSet rs=st.executeQuery("SELECT idCedis, cedis FROM cedis WHERE idCedis="+this.idCedis);
-            if(rs.next()) {
-                to=construirMini(rs);
+            ResultSet rs = st.executeQuery("SELECT idCedis, cedis FROM cedis WHERE idCedis=" + this.idCedis);
+            if (rs.next()) {
+                to = construirMini(rs);
             }
         } finally {
             cn.close();
         }
         return to;
     }
-    
+
     public MiniCedis obtenerMiniCedis(int idCedis) throws SQLException {
-        MiniCedis to=null;
-        Connection cn=this.ds.getConnection();
-        Statement st=cn.createStatement();
+        MiniCedis to = null;
+        Connection cn = this.ds.getConnection();
+        Statement st = cn.createStatement();
         try {
-            ResultSet rs=st.executeQuery("SELECT idCedis, cedis FROM cedis WHERE idCedis="+idCedis);
-            if(rs.next()) {
-                to=construirMini(rs);
+            ResultSet rs = st.executeQuery("SELECT idCedis, cedis FROM cedis WHERE idCedis=" + idCedis);
+            if (rs.next()) {
+                to = construirMini(rs);
             }
         } finally {
             cn.close();
         }
         return to;
     }
-    
+
     public ArrayList<MiniCedis> obtenerListaMiniCedisTodos() throws SQLException {
-        ArrayList<MiniCedis> lstMiniCedis=new ArrayList<MiniCedis>();
-        
-        Connection cn=ds.getConnection();
+        ArrayList<MiniCedis> lstMiniCedis = new ArrayList<MiniCedis>();
+
+        Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
-        String strSQL="select * from cedis order by idCedis";
+        String strSQL = "select * from cedis order by idCedis";
         try {
             ResultSet rs = sentencia.executeQuery(strSQL);
-            while(rs.next()) {
+            while (rs.next()) {
                 lstMiniCedis.add(construirMini(rs));
             }
         } finally {
@@ -86,19 +102,19 @@ public class DAOMiniCedis {
         }
         return lstMiniCedis;
     }
-    
+
     public ArrayList<MiniCedis> obtenerListaMiniCedisZona() throws SQLException {
-        ArrayList<MiniCedis> lstMiniCedis=new ArrayList<MiniCedis>();
-        
-        Connection cn=ds.getConnection();
+        ArrayList<MiniCedis> lstMiniCedis = new ArrayList<MiniCedis>();
+
+        Connection cn = ds.getConnection();
         Statement sentencia = cn.createStatement();
-        String strSQL="select * \n" +
-                        "from cedisZonasDetalle z\n" +
-                        "inner join cedis c on c.idCedis=z.idCedis\n" +
-                        "where z.idZona="+this.idZona;
+        String strSQL = "select * \n"
+                + "from cedisZonasDetalle z\n"
+                + "inner join cedis c on c.idCedis=z.idCedis\n"
+                + "where z.idZona=" + this.idZona;
         try {
             ResultSet rs = sentencia.executeQuery(strSQL);
-            while(rs.next()) {
+            while (rs.next()) {
                 lstMiniCedis.add(construirMini(rs));
             }
         } finally {
@@ -106,7 +122,7 @@ public class DAOMiniCedis {
         }
         return lstMiniCedis;
     }
-    
+
 //    public ArrayList<MiniCedis> obtenerTodasListaMiniCedis() throws SQLException {
 //        ArrayList<MiniCedis> lstMiniCedis=new ArrayList<MiniCedis>();
 //        
@@ -123,9 +139,8 @@ public class DAOMiniCedis {
 //        }
 //        return lstMiniCedis;
 //    }
-    
     private MiniCedis construirMini(ResultSet rs) throws SQLException {
-        MiniCedis to=new MiniCedis();
+        MiniCedis to = new MiniCedis();
         to.setIdCedis(rs.getInt("idCedis"));
         to.setCedis(rs.getString("cedis"));
         return to;

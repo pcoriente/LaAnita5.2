@@ -1,16 +1,16 @@
 package envios.to;
 
+import traspasos.to.TOTraspasoProducto;
+
 /**
  *
  * @author jesc
  */
-public class TOEnvioProducto {
+public class TOEnvioProducto extends TOTraspasoProducto {
     private int idEnvio;
-    private int idMovto;
-    private int idEmpaque;
-    private double enviados;
-    private double pendientes;
-    private double peso;
+    private int idSolicitud;
+    private double estadistica;
+    private double sugerido;
 
     public int getIdEnvio() {
         return idEnvio;
@@ -20,43 +20,27 @@ public class TOEnvioProducto {
         this.idEnvio = idEnvio;
     }
 
-    public int getIdMovto() {
-        return idMovto;
+    public int getIdSolicitud() {
+        return idSolicitud;
     }
 
-    public void setIdMovto(int idMovto) {
-        this.idMovto = idMovto;
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
-    public int getIdEmpaque() {
-        return idEmpaque;
+    public double getEstadistica() {
+        return estadistica;
     }
 
-    public void setIdEmpaque(int idEmpaque) {
-        this.idEmpaque = idEmpaque;
+    public void setEstadistica(double estadistica) {
+        this.estadistica = estadistica;
     }
 
-    public double getEnviados() {
-        return enviados;
+    public double getSugerido() {
+        return sugerido;
     }
 
-    public void setEnviados(double enviados) {
-        this.enviados = enviados;
-    }
-
-    public double getPendientes() {
-        return pendientes;
-    }
-
-    public void setPendientes(double pendientes) {
-        this.pendientes = pendientes;
-    }
-
-    public double getPeso() {
-        return peso;
-    }
-
-    public void setPeso(double peso) {
-        this.peso = peso;
+    public void setSugerido(double sugerido) {
+        this.sugerido = sugerido;
     }
 }

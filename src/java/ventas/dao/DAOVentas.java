@@ -183,7 +183,8 @@ public class DAOVentas {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOVenta> ventas = new ArrayList<>();
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
+                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=M.idMovtoAlmacen\n"
@@ -364,23 +365,25 @@ public class DAOVentas {
 
     public ArrayList<TOVenta> obtenerPedidos(int idAlmacen) throws SQLException {
         ArrayList<TOVenta> ventas = new ArrayList<>();
-        String strSQL = "SELECT P.idPedidoOC, P.idMoneda, P.fecha AS pedidoFecha, P.canceladoMotivo, P.canceladoFecha, P.especial, P.electronico\n"
-                + "	, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
-                + "	, 0 AS idMovto, 28 AS idTipo, 0 AS idEmpresa, " + idAlmacen + " AS idAlmacen, 0 AS folio, 0 AS idComprobante, T.idImpuestoZona\n"
-                + "	, 0 AS desctoComercial, 0 AS desctoProntoPago, P.fecha, 0 AS idUsuario, 1 AS tipoDeCambio\n"
-                + "	, P.idTienda AS idReferencia, P.idPedido AS referencia, 0 AS propietario, 5 AS estatus, 0 AS  idMovtoAlmacen\n"
-                + "FROM (SELECT referencia FROM movimientos WHERE idAlmacen=" + idAlmacen + " AND idTipo=28 AND estatus=5) M\n"
-                + "RIGHT JOIN pedidos P ON P.idPedido=M.referencia\n"
-                + "INNER JOIN clientesTiendas T ON T.idTienda=P.idTienda\n"
-                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-                + "WHERE P.estatus=5 AND M.referencia IS NULL\n"
-                + "ORDER BY P.fecha DESC";
-        strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.canceladoMotivo, P.canceladoFecha, P.estatus AS pedidoEstatus, T.idImpuestoZona\n"
+//        String strSQL = "SELECT P.idPedidoOC, P.idMoneda, P.fecha AS pedidoFecha, P.canceladoMotivo, P.canceladoFecha, P.especial, P.electronico\n"
+//                + "	, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
+//                + "	, 0 AS idMovto, 28 AS idTipo, 0 AS idEmpresa, " + idAlmacen + " AS idAlmacen, 0 AS folio, 0 AS idComprobante, T.idImpuestoZona\n"
+//                + "	, 0 AS desctoComercial, 0 AS desctoProntoPago, P.fecha, 0 AS idUsuario, 1 AS tipoDeCambio\n"
+//                + "	, P.idTienda AS idReferencia, P.idPedido AS referencia, 0 AS propietario, 5 AS estatus, 0 AS  idMovtoAlmacen\n"
+//                + "FROM (SELECT referencia FROM movimientos WHERE idAlmacen=" + idAlmacen + " AND idTipo=28 AND estatus=5) M\n"
+//                + "RIGHT JOIN pedidos P ON P.idPedido=M.referencia\n"
+//                + "INNER JOIN clientesTiendas T ON T.idTienda=P.idTienda\n"
+//                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
+//                + "WHERE P.estatus=5 AND M.referencia IS NULL\n"
+//                + "ORDER BY P.fecha DESC";
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.canceladoMotivo, P.canceladoFecha\n"
+                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, ISNULL(V.estatus, 0) AS envioEstatus, T.idImpuestoZona\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "RIGHT JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "INNER JOIN clientesTiendas T ON T.idTienda=M.idReferencia\n"
                 + "LEFT JOIN pedidosOC ON OC.idPedidoOC=P.idPedidoOC\n"
+                + "LEFT JOIN envios V ON V.idEnvio=P.idEnvio\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus=0 AND P.estatus=1\n"
                 + "ORDER BY P.fecha DESC";
         Connection cn = this.ds.getConnection();
@@ -458,17 +461,17 @@ public class DAOVentas {
             }
         }
     }
-    
+
     public void cancelarVenta(TOVenta toVta) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                strSQL="SELECT estatus FROM pedidos WHERE idPedido=" + toVta.getReferencia();
-                ResultSet rs=st.executeQuery(strSQL);
+                strSQL = "SELECT estatus FROM pedidos WHERE idPedido=" + toVta.getReferencia();
+                ResultSet rs = st.executeQuery(strSQL);
                 rs.next();
                 toVta.setPedidoEstatus(7);
-                if(rs.getInt("estatus")==3) {
+                if (rs.getInt("estatus") == 3) {
                     toVta.setPedidoEstatus(6);
                 }
                 toVta.setIdUsuario(this.idUsuario);
@@ -503,7 +506,7 @@ public class DAOVentas {
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE movimientos\n"
-                        + "SET fecha=GETDATE(), idUsuario=" +toVta.getIdUsuario()+ ", propietario=" + toVta.getPropietario() + ", estatus=" + toVta.getEstatus() + "\n"
+                        + "SET fecha=GETDATE(), idUsuario=" + toVta.getIdUsuario() + ", propietario=" + toVta.getPropietario() + ", estatus=" + toVta.getEstatus() + "\n"
                         + "WHERE idMovto=" + toVta.getIdMovto();
                 st.executeUpdate(strSQL);
 
@@ -524,7 +527,8 @@ public class DAOVentas {
 
     private void generaPedidoVenta(Connection cn, int idPedido) throws SQLException {
         // Obtiene el movimiento original (el primer idMovto) del pedido, para con este crear el nuevo
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus, C.idMoneda\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
+                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, C.idMoneda\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
@@ -1267,15 +1271,23 @@ public class DAOVentas {
                             toVta.setPropietario(0);
                         }
                     } else if (toVta.getReferencia() != 0 && toVta.getPedidoEstatus() == 1) {
-                        strSQL="SELECT estatus FROM pedidos WHERE idPedido=" + toVta.getReferencia();
-                        ResultSet rs=st.executeQuery(strSQL);
-                        rs.next();
-                        toVta.setPedidoEstatus(rs.getInt("estatus"));
-                        if(toVta.getPedidoEstatus()==1) {
-                            strSQL="UPDATE pedidos SET estatus=3 WHERE idPedido=" + toVta.getReferencia();
-                            st.executeUpdate(strSQL);
-                        } else {
+                        if (toVta.getDirecto() != 0 && (toVta.getIdEnvio() == 0 || toVta.getEnvioEstatus()!=7)) {
+                            movimientos.Movimientos.liberarMovimientoOficina(cn, toVta.getIdMovto(), this.idUsuario);
                             toVta.setPropietario(0);
+                        } else {
+                            strSQL = "SELECT estatus FROM pedidos WHERE idPedido=" + toVta.getReferencia();
+                            ResultSet rs = st.executeQuery(strSQL);
+                            if(rs.next()) {
+                                toVta.setPedidoEstatus(rs.getInt("estatus"));
+                                if (toVta.getPedidoEstatus() == 1) {
+                                    strSQL = "UPDATE pedidos SET estatus=3 WHERE idPedido=" + toVta.getReferencia();
+                                    st.executeUpdate(strSQL);
+                                } else {
+                                    toVta.setPropietario(0);
+                                }
+                            } else {
+                                toVta.setPropietario(0);
+                            }
                         }
                     }
                 }
@@ -1332,12 +1344,14 @@ public class DAOVentas {
     }
 
     public TOVenta obtenerVentaOficina(int idComprobante) throws SQLException {
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
+                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, ISNULL(V.estatus, 0) AS V.envioEstatus\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
+                + "LEFT JOIN envios V ON E.idEnvio=P.idEnvio\n"
                 + "WHERE C.idComprobante=" + idComprobante;
         TOVenta toVta = new TOVenta();
         try (Connection cn = this.ds.getConnection()) {
@@ -1359,26 +1373,10 @@ public class DAOVentas {
         return toVta;
     }
 
-    private void construir(ResultSet rs, TOVenta toVta) throws SQLException {
-        toVta.setIdPedidoOC(rs.getInt("idPedidoOC"));
-        toVta.setPedidoFolio(rs.getInt("pedidoFolio"));
-        toVta.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
-        toVta.setDiasCredito(rs.getInt("diasCredito"));
-        toVta.setEspecial(rs.getInt("especial"));
-        toVta.setPedidoIdUsuario(rs.getInt("pedidoIdUsuario"));
-        toVta.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-//        toVta.setCanceladoFecha(new java.util.Date(rs.getTimestamp("canceladoFecha").getTime()));
-        toVta.setPedidoEstatus(rs.getInt("pedidoEstatus"));
-        toVta.setElectronico(rs.getString("electronico"));
-        toVta.setOrdenDeCompra(rs.getString("ordenDeCompra"));
-        toVta.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
-        movimientos.Movimientos.construirMovimientoOficina(rs, toVta);
-    }
-
     private TOVenta construir(ResultSet rs) throws SQLException {
-        TOVenta toMov = new TOVenta(28);
-        this.construir(rs, toMov);
-        return toMov;
+        TOVenta toVta = new TOVenta(28);
+        ventas.Ventas.construyeVenta(toVta, rs);
+        return toVta;
     }
 
     public ArrayList<TOVenta> obtenerVentasOficina(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
@@ -1392,11 +1390,13 @@ public class DAOVentas {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOVenta> ventas = new ArrayList<>();
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
+                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, ISNULL(V.estatus, 0) AS envioEstatus\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
+                + "LEFT JOIN envios V ON V.idEnvio=P.idEnvio\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus" + condicion + "\n";
         if (estatus != 0) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";

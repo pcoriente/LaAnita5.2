@@ -12,6 +12,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import tiendas.Tiendas;
 import tiendas.to.TOTienda;
 import usuarios.dominio.UsuarioSesion;
 
@@ -93,19 +94,15 @@ public class DAOTiendas {
 
     public ArrayList<TOTienda> obtenerTiendasCedisCliente(int idCliente) throws SQLException {
         ArrayList<TOTienda> tos = new ArrayList<>();
-        String strSQL = "SELECT T.*, Y.idContribuyente, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
-                + "FROM clientesTiendas T\n"
+        String strSQL = Tiendas.sqlTienda() + "\n"
                 + "INNER JOIN agentes A ON A.idAgente=T.idAgente\n"
-                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
-                + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda\n"
                 + "WHERE A.idCedis=" + this.idCedis + " AND T.idCliente=" + idCliente + "\n"
                 + "ORDER BY T.tienda";
         Connection cn = ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                tos.add(this.construir(rs));
+                tos.add(Tiendas.construir(rs));
             }
         } finally {
             cn.close();
@@ -115,17 +112,12 @@ public class DAOTiendas {
 
     public ArrayList<TOTienda> obtenerTiendasFormato(int idFormato) throws SQLException {
         ArrayList<TOTienda> tos = new ArrayList<>();
-        String strSQL = "SELECT T.*, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
-                + "FROM clientesTiendas T\n"
-                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
-                + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda\n"
-                + "WHERE T.idFormato=" + idFormato;
+        String strSQL = Tiendas.sqlTienda() + " WHERE T.idFormato=" + idFormato;
         Connection cn = ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                tos.add(this.construir(rs));
+                tos.add(Tiendas.construir(rs));
             }
         } finally {
             cn.close();
@@ -133,36 +125,11 @@ public class DAOTiendas {
         return tos;
     }
 
-    private TOTienda construir(ResultSet rs) throws SQLException {
-        TOTienda to = new TOTienda();
-        to.setIdTienda(rs.getInt("idTienda"));
-        to.setTienda(rs.getString("tienda"));
-        to.setIdDireccion(rs.getInt("idDireccion"));
-        to.setIdCliente(rs.getInt("idCliente"));
-        to.setContribuyente(rs.getString("contribuyente"));
-        to.setIdFormato(rs.getInt("idFormato"));
-        to.setIdAgente(rs.getInt("idAgente"));
-        to.setIdRuta(rs.getInt("idRuta"));
-        to.setIdImpuestoZona(rs.getInt("idImpuestoZona"));
-        to.setCodigoTienda(rs.getInt("codigoCliente"));
-        to.setEstado(rs.getInt("estado"));
-        return to;
-    }
-
     public TOTienda obtenerTienda(int idTienda) throws SQLException {
         TOTienda to = null;
-        String strSQL = "SELECT T.*, Y.contribuyente, ISNULL(TC.codigoTienda, 0) AS codigoTienda\n"
-                + "FROM clientesTiendas T\n"
-                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
-                + "INNER JOIN contribuyentes Y ON Y.idContribuyente=C.idContribuyente\n"
-                + "LEFT JOIN clientesTiendasCodigos TC ON TC.idTienda=T.idTienda\n"
-                + "WHERE T.idTienda=" + idTienda;
         Connection cn = ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            if (rs.next()) {
-                to = this.construir(rs);
-            }
+        try {
+            to = Tiendas.obtenerTienda(cn, idTienda);
         } finally {
             cn.close();
         }

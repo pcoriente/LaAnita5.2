@@ -8,6 +8,8 @@ import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -35,6 +37,24 @@ public class MbMiniCedis implements Serializable {
     private void inicializaLocales() {
         this.cedis=new MiniCedis();
         this.setListaMiniCedis(null);
+    }
+    
+    public void obtenerCedisPlanta(Boolean planta) {
+        this.listaMiniCedis = new ArrayList<>();
+        try {
+            this.cedis.setIdCedis(0);
+            this.cedis.setCedis("Seleccione un cedis");
+            this.listaMiniCedis.add(new SelectItem(this.cedis, this.cedis.toString()));
+            
+            this.dao=new DAOMiniCedis();
+            for(MiniCedis mc : this.dao.obtenerCedisPlanta(planta)) {
+                this.listaMiniCedis.add(new SelectItem(mc, mc.toString()));
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
     }
     
     public void obtenerDefaultCedis() {

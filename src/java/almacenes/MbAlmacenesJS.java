@@ -52,6 +52,11 @@ public class MbAlmacenesJS implements Serializable {
         this.setListaAlmacenes(null);
     }
     
+    public void inicializaAlmacen(String almacen) {
+        this.toAlmacen = new TOAlmacenJS();
+        this.toAlmacen.setAlmacen(almacen);
+    }
+    
     public void inicializaConAlmacen(TOAlmacenJS toAlmacen) {
 //        this.mbCedis.cargaMiniCedisTodos();
 //        this.mbCedis.setCedis(this.mbCedis.obtenerCedis(toAlmacen.getIdCedis()));

@@ -8,7 +8,7 @@ import java.util.Date;
  */
 public class TOSolicitud {
     private int idSolicitud;
-    private int idEmpresa;
+//    private int idEmpresa;
     private int idAlmacen;
     private int folio;
     private Date fecha;
@@ -17,6 +17,7 @@ public class TOSolicitud {
     private int idUsuario;
     private int propietario;
     private int estatus;
+    private int envio;
     
     public TOSolicitud() {
         this.fecha = new Date();
@@ -30,14 +31,14 @@ public class TOSolicitud {
         this.idSolicitud = idSolicitud;
     }
 
-    public int getIdEmpresa() {
-        return idEmpresa;
-    }
-
-    public void setIdEmpresa(int idEmpresa) {
-        this.idEmpresa = idEmpresa;
-    }
-
+//    public int getIdEmpresa() {
+//        return idEmpresa;
+//    }
+//
+//    public void setIdEmpresa(int idEmpresa) {
+//        this.idEmpresa = idEmpresa;
+//    }
+//
     public int getIdAlmacen() {
         return idAlmacen;
     }
@@ -100,5 +101,13 @@ public class TOSolicitud {
 
     public void setEstatus(int estatus) {
         this.estatus = estatus;
+    }
+
+    public int getEnvio() {
+        return envio;
+    }
+
+    public void setEnvio(int envio) {
+        this.envio = envio;
     }
 }

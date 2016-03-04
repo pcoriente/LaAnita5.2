@@ -14,6 +14,8 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import traspasos.Traspasos;
+import traspasos.dominio.Traspaso;
 import traspasos.to.TOTraspaso;
 import traspasos.to.TOTraspasoProducto;
 import traspasos.to.TOTraspasoProductoAlmacen;
@@ -230,7 +232,7 @@ public class DAOTraspasos {
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                traspasos.add(this.construir(rs));
+                traspasos.add(Traspasos.construir(rs));
             }
         } finally {
             cn.close();
@@ -257,7 +259,7 @@ public class DAOTraspasos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    detalle.add(this.construirProducto(rs));
+                    detalle.add(Traspasos.construirProducto(rs));
                 }
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toTraspaso, this.idUsuario);
 
@@ -271,6 +273,14 @@ public class DAOTraspasos {
         }
         return detalle;
     }
+    
+    public TOTraspaso obtenerTraspaso1(int idSolicitud) throws SQLException {
+        TOTraspaso toTraspaso = new TOTraspaso();
+        try (Connection cn = this.ds.getConnection()) {
+            Traspasos.obtenerTraspaso(cn, idSolicitud);
+        }
+        return toTraspaso;
+    }
 
     public ArrayList<TOTraspaso> obtenerTraspasos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = ">=5";
@@ -279,10 +289,7 @@ public class DAOTraspasos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*\n"
-                + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+        String strSQL = Traspasos.sqlTraspaso() + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + " AND S.envio=0\n";
         if (estatus == 7) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
@@ -292,7 +299,7 @@ public class DAOTraspasos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    traspasos.add(this.construir(rs));
+                    traspasos.add(Traspasos.construir(rs));
                 }
             }
         }
@@ -318,10 +325,7 @@ public class DAOTraspasos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), this.idUsuario);
-                movimientos.Movimientos.liberarMovimientoOficina(cn, toTraspaso.getIdMovto(), this.idUsuario);
-                toTraspaso.setPropietario(0);
-
+                Traspasos.liberarTraspaso(cn, toTraspaso, this.idUsuario);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -489,13 +493,13 @@ public class DAOTraspasos {
         }
     }
 
-    private TOTraspasoProducto construirProducto(ResultSet rs) throws SQLException {
-        TOTraspasoProducto toProd = new TOTraspasoProducto();
-        toProd.setCantSolicitada(rs.getDouble("cantSolicitada"));
-        toProd.setCantTraspasada(rs.getDouble("cantTraspasada"));
-        movimientos.Movimientos.construirProductoOficina(rs, toProd);
-        return toProd;
-    }
+//    private TOTraspasoProducto construirProducto(ResultSet rs) throws SQLException {
+//        TOTraspasoProducto toProd = new TOTraspasoProducto();
+//        toProd.setCantSolicitada(rs.getDouble("cantSolicitada"));
+//        toProd.setCantTraspasada(rs.getDouble("cantTraspasada"));
+//        movimientos.Movimientos.construirProductoOficina(rs, toProd);
+//        return toProd;
+//    }
 
     public ArrayList<TOTraspasoProducto> obtenerDetalleSolicitud(TOTraspaso toTraspaso) throws SQLException {
         ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
@@ -511,7 +515,7 @@ public class DAOTraspasos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    detalle.add(this.construirProducto(rs));
+                    detalle.add(Traspasos.construirProducto(rs));
                 }
                 solicitudes.Solicitudes.bloquearSolicitud(cn, toTraspaso, this.idUsuario, 5);
                 cn.commit();
@@ -525,32 +529,33 @@ public class DAOTraspasos {
         return detalle;
     }
 
-    private TOTraspaso construir(ResultSet rs) throws SQLException {
-        TOTraspaso toMov = new TOTraspaso();
-        toMov.setSolicitudFolio(rs.getInt("solicitudFolio"));
-        toMov.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
-        toMov.setSolicitudIdUsuario(rs.getInt("solicitudIdUsuario"));
-        toMov.setSolicitudEstatus(rs.getInt("solicitudEstatus"));
-        movimientos.Movimientos.construirMovimientoOficina(rs, toMov);
-        return toMov;
-    }
-
+//    private TOTraspaso construir1(ResultSet rs) throws SQLException {
+//        TOTraspaso toMov = new TOTraspaso();
+//        toMov.setSolicitudFolio(rs.getInt("solicitudFolio"));
+//        toMov.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
+//        toMov.setSolicitudIdUsuario(rs.getInt("solicitudIdUsuario"));
+//        toMov.setSolicitudEstatus(rs.getInt("solicitudEstatus"));
+//        movimientos.Movimientos.construirMovimientoOficina(rs, toMov);
+//        return toMov;
+//    }
+//
     public ArrayList<TOTraspaso> obtenerSolicitudes(int idAlmacenOrigen) throws SQLException {
         ArrayList<TOTraspaso> solicitudes = new ArrayList<>();
         String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
                 + "     , S.idUsuario AS solicitudIdUsuario, S.estatus AS solicitudEstatus\n"
-                + "     , 0 AS idMovto, 35 AS idTipo, S.idEmpresa, S.idAlmacenOrigen AS idAlmacen, 0 AS folio\n"
+                + "     , 0 AS idMovto, 35 AS idTipo, A.idEmpresa, S.idAlmacenOrigen AS idAlmacen, 0 AS folio\n"
                 + "     , 0 AS idComprobante, 0 AS idImpuestoZona, 0 AS desctoComercial, 0 AS desctoProntoPago, GETDATE() AS fecha\n"
                 + "     , 0 AS idUsuario, 1 AS tipoDeCambio, S.idAlmacen AS idReferencia, S.idSolicitud AS referencia\n"
                 + "     , 0 AS propietario, 0 AS estatus, 0 AS idMovtoAlmacen\n"
                 + "FROM solicitudes S\n"
+                + "INNER JOIN almacenes A ON A.idAlmacen=S.idAlmacen\n"
                 + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1 AND envio=0\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    solicitudes.add(this.construir(rs));
+                    solicitudes.add(Traspasos.construir(rs));
                 }
             }
         }

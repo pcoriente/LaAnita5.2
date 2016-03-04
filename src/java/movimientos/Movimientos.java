@@ -18,6 +18,7 @@ import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoAlmacen;
 import movimientos.to.TOProductoLotes;
 import movimientos.to.TOProductoOficina;
+import producto2.dominio.Producto;
 
 /**
  *
@@ -821,6 +822,11 @@ public class Movimientos {
         toMov.setPropietario(mov.getPropietario());
         toMov.setEstatus(mov.getEstatus());
         toMov.setIdMovtoAlmacen(mov.getIdMovtoAlmacen());
+    }
+    
+    public static void convertir(TOProductoOficina toProd, ProductoOficina prod, Producto prod2) {
+        prod.setProducto(prod2);
+        convertir(toProd, prod);
     }
 
     public static void convertir(TOProductoOficina toProd, ProductoOficina prod) {

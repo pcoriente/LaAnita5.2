@@ -212,7 +212,7 @@ public class MbPedidos implements Serializable {
     public void eliminarProducto() {
         boolean ok = false;
         TOPedido toPed = this.convertir(this.pedido);
-        TOProductoPedido toProd = this.convertir(this.producto);
+        TOProductoPedido toProd = Pedidos.convertir(this.producto);
         try {
             this.dao = new DAOPedidos();
             ArrayList<TOProductoPedido> detalleSimilares = this.dao.eliminarProducto(toPed, toProd);
@@ -240,8 +240,8 @@ public class MbPedidos implements Serializable {
                 Mensajes.mensajeAlert("La cantidad a traspasar no puede ser mayor que la cantidad sin cargo !!!");
             } else if(this.cantTraspasar != 0) {
                 TOPedido toPed = this.convertir(this.pedido);
-                TOProductoPedido toProd = this.convertir(this.producto);
-                TOProductoPedido toSimilar = this.convertir(this.similar);
+                TOProductoPedido toProd = Pedidos.convertir(this.producto);
+                TOProductoPedido toSimilar = Pedidos.convertir(this.similar);
 
                 this.dao = new DAOPedidos();
                 this.procesaSimilares(this.dao.trasferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar * this.producto.getProducto().getPiezas()));
@@ -300,7 +300,7 @@ public class MbPedidos implements Serializable {
 
     public void actualizaProductoSinCargo() {
         this.producto.setCantOrdenadaSinCargo(this.producto.getCajasSinCargo() * this.producto.getProducto().getPiezas());
-        TOProductoPedido toProd = this.convertir(this.producto);
+        TOProductoPedido toProd = Pedidos.convertir(this.producto);
         this.producto.setCantOrdenadaSinCargo(this.producto.getCantSinCargo());
         this.producto.setCajasSinCargo(this.producto.getCantSinCargo() / this.producto.getProducto().getPiezas());
         if (toProd.getCantOrdenadaSinCargo() < 0) {
@@ -362,7 +362,7 @@ public class MbPedidos implements Serializable {
     public void actualizaProducto() {
         boolean ok = false;
         this.producto.setCantOrdenada(this.producto.getCajas() * this.producto.getProducto().getPiezas());
-        TOProductoPedido toProd = this.convertir(this.producto);
+        TOProductoPedido toProd = Pedidos.convertir(this.producto);
         this.producto.setCantOrdenada(this.producto.getCantFacturada());
         this.producto.setCajas(this.producto.getCantFacturada() / this.producto.getProducto().getPiezas());
         try {
@@ -409,23 +409,23 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okEdicion", ok);
     }
 
-    private TOProductoPedido convertir(PedidoProducto p) {
-        TOProductoPedido to = new TOProductoPedido();
-        to.setIdPedido(p.getIdPedido());
-        to.setIdMovto(p.getIdMovto());
-        to.setIdProducto(p.getProducto().getIdProducto());
-        to.setCantOrdenada(p.getCantOrdenada());
-        to.setCantOrdenadaSinCargo(p.getCantOrdenadaSinCargo());
-//        to.setSimilar(p.isSimilar());
-        to.setPiezas(p.getProducto().getPiezas());
-        to.setCantFacturada(p.getCantFacturada());
-        to.setCantSinCargo(p.getCantSinCargo());
-        to.setCosto(p.getCosto());
-        to.setDesctoProducto1(p.getDesctoProducto1());
-        to.setUnitario(p.getUnitario());
-        to.setIdImpuestoGrupo(p.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
-        return to;
-    }
+//    private TOProductoPedido convertir(PedidoProducto p) {
+//        TOProductoPedido to = new TOProductoPedido();
+//        to.setIdPedido(p.getIdPedido());
+//        to.setIdMovto(p.getIdMovto());
+//        to.setIdProducto(p.getProducto().getIdProducto());
+//        to.setCantOrdenada(p.getCantOrdenada());
+//        to.setCantOrdenadaSinCargo(p.getCantOrdenadaSinCargo());
+////        to.setSimilar(p.isSimilar());
+//        to.setPiezas(p.getProducto().getPiezas());
+//        to.setCantFacturada(p.getCantFacturada());
+//        to.setCantSinCargo(p.getCantSinCargo());
+//        to.setCosto(p.getCosto());
+//        to.setDesctoProducto1(p.getDesctoProducto1());
+//        to.setUnitario(p.getUnitario());
+//        to.setIdImpuestoGrupo(p.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
+//        return to;
+//    }
 
     public void actualizaProductoSeleccionado() {
         int idx;
@@ -438,7 +438,7 @@ public class MbPedidos implements Serializable {
             this.producto.setIdPedido(this.pedido.getIdPedido());
             try {
                 TOPedido toPed = this.convertir(this.pedido);
-                TOProductoPedido toProd = this.convertir(this.producto);
+                TOProductoPedido toProd = Pedidos.convertir(this.producto);
 
                 this.dao = new DAOPedidos();
                 this.dao.agregarProductoPedido(toPed, toProd);
@@ -493,17 +493,8 @@ public class MbPedidos implements Serializable {
     }
 
     private PedidoProducto convertir(TOProductoPedido toProd) throws SQLException {
-        PedidoProducto prod = new PedidoProducto();
-        prod.setIdPedido(toProd.getIdPedido());
-        prod.setCantOrdenada(toProd.getCantOrdenada());
-        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-//        prod.setSimilar(toProd.isSimilar());
-        prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
-        movimientos.Movimientos.convertir(toProd, prod);
-        prod.setCantFacturada(prod.getCantOrdenada());
-        prod.setCantSinCargo(prod.getCantOrdenadaSinCargo());
-        prod.setCajas(prod.getCantOrdenada() / prod.getProducto().getPiezas());
-        prod.setCajasSinCargo(prod.getCantOrdenadaSinCargo() / prod.getProducto().getPiezas());
+        PedidoProducto prod = new PedidoProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
+        Pedidos.convertir(toProd, prod);
         prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
         return prod;
     }
@@ -541,26 +532,10 @@ public class MbPedidos implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
-    private TOPedido convertir(Pedido pedido) {
-        TOPedido toMov = new TOPedido();
-        toMov.setIdPedidoOC(pedido.getIdPedidoOC());
-        toMov.setPedidoFolio(pedido.getPedidoFolio());
-        toMov.setPedidoFecha(pedido.getPedidoFecha());
-        toMov.setDiasCredito(pedido.getDiasCredito());
-        toMov.setEspecial(pedido.isEspecial() ? 1 : 0);
-        toMov.setPedidoIdUsuario(pedido.getPedidoIdUsuario());
-        toMov.setCanceladoMotivo(pedido.getCanceladoMotivo());
-//        toMov.setCanceladoFecha(pedido.getCanceladoFecha());
-        toMov.setPedidoEstatus(pedido.getPedidoEstatus());
-        toMov.setElectronico(pedido.getElectronico());
-        toMov.setOrdenDeCompra(pedido.getOrdenDeCompra());
-        toMov.setOrdenDeCompraFecha(pedido.getOrdenDeCompraFecha());
-        movimientos.Movimientos.convertir(pedido, toMov);
-        toMov.setIdComprobante(pedido.getComprobante().getIdComprobante());
-        toMov.setIdImpuestoZona(pedido.getTienda().getIdImpuestoZona());
-        toMov.setIdReferencia(pedido.getTienda().getIdTienda());
-        toMov.setReferencia(pedido.getIdPedido());
-        return toMov;
+    private TOPedido convertir(Pedido ped) {
+        TOPedido toPed = new TOPedido();
+        Pedidos.convertirPedido(ped, toPed);
+        return toPed;
     }
 
     private boolean validar() {
@@ -639,31 +614,18 @@ public class MbPedidos implements Serializable {
 //        this.ordenDeCompraFecha = new Date();
     }
 
-    private Pedido convertir(TOPedido to) {
-        Pedido p = new Pedido(this.mbAlmacenes.obtenerAlmacen(to.getIdAlmacen()), this.mbTiendas.obtenerTienda(to.getIdReferencia()), this.mbComprobantes.obtenerComprobante(to.getIdComprobante()));
-        p.setIdPedidoOC(to.getIdPedidoOC());
-        p.setPedidoFolio(to.getPedidoFolio());
-        p.setPedidoFecha(to.getPedidoFecha());
-        p.setDiasCredito(to.getDiasCredito());
-        p.setEspecial(to.getEspecial() == 1 ? true : false);
-        p.setPedidoIdUsuario(to.getPedidoIdUsuario());
-        p.setCanceladoMotivo(to.getCanceladoMotivo());
-//        p.setCanceladoFecha(to.getCanceladoFecha());
-        p.setPedidoEstatus(to.getPedidoEstatus());
-        p.setElectronico(to.getElectronico());
-        p.setOrdenDeCompra(to.getOrdenDeCompra());
-        p.setOrdenDeCompraFecha(to.getOrdenDeCompraFecha());
-        movimientos.Movimientos.convertir(to, p);
-        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(p.getTienda().getIdCliente()));
+    private Pedido convertir(TOPedido toPed) {
+        Pedido ped = new Pedido(this.mbAlmacenes.obtenerAlmacen(toPed.getIdAlmacen()), this.mbTiendas.obtenerTienda(toPed.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toPed.getIdComprobante()));
+        Pedidos.convertirpedido(toPed, ped);
+        this.mbClientes.setCliente(this.mbClientes.obtenerCliente(ped.getTienda().getIdCliente()));
         // Si el pedido todavia esta pendiente, se actualiza con datos del cliente
         // Si ya esta cerrada, se queda con lo que se trajo de la base
-        if (to.getEstatus() == 0) {
-            p.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
-            p.setDesctoProntoPago(0);
-            p.setDiasCredito(this.mbClientes.getCliente().getDiasCredito());
+        if (toPed.getEstatus() == 0) {
+            ped.setDesctoComercial(this.mbClientes.getCliente().getDesctoComercial());
+            ped.setDesctoProntoPago(0);
+            ped.setDiasCredito(this.mbClientes.getCliente().getDiasCredito());
         }
-        p.setIdPedido(to.getReferencia());
-        return p;
+        return ped;
     }
 
     public void obtenerPedidos() {

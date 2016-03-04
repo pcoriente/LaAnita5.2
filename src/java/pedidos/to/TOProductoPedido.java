@@ -7,7 +7,8 @@ import movimientos.to.TOProductoOficina;
  * @author jesc
  */
 public class TOProductoPedido extends TOProductoOficina {
-
+    private int idEnvio;
+    private double cantEnviada;
     private int idPedido;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
@@ -16,6 +17,22 @@ public class TOProductoPedido extends TOProductoOficina {
 
     public TOProductoPedido() {
         super();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public double getCantEnviada() {
+        return cantEnviada;
+    }
+
+    public void setCantEnviada(double cantEnviada) {
+        this.cantEnviada = cantEnviada;
     }
 
     public int getIdPedido() {

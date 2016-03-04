@@ -17,6 +17,7 @@ public class Solicitud {
     private int idUsuarioOrigen;
     private int propietario;
     private int estatus;
+    private boolean envio;
     
     public Solicitud() {
         this.almacen = new TOAlmacenJS();
@@ -100,5 +101,13 @@ public class Solicitud {
 
     public void setEstatus(int estatus) {
         this.estatus = estatus;
+    }
+
+    public boolean isEnvio() {
+        return envio;
+    }
+
+    public void setEnvio(boolean envio) {
+        this.envio = envio;
     }
 }

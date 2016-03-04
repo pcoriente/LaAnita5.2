@@ -15,8 +15,12 @@ public class TOVenta extends TOMovimientoOficina {
     private int especial;
     private int pedidoIdUsuario;
     private String canceladoMotivo;
-//    private Date canceladoFecha;
+    private int directo;
+    private double peso;
+    private int idEnvio;
+    private int orden;
     private int pedidoEstatus;
+    private int envioEstatus;
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
@@ -136,5 +140,45 @@ public class TOVenta extends TOMovimientoOficina {
 
     public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
         this.ordenDeCompraFecha = ordenDeCompraFecha;
+    }
+
+    public int getDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(int directo) {
+        this.directo = directo;
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public int getOrden() {
+        return orden;
+    }
+
+    public void setOrden(int orden) {
+        this.orden = orden;
+    }
+
+    public int getEnvioEstatus() {
+        return envioEstatus;
+    }
+
+    public void setEnvioEstatus(int envioEstatus) {
+        this.envioEstatus = envioEstatus;
     }
 }

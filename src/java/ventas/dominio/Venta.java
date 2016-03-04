@@ -23,8 +23,12 @@ public class Venta extends MovimientoOficina {
     private boolean especial;
     private int pedidoIdUsuario;
     private String canceladoMotivo;
-//    private Date canceladoFecha;
+    private boolean directo;
+    private double peso;
+    private int idEnvio;
+    private int orden;
     private int pedidoEstatus;
+    private int envioEstatus;
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
@@ -184,5 +188,45 @@ public class Venta extends MovimientoOficina {
 
     public void setOrdenDeCompraFecha(Date ordenDeCompraFecha) {
         this.ordenDeCompraFecha = ordenDeCompraFecha;
+    }
+
+    public boolean isDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(boolean directo) {
+        this.directo = directo;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public int getOrden() {
+        return orden;
+    }
+
+    public void setOrden(int orden) {
+        this.orden = orden;
+    }
+
+    public int getEnvioEstatus() {
+        return envioEstatus;
+    }
+
+    public void setEnvioEstatus(int envioEstatus) {
+        this.envioEstatus = envioEstatus;
     }
 }

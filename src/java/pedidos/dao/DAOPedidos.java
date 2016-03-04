@@ -18,6 +18,7 @@ import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import pedidos.to.TOPedido;
 import pedidos.to.TOProductoPedido;
+import pedidos.Pedidos;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -210,9 +211,7 @@ public class DAOPedidos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
-                toPed.setPropietario(0);
-
+                Pedidos.liberarPedido(cn, toPed, this.idUsuario);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -317,7 +316,7 @@ public class DAOPedidos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    productos.add(this.construirProducto(rs));
+                    productos.add(Pedidos.construirProducto(rs));
                 }
             }
         }
@@ -414,7 +413,7 @@ public class DAOPedidos {
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                similares.add(this.construirProducto(rs));
+                similares.add(Pedidos.construirProducto(rs));
             }
         }
         return similares;
@@ -476,24 +475,29 @@ public class DAOPedidos {
         }
     }
 
-    public TOProductoPedido construirProducto(ResultSet rs) throws SQLException {
-        TOProductoPedido to = new TOProductoPedido();
-        to.setIdPedido(rs.getInt("idPedido"));
-        to.setCantOrdenada(rs.getDouble("cantOrdenada"));
-        to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
-        to.setPiezas(rs.getInt("piezas"));
-        movimientos.Movimientos.construirProductoOficina(rs, to);
-        return to;
-    }
+//    public TOProductoPedido construirProducto(ResultSet rs) throws SQLException {
+//        TOProductoPedido to = new TOProductoPedido();
+//        to.setIdEnvio(rs.getInt("idEnvio"));
+//        to.setCantEnviada(rs.getDouble("cantEnviada"));
+//        to.setIdPedido(rs.getInt("idPedido"));
+//        to.setCantOrdenada(rs.getDouble("cantOrdenada"));
+//        to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
+//        to.setPiezas(rs.getInt("piezas"));
+//        movimientos.Movimientos.construirProductoOficina(rs, to);
+//        return to;
+//    }
 
     private String sqlObtenProducto() {
         // LEFT JOIN con pedidosDetalle por los posibles productos agregados (SIMILARES) por cantidad sin cargo
-        return "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada\n"
+        return "SELECT ISNULL(EPD.idEnvio, 0) AS idEnvio, ISNULL(EPD.cantEnviada, 0) AS cantEnviada\n"
+                + "         , ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada\n"
                 + "         , ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo, D.*, E.piezas\n"
                 + "FROM movimientosDetalle D\n"
                 + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
-                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque";
+                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                + "LEFT JOIN enviosPedidos EP ON EP.idPedido=PD.idPedido\n"
+                + "LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idPedido=EP.idPedido AND EPD.idEmpaque=PD.idEmpaque";
     }
 
     private ArrayList<TOProductoPedido> obtenDetalle(Connection cn, TOPedido toPed) throws SQLException {
@@ -503,7 +507,7 @@ public class DAOPedidos {
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
-                detalle.add(this.construirProducto(rs));
+                detalle.add(Pedidos.construirProducto(rs));
             }
             movimientos.Movimientos.bloquearMovimientoOficina(cn, toPed, this.idUsuario);
         }
@@ -555,8 +559,8 @@ public class DAOPedidos {
                 if (rs.next()) {
                     toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
                 }
-                strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, estatus)\n"
-                        + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + this.idUsuario + ", '', 0)";
+                strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
+                        + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + this.idUsuario + ", '', 0, 0, 0, 0, 0)";
                 st.executeUpdate(strSQL);
 
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
@@ -596,62 +600,29 @@ public class DAOPedidos {
         }
     }
 
-    private TOPedido construirPedido(ResultSet rs) throws SQLException {
-        TOPedido to = new TOPedido();
-        to.setIdPedidoOC(rs.getInt("idPedidoOC"));
-        to.setPedidoFolio(rs.getInt("pedidoFolio"));
-        to.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
-        to.setDiasCredito(rs.getInt("diasCredito"));
-        to.setEspecial(rs.getInt("especial"));
-        to.setPedidoIdUsuario(rs.getInt("pedidoIdUsuario"));
-        to.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-//        to.setCanceladoFecha(new java.util.Date(rs.getDate("canceladoFecha").getTime()));
-        to.setPedidoEstatus(rs.getInt("pedidoEstatus"));
-        to.setElectronico(rs.getString("electronico"));
-        to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
-        to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
-        movimientos.Movimientos.construirMovimientoOficina(rs, to);
-        return to;
-    }
-
+//    private TOPedido construirPedido(ResultSet rs) throws SQLException {
+//        TOPedido to = new TOPedido();
+//        Pedidos.construyePedido(to, rs);
+//        return to;
+//    }
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = "=0";
         if (estatus != 0) {
-//            condicion = " IN (1, 6)";
-            condicion = ">=1";
+            condicion = "!=0";
         }
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-//        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
-//                + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
-//                + "FROM movimientos M\n"
-//                + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-//                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-//                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus" + condicion + "\n";
-//        if (estatus != 0) {
-//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-//            strSQL += "         AND CONVERT(date, P.fecha) >= '" + format.format(fechaInicial) + "'\n";
-//        }
-//        strSQL += "ORDER BY P.fecha";
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
-                + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
-                + "FROM (SELECT P.idPedido, MIN(M.idMovto) AS idPrincipal\n"
-                + "		FROM movimientos M\n"
-                + "		INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-                + "		WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus" + condicion + "\n";
+        String strSQL = Pedidos.sqlPedido(idAlmacen) + "\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus" + condicion + "\n";
         if (estatus != 0) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             strSQL += "                 AND CONVERT(date, P.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
-        strSQL += "		GROUP BY P.idPedido) ID\n"
-                + "INNER JOIN movimientos M ON M.idMovto=ID.idPrincipal\n"
-                + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-                + "ORDER BY P.fecha";
+        strSQL += "ORDER BY P.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    pedidos.add(this.construirPedido(rs));
+                    pedidos.add(Pedidos.construirPedido(rs));
                 }
             }
         }

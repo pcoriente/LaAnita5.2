@@ -19,8 +19,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -131,16 +129,10 @@ public class MbSolicitud implements Serializable {
         }
     }
 
-    private Solicitud convertir(TOSolicitud toMov) {
-        Solicitud mov = new Solicitud(this.getAlmacen(), this.mbAlmacenes.obtenerAlmacen(toMov.getIdAlmacenOrigen()));
-        mov.setIdSolicitud(toMov.getIdSolicitud());
-        mov.setFolio(toMov.getFolio());
-        mov.setFecha(toMov.getFecha());
-        mov.setIdUsuarioOrigen(toMov.getIdUsuarioOrigen());
-        mov.setIdUsuario(toMov.getIdUsuario());
-        mov.setPropietario(toMov.getPropietario());
-        mov.setEstatus(toMov.getEstatus());
-        return mov;
+    private Solicitud convertir(TOSolicitud toSol) {
+        Solicitud sol = new Solicitud(this.getAlmacen(), this.mbAlmacenes.obtenerAlmacen(toSol.getIdAlmacenOrigen()));
+        Solicitudes.convertir(toSol, sol);
+        return sol;
     }
 
     private void obtenSolicitudes() throws NamingException, SQLException {
@@ -368,19 +360,10 @@ public class MbSolicitud implements Serializable {
         }
     }
 
-    private TOSolicitud convertir(Solicitud mov) {
-        TOSolicitud toMov = new TOSolicitud();
-        toMov.setIdSolicitud(mov.getIdSolicitud());
-        toMov.setIdEmpresa(mov.getAlmacen().getIdEmpresa());
-        toMov.setIdAlmacen(mov.getAlmacen().getIdAlmacen());
-        toMov.setFolio(mov.getFolio());
-        toMov.setFecha(mov.getFecha());
-        toMov.setIdUsuario(mov.getIdUsuario());
-        toMov.setIdAlmacenOrigen(mov.getAlmacenOrigen().getIdAlmacen());
-        toMov.setIdUsuarioOrigen(mov.getIdUsuarioOrigen());
-        toMov.setPropietario(mov.getPropietario());
-        toMov.setEstatus(mov.getEstatus());
-        return toMov;
+    private TOSolicitud convertir(Solicitud sol) {
+        TOSolicitud toSol = new TOSolicitud();
+        Solicitudes.convertir(sol, toSol);
+        return toSol;
     }
 
     public void crearSolicitud() {

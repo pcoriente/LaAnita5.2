@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
+        <title>Envios a CEDIS</title>
+    </h:head>
+    <body>
+        <ui:include src="wrapper.xhtml" />
+        <h:form id="main" onkeypress="return event.keyCode !== 13;" >
+            <p:messages id="msgsEnvios" autoUpdate="false" closable="true" showDetail="true" />
+            <p:panel id="panelEnvios" header="Mantenimiento de Envios" style="float: left" >
+                <p:panelGrid id="envios" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="cedis" value="CEDIS :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="cedis" value="#{mbEnvios.mbMiniCedis.cedis}" >
+                                <f:converter converterId="converters.MiniCedis" />
+                                <f:selectItems value="#{mbEnvios.mbMiniCedis.listaMiniCedis}" />
+                                <p:ajax event="change" 
+                                        listener="#{mbEnvios.cargaListaAlmacenesCedis()}" 
+                                        update=":main:msgsEnvios almacenes" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="almacenes" value="ALMACEN :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="almacenes" value="#{mbEnvios.mbMiniAlmacenes.almacen}" 
+                                             disabled="#{mbEnvios.mbMiniCedis.cedis.idCedis==0}" >
+                                <f:converter converterId="converters.MiniAlmacenConverter" />
+                                <f:selectItems value="#{mbEnvios.mbMiniAlmacenes.listaAlmacenes}" />
+                                <p:ajax event="change" listener="#{mbEnvios.obtenerEnvios()}" 
+                                        update=":main:msgsEnvios :main:envioSeleccionado :main:fincados" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <p:commandButton icon="ui-icon-home" title="Salir" immediate="true" 
+                                             ajax="false" action="#{mbEnvios.terminar()}" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:panelGrid id="envioSeleccionado" >
+                    <f:facet name="header" >
+                        <p:row >
+                            <p:column colspan="7" style="text-align: right;" >
+                                <p:commandButton id="btnReportePedido" icon="ui-icon-print" value="Pedido" title="Imprimir Pedido" />
+                                <p:commandButton id="btnReporteAnita" icon="ui-icon-print" value="#{mbEnvios.mbMiniAlmacenes.almacen.empresa}" 
+                                                 title="Imprimir Pedido: #{mbEnvios.mbMiniAlmacenes.almacen.empresa}" />
+                            </p:column>
+                        </p:row>
+                    </f:facet>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="cmbEnvios" value="ENVIOS :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:selectOneMenu id="cmbEnvios" value="#{mbEnvios.toEnvio}" style="width: 120px;" >
+                                <f:converter converterId="converter.envios" />
+                                <f:selectItems value="#{mbEnvios.envios}" />
+                                <p:ajax event="change" update=":main:msgsEnvios envioSeleccionado" />
+                            </p:selectOneMenu>
+                        </p:column>
+                        <p:column >
+                            <p:commandButton icon="ui-icon-document" title="Generar nuevo envio" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtGenerado" value="GENERADO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtGenerado" value="#{mbEnvios.envio.generado}" style="width: 90px; font-size: medium;" readonly="true" >
+                                <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbEnvios.zonaHoraria.ID}" />
+                            </p:inputText>
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtEstatus" value="ESTATUS :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column >
+                            <p:inputText id="txtEstatus" value="#{mbEnvios.envio.getEstatus()}" style="width: 70px; font-size: medium;" readonly="true" />
+                        </p:column>
+                    </p:row>
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="txtCamion" value="CAMION :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText id="txtCamion" value="#{mbEnvios.envio.idCamion}" style="font-size: medium; width: 160px;" readonly="true" />
+                        </p:column>
+                        <p:column >
+                            <h:outputLabel for="txtChofer" value="CHOFER :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="3" >
+                            <p:inputText id="txtChofer" value="#{mbEnvios.envio.idChofer}" style="font-size: medium; width: 300px;" readonly="true" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="fincados" value="#{mbEnvios.envio.pedidos}" var="fincado"
+                             scrollable="true" scrollHeight="170"
+                             rowKey="#{fincado.idMovto}" selectionMode="single" 
+                             style="border:solid 1px" emptyMessage="No existen pedidos directos" >
+                    <p:ajax event="rowSelect" listener="#{mbEnvios.agregarPedido}" 
+                            update=":main:msgsEnvios :main:directo" oncomplete="handleAgregarPedido(xhr, status, args);" />
+
+                    <p:column headerText="Formato" >
+                        <h:outputText value="#{fincado.formato}" />
+                    </p:column>
+                    <p:column headerText="Tienda" >
+                        <h:outputText value="#{fincado.tienda}" />
+                    </p:column>
+                    <p:column headerText="Fecha" style="width: 60px;" >
+                        <h:outputText value="#{fincado.fecha}" >
+                            <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Pedido" style="width: 60px;" >
+                        <h:outputText value="#{fincado.folio}" />
+                    </p:column>
+                    <p:column headerText="Directo" width="40" style="color: green; font-weight: bold" >
+                        <h:outputText value="#{fincado.directo ? 'Si' : 'No'}" />
+                    </p:column>
+                    <p:column headerText="Orden De Carga" style="width: 60px;" >
+                        <h:outputText value="#{fincado.ordenDeCarga}" />
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+            <p:confirmDialog widgetVar="agregarPedidoDlg" showEffect="fade" hideEffect="explode" 
+                             header="Convertir pedido a Directo" message="Desea convertir el pedido a Directo ?" >
+                <p:commandButton icon="ui-icon-close" value="No" title="Cancelar" onclick="PF('agregarPedidoDlg').hide();" update=":main:envioSeleccionado" />
+                <p:commandButton icon="ui-icon-check" value="Si" title="Agregar" onclick="PF('agregarPedidoDlg').hide();" actionListener="#{mbEnvios.agregaPedido(1==1)}" 
+                                 update=":main:msgsEnvios :main:envioSeleccionado :main:directo" oncomplete="handlePedidoAgregado(xhr, status, args)"/>
+            </p:confirmDialog>
+            <p:dialog header="Captura de Pedido" widgetVar="editarPedidoDlg" closable="true" resizable="false" modal="true" >
+                <p:messages id="msgsPedido" autoUpdate="false" showDetail="true" closable="true" />
+                <p:panelGrid id="pedido" style="width: 910px;" >
+                    <p:row >
+                        <p:column >
+                            <h:outputLabel for="folio" value="FOLIO :" style="font-weight: bold; color: black;" />
+                        </p:column>
+                        <p:column colspan="2" >
+                            <p:inputText id="folio" value="#{mbEnvios.fincado.folio}" style="font-size: medium; width: 160px;" readonly="true" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
+                <p:dataTable id="directo" value="#{mbEnvios.detalle}" var="directo" rowKey="#{directo.producto}" selectionMode="single" style="width: 910px;" editable="true" editMode="cell" >
+                    <p:ajax event="cellEdit" listener="#{mbEnvios.onCellEdit}" update=":main:msgsPedido" />
+
+                    <p:column headerText="SKU" style="width: 60px;" >
+                        <h:outputText value="#{directo.producto.cod_pro}" />
+                    </p:column>
+                    <p:column headerText="PRODUCTO" >
+                        <h:outputText value="#{directo.producto.toString()}" />
+                    </p:column>
+                    <p:column headerText="PENDIENTES" style="width: 80px;" >
+                        <h:outputText value="#{directo.pendientes}" />
+                    </p:column>
+                    <p:column headerText="ENVIADOS" style="width: 80px;">
+                        <p:cellEditor>
+                            <f:facet name="output"><h:outputText value="#{directo.enviados}" /></f:facet>
+                            <f:facet name="input">
+                                <p:inputText value="#{directo.enviados}" label="ENVIADOS" style="width:96%">
+                                    <f:validateDoubleRange minimum="5.5" maximum="8.5" />
+                                </p:inputText>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="PESO" style="width: 100px;" >
+                        <h:outputText value="#{directo.pesoTotal}" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <script type="text/javascript">
+            function handlePedidoAgregado(xhr, status, args) {
+                PF('nuevoEnvioDlg').hide();
+                if (args.validationFailed) {
+                    alert("Error en la validacion de paso de los parametros");
+                } else if (args.okDirecto) {
+                    PF('editarPedidoDlg').show();
+                }
+            }
+            function handleAgregarPedido(xhr, status, args) {
+                if (args.validationFailed) {
+                    alert("Error en la validacion de paso de los parametros");
+                } else if (args.okDirecto) {
+                    PF('editarPedidoDlg').show();
+                } else {
+                    PF('agregarPedidoDlg').show();
+                }
+            }
+        </script>
+        <ui:include src="footer.xhtml" />
+    </body>
+</html>
