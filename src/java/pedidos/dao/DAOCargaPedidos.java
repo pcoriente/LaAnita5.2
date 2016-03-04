@@ -50,24 +50,35 @@ public class DAOCargaPedidos {
     }
 
     public void crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) throws SQLException {
-        String oc = "";
         TOTienda toTienda;
+        String strSQL, oc = "";
         TOPedido toPed = new TOPedido(28);
         toPed.setElectronico(electronico);
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);
-            try {
+            try (Statement st = cn.createStatement()) {
                 for (Chedraui che : chedraui) {
                     if (!che.getOrdenCompra().equals(oc)) {
                         toTienda = Tiendas.validaTienda(cn, che.getCodigoTienda(), idGpoCte, idFto);
                         if (toTienda == null) {
                             throw new SQLException("La Tienda " + che.getCodigoTienda() + " No Existe");
                         }
+                        strSQL = "SELECT A.idAlmacen\n"
+                                + "FROM agentes G\n"
+                                + "INNER JOIN almacenes A ON A.idCedis=G.idCedis AND A.idEmpresa=" + idEmp + " AND A.pedidoElectronico=1\n"
+                                + "WHERE G.idAgente=" + toTienda.getIdAgente();
+                        ResultSet rs = st.executeQuery(strSQL);
+                        if (!rs.next()) {
+                            throw new SQLException("No se encontró el almacén !!");
+                        }
                         oc = che.getOrdenCompra();
                         toPed.setIdEmpresa(idEmp);
+                        toPed.setIdAlmacen(rs.getInt("idAlmacen"));
+                        toPed.setTipoDeCambio(1);
                         toPed.setOrdenDeCompra(oc);
                         toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-                        toPed.setTipoDeCambio(1);
+                        toPed.setEntregaFecha(che.getFechaEmbarque());
+                        toPed.setEntregaFechaMaxima(che.getFechaCancelacion());
                         toPed.setIdImpuestoZona(idGpoCte);
                         toPed.setIdReferencia(toTienda.getIdTienda());
                         toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
