@@ -67,7 +67,8 @@ public class DAOCargaPedidos {
                         toPed.setIdEmpresa(idEmp);
                         toPed.setOrdenDeCompra(oc);
                         toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-                       
+                        toPed.setEntregaFecha(che.getFechaEmbarque());
+                        toPed.setEntregaFechaMaxima(che.getFechaCancelacion());
                         toPed.setIdImpuestoZona(idGpoCte);
                         toPed.setIdReferencia(toTienda.getIdTienda());
                         toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
