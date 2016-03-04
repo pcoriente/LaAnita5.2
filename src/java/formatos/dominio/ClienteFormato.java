@@ -21,7 +21,10 @@ public class ClienteFormato implements Serializable {
     public ClienteFormato() {
         this.formato="";
     }
-    
+    public ClienteFormato(int idFormato, String formato) {
+        this.idFormato = idFormato;
+        this.formato = formato;
+    }
     @Override
     public String toString() {
         return this.formato;

@@ -17,13 +17,13 @@ public class Chedraui {
     private Date fechaEmbarque;
     private Date fechaCancelacion;
     private int codigoTienda;
-    private String sku;
+    private String upc;
+    private String empaque;
     private double cantidad;
     private double costo;
     private Date fechaElaboracion;
     private String numeroProveedor;
-    private String empaque;
-    private String upc;
+    private String sku;
 
     public String getOrdenCompra() {
         return ordenCompra;

@@ -9,32 +9,75 @@
         <title>Pedidos Electrónicos</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
         <h:outputStylesheet library="css" name="main.css"/>
-        <h:outputStylesheet library="css" name="estilos.css"/>
-        
+        <h:outputStylesheet library="css" name="estilos.css"/>  
     </h:head>
     <h:body>
         <div id="wrapper" align="center">
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="center" >
-                <br></br>
-                <h:form id="main" onkeypress="return event.keycode !== 13;"
-             <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
-             <p:panel id="encabezado" header="INTEGRACION DE PEDIDOS ELECTRÓNICOS" 
-                      <p:panelGrid id="cargaPedidos" >
-                          <p:row >
-                              <p:column >
-                                  <h:outputLabel value="Empresa: " style="font-weight: bold; color: red; width: 95px;" />
-                              </p:column>
-                              <p:column >
-                                  <p:selectOneMenu id="empresa" value "#{mbCargaPedidos.mbEmpresas.listaObtenerEmpresas}"
-                              </p:column>
-                          </p:row>    
-                          
-                 </p:panelGrid>
-             </p:panel>
-            </h:form>
-              </div>  
-            <ui:include src="footer.html"
+                <h:form id="main" onkeypress="return event.keycode !== 13;">
+                    <p:panel id="encabezado" header="INTEGRACION DE PEDIDOS ELECTRÓNICOS" >
+                        <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
+                        <p:panelGrid id="cargaPedidos" >
+                            <p:row>
+                                <p:column >
+                                    <p:selectOneMenu id="empresa"
+                                                     value="#{mbCargaPedidos.mbEmpresas.empresa}"
+                                                     style="width: 200px;"
+                                                     >
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbCargaPedidos.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" update="cargaArchivo"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>    
+                            <p:row>
+                                <p:column >
+                                    <p:selectOneMenu id="ctesGrupo"
+                                                     value="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos}"
+                                                     style="width: 200px"
+                                                     filter="true">
+                                        <f:converter converterId="converters.ClientesGrupos" />
+                                        <f:selectItems value="#{mbCargaPedidos.mbClientesGrupos.itemsClientesGrupos}" />
+                                        <p:ajax event="change"
+                                                listener="#{mbCargaPedidos.cargaFormatos()}"
+                                                update="formato cargaArchivo"
+                                                process="@this"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row >
+                                <p:column>
+                                    <p:selectOneMenu id="formato" value="#{mbCargaPedidos.mbFormatos.formato}" style="width: 300px;" filter="true" >
+                                       <f:converter converterId="converter.formatos" />
+                                        <f:selectItems value="#{mbCargaPedidos.lstFormatos}" />
+                                        <p:ajax event="change"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:column>
+                                    <p:fileUpload id="cargaArchivo"
+                                                  value="#{mbCargaPedidos.file}" mode="advanced"
+                                                  disabled="#{mbCargaPedidos.mbEmpresas.empresa.idEmpresa == 0 or mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte == 0}"
+                                                  fileUploadListener="#{mbCargaPedidos.upload}">
+                                    </p:fileUpload>
+                                </p:column>
+                            </p:row>
+                        </p:panelGrid>
+                        <p:toolbar id="barraHerramientas" style="width: 845px; margin: 0 auto;">
+                            <f:facet name="right">
+                                <p:commandButton icon="ui-icon-home" 
+                                                 title="Salir" immediate="true" 
+                                                 ajax="false" 
+                                                 action="#{mbCargaPedidos.terminar()}" />
+                            </f:facet>
+
+                        </p:toolbar>
+                    </p:panel>
+                </h:form>
+            </div>  
+            <ui:include src="footer.html" />
         </div>
     </h:body>
 </html>

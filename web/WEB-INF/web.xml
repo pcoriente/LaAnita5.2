@@ -32,7 +32,7 @@
         </init-param>
         <init-param>
             <param-name>uploadDirectory</param-name>
-            <param-value>C:/archivos</param-value>
+            <param-value>C:/textuales</param-value>
         </init-param>
     </filter>
     <filter-mapping>
@@ -41,7 +41,7 @@
     </filter-mapping>
     
     <servlet>
-        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-name >Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>

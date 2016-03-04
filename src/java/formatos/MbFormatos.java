@@ -33,20 +33,21 @@ import producto2.dominio.Producto;
 @Named(value = "mbFormatos")
 @Dependent
 public class MbFormatos {
+
     @ManagedProperty(value = "#{mbBuscar}")
     private MbProductosBuscar mbBuscar;
     @ManagedProperty(value = "#{mbMonedas}")
     private MbMonedas mbMonedas;
-    
+
     private ClienteFormato clientesFormatos = new ClienteFormato();
     private ClienteFormato cmbClientesFormatos = new ClienteFormato();
     private ClienteFormato cmbFormato = new ClienteFormato();
     private ClienteFormato formato = new ClienteFormato();
     private ClienteFormato formatoSeleccion;
-    private ArrayList<SelectItem> lstFormatos = null;
+    private ArrayList<SelectItem> lstFormatos;
     private ArrayList<ClienteFormato> listaFormatosFormatos = new ArrayList<ClienteFormato>();
     private ArrayList<ClienteFormato> lstFormato;
-    
+
     private boolean actualizar = false;
     ArrayList<ClienteListasDetalle> lstFormatoDetalle = new ArrayList<ClienteListasDetalle>();
     private DAOMovimientos1 dao;
@@ -57,17 +58,21 @@ public class MbFormatos {
     public MbFormatos() {
         this.mbBuscar = new MbProductosBuscar();
         this.mbMonedas = new MbMonedas();
-        
+
         this.formatoSeleccion = new ClienteFormato();
     }
-    
+
     public void nuevoFormato() {
-        this.formatoSeleccion=new ClienteFormato();
+        this.formatoSeleccion = new ClienteFormato();
     }
-    
+
     public void inicializar() {
-        this.cargarArrayListListaFormatos(0);
-        this.formatoSeleccion=new ClienteFormato();
+        try {
+            this.cargarArrayListListaFormatos(0);
+        } catch (SQLException ex) {
+            Logger.getLogger(MbFormatos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.formatoSeleccion = new ClienteFormato();
     }
 
     public boolean validarFormatos() {
@@ -79,28 +84,28 @@ public class MbFormatos {
         }
         return ok;
     }
-    
+
     public ClienteFormato obtenerFormato(int idFormato) {
-        ClienteFormato f=null;
+        ClienteFormato f = null;
         try {
             DAOFormatos dao1 = new DAOFormatos();
-            f=dao1.obtenerClientesFormato(idFormato);
+            f = dao1.obtenerClientesFormato(idFormato);
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
         } catch (SQLException ex) {
-            Mensajes.mensajeError(ex.getErrorCode()+" "+ex.getMessage());
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
         return f;
     }
-    
+
     public void cargarFormatosCliente(int idGrupoCte) {
-        this.lstFormatos=new ArrayList<SelectItem>();
+        this.lstFormatos = new ArrayList<SelectItem>();
         try {
-            this.formatoSeleccion=new ClienteFormato();
+            this.formatoSeleccion = new ClienteFormato();
             this.formatoSeleccion.setIdFormato(0);
             this.formatoSeleccion.setFormato("Nuevo Formato");
             lstFormatos.add(new SelectItem(this.formatoSeleccion, this.formatoSeleccion.getFormato()));
-            if(idGrupoCte!=0) {
+            if (idGrupoCte != 0) {
                 DAOFormatos dao1 = new DAOFormatos();
                 for (ClienteFormato clientes : dao1.dameFormatosGrupoCte(idGrupoCte)) {
                     lstFormatos.add(new SelectItem(clientes, clientes.getFormato()));
@@ -116,6 +121,7 @@ public class MbFormatos {
 
     public void cargarListaFormatos(int idGrupoCte) {
         try {
+            System.out.print("estoy en cargarListaFormatos"+idGrupoCte);
             lstFormatos = new ArrayList<SelectItem>();
             DAOFormatos dao1 = new DAOFormatos();
             ClienteFormato cli = new ClienteFormato();
@@ -133,14 +139,15 @@ public class MbFormatos {
         }
     }
 
-    public void cargarArrayListListaFormatos(int idGrupoCliente) {
+    public ArrayList<ClienteFormato> cargarArrayListListaFormatos(int idGrupoCliente) throws SQLException {
+//        try {
+//            if(idGrupoCliente==0) {
+        this.listaFormatosFormatos = new ArrayList<ClienteFormato>();
+//            } else {
         try {
-            if(idGrupoCliente==0) {
-                this.listaFormatosFormatos=new ArrayList<ClienteFormato>();
-            } else {
-                DAOFormatos dao1 = new DAOFormatos();
-                this.listaFormatosFormatos = dao1.dameFormatos(idGrupoCliente);
-            }
+            DAOFormatos dao1 = new DAOFormatos();
+            this.listaFormatosFormatos = dao1.dameFormatos(idGrupoCliente);
+//            }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
             Logger.getLogger(MbFormatos.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,11 +155,12 @@ public class MbFormatos {
             Mensajes.mensajeError(ex.getMessage());
             Logger.getLogger(MbFormatos.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return this.listaFormatosFormatos;
     }
 
     public ArrayList<SelectItem> getLstFormatos() {
         if (lstFormatos == null) {
-            cargarListaFormatos(0);
+            //cargarListaFormatos(0);
         }
         return lstFormatos;
     }
@@ -371,7 +379,5 @@ public class MbFormatos {
     public void setListaFormatosFormatos(ArrayList<ClienteFormato> listaFormatosFormatos) {
         this.listaFormatosFormatos = listaFormatosFormatos;
     }
-    
-    
-    
+
 }

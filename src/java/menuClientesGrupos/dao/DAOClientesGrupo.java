@@ -49,7 +49,7 @@ public class DAOClientesGrupo {
     public ArrayList<ClienteGrupo> dameListaClientesGrupos() throws SQLException {
         ArrayList<ClienteGrupo> lstClientesGrupos = new ArrayList();
         ResultSet rs = null;
-        String sql = "SELECT * FROM clientesGrupos";
+        String sql = "SELECT * FROM clientesGrupos order by codigoGrupo";
         Connection cn = ds.getConnection();
         Statement st = cn.createStatement();
         try {
@@ -94,6 +94,7 @@ public class DAOClientesGrupo {
     }
 
     public ClienteGrupo dameClientesGrupo(int id) throws SQLException {
+//        ClienteGrupo clientesGrupos = null;
         ClienteGrupo clientesGrupos = new ClienteGrupo();
         ResultSet rs = null;
         String sql = "SELECT * FROM clientesGrupos WHERE idGrupoCte = '" + id + "'";
@@ -110,6 +111,7 @@ public class DAOClientesGrupo {
             rs.close();
             c.close();
         }
+        System.out.println("el valor del id grupo es "+id);
         return clientesGrupos;
     }
 }

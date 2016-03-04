@@ -42,19 +42,20 @@ public class MbClientesGrupos implements Serializable {
     private MbContactos mbContactos = new MbContactos();
     @ManagedProperty(value = "#{mbFormatos}")
     private MbFormatos mbFormatos = new MbFormatos();
-    
-    private ClienteGrupo clientesGrupos = new ClienteGrupo();
+
+    //private ClienteGrupo clientesGrupos = new ClienteGrupo();
+    private ClienteGrupo clientesGrupos;
     private ClienteGrupo cmbClientesGrupos = new ClienteGrupo();
     private ClienteGrupo clienteGrupoSeleccionado;
     private ArrayList<ClienteGrupo> lstClientesGrupos;
     private ArrayList<SelectItem> itemsClientesGrupos;
-    
+
     private boolean actualizar = false;
     private boolean actualizarRfc = false;
     private String lblNuevoContacto = "ui-icon-document";
     private String lblNuevoTelefono = "ui-icon-document";
     private ClientesGruposIconos iconos = new ClientesGruposIconos();
-    
+
     public MbClientesGrupos() {
         mbContactos = new MbContactos();
         if (lstClientesGrupos == null) {
@@ -62,10 +63,12 @@ public class MbClientesGrupos implements Serializable {
         }
         clienteGrupoSeleccionado = new ClienteGrupo();
     }
-    
+
     public void inicializar() {
-        this.itemsClientesGrupos=null;
-        this.clienteGrupoSeleccionado=new ClienteGrupo();
+        //this.itemsClientesGrupos=null;
+        this.setItemsClientesGrupos(null);
+        this.clientesGrupos = new ClienteGrupo();
+        this.clienteGrupoSeleccionado = new ClienteGrupo();
     }
 
     public void guaradarClientesTienda() {
@@ -77,7 +80,7 @@ public class MbClientesGrupos implements Serializable {
         return ok;
     }
 
-    public void dameDetalleFormato(int grupoCliente) {
+    public void dameDetalleFormato(int grupoCliente) throws SQLException {
         mbFormatos.cargarArrayListListaFormatos(grupoCliente);
     }
 
@@ -333,33 +336,46 @@ public class MbClientesGrupos implements Serializable {
 //        mbFormatos.cargarListaFormatos(clientesGrupos.getIdGrupoCte());
         actualizar = true;
     }
-    
+//            ArrayList<SelectItem> listaEmpresas = new ArrayList<>();
+//        try {
+//            MiniEmpresa e0 = new MiniEmpresa();
+//            e0.setIdEmpresa(0);
+//            e0.setCodigoEmpresa("0");
+//            e0.setNombreComercial("Seleccione Empresa");
+//            listaEmpresas.add(new SelectItem(e0, e0.toString()));
+//
+//            ArrayList<MiniEmpresa> empresas = this.dao.obtenerMiniEmpresas();
+//            for (MiniEmpresa e : empresas) {
+//                listaEmpresas.add(new SelectItem(e, e.toString()));
+//            }
+
     private void cargarClientesGruposItems() {
-        this.clienteGrupoSeleccionado=new ClienteGrupo();
-        this.itemsClientesGrupos = new ArrayList<SelectItem>();
+//        this.clienteGrupoSeleccionado=new ClienteGrupo();
+        this.itemsClientesGrupos = new ArrayList<>();
+//        ArrayList<SelectItem> itemsClientesGrupos = new ArrayList<>();
         try {
             ClienteGrupo cl0 = new ClienteGrupo();
             cl0.setIdGrupoCte(0);
-            cl0.setGrupoCte("Nuevo Grupo");
+            cl0.setGrupoCte("Seleccione Grupo");
+            System.out.println("estoy seleccionando grupo");
             this.itemsClientesGrupos.add(new SelectItem(cl0, cl0.getGrupoCte()));
             DAOClientesGrupo dao = new DAOClientesGrupo();
             for (ClienteGrupo cl : dao.dameListaClientesGrupos()) {
-                itemsClientesGrupos.add(new SelectItem(cl, cl.getGrupoCte()));
+                this.itemsClientesGrupos.add(new SelectItem(cl, cl.getGrupoCte()));
             }
-        } catch (NamingException ex) {
-            Mensajes.mensajeError(ex.getMessage());
-        } catch (SQLException ex) {
+        } catch (NamingException | SQLException ex) {
             Mensajes.mensajeError(ex.getMessage());
         }
+//        return itemsClientesGrupos;
     }
 
-    public ArrayList<SelectItem> getItemsClientesGrupos() {
+    public ArrayList<SelectItem> getItemsClientesGrupos() throws SQLException {
         if (itemsClientesGrupos == null) {
             this.cargarClientesGruposItems();
         }
         return itemsClientesGrupos;
     }
-    
+
     public void setItemsClientesGrupos(ArrayList<SelectItem> itemsClientesGrupos) {
         this.itemsClientesGrupos = itemsClientesGrupos;
     }
