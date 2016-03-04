@@ -8,6 +8,7 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TOPedido extends TOMovimientoOficina {
+
     private int idPedidoOC;
     private int pedidoFolio;
     private Date pedidoFecha;
@@ -19,6 +20,9 @@ public class TOPedido extends TOMovimientoOficina {
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private String entregaFolio;
+    private Date entregaFecha;
+    private Date entregaFechaMaxima;
     private int directo;
     private double peso;
     private int idEnvio;
@@ -27,24 +31,27 @@ public class TOPedido extends TOMovimientoOficina {
 
     public TOPedido() {
         super();
-        this.pedidoFecha=new Date();
-        this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.pedidoFecha = new Date();
+        this.ordenDeCompra = "";
+        this.ordenDeCompraFecha = new Date();
 //        this.canceladoFecha=new Date();
-        this.canceladoMotivo="";
-        this.electronico="";
+        this.canceladoMotivo = "";
+        this.electronico = "";
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
-    
+
     public TOPedido(int idTipo) {
         super(idTipo);
-        this.pedidoFecha=new Date();
-        this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.pedidoFecha = new Date();
+        this.ordenDeCompra = "";
+        this.ordenDeCompraFecha = new Date();
 //        this.canceladoFecha=new Date();
-        this.canceladoMotivo="";
-        this.electronico="";
+        this.canceladoMotivo = "";
+        this.electronico = "";
     }
-    
+
     public int getIdPedidoOC() {
         return idPedidoOC;
     }
@@ -60,7 +67,7 @@ public class TOPedido extends TOMovimientoOficina {
     public void setPedidoFolio(int pedidoFolio) {
         this.pedidoFolio = pedidoFolio;
     }
-    
+
     public Date getPedidoFecha() {
         return pedidoFecha;
     }
@@ -93,6 +100,30 @@ public class TOPedido extends TOMovimientoOficina {
         this.ordenDeCompraFecha = ordenDeCompraFecha;
     }
 
+    public String getEntregaFolio() {
+        return entregaFolio;
+    }
+
+    public void setEntregaFolio(String entregaFolio) {
+        this.entregaFolio = entregaFolio;
+    }
+
+    public Date getEntregaFecha() {
+        return entregaFecha;
+    }
+
+    public void setEntregaFecha(Date entregaFecha) {
+        this.entregaFecha = entregaFecha;
+    }
+
+    public Date getEntregaFechaMaxima() {
+        return entregaFechaMaxima;
+    }
+
+    public void setEntregaFechaMaxima(Date entregaFechaMaxima) {
+        this.entregaFechaMaxima = entregaFechaMaxima;
+    }
+
 //    public Date getCanceladoFecha() {
 //        return canceladoFecha;
 //    }
@@ -100,7 +131,7 @@ public class TOPedido extends TOMovimientoOficina {
 //    public void setCanceladoFecha(Date canceladoFecha) {
 //        this.canceladoFecha = canceladoFecha;
 //    }
-
+//
     public String getCanceladoMotivo() {
         return canceladoMotivo;
     }
