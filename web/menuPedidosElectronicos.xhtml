@@ -16,6 +16,7 @@
             <ui:include src="wrapper.xhtml" />
             <div id="content" align="center" >
                 <h:form id="main" onkeypress="return event.keycode !== 13;">
+                    <p:messages id="msgs" autoUpdate="false" showDetail="true" closable="true"/>
                     <p:panel id="encabezado" header="INTEGRACION DE PEDIDOS ELECTRÓNICOS" >
                         <p:messages id="msgs" showDetail="true" showSummary="false" closable="true" />
                         <p:panelGrid id="cargaPedidos" >
@@ -60,7 +61,9 @@
                                     <p:fileUpload id="cargaArchivo"
                                                   value="#{mbCargaPedidos.file}" mode="advanced"
                                                   disabled="#{mbCargaPedidos.mbEmpresas.empresa.idEmpresa == 0 or mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte == 0}"
-                                                  fileUploadListener="#{mbCargaPedidos.upload}">
+                                                  fileUploadListener="#{mbCargaPedidos.upload}"
+                                                  update=":main:msgs">
+                                       
                                     </p:fileUpload>
                                 </p:column>
                             </p:row>

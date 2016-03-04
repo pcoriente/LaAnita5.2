@@ -16,9 +16,11 @@ import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import leyenda.dao.DAOBancosLeyendas;
+import pedidos.Pedidos;
 import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
 import pedidos.to.TOPedido;
+import tiendas.Tiendas;
 import tiendas.to.TOTienda;
 import usuarios.dominio.UsuarioSesion;
 
@@ -28,7 +30,8 @@ import usuarios.dominio.UsuarioSesion;
  */
 public class DAOCargaPedidos {
 
-    protected static DataSource ds;
+    int idUusario, idCedis;
+    private DataSource ds = null;
 
     public DAOCargaPedidos() {
 
@@ -37,7 +40,7 @@ public class DAOCargaPedidos {
             ExternalContext externalContext = context.getExternalContext();
             HttpSession httpSession = (HttpSession) externalContext.getSession(false);
             UsuarioSesion usuarioSesion = (UsuarioSesion) httpSession.getAttribute("usuarioSesion");
-
+            this.idUusario = usuarioSesion.getUsuario().getId();
             Context cI = new InitialContext();
             ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
         } catch (NamingException ex) {
@@ -46,26 +49,42 @@ public class DAOCargaPedidos {
 
     }
 
-    public void crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) {
+    public void crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) throws SQLException {
         String oc = "";
         TOTienda toTienda;
         TOPedido toPed = new TOPedido(28);
         toPed.setElectronico(electronico);
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                for (Chedraui che : chedraui) {
+                    if (!che.getOrdenCompra().equals(oc)) {
+                        toTienda = Tiendas.validaTienda(cn, che.getCodigoTienda());
+                        if (toTienda == null) {
+                            throw new SQLException("La Tienda " + che.getCodigoTienda() + " No Existe");
+                        }
+                        oc = che.getOrdenCompra();
+                        toPed.setIdEmpresa(idEmp);
+                        toPed.setOrdenDeCompra(oc);
+                        toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
+                       
+                        toPed.setIdImpuestoZona(idGpoCte);
+                        toPed.setIdReferencia(toTienda.getIdTienda());
+                        toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
+                        toPed.setIdUsuario(this.idUusario);
+                        Pedidos.agregarPedido(cn, toPed, 1);
+                    }
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
 
-        for (Chedraui che : chedraui) {
-            if (!che.getOrdenCompra().equals(oc)) {
-                toTienda = this.mbTiendas.obtenerTienda(this.dao.validaTienda(che.getCodigoTienda(), idGpoCte, idFto));
-                oc = che.getOrdenCompra();
-                toPed.setIdEmpresa(idEmp);
-                toPed.setOrdenDeCompra(oc);
-                toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-                toPed.setIdImpuestoZona(idGpoCte);
-                toPed.setIdReferencia(toTienda.getIdTienda());
-                toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
-                this.daoPed.agregarPedido(toPed, 1);
             }
-        }
 
+        }
     }
 
     public int validaTienda(int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {

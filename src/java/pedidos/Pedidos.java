@@ -142,10 +142,10 @@ public class Pedidos {
         ped.setPedidoFolio(toPed.getPedidoFolio());
         ped.setPedidoFecha(toPed.getPedidoFecha());
         ped.setDiasCredito(toPed.getDiasCredito());
-        ped.setEspecial(toPed.getEspecial() != 0 ? true : false);
+        ped.setEspecial((toPed.getEspecial() != 0));
         ped.setPedidoIdUsuario(toPed.getPedidoIdUsuario());
         ped.setCanceladoMotivo(toPed.getCanceladoMotivo());
-        ped.setDirecto(toPed.getDirecto() != 0 ? true : false);
+        ped.setDirecto((toPed.getDirecto() != 0));
         ped.setPeso(toPed.getPeso());
         ped.setIdEnvio(toPed.getIdEnvio());
         ped.setOrden(toPed.getOrden());
