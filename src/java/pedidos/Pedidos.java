@@ -24,7 +24,7 @@ public class Pedidos {
             if (!toPed.getOrdenDeCompra().isEmpty()) {
                 fechaOrden = new java.sql.Date(toPed.getOrdenDeCompraFecha().getTime()).toString();
             }
-            if("".equals(toPed.getOrdenDeCompra())) {
+            if(!"".equals(toPed.getOrdenDeCompra())) {
                 strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha, entregaFolio, entregaFecha, entregaFechaMaxima)\n"
                         + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "', '"+toPed.getEntregaFolio()+"', '"+toPed.getEntregaFecha()+"', '"+toPed.getEntregaFechaMaxima()+"')";
                 st.executeUpdate(strSQL);
