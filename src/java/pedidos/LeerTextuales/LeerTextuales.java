@@ -139,7 +139,7 @@ public class LeerTextuales {
                     Message.Mensajes.mensajeError(e.getMessage());
                     break;
                 }
-                che.setUpc(pedidoArray[5].substring(2, 13));
+                che.setUpc(pedidoArray[5].substring(1, 13));
                 che.setEmpaque(pedidoArray[8]);
                 try {
                     che.setCantidad(Double.parseDouble(pedidoArray[9]));
