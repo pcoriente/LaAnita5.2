@@ -304,7 +304,7 @@ public class Movimientos {
     public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, int idProducto) throws SQLException {
         String strFechaOrdenCompra = "GETDATE()";
         if(fechaOrdenCompra!=null) {
-            strFechaOrdenCompra = new java.sql.Date(fechaOrdenCompra.getTime()).toString();
+            strFechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
         }
         ArrayList<Double> boletin;
         String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
@@ -374,7 +374,7 @@ public class Movimientos {
     private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
         String strfechaOrdenCompra = "GETDATE()";
         if(fechaOrdenCompra!=null) {
-            strfechaOrdenCompra = new java.sql.Date(fechaOrdenCompra.getTime()).toString();
+            strfechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
         }
         ArrayList<Double> precio = new ArrayList<>();
 //        double precioUnitario, desctoProducto1, precioLista;

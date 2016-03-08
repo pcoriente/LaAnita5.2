@@ -104,7 +104,7 @@ public class DAOCargaPedidos {
                                 + "en tabla empaquesUpcs (UPC='" + che.getUpc() + "')");
                     }
                     toProd.setIdPedido(toPed.getReferencia());
-                    toProd.setIdProducto(rs.getInt("idProducto"));
+                    toProd.setIdProducto(rs.getInt("idEmpaque"));
                     toProd.setPiezas(rs.getInt("piezas"));
                     toProd.setCantOrdenada(che.getCantidad());
                     toProd.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
