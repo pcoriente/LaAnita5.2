@@ -48,7 +48,7 @@ public class Pedidos {
 //            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
 //                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0, 0, 0, 0, 0)";
             strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, estatus)\n"
-                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0)";
+                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', "+toPed.getEstatus()+")";
             st.executeUpdate(strSQL);
 
             rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
@@ -71,6 +71,7 @@ public class Pedidos {
             toComprobante.setCerradoOficina(false);
             comprobantes.Comprobantes.agregar(cn, toComprobante);
 
+            toPed.setEstatus(0);
             toPed.setIdComprobante(toComprobante.getIdComprobante());
             movimientos.Movimientos.agregaMovimientoAlmacen(cn, toPed, false);
             movimientos.Movimientos.agregaMovimientoOficina(cn, toPed, false);
@@ -226,7 +227,7 @@ public class Pedidos {
                 + "		INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "		WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus=7\n"
                 + "		GROUP BY P.idPedido) ID\n"
-                + "INNER JOIN movimientos M ON M.idMovto=ID.idPrincipal\n"
+                + "RIGHT JOIN movimientos M ON M.idMovto=ID.idPrincipal\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
                 + "LEFT JOIN enviosPedidos EP ON EP.idPedido=P.idPedido\n"
