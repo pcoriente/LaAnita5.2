@@ -110,10 +110,10 @@ public class DAOCargaPedidos {
                     toProd.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
                     toProd.setIdMovto(toPed.getIdMovto());
                     Pedidos.agregaProductoPedido(cn, toPed, toProd);
-                    if (toProd.getUnitario() != che.getCosto()) {
-                        throw new SQLException("¡¡ El precio unitario no coincide con el pedido !!\n"
-                                + "codigoTienda=" + che.getCodigoTienda() + " (idTienda=" + toPed.getIdReferencia() + "), sku='" + rs.getString("cod_pro") + "' (idEmpaque=" + toProd.getIdProducto()+")");
-                    }
+//                    if (toProd.getUnitario() != che.getCosto()) {
+//                        throw new SQLException("¡¡ El precio unitario no coincide con el pedido !!\n"
+//                                + "codigoTienda=" + che.getCodigoTienda() + " (idTienda=" + toPed.getIdReferencia() + "), sku='" + rs.getString("cod_pro") + "' (idEmpaque=" + toProd.getIdProducto()+")");
+//                    }
                 }
                 cn.commit();
             } catch (SQLException ex) {
