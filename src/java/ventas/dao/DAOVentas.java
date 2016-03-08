@@ -1080,7 +1080,7 @@ public class DAOVentas {
             boletin.add(1.0);
             boletin.add(0.0);
         } else {
-            boletin = movimientos.Movimientos.obtenerBoletinSinCargo(cn, toVta.getIdEmpresa(), toVta.getIdReferencia(), toProd.getIdProducto());
+            boletin = movimientos.Movimientos.obtenerBoletinSinCargo(cn, toVta.getIdEmpresa(), toVta.getIdReferencia(), null, toProd.getIdProducto());
             try (Statement st = cn.createStatement()) {
                 // Necesito saber cuantos sin cargo tengo y debo tener entre los similares
                 // Aqui obtengo la suma de cantFacturada de todos los similares y del producto original
@@ -1169,7 +1169,7 @@ public class DAOVentas {
 
     private void agregaProducto(Connection cn, TOVenta toVta, TOVentaProducto toProd) throws SQLException {
         movimientos.Movimientos.agregaProductoOficina(cn, toProd, toVta.getIdImpuestoZona());
-        movimientos.Movimientos.actualizaProductoPrecio(cn, toVta, toProd);
+        movimientos.Movimientos.actualizaProductoPrecio(cn, toVta, toProd, null);
     }
 
     public void agregarProducto(TOVenta toVta, TOVentaProducto toProd) throws SQLException {
@@ -1254,7 +1254,7 @@ public class DAOVentas {
                         TOVentaProducto toProd;
                         for (TOVentaProducto to : detalle) {
                             toProd = this.obtenerProductoOficina(cn, toVta.getIdMovto(), to.getIdProducto());
-                            movimientos.Movimientos.actualizaProductoPrecio(cn, toVta, toProd);
+                            movimientos.Movimientos.actualizaProductoPrecio(cn, toVta, toProd, null);
                             try {
                                 separados = toProd.getCantFacturada() + toProd.getCantSinCargo();
                                 this.actualizaProductoCantidad(cn, toVta, toProd, separados);

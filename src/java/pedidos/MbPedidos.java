@@ -501,7 +501,7 @@ public class MbPedidos implements Serializable {
 
     public void obtenerDetalle(SelectEvent event) {
         this.pedido = (Pedido) event.getObject();
-
+        
         boolean ok = false;
         PedidoProducto prod;
         this.pedido.setSubTotal(0);

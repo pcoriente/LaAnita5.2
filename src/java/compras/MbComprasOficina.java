@@ -447,7 +447,7 @@ public class MbComprasOficina implements Serializable {
                 impuestos += i.getImporte();
             }
         }
-        impuestos=(double) Math.round(impuestos * 1000000) / 1000000;
+        impuestos=(double) Math.round(impuestos * 100000000) / 100000000;
         return impuestos;
     }
 

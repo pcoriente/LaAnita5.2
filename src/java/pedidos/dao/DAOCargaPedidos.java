@@ -20,6 +20,7 @@ import pedidos.Pedidos;
 import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
 import pedidos.to.TOPedido;
+import pedidos.to.TOProductoPedido;
 import tiendas.Tiendas;
 import tiendas.to.TOTienda;
 import usuarios.dominio.UsuarioSesion;
@@ -49,16 +50,21 @@ public class DAOCargaPedidos {
 
     }
 
-    public void crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) throws SQLException {
+    public ArrayList<TOPedido> crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) throws SQLException {
         TOTienda toTienda;
         String strSQL, oc = "";
         TOPedido toPed = new TOPedido(28);
-        toPed.setElectronico(electronico);
+        TOProductoPedido toProd = new TOProductoPedido();
+        ArrayList<TOPedido> pedidos = new ArrayList<>();
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
+                ResultSet rs;
                 for (Chedraui che : chedraui) {
                     if (!che.getOrdenCompra().equals(oc)) {
+                        toPed = new TOPedido(28);
+                        toPed.setElectronico(electronico);
+
                         toTienda = Tiendas.validaTienda(cn, che.getCodigoTienda(), idGpoCte, idFto);
                         if (toTienda == null) {
                             throw new SQLException("La Tienda " + che.getCodigoTienda() + " No Existe");
@@ -67,7 +73,7 @@ public class DAOCargaPedidos {
                                 + "FROM agentes G\n"
                                 + "INNER JOIN almacenes A ON A.idCedis=G.idCedis AND A.idEmpresa=" + idEmp + " AND A.pedidoElectronico=1\n"
                                 + "WHERE G.idAgente=" + toTienda.getIdAgente();
-                        ResultSet rs = st.executeQuery(strSQL);
+                        rs = st.executeQuery(strSQL);
                         if (!rs.next()) {
                             throw new SQLException("No se encontró el almacén !!");
                         }
@@ -83,7 +89,30 @@ public class DAOCargaPedidos {
                         toPed.setIdReferencia(toTienda.getIdTienda());
                         toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
                         toPed.setIdUsuario(this.idUusario);
+                        toPed.setEstatus(5);
                         Pedidos.agregarPedido(cn, toPed, 1);
+                        pedidos.add(toPed);
+                    }
+                    strSQL = "SELECT E.cod_pro, E.idEmpaque, E.piezas, P.idImpuesto\n"
+                            + "FROM empaquesUpcs U\n"
+                            + "INNER JOIN empaques E ON E.idEmpaque=U.idProducto\n"
+                            + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+                            + "WHERE U.upc='" + che.getUpc() + "'";
+                    rs = st.executeQuery(strSQL);
+                    if (!rs.next()) {
+                        throw new SQLException("¡¡ No se encontró el UPC pedido !!\n"
+                                + "en tabla empaquesUpcs (UPC='" + che.getUpc() + "')");
+                    }
+                    toProd.setIdPedido(toPed.getReferencia());
+                    toProd.setIdProducto(rs.getInt("idProducto"));
+                    toProd.setPiezas(rs.getInt("piezas"));
+                    toProd.setCantOrdenada(che.getCantidad());
+                    toProd.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
+                    toProd.setIdMovto(toPed.getIdMovto());
+                    Pedidos.agregaProductoPedido(cn, toPed, toProd);
+                    if (toProd.getUnitario() != che.getCosto()) {
+                        throw new SQLException("¡¡ El precio unitario no coincide con el pedido !!\n"
+                                + "codigoTienda=" + che.getCodigoTienda() + " (idTienda=" + toPed.getIdReferencia() + "), sku='" + rs.getString("cod_pro") + "' (idEmpaque=" + toProd.getIdProducto()+")");
                     }
                 }
                 cn.commit();
@@ -96,6 +125,7 @@ public class DAOCargaPedidos {
             }
 
         }
+        return pedidos;
     }
 //Esta consulta se paso a la clase tiendas 
 //    public int validaTienda(int codigoTienda, int idGrupoCte, int idFormato) throws SQLException {

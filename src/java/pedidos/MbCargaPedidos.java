@@ -8,6 +8,7 @@ package pedidos;
 //import empresas.MbMiniEmpresa;
 import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
+import comprobantes.MbComprobantes;
 import empresas.MbMiniEmpresas;
 import empresas.dominio.MiniEmpresa;
 import mbMenuClientesGrupos.MbClientesGrupos;
@@ -37,6 +38,7 @@ import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
 import pedidos.dao.DAOCargaPedidos;
 import pedidos.dao.DAOPedidos;
+import pedidos.dominio.Pedido;
 import pedidos.to.TOPedido;
 import tiendas.MbMiniTiendas;
 import tiendas.to.TOTienda;
@@ -70,6 +72,9 @@ public class MbCargaPedidos implements Serializable {
     @ManagedProperty(value = "#{mbAlmacenesJS}")
     private MbAlmacenesJS mbAlmacenes;
     
+    @ManagedProperty(value = "#{mbComprobantes}")
+    private MbComprobantes mbComprobantes;
+    
     @ManagedProperty(value = "#{mbGruposBancos}")
     private MbGruposBancos mbGruposBancos = new MbGruposBancos();
     
@@ -90,10 +95,17 @@ public class MbCargaPedidos implements Serializable {
         this.mbFormatos = new MbFormatos();
         this.mbTiendas = new MbMiniTiendas();
         this.mbAlmacenes = new MbAlmacenesJS();
+        this.mbComprobantes = new MbComprobantes();
         this.mbAcciones = new MbAcciones();
         this.daoPed = new DAOPedidos();
         this.dao = new DAOCargaPedidos();
         
+    }
+    
+    private Pedido convertir(TOPedido toPed) {
+        Pedido ped = new Pedido(this.mbAlmacenes.obtenerAlmacen(toPed.getIdAlmacen()), this.mbTiendas.obtenerTienda(toPed.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toPed.getIdComprobante()));
+        Pedidos.convertirpedido(toPed, ped);
+        return ped;
     }
     
     public void upload(FileUploadEvent event) {
@@ -122,24 +134,30 @@ public class MbCargaPedidos implements Serializable {
                 case 188:
                     chedraui = leerTextuales.leerArchivoCHedraui(entrada);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, chedraui, event.getFile().getFileName());
-//                    String oc = "";
-//                    TOTienda toTienda;
-//                    TOPedido toPed = new TOPedido(28);
-//                    toPed.setElectronico(event.getFile().getFileName());
-//
-//                    for (Chedraui che : this.chedraui) {
-//                        if (!che.getOrdenCompra().equals(oc)) {
-//                            toTienda = this.mbTiendas.obtenerTienda(this.dao.validaTienda(che.getCodigoTienda(), idGpoCte, idFto));
-//                            oc = che.getOrdenCompra();
-//                            toPed.setIdEmpresa(idEmp);
-//                            toPed.setOrdenDeCompra(oc);
-//                            toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
-//                            toPed.setIdImpuestoZona(idGpoCte);
-//                            toPed.setIdReferencia(toTienda.getIdTienda());
-//                            toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
-//                            this.daoPed.agregarPedido(toPed, 1);
-//                        }
+//                    Pedido pedido;
+//                    for(TOPedido to : this.dao.crearPedidos(idEmp, idGpoCte, idFto, chedraui, event.getFile().getFileName())) {
+//                        pedido = this.convertir(to);
+//                        this.obtenDetalle(pedido);
 //                    }
+////                    
+////                    String oc = "";
+////                    TOTienda toTienda;
+////                    TOPedido toPed = new TOPedido(28);
+////                    toPed.setElectronico(event.getFile().getFileName());
+////
+////                    for (Chedraui che : this.chedraui) {
+////                        if (!che.getOrdenCompra().equals(oc)) {
+////                            toTienda = this.mbTiendas.obtenerTienda(this.dao.validaTienda(che.getCodigoTienda(), idGpoCte, idFto));
+////                            oc = che.getOrdenCompra();
+////                            toPed.setIdEmpresa(idEmp);
+////                            toPed.setOrdenDeCompra(oc);
+////                            toPed.setOrdenDeCompraFecha(che.getFechaElaboracion());
+////                            toPed.setIdImpuestoZona(idGpoCte);
+////                            toPed.setIdReferencia(toTienda.getIdTienda());
+////                            toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
+////                            this.daoPed.agregarPedido(toPed, 1);
+////                        }
+////                    }
                     break;
                 default:
                     System.out.println("No hay ningun grupo de clientes");

@@ -92,7 +92,7 @@ public class LeerTextuales {
 
 //    public void leerArchivoCHedraui(String lectura) throws IOException {
     public ArrayList<Chedraui> leerArchivoCHedraui(String lectura) throws IOException {
-        String registro;;
+        String registro;
         String anio;
         String mes;
         String dia;

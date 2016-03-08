@@ -16,6 +16,17 @@ import pedidos.to.TOProductoPedido;
  * @author jesc
  */
 public class Pedidos {
+    
+    public static void agregaProductoPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+        String strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCargo)\n"
+                + "VALUES (" + toProd.getIdPedido() + ", " + toProd.getIdProducto() + ", " + toProd.getCantOrdenada() + ", " + toProd.getCantOrdenadaSinCargo() + ", 0, 0)";
+        try (Statement st = cn.createStatement()) {
+            movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
+            movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
+
+            st.executeUpdate(strSQL);
+        }
+    }
 
     public static void agregarPedido(Connection cn, TOPedido toPed, int idMoneda) throws SQLException {
         String strSQL, fechaOrden = "";

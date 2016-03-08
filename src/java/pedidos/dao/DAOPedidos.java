@@ -265,7 +265,7 @@ public class DAOPedidos {
                     toSimilar.setIdPedido(toPed.getReferencia());
                     toSimilar.setIdMovto(toPed.getIdMovto());
 
-                    this.agregaProductoPedido(cn, toPed, toSimilar);
+                    Pedidos.agregaProductoPedido(cn, toPed, toSimilar);
                 }
                 toSimilar.setCantOrdenadaSinCargo(toSimilar.getCantOrdenadaSinCargo() + cantidad);
                 toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
@@ -333,7 +333,7 @@ public class DAOPedidos {
 
     private void actualizaProductoCantidadPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         String strSQL;
-        ArrayList<Double> boletin = movimientos.Movimientos.obtenerBoletinSinCargo(cn, toPed.getIdEmpresa(), toPed.getIdReferencia(), toProd.getIdProducto());
+        ArrayList<Double> boletin = movimientos.Movimientos.obtenerBoletinSinCargo(cn, toPed.getIdEmpresa(), toPed.getIdReferencia(), null, toProd.getIdProducto());
         try (Statement st = cn.createStatement()) {
             strSQL = "UPDATE pedidosDetalle\n"
                     + "SET cantOrdenada=" + toProd.getCantOrdenada() + "\n"
@@ -449,22 +449,22 @@ public class DAOPedidos {
         return similares;
     }
 
-    private void agregaProductoPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
-        String strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCargo)\n"
-                + "VALUES (" + toProd.getIdPedido() + ", " + toProd.getIdProducto() + ", " + toProd.getCantOrdenada() + ", " + toProd.getCantOrdenadaSinCargo() + ", 0, 0)";
-        try (Statement st = cn.createStatement()) {
-            movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
-            movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
-
-            st.executeUpdate(strSQL);
-        }
-    }
-
+//    private void agregaProductoPedido(Connection cn, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+//        String strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCargo)\n"
+//                + "VALUES (" + toProd.getIdPedido() + ", " + toProd.getIdProducto() + ", " + toProd.getCantOrdenada() + ", " + toProd.getCantOrdenadaSinCargo() + ", 0, 0)";
+//        try (Statement st = cn.createStatement()) {
+//            movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
+//            movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
+//
+//            st.executeUpdate(strSQL);
+//        }
+//    }
+//
     public void agregarProductoPedido(TOPedido toPed, TOProductoPedido toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                this.agregaProductoPedido(cn, toPed, toProd);
+                Pedidos.agregaProductoPedido(cn, toPed, toProd);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -522,7 +522,7 @@ public class DAOPedidos {
                 detalle = this.obtenDetalle(cn, toPed);
                 if (toPed.getIdUsuario() == toPed.getPropietario() && toPed.getEstatus() == 0 && toPed.getEspecial() == 0) {
                     for (TOProductoPedido toProd : detalle) {
-                        movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd);
+                        movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd, toPed.getFecha());
                         this.actualizaProductoCantidadPedido(cn, toPed, toProd);
                     }
                 }
