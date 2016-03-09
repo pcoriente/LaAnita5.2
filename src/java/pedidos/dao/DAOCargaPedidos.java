@@ -106,7 +106,7 @@ public class DAOCargaPedidos {
                     toProd.setIdPedido(toPed.getReferencia());
                     toProd.setIdProducto(rs.getInt("idEmpaque"));
                     toProd.setPiezas(rs.getInt("piezas"));
-                    toProd.setCantOrdenada(che.getCantidad());
+                    toProd.setCantOrdenada(che.getCantidad()*rs.getInt("piezas"));
                     toProd.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
                     toProd.setIdMovto(toPed.getIdMovto());
                     Pedidos.agregaProductoPedido(cn, toPed, toProd);

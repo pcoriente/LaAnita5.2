@@ -226,7 +226,7 @@ public class Pedidos {
                 + "		INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "		WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND P.estatus=7\n"
                 + "		GROUP BY P.idPedido) ID\n"
-                + "INNER JOIN movimientos M ON M.idMovto=ID.idPrincipal\n"
+                + "RIGHT JOIN movimientos M ON M.idMovto=ID.idPrincipal\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
                 + "LEFT JOIN enviosPedidos EP ON EP.idPedido=P.idPedido\n"
