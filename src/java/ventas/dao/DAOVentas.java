@@ -1390,13 +1390,17 @@ public class DAOVentas {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOVenta> ventas = new ArrayList<>();
-        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
-                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, ISNULL(V.estatus, 0) AS envioEstatus\n"
-                + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
+        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial\n"
+                + "     , P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+                + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra\n"
+                + "     , ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha, ISNULL(EP.peso, 0) AS peso\n"
+                + "     , ISNULL(EP.directo, 0) AS directo, ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(EP.orden, 0) AS orden\n"
+                + "     , ISNULL(E.estatus, 0) AS envioEstatus\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-                + "LEFT JOIN envios V ON V.idEnvio=P.idEnvio\n"
+                + "LEFT JOIN enviosPedidos EP ON EP.idPedido=P.idPedido\n"
+                + "LEFT JOIN envios E ON E.idEnvio=EP.idEnvio\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND M.estatus" + condicion + "\n";
         if (estatus != 0) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
