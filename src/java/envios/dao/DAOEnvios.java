@@ -213,8 +213,10 @@ public class DAOEnvios {
 //    }
 //
     private void calcularSolicitada(TOEnvioProducto toProd) throws SQLException {
-        int piezas = this.producto.getProducto().getPiezas();
-        double fincadoNeto = this.producto.getCantFincada() - toProd.getExistencia() + this.producto.getCantDirecta();
+//        int piezas = this.producto.getProducto().getPiezas();
+//        double fincadoNeto = this.producto.getCantFincada() - toProd.getExistencia() + this.producto.getCantDirecta();
+        int piezas = 0;
+        double fincadoNeto = 0;
         if (toProd.getBanCajas() != 0) {
             if (toProd.getCantSolicitada() < fincadoNeto) { // Si lo solicitado no es suficiente
                 toProd.setCantSolicitada(fincadoNeto);      // cuando menos lo requerido

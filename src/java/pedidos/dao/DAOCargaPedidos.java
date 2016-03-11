@@ -19,6 +19,7 @@ import leyenda.dao.DAOBancosLeyendas;
 import pedidos.Pedidos;
 import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
+import pedidos.dominio.Textual;
 import pedidos.to.TOPedido;
 import pedidos.to.TOProductoPedido;
 import tiendas.Tiendas;
@@ -50,7 +51,7 @@ public class DAOCargaPedidos {
 
     }
 
-    public ArrayList<TOPedido> crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Chedraui> chedraui, String electronico) throws SQLException {
+    public ArrayList<TOPedido> crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Textual> textual, String electronico) throws SQLException {
         TOTienda toTienda;
         String strSQL, oc = "";
         TOPedido toPed = new TOPedido(28);
@@ -60,7 +61,7 @@ public class DAOCargaPedidos {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 ResultSet rs;
-                for (Chedraui che : chedraui) {
+                for (Textual che : textual) {
                     if (!che.getOrdenCompra().equals(oc)) {
                         toPed = new TOPedido(28);
                         toPed.setElectronico(electronico);
