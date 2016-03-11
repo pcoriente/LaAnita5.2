@@ -54,6 +54,7 @@ public class DAOCargaPedidos {
     public ArrayList<TOPedido> crearPedidos(int idEmp, int idGpoCte, int idFto, ArrayList<Textual> textual, String electronico) throws SQLException {
         TOTienda toTienda;
         String strSQL, oc = "";
+        int ct = 0;
         TOPedido toPed = new TOPedido(28);
         TOProductoPedido toProd = new TOProductoPedido();
         ArrayList<TOPedido> pedidos = new ArrayList<>();
@@ -62,7 +63,8 @@ public class DAOCargaPedidos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs;
                 for (Textual che : textual) {
-                    if (!che.getOrdenCompra().equals(oc)) {
+                    if (!che.getOrdenCompra().equals(oc)){
+//                    if (!che.getOrdenCompra().equals(oc) || (che.getOrdenCompra().equals(oc) && che.getCodigoTienda() != ct)){
                         toPed = new TOPedido(28);
                         toPed.setElectronico(electronico);
 

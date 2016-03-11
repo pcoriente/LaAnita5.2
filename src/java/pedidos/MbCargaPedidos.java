@@ -85,15 +85,13 @@ public class MbCargaPedidos implements Serializable {
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
 
-
     private ArrayList<Textual> textual;
     private Date fechaEntrega;
     private Date fechaCancelacion;
-//    private ArrayList<Chedraui> chedraui;
-//    private ArrayList<SamsClub> samsClub;
     private DAOPedidos daoPed;
     private DAOCargaPedidos dao;
-private String file;
+    private String file = "";
+
     /**
      * Creates a new instance of MbPedido
      */
@@ -168,7 +166,7 @@ private String file;
 ////                    }
                     break;
                 case 176: //Comercial Mexicana
-                    textual = leerTextuales.leerArchivoComercialMexicana(entrada, null, null);
+                    textual = leerTextuales.leerArchivoComercialMexicana(entrada, fechaEntrega, fechaCancelacion);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                     break;
                 default:
@@ -184,70 +182,6 @@ private String file;
 
     }
 
-    //        System.out.println("nombre del archivo " + destino);
-//        System.out.println("descripcion de la ruta"+rutaReal);
-//        if (file != null) {
-//             FileInputStream fstream = new FileInputStream("LeerArchivo.java");
-//            // Creamos el objeto de entrada
-//            DataInputStream entrada = new DataInputStream(fstream);
-//            // Creamos el Buffer de Lectura
-//            BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
-    //            System.out.println("estoy despues del if de la validacion del nulo");
-//            try {
-//                InputStream stream = e.getFile().getInputstream();
-//                System.out.println("veamos ahora si ya tiene el nombtre" + stream);
-//                try (FileInputStream archivo = new FileInputStream(destino)) {
-//                    DataInputStream entrada = new DataInputStream(archivo);
-//                    BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
-//                    String strLinea;
-//                    while ((strLinea = buffer.readLine()) != null) {
-//                        // Imprimimos la línea por pantalla
-//                        System.out.println(strLinea);
-//                    }
-//                    // Cerramos el archivo
-//                    archivo.close();
-//public String save() throws IOException {
-//    String name = uploadedFile.getName();
-//    System.out.println("File name: " + name);
-//
-//    String type = uploadedFile.getContentType();
-//    System.out.println("File type: " + type);
-//
-//    long size = uploadedFile.getSize();
-//    System.out.println("File size: " + size);  
-//
-//    InputStream stream = uploadedFile.getInputStream();
-//    byte[] buffer = new byte[(int) size];  
-//    stream.read(buffer, 0, (int) size);  
-//    stream.close();  
-//}                    
-//            this.file=e.getFile();
-//            File archivo = new File(archivo.)
-//                    System.out.println("nombre del archivo "+file.getFileName().trim());                    
-//            try {
-//        FacesMessage msg = new FacesMessage("Ok", "Fichero " + file.getFileName() + " subido correctamente.");
-//    	FacesContext.getCurrentInstance().addMessage(null, msg);
-//                copyFile(file.getFileName(), file.getInputstream());
-//                File archivo = new File(destino + file.getFileName());
-//                LeerTextuales textuales = new LeerTextuales();
-//                textuales.leerArchivoWallMart(archivo);
-//                textuales.leerArchivoSams(archivo);
-//                textuales.leerArchivoCHedraui(archivo);
-//                textuales.leerArchivoImss(archivo);
-//                String fecha = 2014 + "-" + 07 + "-" + 23;
-//                textuales.leerArchivoComercialMexicana(archivo,  java.sql.Date.valueOf(fecha), java.sql.Date.valueOf(fecha), false);
-//                textuales.leerArchivoComa(archivo);
-////                textuales.leerArchivoCorvi(archivo, java.sql.Date.valueOf(fecha));
-//
-//            } catch (IOException ex) {
-//                Message.Mensajes.mensajeError(ex.getMessage());
-//                }
-//            } catch (Exception ex) { //Catch de excepciones
-//                Message.Mensajes.mensajeError(ex.getMessage());
-//                System.err.println("Ocurrio un error: " + ex.getMessage());
-//            }
-//        }
-//    }
     public void cargaFormatos() throws SQLException {
         this.lstFormatos = new ArrayList<>();
         ClienteFormato cteFto = new ClienteFormato(0, "Seleccione un Formato:");
@@ -352,7 +286,5 @@ private String file;
     public void setFile(String file) {
         this.file = file;
     }
-
-    
 
 }
