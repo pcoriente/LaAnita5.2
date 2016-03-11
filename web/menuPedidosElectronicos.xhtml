@@ -41,7 +41,7 @@
                                         <f:selectItems value="#{mbCargaPedidos.mbClientesGrupos.itemsClientesGrupos}" />
                                         <p:ajax event="change"
                                                 listener="#{mbCargaPedidos.cargaFormatos()}"
-                                                update="formato cargaArchivo"
+                                                update="fEntrega fCance formato"
                                                 process="@this"/>
                                     </p:selectOneMenu>
                                 </p:column>
@@ -49,11 +49,29 @@
                             <p:row >
                                 <p:column>
                                     <p:selectOneMenu id="formato" value="#{mbCargaPedidos.mbFormatos.formato}" style="width: 300px;" filter="true" >
-                                       <f:converter converterId="converter.formatos" />
+                                        <f:converter converterId="converter.formatos" />
                                         <f:selectItems value="#{mbCargaPedidos.lstFormatos}" />
                                         <p:ajax event="change"/>
                                     </p:selectOneMenu>
                                 </p:column>
+                            </p:row>
+                            <p:row>
+                                <p:calendar id="fEntrega"  
+                                            showOn="button"
+                                            value="#{mbCargaPedidos.fechaEntrega}" maxlength="8" size="15"
+                                            placeholder="Fecha de Entrega"
+                                            disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
+                                            >
+                                </p:calendar>
+                            </p:row>
+                            <p:row>
+                                <p:calendar id="fCance"  
+                                            showOn="button"
+                                            value ="#{mbCargaPedidos.fechaCancelacion}" maxlength="8" size="15"
+                                            placeholder="Fecha de Cancelación"
+                                            disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
+                                            >
+                                </p:calendar>
                             </p:row>
                             <p:row>
                                 <p:column>
@@ -62,10 +80,11 @@
                                                   disabled="#{mbCargaPedidos.mbEmpresas.empresa.idEmpresa == 0 or mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte == 0}"
                                                   fileUploadListener="#{mbCargaPedidos.upload}"
                                                   update="main:msgs">
-                                       
+
                                     </p:fileUpload>
                                 </p:column>
                             </p:row>
+
                         </p:panelGrid>
                         <p:toolbar id="barraHerramientas" style="width: 845px; margin: 0 auto;">
                             <f:facet name="right">

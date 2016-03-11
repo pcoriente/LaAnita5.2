@@ -14,7 +14,9 @@ import empresas.dominio.MiniEmpresa;
 import mbMenuClientesGrupos.MbClientesGrupos;
 import formatos.MbFormatos;
 import gruposBancos.MbGruposBancos;
-import pedidos.dominio.Chedraui;
+//import pedidos.dominio.Chedraui;
+//import pedidos.dominio.SamsClub;
+import pedidos.dominio.Textual;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import org.primefaces.model.UploadedFile;
 import org.primefaces.event.FileUploadEvent;
 import pedidos.LeerTextuales.LeerTextuales;
 import formatos.dominio.ClienteFormato;
+import java.util.Date;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -52,7 +55,7 @@ import usuarios.dominio.Accion;
 @Named(value = "mbCargaPedidos")
 @SessionScoped
 public class MbCargaPedidos implements Serializable {
-    
+
     private String destination = "c:\\textuales\\";
     @ManagedProperty(value = "#{mbMiniEmpresas}")
     private MbMiniEmpresas mbEmpresas;
@@ -65,27 +68,32 @@ public class MbCargaPedidos implements Serializable {
     @ManagedProperty(value = "#{mbFormatos}")
     private MbFormatos mbFormatos;
     private ArrayList<SelectItem> lstFormatos = new ArrayList<>();
-    
+
     @ManagedProperty(value = "#{mbMiniTiendas}")
     private MbMiniTiendas mbTiendas;
-    
+
     @ManagedProperty(value = "#{mbAlmacenesJS}")
     private MbAlmacenesJS mbAlmacenes;
-    
+
     @ManagedProperty(value = "#{mbComprobantes}")
     private MbComprobantes mbComprobantes;
-    
+
     @ManagedProperty(value = "#{mbGruposBancos}")
     private MbGruposBancos mbGruposBancos = new MbGruposBancos();
-    
+
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
-    
-    private ArrayList<Chedraui> chedraui;
+
+
+    private ArrayList<Textual> textual;
+    private Date fechaEntrega;
+    private Date fechaCancelacion;
+//    private ArrayList<Chedraui> chedraui;
+//    private ArrayList<SamsClub> samsClub;
     private DAOPedidos daoPed;
     private DAOCargaPedidos dao;
-
+private String file;
     /**
      * Creates a new instance of MbPedido
      */
@@ -99,15 +107,15 @@ public class MbCargaPedidos implements Serializable {
         this.mbAcciones = new MbAcciones();
         this.daoPed = new DAOPedidos();
         this.dao = new DAOCargaPedidos();
-        
+
     }
-    
+
     private Pedido convertir(TOPedido toPed) {
         Pedido ped = new Pedido(this.mbAlmacenes.obtenerAlmacen(toPed.getIdAlmacen()), this.mbTiendas.obtenerTienda(toPed.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toPed.getIdComprobante()));
         Pedidos.convertirpedido(toPed, ped);
         return ped;
     }
-    
+
     public void upload(FileUploadEvent event) {
         try {
             copyFile(event.getFile().getFileName(), event.getFile().getInputstream());
@@ -119,6 +127,7 @@ public class MbCargaPedidos implements Serializable {
             switch (idGpoCte) {
                 case 190: //Grupo Nueva WallMart
                     if (idFto == 233) {
+                        textual = leerTextuales.leerArchivoSams(entrada);
                         System.out.print("SAMS CLUB " + idFto);
                     }
                     if (idFto == 230) {
@@ -132,14 +141,13 @@ public class MbCargaPedidos implements Serializable {
                     }
                     break;
                 case 188:
-                    chedraui = leerTextuales.leerArchivoCHedraui(entrada);
-                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, chedraui, event.getFile().getFileName());
+                    textual = leerTextuales.leerArchivoCHedraui(entrada);
+                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
 //                    Pedido pedido;
 //                    for(TOPedido to : this.dao.crearPedidos(idEmp, idGpoCte, idFto, chedraui, event.getFile().getFileName())) {
 //                        pedido = this.convertir(to);
 //                        this.obtenDetalle(pedido);
-//                    }
-////                    
+//                    }           
 ////                    String oc = "";
 ////                    TOTienda toTienda;
 ////                    TOPedido toPed = new TOPedido(28);
@@ -159,6 +167,10 @@ public class MbCargaPedidos implements Serializable {
 ////                        }
 ////                    }
                     break;
+                case 176: //Comercial Mexicana
+                    textual = leerTextuales.leerArchivoComercialMexicana(entrada, null, null);
+                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
+                    break;
                 default:
                     System.out.println("No hay ningun grupo de clientes");
                     break;
@@ -169,7 +181,7 @@ public class MbCargaPedidos implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
-        
+
     }
 
     //        System.out.println("nombre del archivo " + destino);
@@ -244,14 +256,14 @@ public class MbCargaPedidos implements Serializable {
             lstFormatos.add(new SelectItem(cf, cf.toString()));
         }
     }
-    
+
     public void cargarInformacion() {
 //        mbClientesGrupos.getMbFormatos().setLstFormatos(null);
 //        mbGruposBancos.setLstGruposBancos(null);
 //        mbClientesGrupos.getMbFormatos().cargarListaFormatos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());
 //        mbGruposBancos.cargarGruposBancos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());
     }
-    
+
     public void copyFile(String fileName, InputStream in) {
         try {
             try (OutputStream salida = new FileOutputStream(new File(destination + fileName))) {
@@ -268,53 +280,79 @@ public class MbCargaPedidos implements Serializable {
             System.out.println(e.getMessage());
         }
     }
-    
+
     public String terminar() {
         this.mbEmpresas.setEmpresa(new MiniEmpresa());
         this.mbEmpresas.setListaEmpresas(null);
-        
+
         this.mbClientesGrupos = new MbClientesGrupos();
         return "index.xhtml";
     }
-    
+
     public MbClientesGrupos getMbClientesGrupos() {
         return mbClientesGrupos;
     }
-    
+
     public void setMbClientesGrupos(MbClientesGrupos mbClientesGrupos) {
         this.mbClientesGrupos = mbClientesGrupos;
     }
-    
+
     public MbFormatos getMbFormatos() {
         return mbFormatos;
     }
-    
+
     public void setMbFormatos(MbFormatos mbFormatos) {
         this.mbFormatos = mbFormatos;
     }
-    
+
     public ArrayList<SelectItem> getLstFormatos() {
         return lstFormatos;
     }
-    
+
     public void setLstFormatos(ArrayList<SelectItem> lstFormatos) {
         this.lstFormatos = lstFormatos;
     }
-    
+
     public MbGruposBancos getMbGruposBancos() {
         return mbGruposBancos;
     }
-    
+
     public void setMbGruposBancos(MbGruposBancos mbGruposBancos) {
         this.mbGruposBancos = mbGruposBancos;
     }
-    
+
     public MbMiniEmpresas getMbEmpresas() {
         return mbEmpresas;
     }
-    
+
     public void setMbEmpresas(MbMiniEmpresas mbEmpresas) {
         this.mbEmpresas = mbEmpresas;
     }
+
+    public Date getFechaEntrega() {
+        return fechaEntrega;
+    }
+
+    public void setFechaEntrega(Date fechaEntrega) {
+        this.fechaEntrega = fechaEntrega;
+    }
+
+    public Date getFechaCancelacion() {
+        return fechaCancelacion;
+    }
+
+    public void setFechaCancelacion(Date fechaCancelacion) {
+        this.fechaCancelacion = fechaCancelacion;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
     
+
 }
