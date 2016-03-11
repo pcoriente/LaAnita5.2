@@ -139,7 +139,7 @@ public class Pedidos {
         toPed.setPedidoIdUsuario(ped.getPedidoIdUsuario());
         toPed.setCanceladoMotivo(ped.getCanceladoMotivo());
         toPed.setDirecto(ped.isDirecto() ? 1 : 0);
-        toPed.setPeso(ped.getPeso());
+//        toPed.setPeso(ped.getPeso());
         toPed.setIdEnvio(ped.getIdEnvio());
         toPed.setOrden(ped.getOrden());
         toPed.setEnvioEstatus(ped.getEnvioEstatus());
@@ -163,7 +163,7 @@ public class Pedidos {
         ped.setPedidoIdUsuario(toPed.getPedidoIdUsuario());
         ped.setCanceladoMotivo(toPed.getCanceladoMotivo());
         ped.setDirecto((toPed.getDirecto() != 0));
-        ped.setPeso(toPed.getPeso());
+//        ped.setPeso(toPed.getPeso());
         ped.setIdEnvio(toPed.getIdEnvio());
         ped.setOrden(toPed.getOrden());
         ped.setEnvioEstatus(toPed.getEnvioEstatus());
@@ -209,18 +209,18 @@ public class Pedidos {
         to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
         to.setDirecto(rs.getInt("directo"));
         to.setIdEnvio(rs.getInt("idEnvio"));
-        to.setPeso(rs.getDouble("peso"));
+//        to.setPeso(rs.getDouble("peso"));
         to.setOrden(rs.getInt("orden"));
         to.setEnvioEstatus(rs.getInt("envioEstatus"));
         movimientos.Movimientos.construirMovimientoOficina(rs, to);
     }
 
     public static String sqlPedido(int idAlmacen) {
-        return "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial\n"
-                + "     , P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+        return "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.directo\n"
+                + "     , P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra\n"
-                + "     , ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha, ISNULL(EP.peso, 0) AS peso\n"
-                + "     , ISNULL(EP.directo, 0) AS directo, ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(EP.orden, 0) AS orden\n"
+                + "     , ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
+                + "     , ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(EP.orden, 0) AS orden\n"
                 + "     , ISNULL(E.estatus, 0) AS envioEstatus\n"
                 + "FROM (SELECT P.idPedido, MIN(M.idMovto) AS idPrincipal\n"
                 + "		FROM movimientos M\n"

@@ -1,35 +1,19 @@
-package envios.dominio;
+package envios.to;
 
-import almacenes.to.TOAlmacenJS;
 import java.util.Date;
-import movimientos.dominio.MovimientoTipo;
-import traspasos.dominio.Traspaso;
+import traspasos.to.TOTraspaso;
 
 /**
  *
  * @author jesc
  */
-public class EnvioTraspaso extends Traspaso {
-    private double peso;
+public class TOEnvioTraspaso extends TOTraspaso {
     private int diasInventario;
     private Date fechaProduccion;
     
-    public EnvioTraspaso() {
+    public TOEnvioTraspaso() {
         super();
         this.fechaProduccion = new Date();
-    }
-    
-    public EnvioTraspaso(MovimientoTipo tipo, TOAlmacenJS almacen, TOAlmacenJS almacenDestino) {
-        super(tipo, almacen, almacenDestino);
-        this.fechaProduccion = new Date();
-    }
-
-    public double getPeso() {
-        return peso;
-    }
-
-    public void setPeso(double peso) {
-        this.peso = peso;
     }
 
     public int getDiasInventario() {

@@ -1,7 +1,6 @@
 package envios.converters;
 
 import envios.dao.DAOEnvios;
-import envios.dominio.EnvioTraspaso;
 import java.util.ResourceBundle;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
@@ -17,17 +16,17 @@ public class EnvioTraspasoConverter implements Converter {
 
     @Override
     public Object getAsObject(FacesContext context, UIComponent component, String value) {
-        EnvioTraspaso envioTraspaso = null;
+        envios.dominio.EnvioTraspasoPojo envioTraspaso = null;
         try {
             int idSolicitud = Integer.parseInt(value);
             if (idSolicitud == 0) {
-                envioTraspaso = new EnvioTraspaso();
+                envioTraspaso = new envios.dominio.EnvioTraspasoPojo();
 //                envioTraspaso.setIdEnvio(0);
                 envioTraspaso.setIdSolicitud(0);
                 envioTraspaso.setAlmacen("Seleccione un almacén");
             } else {
                 DAOEnvios dao = new DAOEnvios();
-                envioTraspaso = dao.obtenerTraspaso(idSolicitud);
+                envioTraspaso = dao.obtenerTraspasoAlmacen(idSolicitud);
             }
         } catch (Throwable ex) {
             ResourceBundle bundle = ResourceBundle.getBundle("messages");
@@ -42,7 +41,7 @@ public class EnvioTraspasoConverter implements Converter {
     public String getAsString(FacesContext context, UIComponent component, Object value) {
         String val = null;
         try {
-            EnvioTraspaso envioTraspaso = (EnvioTraspaso) value;
+            envios.dominio.EnvioTraspasoPojo envioTraspaso = (envios.dominio.EnvioTraspasoPojo) value;
             val = Integer.toString(envioTraspaso.getIdSolicitud());
         } catch (Exception ex) {
             ResourceBundle bundle = ResourceBundle.getBundle("messages");

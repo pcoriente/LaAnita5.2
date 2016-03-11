@@ -1,9 +1,7 @@
 package envios.dominio;
 
 import cedis.dominio.MiniCedis;
-import java.util.ArrayList;
 import java.util.Date;
-import traspasos.dominio.Traspaso;
 
 /**
  *
@@ -17,10 +15,12 @@ public class Envio {
 //    private Date fechaEstatus;
     private Date fechaEnvio;
     private Date fechaFletera;
-    private Date fechaAnita;
-    private Date fechaQuimicos;
-    private int diasInventario;
+//    private Date fechaAnita;
+//    private Date fechaQuimicos;
+//    private int diasInventario;
     private int prioridad;
+    private double peso;
+    private double pesoDirectos;
     private int idUsuario;
 //    private int propietario;
     private int estatus;
@@ -32,8 +32,8 @@ public class Envio {
 //        this.fechaEstatus = new Date();
         this.fechaEnvio = new Date();
         this.fechaFletera = new Date();
-        this.fechaAnita = new Date();
-        this.fechaQuimicos = new Date();
+//        this.fechaAnita = new Date();
+//        this.fechaQuimicos = new Date();
     }
     
     public Envio(MiniCedis cedis) {
@@ -42,8 +42,8 @@ public class Envio {
 //        this.fechaEstatus = new Date();
         this.fechaEnvio = new Date();
         this.fechaFletera = new Date();
-        this.fechaAnita = new Date();
-        this.fechaQuimicos = new Date();
+//        this.fechaAnita = new Date();
+//        this.fechaQuimicos = new Date();
     }
     
     @Override
@@ -129,36 +129,52 @@ public class Envio {
         this.fechaFletera = fechaFletera;
     }
 
-    public Date getFechaAnita() {
-        return fechaAnita;
-    }
-
-    public void setFechaAnita(Date fechaAnita) {
-        this.fechaAnita = fechaAnita;
-    }
-
-    public Date getFechaQuimicos() {
-        return fechaQuimicos;
-    }
-
-    public void setFechaQuimicos(Date fechaQuimicos) {
-        this.fechaQuimicos = fechaQuimicos;
-    }
-
-    public int getDiasInventario() {
-        return diasInventario;
-    }
-
-    public void setDiasInventario(int diasInventario) {
-        this.diasInventario = diasInventario;
-    }
-
+//    public Date getFechaAnita() {
+//        return fechaAnita;
+//    }
+//
+//    public void setFechaAnita(Date fechaAnita) {
+//        this.fechaAnita = fechaAnita;
+//    }
+//
+//    public Date getFechaQuimicos() {
+//        return fechaQuimicos;
+//    }
+//
+//    public void setFechaQuimicos(Date fechaQuimicos) {
+//        this.fechaQuimicos = fechaQuimicos;
+//    }
+//
+//    public int getDiasInventario() {
+//        return diasInventario;
+//    }
+//
+//    public void setDiasInventario(int diasInventario) {
+//        this.diasInventario = diasInventario;
+//    }
+//
     public int getPrioridad() {
         return prioridad;
     }
 
     public void setPrioridad(int prioridad) {
         this.prioridad = prioridad;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public double getPesoDirectos() {
+        return pesoDirectos;
+    }
+
+    public void setPesoDirectos(double pesoDirectos) {
+        this.pesoDirectos = pesoDirectos;
     }
 
     public int getIdUsuario() {

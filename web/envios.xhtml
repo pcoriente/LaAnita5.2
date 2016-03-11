@@ -84,11 +84,12 @@
                                 <h:outputLabel for="almacen" value="Almacén :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column colspan="4" >
-                                <p:selectOneMenu id="almacen" value="#{mbEnvios.mbAlmacenes.toAlmacen}" style="width: 350px;" >
+                                <p:selectOneMenu id="almacen" value="#{mbEnvios.mbAlmacenes.toAlmacen}" style="width: 350px;"
+                                                 disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen!=0}" >
                                     <f:converter converterId="converters.TOAlmacenJSConverter" />
                                     <f:selectItems value="#{mbEnvios.mbAlmacenes.listaAlmacenes}" />
                                     <p:ajax event="change" listener="#{mbEnvios.obtenerDetalle()}"
-                                            update=":main:msgs :main:gridMtto :main:detalle" />
+                                            update="@this :main:msgs :main:gridMtto :main:detalle :main:btnTerminar" />
                                 </p:selectOneMenu>
                             </p:column>
                             <p:column >
@@ -99,7 +100,7 @@
                                              readonly="#{mbEnvios.traspaso.estatus!=3 or !mbEnvios.locked}"
                                              maxlength="3" size="3" >
                                     <p:ajax event="change" listener="#{mbEnvios.actualizaDiasInventarioGeneral()}"
-                                            update=":main:msgs detalle peso" />
+                                            update=":main:msgs detalle pesoBodega pesoTotal" />
                                 </p:inputText>
                             </p:column>
                             <p:column >
@@ -122,19 +123,24 @@
                                     <h:outputLabel for="pesoDirectos" value="Peso Directos :" style="font-weight: bold; color: black; width: 110px;" />
                                 </p:column>
                                 <p:column style="width: 110px;" >
-                                    <p:inputText id="peso" value="#{mbEnvios.traspaso.peso}" readonly="true" maxlength="10" size="12" ></p:inputText>
+                                    <p:inputText id="pesoDirectos" value="#{mbEnvios.envio.pesoDirectos}" readonly="true" maxlength="10" size="12" ></p:inputText>
                                 </p:column>
                                 <p:column style="width: 100px;" >
                                     <h:outputLabel for="pesoBodega" value="Peso Bodega :" style="font-weight: bold; color: black;" />
                                 </p:column>
                                 <p:column style="width: 110px;" >
-                                    <p:inputText id="pesoTotal" value="#{mbEnvios.peso}" readonly="true" maxlength="10" size="12" ></p:inputText>
+                                    <p:inputText id="pesoBodega" value="#{mbEnvios.traspaso.peso}" readonly="true" maxlength="10" size="12" ></p:inputText>
                                 </p:column>
                                 <p:column >
                                     <h:outputLabel for="pesoTotal" value="Peso Total :" style="font-weight: bold; color: black;" />
                                 </p:column>
-                                <p:column colspan="4" >
-                                    <p:inputText id="pesoBodega" value="#{mbEnvios.traspaso.peso}" readonly="true" maxlength="12" size="12" ></p:inputText>
+                                <p:column colspan="3" >
+                                    <p:inputText id="pesoTotal" value="#{mbEnvios.envio.peso}" readonly="true" maxlength="12" size="12" ></p:inputText>
+                                </p:column>
+                                <p:column >
+                                    <p:commandButton id="btnTerminar" icon="ui-icon-unlocked" title="Terminar"
+                                                     disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                     process="@this" actionListener="#{mbEnvios.liberarTraspaso()}" update="main" />
                                 </p:column>
                             </p:row>
                         </f:facet>
@@ -150,8 +156,29 @@
                         <p:column headerText="Producto" style="width: 450px;" >
                             <h:outputText value="#{prod.producto}" style="width: 370px;" />
                         </p:column>
-                        <p:column headerText="Estadistica" style="width: 70px;" >
+                        <p:column headerText="Vta.Diaria" style="width: 70px;" >
                             <h:outputText value="#{prod.estadistica}" style="width: 60px;" />
+                        </p:column>
+                        <p:column headerText="Existencia" style="width: 70px;" >
+                            <h:outputText value="#{prod.existencia}" style="width: 60px;" />
+                        </p:column>
+                        <p:column headerText="Dias Inv." style="width: 70px;" >
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{prod.diasInventario}" >
+                                        <f:convertNumber pattern="###,##0.000" />
+                                    </h:outputText>
+                                </f:facet>
+                                <f:facet name="input" >
+                                    <p:inputText value="#{prod.diasInventario}" style="width:60px;" onblur="" label="CANTIDAD" 
+                                                 readonly="#{mbEnvios.envio.estatus!=3 or !mbEnvios.locked or prod.estadistica==0}" >
+                                        <f:convertNumber maxIntegerDigits="6" maxFractionDigits="0" />
+                                        <p:ajax event="change" 
+                                                process="@this" listener="#{mbEnvios.gestionarDiasInventario()}"
+                                                update=":main:msgs detalle" />
+                                    </p:inputText>
+                                </f:facet>
+                            </p:cellEditor>
                         </p:column>
                         <p:column headerText="Sugerida" style="width: 70px;" >
                             <p:cellEditor>

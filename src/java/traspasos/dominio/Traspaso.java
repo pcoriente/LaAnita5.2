@@ -17,8 +17,8 @@ public class Traspaso extends MovimientoOficina {
     private int solicitudEstatus;
     private TOAlmacenJS almacenDestino;
     private int idSolicitud;
-    private double peso;
-    private int diasInventario;
+//    private double peso;
+//    private int diasInventario;
     
     public Traspaso() {
         super();
@@ -92,19 +92,19 @@ public class Traspaso extends MovimientoOficina {
         this.almacenDestino = almacenDestino;
     }
 
-    public double getPeso() {
-        return peso;
-    }
-
-    public void setPeso(double peso) {
-        this.peso = peso;
-    }
-
-    public int getDiasInventario() {
-        return diasInventario;
-    }
-
-    public void setDiasInventario(int diasInventario) {
-        this.diasInventario = diasInventario;
-    }
+//    public double getPeso() {
+//        return peso;
+//    }
+//
+//    public void setPeso(double peso) {
+//        this.peso = peso;
+//    }
+//
+//    public int getDiasInventario() {
+//        return diasInventario;
+//    }
+//
+//    public void setDiasInventario(int diasInventario) {
+//        this.diasInventario = diasInventario;
+//    }
 }

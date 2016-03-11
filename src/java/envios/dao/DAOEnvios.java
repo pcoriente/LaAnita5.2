@@ -1,8 +1,10 @@
 package envios.dao;
 
-import envios.dominio.EnvioTraspaso;
+import envios.Envios;
+import envios.dominio.EnvioTraspasoPojo;
 import envios.to.TOEnvio;
 import envios.to.TOEnvioProducto;
+import envios.to.TOEnvioTraspaso;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -71,7 +73,7 @@ public class DAOEnvios {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 if (rs.next()) {
-                    ordenOld = rs.getInt("orden")+1;
+                    ordenOld = rs.getInt("orden") + 1;
                 }
                 if (orden > ordenOld) {
                     orden = ordenOld;
@@ -146,7 +148,7 @@ public class DAOEnvios {
             }
         }
     }
-    
+
     public void liberarFincado(TOPedido toPedido) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -204,19 +206,107 @@ public class DAOEnvios {
         return pedidos;
     }
 
+//    public void grabarSolicitada(TOEnvioProducto toProd) throws SQLException {
+//        try (Connection cn = this.ds.getConnection()) {
+//            Envios.grabarSolicitada(cn, toProd);
+//        }
+//    }
+//
+    private void calcularSolicitada(TOEnvioProducto toProd) throws SQLException {
+        int piezas = this.producto.getProducto().getPiezas();
+        double fincadoNeto = this.producto.getCantFincada() - toProd.getExistencia() + this.producto.getCantDirecta();
+        if (toProd.getBanCajas() != 0) {
+            if (toProd.getCantSolicitada() < fincadoNeto) { // Si lo solicitado no es suficiente
+                toProd.setCantSolicitada(fincadoNeto);      // cuando menos lo requerido
+            }
+            if (toProd.getCantSolicitada() < 0) { // Si hay existencia suficiente para lo requerido
+                toProd.setCantSolicitada(0);
+            }
+            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
+            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
+            if (toProd.getEstadistica() != 0) {
+                toProd.setDiasInventario((int) Math.floor(toProd.getCantSolicitada() / toProd.getEstadistica()));
+            } else {
+                toProd.setDiasInventario(0);
+            }
+        } else {
+            toProd.setCantSolicitada(toProd.getEstadistica() * toProd.getDiasInventario() + fincadoNeto);
+            if (toProd.getCantSolicitada() < 0) {   // Si hay existencia suficiente para lo requerido
+                toProd.setCantSolicitada(0);
+            }
+            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
+            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
+        }
+        this.grabarSolicitada(toProd);
+    }
+
+    public ArrayList<TOEnvioProducto> actualizaDiasInventarioGeneral(int idEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
+        String strSQL;
+        ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE D\n"
+                        + "SET diasInventario=" + toTraspaso.getDiasInventario() + "\n"
+                        + "FROM enviosSolicitudesDetalle D\n"
+                        + "INNER JOIN enviosSolicitudes S ON S.idSolicitud=D.idSolicitud\n"
+                        + "WHERE D.idSolicitud=" + toTraspaso.getReferencia() + " AND banCajas=0 AND D.diasInventario=S.diasInventario";
+                st.executeUpdate(strSQL);
+
+                for (TOEnvioProducto toProd : this.obtenDetalle(cn, toTraspaso)) {
+                    strSQL = "SELECT D.*\n"
+                            + "FROM movimientosDetalle D\n"
+                            + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                            + "INNER JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                            + "INNER JOIN pedidos P ON P.idPedido=PD.idPedido\n"
+                            + "INNER JOIN enviosPedidos EP ON EP.idPedido=P.idPedido\n"
+                            + "LEFT JOIN enviosPedidosDetalle EPD ON EPD.idPedido=M.referencia AND EPD.idEmpaque=D.idEmpaque\n"
+                            + "WHERE EP.idEnvio=" + idEnvio;
+                }
+                strSQL = "UPDATE enviosSolicitudes\n"
+                        + "SET diasInventario=" + toTraspaso.getDiasInventario() + "\n"
+                        + "WHERE idSolicitud=" + toTraspaso.getReferencia();
+                st.executeUpdate(strSQL);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return detalle;
+    }
+
     public void grabarSolicitada(TOEnvioProducto toProd) throws SQLException {
-        String strSQL = "UPDATE solicitudesDetalle SET cantSolicitada=" + toProd.getSugerido() + "\n"
-                + "WHERE idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
-        Connection cn = this.ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            st.executeUpdate(strSQL);
-        } finally {
-            cn.close();
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE enviosSolicitudesDetalle\n"
+                        + "SET diasInventario=" + toProd.getDiasInventario() + ", banCajas=" + toProd.getBanCajas() + "\n"
+                        + "     , solicitada=" + toProd.getSolicitada() + ", idUsuario=" + this.idUsuario + "\n"
+                        + "WHERE idEnvio=" + toProd.getIdEnvio() + " AND idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE solicitudesDetalle\n"
+                        + "SET cantSolicitada=" + toProd.getCantSolicitada() + "\n"
+                        + "WHERE idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
         }
     }
 
     public void grabarSugerido(TOEnvioProducto toProd) throws SQLException {
-        String strSQL = "UPDATE enviosSolicitudesDetalle SET sugerido=" + toProd.getSugerido() + "\n"
+        String strSQL = "UPDATE enviosSolicitudesDetalle\n"
+                + "SET sugerido=" + toProd.getSugerido() + "\n"
                 + "WHERE idEnvio=" + toProd.getIdEnvio() + " AND idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
@@ -225,7 +315,7 @@ public class DAOEnvios {
             cn.close();
         }
     }
-    
+
     public void liberarTraspaso(TOTraspaso toTraspaso) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -246,15 +336,19 @@ public class DAOEnvios {
         toProd.setIdEnvio(rs.getInt("idEnvio"));
         toProd.setIdSolicitud(rs.getInt("idSolicitud"));
         toProd.setEstadistica(rs.getDouble("estadistica"));
+        toProd.setExistencia(rs.getDouble("existencia"));
         toProd.setSugerido(rs.getDouble("sugerido"));
+        toProd.setDiasInventario(rs.getInt("diasInventario"));
+        toProd.setBanCajas(rs.getInt("banCajas"));
+        toProd.setSolicitada(rs.getDouble("solicitada"));
         Traspasos.construir(toProd, rs);
         return toProd;
     }
 
-    public ArrayList<TOEnvioProducto> obtenerDetalle(int idEnvio, TOTraspaso toTraspaso) throws SQLException {
-        String strSQL = "SELECT ESD.idEnvio, ESD.idSolicitud, ESD.estadistica, ESD.sugerido\n"
-                + "     , SD.cantSolicitada, SS.cantTraspasada, D.*\n"
-                + "FROM (SELECT SD.idEmpaque, SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada\n"
+    private ArrayList<TOEnvioProducto> obtenDetalle(Connection cn, TOTraspaso toTraspaso) throws SQLException {
+        String strSQL = "SELECT D.*, ESD.idEnvio, ESD.idSolicitud, ESD.estadistica, ESD.sugerido, ESD.diasInventario\n"
+                + "     , ESD.solicitada, SD.cantSolicitada, SS.cantTraspasada, ISNULL(A.existencia, 0) AS existencia\n"
+                + "FROM (SELECT SD.idEmpaque, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada\n"
                 + "	 FROM (SELECT S.idSolicitud, D.idEmpaque, SUM(D.cantFacturada) AS cantTraspasada\n"
                 + "		FROM movimientos M\n"
                 + "		INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
@@ -269,15 +363,27 @@ public class DAOEnvios {
                 + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=M.referencia AND SD.idEmpaque=D.idEmpaque\n"
                 + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=M.referencia AND ESD.idEnvio=ES.idEnvio\n"
                 + "             AND ESD.idEmpaque=D.idEmpaque\n"
+                + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
+                + "             FROM almacenesLotes A\n"
+                + "             WHERE idAlmacen=" + toTraspaso.getIdReferencia() + "\n"
+                + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
                 + "WHERE ES.idSolicitud=" + toTraspaso.getReferencia();
+        ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                detalle.add(this.construirProducto(rs));
+            }
+        }
+        return detalle;
+    }
+
+    public ArrayList<TOEnvioProducto> obtenerDetalle(int idEnvio, TOTraspaso toTraspaso) throws SQLException {
         ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    detalle.add(this.construirProducto(rs));
-                }
+            try {
+                detalle = this.obtenDetalle(cn, toTraspaso);
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toTraspaso, this.idUsuario);
                 cn.commit();
             } catch (SQLException ex) {
@@ -290,24 +396,7 @@ public class DAOEnvios {
         return detalle;
     }
 
-    public ArrayList<TOTraspaso> obtenerTraspasos(int idEnvio) throws SQLException {
-        ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = Traspasos.sqlTraspaso() + "\n"
-                + "INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud\n"
-                + "WHERE ES.idEnvio=" + idEnvio;
-        Connection cn = this.ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            while (rs.next()) {
-                traspasos.add(Traspasos.construir(rs));
-            }
-        } finally {
-            cn.close();
-        }
-        return traspasos;
-    }
-
-    public EnvioTraspaso obtenerTraspaso(int idSolicitud) throws SQLException {
+    public EnvioTraspasoPojo obtenerTraspasoAlmacen(int idSolicitud) throws SQLException {
 //        String strSQL = "SELECT ES.idEnvio, ES.idSolicitud, CONCAT(E.nombreComercial, ' - ', A.almacen, ' - ', C.cedis) AS almacen\n"
 //                + "FROM solicitudes S\n"
 //                + "INNER JOIN almacenes A ON A.idAlmacen=S.idAlmacenOrigen\n"
@@ -321,7 +410,7 @@ public class DAOEnvios {
                 + "INNER JOIN empresasGrupo E ON E.idEmpresa=A.idEmpresa\n"
                 + "INNER JOIN cedis C ON C.idCedis=A.idCedis\n"
                 + "WHERE S.idSolicitud=" + idSolicitud;
-        EnvioTraspaso envioTraspaso = new EnvioTraspaso();
+        EnvioTraspasoPojo envioTraspaso = new EnvioTraspasoPojo();
         Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -334,6 +423,43 @@ public class DAOEnvios {
             cn.close();
         }
         return envioTraspaso;
+    }
+
+    public ArrayList<TOEnvioTraspaso> obtenerTraspasos(int idEnvio) throws SQLException {
+        ArrayList<TOEnvioTraspaso> traspasos = new ArrayList<>();
+        String strSQL = Traspasos.sqlTraspaso() + "\n"
+                + "WHERE ES.idEnvio=" + idEnvio;
+        Connection cn = this.ds.getConnection();
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                traspasos.add(this.construirTraspaso(rs));
+            }
+        } finally {
+            cn.close();
+        }
+        return traspasos;
+    }
+
+    private TOEnvioTraspaso construirTraspaso(ResultSet rs) throws SQLException {
+        TOEnvioTraspaso toTraspaso = new TOEnvioTraspaso();
+        toTraspaso.setDiasInventario(rs.getInt("diasInventario"));
+        toTraspaso.setFechaProduccion(new java.util.Date(rs.getDate("fechaProduccion").getTime()));
+        Traspasos.construir(rs);
+        return toTraspaso;
+    }
+
+    private TOEnvioTraspaso obtenTraspaso(Connection cn, int idSolicitud) throws SQLException {
+        TOEnvioTraspaso toTraspaso = null;
+        String strSQL = Traspasos.sqlTraspaso() + "\n"
+                + "WHERE idSolicitud=" + idSolicitud;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                this.construirTraspaso(rs);
+            }
+        }
+        return toTraspaso;
     }
 
     private String sqlCrearEnvio(int idEnvio, int idSolicitud, int idAlmacen, String hoy, String anioAnterior) {
@@ -376,11 +502,11 @@ public class DAOEnvios {
         return strSQL;
     }
 
-    public ArrayList<TOTraspaso> crear(int idCedis, TOEnvio toEnvio) throws SQLException {
+    public ArrayList<TOEnvioTraspaso> crear(int idCedis, TOEnvio toEnvio) throws SQLException {
         String strSQL;
         int idCedisPlanta;
         toEnvio = new TOEnvio();
-        ArrayList<TOTraspaso> traspasos = new ArrayList<>();
+        ArrayList<TOEnvioTraspaso> traspasos = new ArrayList<>();
         Format formatoSQL = new SimpleDateFormat("yyyy-MM-dd");
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -399,8 +525,8 @@ public class DAOEnvios {
                     rs.next();
                     idCedisPlanta = rs.getInt("idCedisPlanta");
                 }
-                strSQL = "INSERT INTO envios (idCedis, folio, fecha, fechaEnvio, fechaFletera, fechaAnita, fechaQuimicos, diasInventario, prioridad, idUsuario, estatus)\n"
-                        + "VALUES (" + toEnvio.getIdCedis() + ", 0, GETDATE(), '', '', '', '', 0, 0, " + toEnvio.getIdUsuario() + ", 0)";
+                strSQL = "INSERT INTO envios (idCedis, folio, fecha, fechaEnvio, fechaFletera, diasInventario, prioridad, idUsuario, estatus)\n"
+                        + "VALUES (" + toEnvio.getIdCedis() + ", 0, GETDATE(), '', '', 0, 0, " + toEnvio.getIdUsuario() + ", 0)";
                 st.executeUpdate(strSQL);
 
                 ResultSet rs = st.executeQuery("SELECT @@IDENTITY AS idEnvio");
@@ -434,8 +560,8 @@ public class DAOEnvios {
                         Solicitudes.agrega(cn, toSolicitud);
 //                        solicitudes.add(toSolicitud);
 
-                        strSQL = "INSERT INTO enviosSolicitudes (idSolicitud, idEnvio)\n"
-                                + "VALUES (" + toSolicitud.getIdSolicitud() + ", " + toEnvio.getIdEnvio() + ")";
+                        strSQL = "INSERT INTO enviosSolicitudes (idSolicitud, idEnvio, fechaProduccion, diasInventario)\n"
+                                + "VALUES (" + toSolicitud.getIdSolicitud() + ", " + toEnvio.getIdEnvio() + ", '', 0)";
                         st1.executeUpdate(strSQL);
 
                         strSQL = this.sqlCrearEnvio(toEnvio.getIdEnvio(), toSolicitud.getIdSolicitud(), toSolicitud.getIdAlmacen(), hoy, anioAnterior);
@@ -466,7 +592,7 @@ public class DAOEnvios {
                                 + "WHERE idSolicitud=" + toSolicitud.getIdSolicitud();
                         st1.executeUpdate(strSQL);
 
-                        traspasos.add(Traspasos.obtenerTraspaso(cn, toMov.getIdMovto()));
+                        traspasos.add(this.obtenTraspaso(cn, toMov.getIdMovto()));
                     }
                 }
                 cn.commit();
@@ -508,9 +634,9 @@ public class DAOEnvios {
         toEnvio.setGenerado(new java.util.Date(rs.getTimestamp("fecha").getTime()));
         toEnvio.setFechaEnvio(new java.util.Date(rs.getTimestamp("fechaEnvio").getTime()));
         toEnvio.setFechaFletera(new java.util.Date(rs.getTimestamp("fechaFletera").getTime()));
-        toEnvio.setFechaAnita(new java.util.Date(rs.getTimestamp("fechaAnita").getTime()));
-        toEnvio.setFechaQuimicos(new java.util.Date(rs.getTimestamp("fechaQuimicos").getTime()));
-        toEnvio.setDiasInventario(rs.getInt("diasInventario"));
+//        toEnvio.setFechaAnita(new java.util.Date(rs.getTimestamp("fechaAnita").getTime()));
+//        toEnvio.setFechaQuimicos(new java.util.Date(rs.getTimestamp("fechaQuimicos").getTime()));
+//        toEnvio.setDiasInventario(rs.getInt("diasInventario"));
         toEnvio.setPrioridad(rs.getInt("prioridad"));
 //        toEnvio.setFechaEstatus(new java.util.Date(rs.getTimestamp("fechaEstatus").getTime()));
         toEnvio.setIdUsuario(rs.getInt("idUsuario"));

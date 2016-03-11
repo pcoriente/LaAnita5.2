@@ -14,9 +14,9 @@ public class TOEnvio {
 //    private Date fechaEstatus;
     private Date fechaEnvio;
     private Date fechaFletera;
-    private Date fechaAnita;
-    private Date fechaQuimicos;
-    private int diasInventario;
+//    private Date fechaAnita;
+//    private Date fechaQuimicos;
+//    private int diasInventario;
     private int prioridad;
     private int idUsuario;
 //    private int propietario;
@@ -105,30 +105,30 @@ public class TOEnvio {
         this.fechaFletera = fechaFletera;
     }
 
-    public Date getFechaAnita() {
-        return fechaAnita;
-    }
-
-    public void setFechaAnita(Date fechaAnita) {
-        this.fechaAnita = fechaAnita;
-    }
-
-    public Date getFechaQuimicos() {
-        return fechaQuimicos;
-    }
-
-    public void setFechaQuimicos(Date fechaQuimicos) {
-        this.fechaQuimicos = fechaQuimicos;
-    }
-
-    public int getDiasInventario() {
-        return diasInventario;
-    }
-
-    public void setDiasInventario(int diasInventario) {
-        this.diasInventario = diasInventario;
-    }
-
+//    public Date getFechaAnita() {
+//        return fechaAnita;
+//    }
+//
+//    public void setFechaAnita(Date fechaAnita) {
+//        this.fechaAnita = fechaAnita;
+//    }
+//
+//    public Date getFechaQuimicos() {
+//        return fechaQuimicos;
+//    }
+//
+//    public void setFechaQuimicos(Date fechaQuimicos) {
+//        this.fechaQuimicos = fechaQuimicos;
+//    }
+//
+//    public int getDiasInventario() {
+//        return diasInventario;
+//    }
+//
+//    public void setDiasInventario(int diasInventario) {
+//        this.diasInventario = diasInventario;
+//    }
+//
     public int getPrioridad() {
         return prioridad;
     }

@@ -81,7 +81,7 @@ public class MbCargaPedidos implements Serializable {
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
-    
+    private String file;
     private ArrayList<Chedraui> chedraui;
     private DAOPedidos daoPed;
     private DAOCargaPedidos dao;
@@ -315,6 +315,14 @@ public class MbCargaPedidos implements Serializable {
     
     public void setMbEmpresas(MbMiniEmpresas mbEmpresas) {
         this.mbEmpresas = mbEmpresas;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
     }
     
 }

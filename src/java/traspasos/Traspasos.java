@@ -93,8 +93,10 @@ public class Traspasos {
     public static String sqlTraspaso() {
         String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
                 + "     , S.estatus AS solicitudEstatus, M.*\n"
+                + "     , ISNULL(ES.diasInventario, 0) AS diasInventario, ISNULL(ES.fechaProduccion, '1900-01-01') AS fechaProduccion\n"
                 + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia";
+                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                + "LEFT JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud";
         return strSQL;
     }
 

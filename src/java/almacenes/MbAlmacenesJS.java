@@ -24,39 +24,39 @@ import javax.naming.NamingException;
 @Named(value = "mbAlmacenesJS")
 @SessionScoped
 public class MbAlmacenesJS implements Serializable {
+
     private TOAlmacenJS toAlmacen;
 //    private ArrayList<AlmacenJS> almacenes;
     private ArrayList<SelectItem> listaAlmacenes;
     private DAOAlmacenesJS dao;
-    
 //    @ManagedProperty(value = "#{mbMiniCedis}")
 //    private MbMiniCedis mbCedis;
     @ManagedProperty(value = "#{mbMiniEmpresas}")
     private MbMiniEmpresas mbEmpresas;
-    
+
     public MbAlmacenesJS() throws NamingException {
-        this.mbEmpresas=new MbMiniEmpresas();
+        this.mbEmpresas = new MbMiniEmpresas();
 //        this.mbCedis=new MbMiniCedis();
         this.inicializaLocales();
     }
-    
+
     public void inicializar() {
         this.mbEmpresas.inicializar();
 //        this.mbCedis.inicializar();
         this.inicializaLocales();
     }
-    
+
     private void inicializaLocales() {
-        this.toAlmacen=new TOAlmacenJS();
+        this.toAlmacen = new TOAlmacenJS();
 //        this.setAlmacenes(null);
         this.setListaAlmacenes(null);
     }
-    
+
     public void inicializaAlmacen(String almacen) {
         this.toAlmacen = new TOAlmacenJS();
         this.toAlmacen.setAlmacen(almacen);
     }
-    
+
     public void inicializaConAlmacen(TOAlmacenJS toAlmacen) {
 //        this.mbCedis.cargaMiniCedisTodos();
 //        this.mbCedis.setCedis(this.mbCedis.obtenerCedis(toAlmacen.getIdCedis()));
@@ -64,19 +64,23 @@ public class MbAlmacenesJS implements Serializable {
         this.cargaAlmacenesEmpresa(toAlmacen.getIdEmpresa(), 0);
         this.setToAlmacen(toAlmacen);
     }
-    
+
     public void inicializaAlmacen() {
 //        this.mbCedis.cargaMiniCedisZona();
 //        this.mbCedis.obtenerDefaultCedis();
         this.cargaAlmacenes();
-        this.toAlmacen=(TOAlmacenJS)this.listaAlmacenes.get(0).getValue();
+        this.toAlmacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
     }
-    
+
+    public void inicializaLista() {
+        this.toAlmacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
+    }
+
     public void cargaAlmacenesEmpresa(int idCedis, int idEmpresa, int noSelect) throws NamingException, SQLException {
 //        try {
 ////            if(idEmpresa!=0 && idCedis!=0) {
-                this.dao=new DAOAlmacenesJS();
-                this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idCedis, idEmpresa), noSelect);
+        this.dao = new DAOAlmacenesJS();
+        this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idCedis, idEmpresa), noSelect);
 ////            } else {
 ////                Mensajes.mensajeAlert("Se requiere una empresa y un cedis");
 ////            }
@@ -86,11 +90,11 @@ public class MbAlmacenesJS implements Serializable {
 //            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
 //        }
     }
-    
+
     public void cargaAlmacenesEmpresa(int idEmpresa, int noSelect) {
         try {
-            if(idEmpresa!=0) {
-                this.dao=new DAOAlmacenesJS();
+            if (idEmpresa != 0) {
+                this.dao = new DAOAlmacenesJS();
                 this.cargaListaAlmacenes(this.dao.obtenerAlmacenesEmpresa(idEmpresa), noSelect);
             } else {
                 Mensajes.mensajeAlert("Se requiere una empresa !!!");
@@ -101,10 +105,10 @@ public class MbAlmacenesJS implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public void cargaAlmacenes() {
         try {
-            this.dao=new DAOAlmacenesJS();
+            this.dao = new DAOAlmacenesJS();
             this.cargaListaAlmacenes(this.dao.obtenerAlmacenes(), 0);
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
@@ -112,23 +116,23 @@ public class MbAlmacenesJS implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     private void cargaListaAlmacenes(ArrayList<TOAlmacenJS> lstAlmacenes, int noSelect) {
         boolean disabled;
-        this.listaAlmacenes=new ArrayList<>();
-        this.toAlmacen=new TOAlmacenJS();
+        this.listaAlmacenes = new ArrayList<>();
+        this.toAlmacen = new TOAlmacenJS();
         this.toAlmacen.setIdAlmacen(0);
         this.toAlmacen.setAlmacen("Seleccione un almacen");
         this.listaAlmacenes.add(new SelectItem(this.toAlmacen, this.toAlmacen.toString()));
-        for(TOAlmacenJS a: lstAlmacenes) {
-            disabled=false;
-            if(a.getIdAlmacen()==noSelect) {
-                disabled=true;
+        for (TOAlmacenJS a : lstAlmacenes) {
+            disabled = false;
+            if (a.getIdAlmacen() == noSelect) {
+                disabled = true;
             }
-            listaAlmacenes.add(new SelectItem(a, a.toString(),"",disabled));
+            listaAlmacenes.add(new SelectItem(a, a.toString(), "", disabled));
         }
     }
-    
+
 //    private AlmacenJS convertir(TOAlmacenJS to) {
 //        AlmacenJS a=new AlmacenJS();
 //        a.setIdAlmacen(to.getIdAlmacen());
@@ -141,16 +145,15 @@ public class MbAlmacenesJS implements Serializable {
 //        a.getDireccion().setIdDireccion(to.getIdDireccion());
 //        return a;
 //    }
-    
     public TOAlmacenJS obtenerAlmacen(int idAlmacen) {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "obtenerAlmacen");
-        TOAlmacenJS a=null;
+        TOAlmacenJS a = null;
         try {
-            this.dao=new DAOAlmacenesJS();
+            this.dao = new DAOAlmacenesJS();
 //            a=convertir(this.dao.obtenerAlmacen(idAlmacen));
-            a=this.dao.obtenerAlmacen(idAlmacen);
-            ok=true;
+            a = this.dao.obtenerAlmacen(idAlmacen);
+            ok = true;
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
@@ -163,15 +166,15 @@ public class MbAlmacenesJS implements Serializable {
         }
         return a;
     }
-    
+
     public TOAlmacenJS obtenerTOAlmacen(int idAlmacen) {
-        boolean ok=false;
+        boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso:", "obtenerAlmacen");
-        TOAlmacenJS a=null;
+        TOAlmacenJS a = null;
         try {
-            this.dao=new DAOAlmacenesJS();
-            a=this.dao.obtenerAlmacen(idAlmacen);
-            ok=true;
+            this.dao = new DAOAlmacenesJS();
+            a = this.dao.obtenerAlmacen(idAlmacen);
+            ok = true;
         } catch (NamingException ex) {
             fMsg.setSeverity(FacesMessage.SEVERITY_ERROR);
             fMsg.setDetail(ex.getMessage());
@@ -186,7 +189,7 @@ public class MbAlmacenesJS implements Serializable {
     }
 
     public ArrayList<SelectItem> getListaAlmacenes() {
-        if(this.listaAlmacenes==null) {
+        if (this.listaAlmacenes == null) {
             this.cargaAlmacenes();
         }
         return listaAlmacenes;
@@ -203,7 +206,6 @@ public class MbAlmacenesJS implements Serializable {
 //    public void setMbCedis(MbMiniCedis mbCedis) {
 //        this.mbCedis = mbCedis;
 //    }
-
     public MbMiniEmpresas getMbEmpresas() {
         return mbEmpresas;
     }
@@ -219,7 +221,6 @@ public class MbAlmacenesJS implements Serializable {
 //    public void setAlmacenes(ArrayList<AlmacenJS> almacenes) {
 //        this.almacenes = almacenes;
 //    }
-
     public TOAlmacenJS getToAlmacen() {
         return toAlmacen;
     }
