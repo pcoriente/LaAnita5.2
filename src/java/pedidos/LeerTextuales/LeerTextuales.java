@@ -208,7 +208,7 @@ public class LeerTextuales {
         }
     }
 
-    public ArrayList<Textual> leerArchivoComercialMexicana(String lectura, Date fechaEmbarque, Date fechaConcelacion) throws IOException {
+    public ArrayList<Textual> leerArchivoComercialMexicana(String lectura, java.util.Date fechaEntrega, java.util.Date fechaCancelacion) throws IOException {
         String registro;
         String anio;
         String mes;
@@ -230,20 +230,21 @@ public class LeerTextuales {
                 dia = pedidoArray[1].substring(6);
                 fecha = anio + "-" + mes + "-" + dia;
                 comercial.setFechaElaboracion(Date.valueOf(fecha));
-                comercial.setFechaEmbarque(fechaEmbarque);
-                comercial.setFechaCancelacion(fechaConcelacion);
+                comercial.setFechaEmbarque(new java.sql.Date(fechaEntrega.getTime()));
+                comercial.setFechaCancelacion(new java.sql.Date(fechaCancelacion.getTime()));
+//                comercial.setFechaEmbarque(fechaEmbarque);
+//                comercial.setFechaCancelacion(fechaConcelacion);
                 comercial.setNumeroProveedor(pedidoArray[4]);
-                if (comercial.getUpc().trim().length() == 11) {
-                    comercial.setUpc("0" + pedidoArray[6]);
-                } else {
-                    comercial.setUpc(pedidoArray[6]);
-                }
+                comercial.setUpc(pedidoArray[6].trim());
+                if (comercial.getUpc().length() == 11) {
+                    comercial.setUpc("0" + comercial.getUpc());
+                } 
 //            if (anita == true) {
 //                comercial.setUpc("0" + pedidoArray[6]);
 //            } else {
 //                comercial.setUpc(pedidoArray[6]);
 //            }
-                comercial.setCodigoTienda(Integer.parseInt(pedidoArray[7].substring(17)));
+                comercial.setCodigoTienda(Integer.parseInt(pedidoArray[7].substring(16,19)));
                 comercial.setCantidad(Float.parseFloat(pedidoArray[9]));
 //            comercial.setCantidad((Float.parseFloat(pedidoArray[9]) + Float.parseFloat(pedidoArray[15])));
 //            comercial.setPendientePorSurtir(Float.parseFloat(pedidoArray[15]));

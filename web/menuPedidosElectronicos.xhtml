@@ -63,6 +63,7 @@
                                                 placeholder="Fecha de Entrega"
                                                 disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
                                                 >
+                                        <p:ajax event="dateSelect" process="@this"/>
                                     </p:calendar>
                                 </p:column>
                                 <p:column >
@@ -72,6 +73,7 @@
                                                 placeholder="Fecha de Cancelación"
                                                 disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
                                                 >
+                                        <p:ajax event="dateSelect" process="@this"/>
                                     </p:calendar>
                                 </p:column>
                             </p:row>
