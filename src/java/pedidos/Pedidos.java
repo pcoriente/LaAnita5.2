@@ -36,8 +36,8 @@ public class Pedidos {
                 fechaOrden = new java.sql.Date(toPed.getOrdenDeCompraFecha().getTime()).toString();
             }
             if(!"".equals(toPed.getOrdenDeCompra())) {
-                strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha, entregaFolio, entregaFecha, entregaFechaMaxima)\n"
-                        + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "', '"+toPed.getEntregaFolio()+"', '"+toPed.getEntregaFecha()+"', '"+toPed.getEntregaFechaMaxima()+"')";
+                strSQL = "INSERT INTO pedidosOC (electronico, ordenDeCompra, ordenDeCompraFecha)\n"
+                        + "VALUES ('" + toPed.getElectronico() + "', '" + toPed.getOrdenDeCompra() + "', '" + fechaOrden + "')";
                 st.executeUpdate(strSQL);
 
                 rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
@@ -47,8 +47,8 @@ public class Pedidos {
             }
 //            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, directo, idEnvio, peso, orden, estatus)\n"
 //                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', 0, 0, 0, 0, 0)";
-            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, especial, idUsuario, canceladoMotivo, estatus)\n"
-                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', "+toPed.getEstatus()+")";
+            strSQL = "INSERT INTO pedidos (idPedidoOC, folio, fecha, diasCredito, directo, especial, idUsuario, canceladoMotivo, estatus, entregaFolio, entregaFecha, entregaCancelacion)\n"
+                    + "VALUES (" + toPed.getIdPedidoOC() + ", " + toPed.getPedidoFolio() + ", GETDATE(), " + toPed.getDiasCredito() + ", " + toPed.getDirecto() + ", " + toPed.getEspecial() + ", " + toPed.getIdUsuario() + ", '', "+toPed.getEstatus()+", '"+toPed.getEntregaFolio()+"', '"+new java.sql.Date(toPed.getEntregaFecha().getTime())+"', '"+new java.sql.Date(toPed.getEntregaFechaMaxima().getTime())+"')";
             st.executeUpdate(strSQL);
 
             rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
@@ -147,6 +147,9 @@ public class Pedidos {
         toPed.setElectronico(ped.getElectronico());
         toPed.setOrdenDeCompra(ped.getOrdenDeCompra());
         toPed.setOrdenDeCompraFecha(ped.getOrdenDeCompraFecha());
+        toPed.setEntregaFolio(ped.getEntregaFolio());
+        toPed.setEntregaFecha(ped.getEntregaFecha());
+        toPed.setEntregaFechaMaxima(ped.getEntregaFechaMaxima());
         movimientos.Movimientos.convertir(ped, toPed);
         toPed.setIdComprobante(ped.getComprobante().getIdComprobante());
         toPed.setIdImpuestoZona(ped.getTienda().getIdImpuestoZona());
@@ -171,6 +174,9 @@ public class Pedidos {
         ped.setElectronico(toPed.getElectronico());
         ped.setOrdenDeCompra(toPed.getOrdenDeCompra());
         ped.setOrdenDeCompraFecha(toPed.getOrdenDeCompraFecha());
+        ped.setEntregaFolio(toPed.getEntregaFolio());
+        ped.setEntregaFecha(toPed.getEntregaFecha());
+        ped.setEntregaFechaMaxima(toPed.getEntregaFechaMaxima());
         movimientos.Movimientos.convertir(toPed, ped);
         ped.setIdPedido(toPed.getReferencia());
     }
@@ -207,6 +213,9 @@ public class Pedidos {
         to.setElectronico(rs.getString("electronico"));
         to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
+        to.setEntregaFolio(rs.getString("entregaFolio"));
+        to.setEntregaFecha(new java.util.Date(rs.getDate("entregaFecha").getTime()));
+        to.setEntregaFechaMaxima(new java.util.Date(rs.getDate("entregaCancelacion").getTime()));
         to.setDirecto(rs.getInt("directo"));
         to.setIdEnvio(rs.getInt("idEnvio"));
 //        to.setPeso(rs.getDouble("peso"));
@@ -218,6 +227,7 @@ public class Pedidos {
     public static String sqlPedido(int idAlmacen) {
         return "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.directo\n"
                 + "     , P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo, P.estatus AS pedidoEstatus\n"
+                + "     , P.entregaFolio, P.entregaFecha, P.entregaCancelacion\n"
                 + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra\n"
                 + "     , ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
                 + "     , ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(EP.orden, 0) AS orden\n"

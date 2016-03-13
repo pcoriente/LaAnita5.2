@@ -267,8 +267,9 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeAlert("La cantidad de días de inventario no debe ser menor que cero !!!");
         } else {
             toProd.setBanCajas(0);
+            TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
             try {
-                this.calcularSolicitada(toProd);
+                this.dao.grabarDiasInvetario(toTraspaso, toProd);
 
                 this.restaPesoTraspaso();
                 this.producto.setBanCajas(toProd.getBanCajas() != 0);
@@ -284,33 +285,33 @@ public class MbEnvios implements Serializable {
         }
     }
     
-    private void calcularSolicitada(TOEnvioProducto toProd) throws SQLException {
-        int piezas = this.producto.getProducto().getPiezas();
-        double fincadoNeto = this.producto.getCantFincada() - toProd.getExistencia() + this.producto.getCantDirecta();
-        if (toProd.getBanCajas() != 0) {
-            if (toProd.getCantSolicitada() < fincadoNeto) { // Si lo solicitado no es suficiente
-                toProd.setCantSolicitada(fincadoNeto);      // cuando menos lo requerido
-            }
-            if(toProd.getCantSolicitada() < 0) { // Si hay existencia suficiente para lo requerido
-                toProd.setCantSolicitada(0);
-            }
-            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
-            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
-            if (toProd.getEstadistica() != 0) {
-                toProd.setDiasInventario((int) Math.floor(toProd.getCantSolicitada() / toProd.getEstadistica()));
-            } else {
-                toProd.setDiasInventario(0);
-            }
-        } else {
-            toProd.setCantSolicitada(toProd.getEstadistica() * toProd.getDiasInventario() + fincadoNeto);
-            if (toProd.getCantSolicitada() < 0) {   // Si hay existencia suficiente para lo requerido
-                toProd.setCantSolicitada(0);
-            }
-            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
-            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
-        }
-        this.dao.grabarSolicitada(toProd);
-    }
+//    private void calcularSolicitada(TOEnvioProducto toProd) throws SQLException {
+//        int piezas = this.producto.getProducto().getPiezas();
+//        double fincadoNeto = this.producto.getCantFincada() - toProd.getExistencia() + this.producto.getCantDirecta();
+//        if (toProd.getBanCajas() != 0) {
+//            if (toProd.getCantSolicitada() < fincadoNeto) { // Si lo solicitado no es suficiente
+//                toProd.setCantSolicitada(fincadoNeto);      // cuando menos lo requerido
+//            }
+//            if(toProd.getCantSolicitada() < 0) { // Si hay existencia suficiente para lo requerido
+//                toProd.setCantSolicitada(0);
+//            }
+//            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
+//            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
+//            if (toProd.getEstadistica() != 0) {
+//                toProd.setDiasInventario((int) Math.floor(toProd.getCantSolicitada() / toProd.getEstadistica()));
+//            } else {
+//                toProd.setDiasInventario(0);
+//            }
+//        } else {
+//            toProd.setCantSolicitada(toProd.getEstadistica() * toProd.getDiasInventario() + fincadoNeto);
+//            if (toProd.getCantSolicitada() < 0) {   // Si hay existencia suficiente para lo requerido
+//                toProd.setCantSolicitada(0);
+//            }
+//            toProd.setSolicitada(Math.ceil(toProd.getCantSolicitada() / piezas));
+//            toProd.setCantSolicitada(toProd.getSolicitada() * piezas);
+//        }
+//        this.dao.grabarSolicitada(toProd);
+//    }
 
     public void gestionarSolicitada() {
         TOEnvioProducto toProd = this.convertir(this.producto);
@@ -318,10 +319,12 @@ public class MbEnvios implements Serializable {
         if (toProd.getCantSolicitada() < 0) {
             Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
         } else {
+            TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
             toProd.setBanCajas(1);
             toProd.setCantSolicitada(toProd.getSolicitada()*this.producto.getProducto().getPiezas());
             try {
-                this.calcularSolicitada(toProd);
+//                this.calcularSolicitada(toProd);
+                this.dao.grabarSolicitada(toTraspaso, toProd);
                 
                 this.restaPesoTraspaso();
                 this.producto.setBanCajas(toProd.getBanCajas() != 0);
@@ -390,7 +393,9 @@ public class MbEnvios implements Serializable {
                 toProd.setBanCajas(0);
                 toProd.setDiasInventario(this.traspaso.getDiasInventario());
                 try {
-                    this.calcularSolicitada(toProd);
+                    for(TOEnvioProducto to :this.dao.actualizaDiasInventarioGeneral(this.envio.getIdEnvio(), this.convertir(this.traspaso))) {
+                        this.sumaPesoTraspaso();
+                    }
                 } catch (SQLException ex) {
                     Logger.getLogger(MbEnvios.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -431,6 +436,14 @@ public class MbEnvios implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
+    }
+    
+    private TOEnvioTraspaso convertir(EnvioTraspaso traspaso) {
+        TOEnvioTraspaso toTraspaso = new TOEnvioTraspaso();
+        toTraspaso.setDiasInventario(traspaso.getDiasInventario());
+        toTraspaso.setFechaProduccion(traspaso.getFechaProduccion());
+        Traspasos.convertir(traspaso, toTraspaso);
+        return toTraspaso;
     }
 
     private void obtenDetalle() throws SQLException {

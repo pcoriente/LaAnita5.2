@@ -505,9 +505,9 @@
                                 <h:outputLabel for="cboMoneda" value="MONEDA :"
                                                style="font-weight: bold; color: black; width: 71px;" />
                             </p:column>
-                            <p:column >
+                            <p:column colspan="2" >
                                 <p:selectOneMenu id="cboMoneda" value="#{mbPedidos.mbComprobantes.mbMonedas.seleccionMoneda}"
-                                                 style="width: 190px;">
+                                                 style="width: 200px;">
                                     <f:converter converterId="converters.Moneda" />
                                     <f:selectItems value="#{mbPedidos.mbComprobantes.mbMonedas.listaMonedas}" />
                                     <p:ajax event="change" process="@this" />
@@ -533,7 +533,7 @@
                                     <p:ajax event="dateSelect" process="@this" />
                                 </p:calendar>
                             </p:column>
-                            <p:column >
+                            <p:column colspan="2" >
                                 <p:selectBooleanCheckbox id="chkDirecto" itemLabel="Directo"
                                                          value="#{mbPedidos.pedido.directo}" style="width: 75px;" >
                                 </p:selectBooleanCheckbox>
@@ -543,7 +543,42 @@
                             </p:column>
                         </p:row>
                         <p:row >
-                            <p:column colspan="7" >
+                            <p:column >
+                                <h:outputLabel value="ENTREGA"
+                                               style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="entregaFolio" value="FOLIO :"
+                                               style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column style="width: 160px;" >
+                                <p:inputText id="entregaFolio" value="#{mbPedidos.pedido.entregaFolio}" maxlength="20" size="20" />
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="entregaFecha" value="FECHA :"
+                                               style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column colspan="2" >
+                                <p:calendar id="entregaFecha" value="#{mbPedidos.pedido.entregaFecha}"
+                                            readonlyInput="true"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" />
+                                </p:calendar>
+                            </p:column>
+                            <p:column >
+                                <h:outputLabel for="entregaCancelacion" value="CANC :"
+                                               style="font-weight: bold; color: black;" />
+                            </p:column>
+                            <p:column >
+                                <p:calendar id="entregaCancelacion" value="#{mbPedidos.pedido.entregaFechaMaxima}"
+                                            readonlyInput="true"
+                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                    <p:ajax event="dateSelect" process="@this" />
+                                </p:calendar>
+                            </p:column>
+                        </p:row>
+                        <p:row >
+                            <p:column colspan="8" >
                                 <p:dataTable id="listaTiendas" widgetVar="listaTiendasDlg" value="#{mbPedidos.mbTiendas.tiendas}" 
                                              var="tienda" rowKey="#{tienda.idTienda}" selectionMode="single" selection="#{mbPedidos.mbTiendas.tienda}"
                                              scrollable="true" scrollHeight="200"

@@ -24,14 +24,17 @@ public class Pedido extends MovimientoOficina {
     private int pedidoIdUsuario;
     private String canceladoMotivo;
     private boolean directo;
-    private int idEnvio;
     private double peso;
+    private int idEnvio;
     private int orden;
     private int envioEstatus;
     private int pedidoEstatus;
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private String entregaFolio;
+    private Date entregaFecha;
+    private Date entregaFechaMaxima;
 
     public Pedido() {
         super(new MovimientoTipo(28, "VENTA"));
@@ -43,6 +46,9 @@ public class Pedido extends MovimientoOficina {
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Comprobante comprobante) {
@@ -55,6 +61,9 @@ public class Pedido extends MovimientoOficina {
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Moneda moneda) {
@@ -67,6 +76,9 @@ public class Pedido extends MovimientoOficina {
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
 
     @Override
@@ -249,5 +261,29 @@ public class Pedido extends MovimientoOficina {
 
     public void setEnvioEstatus(int envioEstatus) {
         this.envioEstatus = envioEstatus;
+    }
+
+    public String getEntregaFolio() {
+        return entregaFolio;
+    }
+
+    public void setEntregaFolio(String entregaFolio) {
+        this.entregaFolio = entregaFolio;
+    }
+
+    public Date getEntregaFecha() {
+        return entregaFecha;
+    }
+
+    public void setEntregaFecha(Date entregaFecha) {
+        this.entregaFecha = entregaFecha;
+    }
+
+    public Date getEntregaFechaMaxima() {
+        return entregaFechaMaxima;
+    }
+
+    public void setEntregaFechaMaxima(Date entregaFechaMaxima) {
+        this.entregaFechaMaxima = entregaFechaMaxima;
     }
 }

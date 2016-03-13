@@ -54,18 +54,22 @@ public class Traspasos {
         movimientos.Movimientos.convertir(toTraspaso, traspaso);
         traspaso.setIdSolicitud(toTraspaso.getReferencia());
     }
+    
+    public static void convertir(Traspaso traspaso, TOTraspaso toTraspaso) {
+        toTraspaso.setSolicitudFolio(traspaso.getSolicitudFolio());
+        toTraspaso.setSolicitudFecha(traspaso.getSolicitudFecha());
+        toTraspaso.setSolicitudIdUsuario(traspaso.getSolicitudIdUsuario());
+        toTraspaso.setSolicitudProietario(traspaso.getSolicitudProietario());
+        toTraspaso.setSolicitudEstatus(traspaso.getSolicitudEstatus());
+        movimientos.Movimientos.convertir(traspaso, toTraspaso);
+        toTraspaso.setIdReferencia(traspaso.getAlmacenDestino().getIdAlmacen());
+        toTraspaso.setReferencia(traspaso.getIdSolicitud());
+    }
 
     public static TOTraspaso convertir(Traspaso traspaso) {
-        TOTraspaso to = new TOTraspaso();
-        to.setSolicitudFolio(traspaso.getSolicitudFolio());
-        to.setSolicitudFecha(traspaso.getSolicitudFecha());
-        to.setSolicitudIdUsuario(traspaso.getSolicitudIdUsuario());
-        to.setSolicitudProietario(traspaso.getSolicitudProietario());
-        to.setSolicitudEstatus(traspaso.getSolicitudEstatus());
-        movimientos.Movimientos.convertir(traspaso, to);
-        to.setIdReferencia(traspaso.getAlmacenDestino().getIdAlmacen());
-        to.setReferencia(traspaso.getIdSolicitud());
-        return to;
+        TOTraspaso toTraspaso = new TOTraspaso();
+        convertir(traspaso, toTraspaso);
+        return toTraspaso;
     }
 
     public static void construir(TOTraspasoProducto toProd, ResultSet rs) throws SQLException {
