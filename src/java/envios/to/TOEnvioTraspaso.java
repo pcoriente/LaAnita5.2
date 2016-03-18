@@ -8,12 +8,21 @@ import traspasos.to.TOTraspaso;
  * @author jesc
  */
 public class TOEnvioTraspaso extends TOTraspaso {
+    private int idEnvio;
     private int diasInventario;
     private Date fechaProduccion;
     
     public TOEnvioTraspaso() {
         super();
         this.fechaProduccion = new Date();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
     }
 
     public int getDiasInventario() {

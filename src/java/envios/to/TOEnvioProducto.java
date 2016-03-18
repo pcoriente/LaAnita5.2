@@ -14,7 +14,9 @@ public class TOEnvioProducto extends TOTraspasoProducto {
     private double sugerido;
     private int diasInventario;
     private int banCajas;
-    private double solicitada;
+//    private double solicitada;
+    private double fincada;
+    private double directa;
 
     public int getIdEnvio() {
         return idEnvio;
@@ -72,11 +74,27 @@ public class TOEnvioProducto extends TOTraspasoProducto {
         this.banCajas = banCajas;
     }
 
-    public double getSolicitada() {
-        return solicitada;
+//        public double getSolicitada() {
+//            return solicitada;
+//        }
+//    
+//        public void setSolicitada(double solicitada) {
+//            this.solicitada = solicitada;
+//        }
+//
+    public double getFincada() {
+        return fincada;
     }
 
-    public void setSolicitada(double solicitada) {
-        this.solicitada = solicitada;
+    public void setFincada(double fincada) {
+        this.fincada = fincada;
+    }
+
+    public double getDirecta() {
+        return directa;
+    }
+
+    public void setDirecta(double directa) {
+        this.directa = directa;
     }
 }

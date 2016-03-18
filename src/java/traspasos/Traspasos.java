@@ -46,6 +46,24 @@ public class Traspasos {
         return prod;
     }
 
+    public static String sqlTraspasoDetalle(TOTraspaso toTraspaso, int idProducto) {
+        String condicion = "";
+        if (idProducto != 0) {
+            condicion = " AND D.idEmpaque=" + idProducto;
+        }
+        return "SELECT SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada, M.referencia AS idSolicitud, D.*\n"
+                + "FROM movimientosDetalle D\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=M.referencia AND SD.idEmpaque=D.idEmpaque\n"
+                + "LEFT JOIN (SELECT S.idSolicitud, D.idEmpaque, SUM(D.cantFacturada) AS cantTraspasada\n"
+                + "             FROM movimientos M\n"
+                + "             INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                + "             INNER JOIN movimientosDetalle D ON D.idMovto=M.idMovto\n"
+                + "             WHERE S.idSolicitud="+toTraspaso.getReferencia()+" AND M.idTipo=35 AND M.estatus=7\n"
+                + "             GROUP BY S.idSolicitud, D.idEmpaque) SS ON SS.idSolicitud=SD.idSolicitud AND SS.idEmpaque=SD.idEmpaque\n"
+                + "WHERE D.idMovto="+toTraspaso.getIdMovto() + condicion;
+    }
+
     public static void convertir(TOTraspaso toTraspaso, Traspaso traspaso) {
         traspaso.setSolicitudFolio(toTraspaso.getSolicitudFolio());
         traspaso.setSolicitudFecha(toTraspaso.getSolicitudFecha());
@@ -54,7 +72,7 @@ public class Traspasos {
         movimientos.Movimientos.convertir(toTraspaso, traspaso);
         traspaso.setIdSolicitud(toTraspaso.getReferencia());
     }
-    
+
     public static void convertir(Traspaso traspaso, TOTraspaso toTraspaso) {
         toTraspaso.setSolicitudFolio(traspaso.getSolicitudFolio());
         toTraspaso.setSolicitudFecha(traspaso.getSolicitudFecha());
@@ -84,19 +102,23 @@ public class Traspasos {
         return toProd;
     }
 
-    public static TOTraspaso construir(ResultSet rs) throws SQLException {
-        TOTraspaso toTraspaso = new TOTraspaso();
+    public static void construir(ResultSet rs, TOTraspaso toTraspaso) throws SQLException {
         toTraspaso.setSolicitudFolio(rs.getInt("solicitudFolio"));
         toTraspaso.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
         toTraspaso.setSolicitudIdUsuario(rs.getInt("solicitudIdUsuario"));
         toTraspaso.setSolicitudEstatus(rs.getInt("solicitudEstatus"));
         movimientos.Movimientos.construirMovimientoOficina(rs, toTraspaso);
+    }
+
+    public static TOTraspaso construir(ResultSet rs) throws SQLException {
+        TOTraspaso toTraspaso = new TOTraspaso();
+        construir(rs, toTraspaso);
         return toTraspaso;
     }
 
     public static String sqlTraspaso() {
         String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*\n"
+                + "     , S.estatus AS solicitudEstatus, M.*, ISNULL(ES.idEnvio, 0) AS idEnvio\n"
                 + "     , ISNULL(ES.diasInventario, 0) AS diasInventario, ISNULL(ES.fechaProduccion, '1900-01-01') AS fechaProduccion\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"

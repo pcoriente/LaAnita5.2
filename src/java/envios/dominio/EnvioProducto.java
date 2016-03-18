@@ -1,5 +1,6 @@
 package envios.dominio;
 
+import producto2.dominio.Producto;
 import traspasos.dominio.TraspasoProducto;
 
 /**
@@ -16,13 +17,17 @@ public class EnvioProducto extends TraspasoProducto {
     private int diasInventario;
     private int diasInventario2;
     private boolean banCajas;
-    private double cantFincada;
-    private double cantDirecta;
+    private double fincada;
+    private double directa;
     private double solicitada;
     private double solicitada2;
     
     public EnvioProducto() {
         super();
+    }
+    
+    public EnvioProducto(Producto producto) {
+        super(producto);
     }
 
     public int getIdEnvio() {
@@ -97,20 +102,20 @@ public class EnvioProducto extends TraspasoProducto {
         this.banCajas = banCajas;
     }
 
-    public double getCantFincada() {
-        return cantFincada;
+    public double getFincada() {
+        return fincada;
     }
 
-    public void setCantFincada(double cantFincada) {
-        this.cantFincada = cantFincada;
+    public void setFincada(double fincada) {
+        this.fincada = fincada;
     }
 
-    public double getCantDirecta() {
-        return cantDirecta;
+    public double getDirecta() {
+        return directa;
     }
 
-    public void setCantDirecta(double cantDirecta) {
-        this.cantDirecta = cantDirecta;
+    public void setDirecta(double directa) {
+        this.directa = directa;
     }
 
     public double getSolicitada() {

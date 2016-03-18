@@ -10,8 +10,10 @@ import traspasos.dominio.Traspaso;
  * @author jesc
  */
 public class EnvioTraspaso extends Traspaso {
+    private int idEnvio;
     private double peso;
     private int diasInventario;
+    private int diasInventario2;
     private Date fechaProduccion;
     
     public EnvioTraspaso() {
@@ -22,6 +24,14 @@ public class EnvioTraspaso extends Traspaso {
     public EnvioTraspaso(MovimientoTipo tipo, TOAlmacenJS almacen, TOAlmacenJS almacenDestino) {
         super(tipo, almacen, almacenDestino);
         this.fechaProduccion = new Date();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
     }
 
     public double getPeso() {
@@ -38,6 +48,14 @@ public class EnvioTraspaso extends Traspaso {
 
     public void setDiasInventario(int diasInventario) {
         this.diasInventario = diasInventario;
+    }
+
+    public int getDiasInventario2() {
+        return diasInventario2;
+    }
+
+    public void setDiasInventario2(int diasInventario2) {
+        this.diasInventario2 = diasInventario2;
     }
 
     public Date getFechaProduccion() {

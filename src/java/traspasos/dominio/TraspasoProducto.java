@@ -1,6 +1,7 @@
 package traspasos.dominio;
 
 import movimientos.dominio.ProductoOficina;
+import producto2.dominio.Producto;
 
 /**
  *
@@ -13,6 +14,11 @@ public class TraspasoProducto extends ProductoOficina {
     
     public TraspasoProducto() {
         super();
+//        this.lotes = new ArrayList<>();
+    }
+    
+    public TraspasoProducto(Producto producto) {
+        super(producto);
 //        this.lotes = new ArrayList<>();
     }
 

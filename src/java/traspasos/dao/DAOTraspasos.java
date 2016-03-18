@@ -242,18 +242,19 @@ public class DAOTraspasos {
 
     public ArrayList<TOTraspasoProducto> obtenerDetalleTraspaso(TOTraspaso toTraspaso) throws SQLException {
         ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
-        String strSQL = "SELECT SS.cantSolicitada, SS.cantTraspasada, D.*\n"
-                + "FROM (SELECT SD.idEmpaque, SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada\n"
-                + "     FROM (SELECT S.idSolicitud, D.idEmpaque, SUM(D.cantFacturada) AS cantTraspasada\n"
-                + "         FROM movimientos M\n"
-                + "         INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
-                + "         INNER JOIN movimientosDetalle D ON D.idMovto=M.idMovto\n"
-                + "         WHERE S.idSolicitud=" + toTraspaso.getReferencia() + " AND M.idTipo=35 AND M.estatus=7\n"
-                + "         GROUP BY S.idSolicitud, D.idEmpaque) SS\n"
-                + "	RIGHT JOIN solicitudesDetalle SD ON SD.idSolicitud=SS.idSolicitud AND SD.idEmpaque=SS.idEmpaque\n"
-                + "	WHERE SD.idSolicitud=" + toTraspaso.getReferencia() + ") SS\n"
-                + "INNER JOIN movimientosDetalle D ON D.idEmpaque=SS.idEmpaque\n"
-                + "WHERE D.idMovto=" + toTraspaso.getIdMovto();
+//        String strSQL = "SELECT SS.cantSolicitada, SS.cantTraspasada, D.*\n"
+//                + "FROM (SELECT SD.idEmpaque, SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada\n"
+//                + "     FROM (SELECT S.idSolicitud, D.idEmpaque, SUM(D.cantFacturada) AS cantTraspasada\n"
+//                + "         FROM movimientos M\n"
+//                + "         INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+//                + "         INNER JOIN movimientosDetalle D ON D.idMovto=M.idMovto\n"
+//                + "         WHERE S.idSolicitud=" + toTraspaso.getReferencia() + " AND M.idTipo=35 AND M.estatus=7\n"
+//                + "         GROUP BY S.idSolicitud, D.idEmpaque) SS\n"
+//                + "	RIGHT JOIN solicitudesDetalle SD ON SD.idSolicitud=SS.idSolicitud AND SD.idEmpaque=SS.idEmpaque\n"
+//                + "	WHERE SD.idSolicitud=" + toTraspaso.getReferencia() + ") SS\n"
+//                + "INNER JOIN movimientosDetalle D ON D.idEmpaque=SS.idEmpaque\n"
+//                + "WHERE D.idMovto=" + toTraspaso.getIdMovto();
+        String strSQL = Traspasos.sqlTraspasoDetalle(toTraspaso, 0);
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
