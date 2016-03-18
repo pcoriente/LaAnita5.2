@@ -35,10 +35,19 @@ import org.primefaces.model.UploadedFile;
 import org.primefaces.event.FileUploadEvent;
 import pedidos.LeerTextuales.LeerTextuales;
 import formatos.dominio.ClienteFormato;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
+//import org.apache.poi.ss.usermodel.Workbook;
 import pedidos.dao.DAOCargaPedidos;
 import pedidos.dao.DAOPedidos;
 import pedidos.dominio.Pedido;
@@ -47,6 +56,11 @@ import tiendas.MbMiniTiendas;
 import tiendas.to.TOTienda;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
+import pedidos.dominio.EntregasWallMart;
 
 /**
  *
@@ -86,11 +100,13 @@ public class MbCargaPedidos implements Serializable {
     private ArrayList<Accion> acciones;
 
     private ArrayList<Textual> textual;
+//    private ArrayList<EntregasWallMart> gln;
     private Date fechaEntrega;
     private Date fechaCancelacion;
     private DAOPedidos daoPed;
     private DAOCargaPedidos dao;
     private String file = "";
+//    private HashSet gln = new HashSet();
 
     /**
      * Creates a new instance of MbPedido
@@ -126,6 +142,7 @@ public class MbCargaPedidos implements Serializable {
                 case 190: //Grupo Nueva WallMart
                     if (idFto == 233) {
                         textual = leerTextuales.leerArchivoSams(entrada);
+                        this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                         System.out.print("SAMS CLUB " + idFto);
                     }
                     if (idFto == 230) {
@@ -169,6 +186,50 @@ public class MbCargaPedidos implements Serializable {
                     textual = leerTextuales.leerArchivoComercialMexicana(entrada, fechaEntrega, fechaCancelacion);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                     break;
+                case 189: //Soriana
+//                    textual = leerTextuales.leerArchivoSoriana(entrada);
+                    System.out.println(entrada);
+//                     File inputWorkbook = new File(inputFile);
+//
+////                    File input = new File(entrada);
+//                    FileInputStream fstream = new FileInputStream(entrada);
+//                    FileReader fr = new FileReader(entrada);
+//                    DataInputStream dis = new DataInputStream(fstream);
+//                    BufferedReader in = new BufferedReader(new InputStreamReader(dis));
+//                    Workbook workbook;
+//                     {
+//                        try {
+//                            workbook = Workbook.getWorkbook(dis);
+//                        } catch (BiffException ex) {
+//                            Logger.getLogger(MbCargaPedidos.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+
+                    Workbook workbook = null;
+                    try {
+                        workbook = Workbook.getWorkbook(new File("c:\\textuales\\PedTda_46072127.xls"));
+                    } catch (IOException | BiffException ex) {
+                        Mensajes.mensajeError(ex.getMessage());
+                        //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    //Se obtiene la segunda hoja
+                    Sheet sheet = workbook.getSheet(0);
+                    int totFilas;
+                    totFilas = sheet.getRows();
+                    System.out.println(totFilas);
+                    for (int fila = 1; fila < totFilas; fila++) {
+                        Cell cellTda = sheet.getCell(0, fila);
+                        Cell cellGln = sheet.getCell(1, fila);
+                        System.out.println(" primera celda "+cellTda+" segunda celda "+cellGln);
+                    }
+
+//                    try {
+//                        Workbook workbook = Workbook.getWorkbook(new File(entrada));
+//                    } catch (BiffException ex) {
+//                        Mensajes.mensajeError(ex.getMessage());
+//                    }
+                    break;
+                //leerTextuales.leerArchivoSoriana(entrada);
                 default:
                     System.out.println("No hay ningun grupo de clientes");
                     break;
@@ -192,6 +253,44 @@ public class MbCargaPedidos implements Serializable {
     }
 
     public void cargarInformacion() {
+        ArrayList<EntregasWallMart> gln = new ArrayList<>();
+        try {
+            Workbook workbook = null;
+            try {
+                workbook = Workbook.getWorkbook(new File("d:\\textuales\\MX_ESP_stores.xls"));
+            } catch (IOException | BiffException ex) {
+                Mensajes.mensajeError(ex.getMessage());
+                //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            //Se obtiene la segunda hoja
+            Sheet sheet = workbook.getSheet(2);
+            int totFilas, totFilasSams;
+            totFilas = sheet.getRows();
+            System.out.println(totFilas);
+            for (int fila = 4; fila < totFilas; fila++) {
+                EntregasWallMart ew = new EntregasWallMart();
+                Cell cellTda = sheet.getCell(1, fila);
+                Cell cellGln = sheet.getCell(2, fila);
+                ew.setIdTienda(cellTda.getContents());
+                ew.setIdGln(cellGln.getContents());
+                gln.add(ew);
+            }
+            Sheet sheetSams = workbook.getSheet(3);
+            totFilasSams = sheetSams.getRows();
+            for (int fila = 4; fila < totFilasSams; fila++) {
+                EntregasWallMart ew = new EntregasWallMart();
+                Cell cellTda = sheetSams.getCell(0, fila);
+                Cell cellGln = sheetSams.getCell(1, fila);
+                ew.setIdTienda(cellTda.getContents());
+                ew.setIdGln(cellGln.getContents());
+                gln.add(ew);
+            }
+            this.dao.escribeEntregasWallMart(gln);
+            //gln.removeAll(gln);
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+
 //        mbClientesGrupos.getMbFormatos().setLstFormatos(null);
 //        mbGruposBancos.setLstGruposBancos(null);
 //        mbClientesGrupos.getMbFormatos().cargarListaFormatos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());

@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.ExternalContext;
@@ -17,7 +16,6 @@ import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import leyenda.dao.DAOBancosLeyendas;
 import pedidos.Pedidos;
-import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
 import pedidos.dominio.Textual;
 import pedidos.to.TOPedido;
@@ -63,7 +61,7 @@ public class DAOCargaPedidos {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs;
                 for (Textual che : textual) {
-                    if (!che.getOrdenCompra().equals(oc)){
+                    if (!che.getOrdenCompra().equals(oc) || (che.getOrdenCompra().equals(oc) && che.getCodigoTienda() != ct)) {
 //                    if (!che.getOrdenCompra().equals(oc) || (che.getOrdenCompra().equals(oc) && che.getCodigoTienda() != ct)){
                         toPed = new TOPedido(28);
                         toPed.setElectronico(electronico);
@@ -81,6 +79,7 @@ public class DAOCargaPedidos {
                             throw new SQLException("No se encontró el almacén !!");
                         }
                         oc = che.getOrdenCompra();
+                        ct = che.getCodigoTienda();
                         toPed.setIdEmpresa(idEmp);
                         toPed.setIdAlmacen(rs.getInt("idAlmacen"));
                         toPed.setTipoDeCambio(1);
@@ -109,7 +108,7 @@ public class DAOCargaPedidos {
                     toProd.setIdPedido(toPed.getReferencia());
                     toProd.setIdProducto(rs.getInt("idEmpaque"));
                     toProd.setPiezas(rs.getInt("piezas"));
-                    toProd.setCantOrdenada(che.getCantidad()*rs.getInt("piezas"));
+                    toProd.setCantOrdenada(che.getCantidad() * rs.getInt("piezas"));
                     toProd.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
                     toProd.setIdMovto(toPed.getIdMovto());
                     Pedidos.agregaProductoPedido(cn, toPed, toProd);
@@ -150,24 +149,45 @@ public class DAOCargaPedidos {
 //        return idTienda;
 //    }
 
-    public HashMap leeEntregasWallMart() throws SQLException {
-        Connection cn = ds.getConnection();
-        HashMap glns = new HashMap();
-        Statement st = cn.createStatement();
-        String sql = "SELECT  * FROM entregasWallMart";
-        try {
-            ResultSet rs = st.executeQuery(sql);
-            while (rs.next()) {
-                EntregasWallMart entregasWallMart = new EntregasWallMart();
-                entregasWallMart.setIdGln(rs.getString("idGln"));
-                entregasWallMart.setIdTienda(rs.getString("idTienda"));
-                String cIdGln = entregasWallMart.getIdGln().substring(8, 13);
-                String cIdTienda = entregasWallMart.getIdTienda();
-                glns.put(cIdGln, cIdTienda);
+    public void escribeEntregasWallMart(ArrayList<EntregasWallMart> gln) throws SQLException {
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                String BorraSql = "truncate table entregasWallMart";
+                st.executeUpdate(BorraSql);
+                for (EntregasWallMart ew : gln) {
+                    String sentenciaSQL = "INSERT entregasWallMart (idGln,idTienda) values("
+                            + "'" + ew.getIdGln() + "','" + ew.getIdTienda() + "')";
+                    st.execute(sentenciaSQL);
+                }
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
             }
-        } finally {
-            cn.close();
         }
-        return glns;
     }
+
+//    public HashMap leeEntregasWallMart() throws SQLException {
+//        Connection cn = ds.getConnection();
+//        HashMap glns = new HashMap();
+//        Statement st = cn.createStatement();
+//        String sql = "SELECT  * FROM entregasWallMart";
+//        try {
+//            ResultSet rs = st.executeQuery(sql);
+//            while (rs.next()) {
+//                EntregasWallMart entregasWallMart = new EntregasWallMart();
+//                entregasWallMart.setIdGln(rs.getString("idGln"));
+//                entregasWallMart.setIdTienda(rs.getString("idTienda"));
+//                String cIdGln = entregasWallMart.getIdGln().substring(8, 13);
+//                String cIdTienda = entregasWallMart.getIdTienda();
+//                glns.put(cIdGln, cIdTienda);
+//            }
+//        } finally {
+//            cn.close();
+//        }
+//        return glns;
+//    }
 }
