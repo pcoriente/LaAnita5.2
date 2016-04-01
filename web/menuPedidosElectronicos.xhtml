@@ -83,15 +83,21 @@
                                                   value="#{mbCargaPedidos.file}" mode="advanced"
                                                   disabled="#{mbCargaPedidos.mbEmpresas.empresa.idEmpresa == 0 or mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte == 0}"
                                                   fileUploadListener="#{mbCargaPedidos.upload}"
-                                                  update="main:msgs">
+                                                  update="main:msgs"/>
 
-                                    </p:fileUpload>
+                                   
                                 </p:column>
                             </p:row>
 
                         </p:panelGrid>
                         <p:toolbar id="barraHerramientas" style="width: 845px; margin: 0 auto;">
                             <f:facet name="right">
+                                <p:commandButton id="cargaExcel"
+                                                 icon="ui-icon-pencil"
+                                                 process="@this"
+                                                 title="Cargar Tiendas-Gln Grupo CIFRA"
+                                                 actionListener="#{mbCargaPedidos.cargarInformacion()}"
+                                                 />
                                 <p:commandButton icon="ui-icon-home" 
                                                  title="Salir" immediate="true" 
                                                  ajax="false" 
