@@ -623,16 +623,16 @@ public class DAOEnvios {
                             + "             FROM almacenesLotes\n"
                             + "             WHERE idAlmacen=" + toTraspaso.getIdReferencia() + " AND idEmpaque=" + toProd.getIdProducto() + "\n"
                             + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
-                            + "LEFT JOIN (SELECT PD.idEmpaque\n"
-                            + "			, SUM(CASE WHEN P.directo=1 THEN EPD.cantEnviada ELSE 0 END) AS directo\n"
-                            + "			, SUM(CASE WHEN P.directo=0 THEN EPD.cantEnviada ELSE 0 END) AS fincado\n"
+                            + "LEFT JOIN (SELECT VD.idEmpaque\n"
+                            + "			, SUM(CASE WHEN V.directo=1 THEN EPD.cantEnviada ELSE 0 END) AS directo\n"
+                            + "			, SUM(CASE WHEN V.directo=0 THEN EPD.cantEnviada ELSE 0 END) AS fincado\n"
                             + "             FROM movimientos M\n"
-                            + "             INNER JOIN pedidosDetalle PD ON PD.idPedido=M.referencia\n"
-                            + "             INNER JOIN pedidos P ON P.idPedido=PD.idPedido\n"
-                            + "             INNER JOIN enviosPedidos EP ON EP.idPedido=P.idPedido\n"
-                            + "             INNER JOIN enviosPedidosDetalle EPD ON EPD.idPedido=P.idPedido AND EPD.idEmpaque=PD.idEmpaque\n"
+                            + "             INNER JOIN ventasDetalle VD ON VD.idVenta=M.referencia\n"
+                            + "             INNER JOIN ventas V ON V.idPedido=VD.idVenta\n"
+                            + "             INNER JOIN enviosPedidos EP ON EP.idVenta=V.idVenta\n"
+                            + "             INNER JOIN enviosPedidosDetalle EPD ON EPD.idVenta=V.idVenta AND EPD.idEmpaque=VD.idEmpaque\n"
                             + "             WHERE EP.idEnvio=" + toTraspaso.getIdEnvio() + " AND M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND EPD.idEmpaque=" + toProd.getIdProducto() + "\n"
-                            + "             GROUP BY PD.idEmpaque) P ON P.idEmpaque=ESD.idEmpaque\n"
+                            + "             GROUP BY VD.idEmpaque) P ON P.idEmpaque=ESD.idEmpaque\n"
                             + "WHERE ESD.idSolicitud=" + toProd.getIdSolicitud() + " AND ESD.idEmpaque=" + toProd.getIdProducto();
                     st.executeUpdate(strSQL);
                 }
@@ -697,7 +697,7 @@ public class DAOEnvios {
     private String sqlDetalle(TOEnvioTraspaso toTraspaso, int idProducto) {
         String condicion = "";
         if (idProducto != 0) {
-            condicion = " AND PD.idEmpaque=" + idProducto;
+            condicion = " AND VD.idEmpaque=" + idProducto;
         }
         return "SELECT ET.*, E.piezas, ISNULL(A.existencia, 0) AS existencia\n"
                 + "FROM (SELECT ISNULL(T.idEnvio, 0) AS idEnvio, ISNULL(P.fincado, 0) AS fincada, ISNULL(P.directo, 0) AS directa\n"
