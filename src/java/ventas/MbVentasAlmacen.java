@@ -36,6 +36,9 @@ import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
+import pedidos.Pedidos;
+import pedidos.dominio.Pedido;
+import pedidos.to.TOPedido;
 import producto2.MbProductosBuscar;
 import producto2.dominio.Producto;
 import rechazos.to.TORechazoProductoAlmacen;
@@ -45,10 +48,10 @@ import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 import utilerias.Numero_a_Letra;
 import ventas.dao.DAOVentas;
-import ventas.dominio.Venta;
+//import ventas.dominio.Venta;
 import ventas.dominio.VentaProducto;
 import ventas.dominio.VentaProductoAlmacen;
-import ventas.to.TOVenta;
+//import ventas.to.TOVenta;
 import ventas.to.TOVentaProducto;
 import ventas.to.TOVentaProductoAlmacen;
 
@@ -80,8 +83,8 @@ public class MbVentasAlmacen implements Serializable {
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
     
-    private Venta venta;
-    private ArrayList<Venta> ventas;
+    private Pedido venta;
+    private ArrayList<Pedido> ventas;
     private VentaProductoAlmacen loteOrigen, loteDestino;
     private ArrayList<VentaProductoAlmacen> detalle, empaqueLotes;
     private ArrayList<ImpuestosProducto> impuestosTotales;
@@ -178,7 +181,7 @@ public class MbVentasAlmacen implements Serializable {
 //        DateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy");
 //        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
         try {
-            TOVenta toVta = this.convertir(this.venta);
+            TOPedido toPed = this.convertir(this.venta);
             
             dir = this.mbDireccion.obtener(this.venta.getAlmacen().getIdDireccion());
             String cedisDir = dir.toString2();
@@ -203,7 +206,7 @@ public class MbVentasAlmacen implements Serializable {
             this.impuestosTotales = new ArrayList<>();
             ArrayList<TraspasoProductoReporte> detalleReporte = new ArrayList<>();
             this.dao = new DAOVentas();
-            for (TOVentaProducto to : this.dao.obtenerDetalleOficina(toVta, "")) {
+            for (TOVentaProducto to : this.dao.obtenerDetalleOficina(toPed, "")) {
                 prod = this.convertir(to);
                 peso+=prod.getProducto().getPeso()*(prod.getCantFacturada()+prod.getCantSinCargo());
                 volumen+=prod.getProducto().getVolumen()*(prod.getCantFacturada()+prod.getCantSinCargo());
@@ -272,13 +275,13 @@ public class MbVentasAlmacen implements Serializable {
         try {
             this.dao = new DAOVentas();
             if (this.venta != null && this.isLocked()) {
-                TOVenta toVta = this.convertir(this.venta);
-                this.dao.liberarVentaAlmacen(toVta);
+                TOPedido toPed = this.convertir(this.venta);
+                this.dao.liberarVentaAlmacen(toPed);
                 this.venta.setPropietario(0);
                 this.setLocked(false);
             }
             this.ventas = new ArrayList<>();
-            for (TOVenta to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
+            for (TOPedido to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
                 this.ventas.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -293,11 +296,11 @@ public class MbVentasAlmacen implements Serializable {
         if (this.venta == null) {
             ok = true;    // Para que no haya problema al cerrar despues de eliminar un pedido
         } else if (this.isLocked()) {
-            TOVenta toVta = this.convertir(this.venta);
+            TOPedido toPed = this.convertir(this.venta);
             try {
                 this.dao = new DAOVentas();
-                this.dao.liberarVentaAlmacen(toVta);
-                this.venta.setPropietario(toVta.getPropietario());
+                this.dao.liberarVentaAlmacen(toPed);
+                this.venta.setPropietario(toPed.getPropietario());
                 this.setLocked(false);
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
@@ -314,13 +317,13 @@ public class MbVentasAlmacen implements Serializable {
     public void cerrarVentaAlmacen() {
         boolean ok = false;
         try {
-            TOVenta toMov = this.convertir(this.venta);
+            TOPedido toPed = this.convertir(this.venta);
 
             this.dao = new DAOVentas();
-            this.dao.cerrarVentaAlmacen(toMov);
-            this.venta.setEstatus(toMov.getEstatus());
-            this.venta.setIdUsuario(toMov.getIdUsuario());
-            this.venta.setPropietario(toMov.getPropietario());
+            this.dao.cerrarVentaAlmacen(toPed);
+            this.venta.setEstatus(toPed.getEstatus());
+            this.venta.setIdUsuario(toPed.getIdUsuario());
+            this.venta.setPropietario(toPed.getPropietario());
             this.setLocked(this.venta.getIdUsuario()==this.venta.getPropietario());
             Mensajes.mensajeSucces("El pedido se cerró correctamente !!!");
             ok = true;
@@ -406,23 +409,25 @@ public class MbVentasAlmacen implements Serializable {
         return prod;
     }
     
-    private TOVenta convertir(Venta venta) {
-        return Ventas.convertir(venta);
+    private TOPedido convertir(Pedido pedido) {
+        TOPedido toPed = new TOPedido();
+        Pedidos.convertirPedido(pedido, toPed);
+        return toPed;
     }
 
     public void obtenerDetalleAlmacen(SelectEvent event) {
         boolean ok = false;
-        this.venta = (Venta) event.getObject();
-        TOVenta toVta = this.convertir(this.venta);
+        this.venta = (Pedido) event.getObject();
+        TOPedido toPed = this.convertir(this.venta);
         try {
             this.detalle = new ArrayList<>();
             this.dao = new DAOVentas();
-            for (TOVentaProductoAlmacen to : this.dao.obtenerDetalleAlmacen(toVta)) {
+            for (TOVentaProductoAlmacen to : this.dao.obtenerDetalleAlmacen(toPed)) {
                 this.detalle.add(this.convertirAlmacenProducto(to));
             }
-            this.venta.setIdUsuario(toVta.getIdUsuario());
-            this.venta.setPropietario(toVta.getPropietario());
-            this.venta.setEstatus(toVta.getEstatus());
+            this.venta.setIdUsuario(toPed.getIdUsuario());
+            this.venta.setPropietario(toPed.getPropietario());
+            this.venta.setEstatus(toPed.getEstatus());
             this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
             this.loteOrigen = null;
             ok = true;
@@ -435,9 +440,9 @@ public class MbVentasAlmacen implements Serializable {
         context.addCallbackParam("okPedido", ok);
     }
 
-    private Venta convertir(TOVenta toVta) {
-        Venta vta = new Venta(this.mbAlmacenes.obtenerAlmacen(toVta.getIdAlmacen()), this.mbTiendas.obtenerTienda(toVta.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toVta.getIdComprobante()));
-        Ventas.convertir(toVta, vta);
+    private Pedido convertir(TOPedido toVta) {
+        Pedido vta = new Pedido(this.mbAlmacenes.obtenerAlmacen(toVta.getIdAlmacen()), this.mbTiendas.obtenerTienda(toVta.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toVta.getIdComprobante()));
+        Pedidos.convertirPedido(toVta, vta);
         this.mbClientes.setCliente(this.mbClientes.obtenerCliente(vta.getTienda().getIdCliente()));
         return vta;
     }
@@ -446,7 +451,7 @@ public class MbVentasAlmacen implements Serializable {
         try {   // Segun fecha y status
             this.ventas = new ArrayList<>();
             this.dao = new DAOVentas();
-            for (TOVenta to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
+            for (TOPedido to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
                 this.ventas.add(this.convertir(to));
             }
         } catch (SQLException ex) {
@@ -475,7 +480,7 @@ public class MbVentasAlmacen implements Serializable {
         this.pendientes = true;
         this.fechaInicial = new Date();
         this.ventas = new ArrayList<>();
-        this.venta = new Venta();
+        this.venta = new Pedido();
     }
 
     private void inicializa() {
@@ -572,19 +577,19 @@ public class MbVentasAlmacen implements Serializable {
         this.acciones = acciones;
     }
 
-    public Venta getVenta() {
+    public Pedido getVenta() {
         return venta;
     }
 
-    public void setVenta(Venta venta) {
+    public void setVenta(Pedido venta) {
         this.venta = venta;
     }
 
-    public ArrayList<Venta> getVentas() {
+    public ArrayList<Pedido> getVentas() {
         return ventas;
     }
 
-    public void setVentas(ArrayList<Venta> ventas) {
+    public void setVentas(ArrayList<Pedido> ventas) {
         this.ventas = ventas;
     }
 

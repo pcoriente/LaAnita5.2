@@ -8,8 +8,12 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TOPedido extends TOMovimientoOficina {
-
-    private int idPedidoOC;
+    private int idEnvio;
+    private double peso;
+    private int orden;
+    private int envioEstatus;
+    
+    private int idPedido;
     private int pedidoFolio;
     private Date pedidoFecha;
     private int diasCredito;
@@ -24,10 +28,7 @@ public class TOPedido extends TOMovimientoOficina {
     private Date entregaFecha;
     private Date entregaFechaMaxima;
     private int directo;
-    private double peso;
-    private int idEnvio;
-    private int orden;
-    private int envioEstatus;
+    private int idSolicitud;
 
     public TOPedido() {
         super();
@@ -55,12 +56,12 @@ public class TOPedido extends TOMovimientoOficina {
         this.entregaFechaMaxima = new Date();
     }
 
-    public int getIdPedidoOC() {
-        return idPedidoOC;
+    public int getIdPedido() {
+        return idPedido;
     }
 
-    public void setIdPedidoOC(int idPedidoOC) {
-        this.idPedidoOC = idPedidoOC;
+    public void setIdPedido(int idPedido) {
+        this.idPedido = idPedido;
     }
 
     public int getPedidoFolio() {
@@ -181,6 +182,14 @@ public class TOPedido extends TOMovimientoOficina {
 
     public void setDirecto(int directo) {
         this.directo = directo;
+    }
+
+    public int getIdSolicitud() {
+        return idSolicitud;
+    }
+
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
     }
 
     public int getIdEnvio() {

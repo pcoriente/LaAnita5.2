@@ -17,6 +17,8 @@ import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import movimientos.to.TOMovimientoOficina;
+import pedidos.Pedidos;
+import pedidos.to.TOPedido;
 import usuarios.dominio.UsuarioSesion;
 
 /**
@@ -334,5 +336,44 @@ public class DAODevoluciones {
             }
         }
         return detalle;
+    }
+    
+    public void liberarVentaOficina(TOPedido toPed) throws SQLException {
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                Pedidos.liberarPedido(cn, toPed, this.idUsuario);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+    }
+    
+    public TOPedido obtenerVentaOficina(int idComprobante) throws SQLException {
+        String strSQL = "SELECT " + Pedidos.sqlPedidos() + "\n"
+                + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
+                + "WHERE C.idComprobante=" + idComprobante;
+        TOPedido toPed = new TOPedido();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    toPed = Pedidos.construirPedido(rs);
+                }
+                movimientos.Movimientos.bloquearMovimientoOficina(cn, toPed, this.idUsuario);
+                cn.commit();
+            } catch (SQLException e) {
+                cn.rollback();
+                throw (e);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return toPed;
     }
 }

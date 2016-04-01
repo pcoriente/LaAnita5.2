@@ -14,6 +14,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import solicitudes.Solicitudes;
 import solicitudes.to.TOSolicitud;
 import solicitudes.to.TOSolicitudProducto;
 import usuarios.dominio.UsuarioSesion;
@@ -78,24 +79,11 @@ public class DAOSolicitudes {
     public void grabar(TOSolicitud to) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                to.setEstatus(1);
+            try {
                 to.setIdUsuario(this.idUsuario);
                 to.setPropietario(this.idUsuario);
-                to.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, to.getIdAlmacen(), 53));
 
-                String strSQL = "UPDATE solicitudes\n"
-                        + "SET folio=" + to.getFolio() + ", fecha=GETDATE(), idUsuario=" + to.getIdUsuario() + ", propietario=" + to.getPropietario() + ", estatus=" + to.getEstatus() + "\n"
-                        + "WHERE idSolicitud=" + to.getIdSolicitud();
-                st.executeUpdate(strSQL);
-
-                strSQL = "SELECT fecha FROM solicitudes WHERE idSolicitud=" + to.getIdSolicitud();
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    to.setFecha(new java.util.Date(rs.getDate("fecha").getTime()));
-                }
-                strSQL = "DELETE FROM solicitudesDetalle WHERE idSolicitud=" + to.getIdSolicitud() + " AND cantSolicitada=0";
-                st.executeUpdate(strSQL);
+                Solicitudes.grabar(cn, to);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -168,20 +156,15 @@ public class DAOSolicitudes {
     }
 
     public void agregarProducto(TOSolicitudProducto to) throws SQLException {
-        Connection cn = this.ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            String strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
-                    + "VALUES (" + to.getIdSolicitud() + ", " + to.getIdProducto() + ", " + to.getCantSolicitada() + ")";
-            st.executeUpdate(strSQL);
-        } finally {
-            cn.close();
+        try (Connection cn = this.ds.getConnection()) {
+            Solicitudes.agregarProducto(cn, to);
         }
     }
 
     private TOSolicitud construir(ResultSet rs) throws SQLException {
-        TOSolicitud toSol = new TOSolicitud();
-        solicitudes.Solicitudes.construir(toSol, rs);
-        return toSol;
+        TOSolicitud toSolicitud = new TOSolicitud();
+        solicitudes.Solicitudes.construir(toSolicitud, rs);
+        return toSolicitud;
     }
 
     public ArrayList<TOSolicitud> obtenerSolicitudes(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {

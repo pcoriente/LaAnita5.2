@@ -18,6 +18,7 @@ public class TOSolicitud {
     private int propietario;
     private int estatus;
     private int envio;
+    private int directo;
     
     public TOSolicitud() {
         this.fecha = new Date();
@@ -109,5 +110,13 @@ public class TOSolicitud {
 
     public void setEnvio(int envio) {
         this.envio = envio;
+    }
+
+    public int getDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(int directo) {
+        this.directo = directo;
     }
 }

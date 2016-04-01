@@ -21,6 +21,12 @@ public class TOEnvio {
     private int idUsuario;
 //    private int propietario;
     private int estatus;
+    
+    public TOEnvio() {
+        this.generado = new Date(-2208965004000L);
+        this.fechaEnvio = new Date(-2208965004000L);
+        this.fechaFletera = new Date(-2208965004000L);
+    }
 
     @Override
     public String toString() {

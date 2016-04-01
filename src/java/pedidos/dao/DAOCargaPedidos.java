@@ -21,7 +21,7 @@ import pedidos.dominio.Chedraui;
 import pedidos.dominio.EntregasWallMart;
 import pedidos.dominio.Textual;
 import pedidos.to.TOPedido;
-import pedidos.to.TOProductoPedido;
+import pedidos.to.TOPedidoProducto;
 import tiendas.Tiendas;
 import tiendas.to.TOTienda;
 import usuarios.dominio.UsuarioSesion;
@@ -56,7 +56,7 @@ public class DAOCargaPedidos {
         String strSQL, oc = "";
         int ct = 0;
         TOPedido toPed = new TOPedido(28);
-        TOProductoPedido toProd = new TOProductoPedido();
+        TOPedidoProducto toProd = new TOPedidoProducto();
         ArrayList<TOPedido> pedidos = new ArrayList<>();
         try (Connection cn = ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -106,7 +106,7 @@ public class DAOCargaPedidos {
                         throw new SQLException("¡¡ No se encontró el UPC pedido !!\n"
                                 + "en tabla empaquesUpcs (UPC='" + che.getUpc() + "')");
                     }
-                    toProd.setIdPedido(toPed.getReferencia());
+                    toProd.setIdVenta(toPed.getReferencia());
                     toProd.setIdProducto(rs.getInt("idEmpaque"));
                     toProd.setPiezas(rs.getInt("piezas"));
                     toProd.setCantOrdenada(che.getCantidad()*rs.getInt("piezas"));

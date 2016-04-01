@@ -290,7 +290,7 @@ public class DAOTraspasos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = Traspasos.sqlTraspaso() + "\n"
+        String strSQL = "SELECT " + Traspasos.sqlTraspaso() + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + " AND S.envio=0\n";
         if (estatus == 7) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";

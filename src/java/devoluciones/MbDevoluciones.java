@@ -40,6 +40,8 @@ import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
+import pedidos.dao.DAOPedidos;
+import pedidos.to.TOPedido;
 import producto2.MbProductosBuscar;
 import producto2.dominio.Producto;
 import rechazos.to.TORechazoProductoAlmacen;
@@ -48,8 +50,8 @@ import traspasos.dominio.TraspasoProductoReporte;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
 import utilerias.Numero_a_Letra;
-import ventas.dao.DAOVentas;
-import ventas.to.TOVenta;
+//import ventas.dao.DAOVentas;
+//import ventas.to.TOVenta;
 
 /**
  *
@@ -304,9 +306,9 @@ public class MbDevoluciones implements Serializable {
         TOMovimientoOficina toDev = this.convertir(this.devolucion);
         this.detalle = new ArrayList<>();
         try {
-            DAOVentas daoVtas = new DAOVentas();
-            TOVenta toVta = daoVtas.obtenerVentaOficina(this.mbComprobantes.getSeleccion().getIdComprobante());
-            this.idMovtoAlmacen = toVta.getIdMovtoAlmacen();
+            this.dao = new DAODevoluciones();
+            TOPedido toPed = this.dao.obtenerVentaOficina(this.mbComprobantes.getSeleccion().getIdComprobante());
+            this.idMovtoAlmacen = toPed.getIdMovtoAlmacen();
 
             this.dao = new DAODevoluciones();
             for (TODevolucionProducto toProd : this.dao.obtenerDetalle(toDev)) {
@@ -428,8 +430,8 @@ public class MbDevoluciones implements Serializable {
         } else {
             this.detalle = new ArrayList<>();
             try {
-                DAOVentas daoVtas = new DAOVentas();
-                TOVenta toVta = daoVtas.obtenerVentaOficina(this.mbComprobantes.getSeleccion().getIdComprobante());
+                this.dao = new DAODevoluciones();
+                TOPedido toVta = this.dao.obtenerVentaOficina(this.mbComprobantes.getSeleccion().getIdComprobante());
                 this.idMovtoAlmacen = toVta.getIdMovtoAlmacen();
                 if (toVta.getIdUsuario() == toVta.getPropietario()) {
                     this.setLocked(true);
@@ -440,7 +442,7 @@ public class MbDevoluciones implements Serializable {
                     this.devolucion.setIdMovtoVenta(toVta.getIdMovto());
                     TOMovimientoOficina toDev = this.convertir(this.devolucion);
                     try {
-                        this.dao = new DAODevoluciones();
+//                        this.dao = new DAODevoluciones();
                         for (TODevolucionProducto toProd : this.dao.crear(toDev, this.idMovtoAlmacen, this.mbComprobantes.getComprobante().getMoneda().getIdMoneda())) {
                             this.detalle.add(this.convertir(toProd));
                         }
@@ -452,12 +454,10 @@ public class MbDevoluciones implements Serializable {
                         this.devolucion.setEstatus(toDev.getEstatus());
                         this.listaDevoluciones.add(this.devolucion);
                         this.setModoEdicion(true);
-                    } catch (NamingException ex) {
-                        Mensajes.mensajeError(ex.getMessage());
                     } catch (SQLException ex) {
                         Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
                     }
-                    daoVtas.liberarVentaOficina(toVta);
+                    this.dao.liberarVentaOficina(toVta);
                 } else {
                     Mensajes.mensajeAlert("La venta esta siendo utilizada por otro usuario !!!");
                 }

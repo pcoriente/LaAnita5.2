@@ -110,7 +110,7 @@ public class MbCargaPedidos implements Serializable {
 
     private Pedido convertir(TOPedido toPed) {
         Pedido ped = new Pedido(this.mbAlmacenes.obtenerAlmacen(toPed.getIdAlmacen()), this.mbTiendas.obtenerTienda(toPed.getIdReferencia()), this.mbComprobantes.obtenerComprobante(toPed.getIdComprobante()));
-        Pedidos.convertirpedido(toPed, ped);
+        Pedidos.convertirPedido(toPed, ped);
         return ped;
     }
 

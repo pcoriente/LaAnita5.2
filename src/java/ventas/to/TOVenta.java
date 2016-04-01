@@ -24,6 +24,9 @@ public class TOVenta extends TOMovimientoOficina {
     private String electronico;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private String entregaFolio;
+    private Date entregaFecha;
+    private Date entregaFechaMaxima;
     
     public TOVenta() {
         super();
@@ -33,6 +36,9 @@ public class TOVenta extends TOMovimientoOficina {
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
     
     public TOVenta(int idTipo) {
@@ -43,6 +49,9 @@ public class TOVenta extends TOMovimientoOficina {
         this.electronico="";
         this.ordenDeCompra="";
         this.ordenDeCompraFecha=new Date();
+        this.entregaFolio = "";
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
         
     }
 
@@ -180,5 +189,29 @@ public class TOVenta extends TOMovimientoOficina {
 
     public void setEnvioEstatus(int envioEstatus) {
         this.envioEstatus = envioEstatus;
+    }
+
+    public String getEntregaFolio() {
+        return entregaFolio;
+    }
+
+    public void setEntregaFolio(String entregaFolio) {
+        this.entregaFolio = entregaFolio;
+    }
+
+    public Date getEntregaFecha() {
+        return entregaFecha;
+    }
+
+    public void setEntregaFecha(Date entregaFecha) {
+        this.entregaFecha = entregaFecha;
+    }
+
+    public Date getEntregaFechaMaxima() {
+        return entregaFechaMaxima;
+    }
+
+    public void setEntregaFechaMaxima(Date entregaFechaMaxima) {
+        this.entregaFechaMaxima = entregaFechaMaxima;
     }
 }

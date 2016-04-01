@@ -11,6 +11,7 @@ public class TOEnvioTraspaso extends TOTraspaso {
     private int idEnvio;
     private int diasInventario;
     private Date fechaProduccion;
+    private int directo;
     
     public TOEnvioTraspaso() {
         super();
@@ -39,5 +40,13 @@ public class TOEnvioTraspaso extends TOTraspaso {
 
     public void setFechaProduccion(Date fechaProduccion) {
         this.fechaProduccion = fechaProduccion;
+    }
+
+    public int getDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(int directo) {
+        this.directo = directo;
     }
 }

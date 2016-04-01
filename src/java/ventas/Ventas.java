@@ -41,15 +41,16 @@ public class Ventas {
         toVta.setEspecial(vta.isEspecial()?1:0);
         toVta.setPedidoIdUsuario(vta.getPedidoIdUsuario());
         toVta.setCanceladoMotivo(vta.getCanceladoMotivo());
+        toVta.setPedidoEstatus(vta.getPedidoEstatus());
+        toVta.setElectronico(vta.getElectronico());
+        toVta.setOrdenDeCompra(vta.getOrdenDeCompra());
+        toVta.setOrdenDeCompraFecha(vta.getOrdenDeCompraFecha());
+        
         toVta.setDirecto(vta.isDirecto()?1:0);
         toVta.setPeso(vta.getPeso());
         toVta.setIdEnvio(vta.getIdEnvio());
         toVta.setOrden(vta.getOrden());
-        toVta.setPedidoEstatus(vta.getPedidoEstatus());
         toVta.setEnvioEstatus(vta.getEnvioEstatus());
-        toVta.setElectronico(vta.getElectronico());
-        toVta.setOrdenDeCompra(vta.getOrdenDeCompra());
-        toVta.setOrdenDeCompraFecha(vta.getOrdenDeCompraFecha());
         movimientos.Movimientos.convertir(vta, toVta);
         toVta.setIdComprobante(vta.getComprobante() == null ? 0 : vta.getComprobante().getIdComprobante());
         toVta.setIdImpuestoZona(vta.getTienda().getIdImpuestoZona());
@@ -58,7 +59,7 @@ public class Ventas {
         return toVta;
     }
     
-    public static void construyeVenta(TOVenta toVta, ResultSet rs) throws SQLException {
+    public static void construyeVenta1(TOVenta toVta, ResultSet rs) throws SQLException {
         toVta.setIdPedidoOC(rs.getInt("idPedidoOC"));
         toVta.setPedidoFolio(rs.getInt("pedidoFolio"));
         toVta.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
@@ -66,15 +67,18 @@ public class Ventas {
         toVta.setEspecial(rs.getInt("especial"));
         toVta.setPedidoIdUsuario(rs.getInt("pedidoIdUsuario"));
         toVta.setCanceladoMotivo(rs.getString("canceladoMotivo"));
-        toVta.setDirecto(rs.getInt("directo"));
-        toVta.setIdEnvio(rs.getInt("idEnvio"));
-        toVta.setPeso(rs.getDouble("peso"));
-        toVta.setOrden(rs.getInt("orden"));
-        toVta.setPedidoEstatus(rs.getInt("pedidoEstatus"));
-        toVta.setEnvioEstatus(rs.getInt("envioEstatus"));
         toVta.setElectronico(rs.getString("electronico"));
         toVta.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         toVta.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
+        toVta.setEntregaFolio(rs.getString("entregaFolio"));
+        toVta.setEntregaFecha(new java.util.Date(rs.getDate("entregaFecha").getTime()));
+        toVta.setEntregaFechaMaxima(new java.util.Date(rs.getDate("entregaCancelacion").getTime()));
+        toVta.setDirecto(rs.getInt("directo"));
+        toVta.setPeso(rs.getDouble("peso"));
+        toVta.setIdEnvio(rs.getInt("idEnvio"));
+        toVta.setOrden(rs.getInt("orden"));
+        toVta.setPedidoEstatus(rs.getInt("pedidoEstatus"));
+        toVta.setEnvioEstatus(rs.getInt("envioEstatus"));
         movimientos.Movimientos.construirMovimientoOficina(rs, toVta);
     }
 }

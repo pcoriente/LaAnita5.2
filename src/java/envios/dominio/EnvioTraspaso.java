@@ -15,6 +15,7 @@ public class EnvioTraspaso extends Traspaso {
     private int diasInventario;
     private int diasInventario2;
     private Date fechaProduccion;
+    private boolean directo;
     
     public EnvioTraspaso() {
         super();
@@ -64,5 +65,13 @@ public class EnvioTraspaso extends Traspaso {
 
     public void setFechaProduccion(Date fechaProduccion) {
         this.fechaProduccion = fechaProduccion;
+    }
+
+    public boolean isDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(boolean directo) {
+        this.directo = directo;
     }
 }

@@ -26,7 +26,7 @@ import movimientos.to1.TOMovimientoProducto;
 import movimientos.to.TOProductoAlmacen;
 import movimientos.to.TOProductoOficina;
 import pedidos.to.TOPedido;
-import pedidos.to.TOProductoPedido;
+import pedidos.to.TOPedidoProducto;
 import recepciones.to.TORecepcion;
 import recepciones.to.TORecepcionProducto;
 import traspasos.to.TOTraspaso;
@@ -424,7 +424,7 @@ public class DAOMovimientosOld {
     }
 
     // -------------------------------------- VENTAS -----------------------------------
-    public void tranferirSinCargo(int idAlmacen, int idMovto, int idMovtoAlmacen, TOProductoPedido toOrigen, TOProductoPedido toDestino, double cantidad, int idZonaImpuestos) throws SQLException {
+    public void tranferirSinCargo(int idAlmacen, int idMovto, int idMovtoAlmacen, TOPedidoProducto toOrigen, TOPedidoProducto toDestino, double cantidad, int idZonaImpuestos) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -793,8 +793,8 @@ public class DAOMovimientosOld {
         }
     }
 
-    public TOProductoPedido obtenerProductoPedido(int idPedido, int idProducto) throws SQLException {
-        TOProductoPedido to = null;
+    public TOPedidoProducto obtenerProductoPedido(int idPedido, int idProducto) throws SQLException {
+        TOPedidoProducto to = null;
         String strSQL = "SELECT * FROM pedidosOCTiendaDetalle WHERE idPedido=" + idPedido + " AND idEmpaque=" + idProducto;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
@@ -807,8 +807,8 @@ public class DAOMovimientosOld {
         return to;
     }
 
-    public ArrayList<TOProductoPedido> obtenerSimilaresPedido(int idPedido, int idProducto) throws SQLException {
-        ArrayList<TOProductoPedido> productos = new ArrayList<>();
+    public ArrayList<TOPedidoProducto> obtenerSimilaresPedido(int idPedido, int idProducto) throws SQLException {
+        ArrayList<TOPedidoProducto> productos = new ArrayList<>();
         String strSQL = "SELECT CASE WHEN S.idEmpaque=S.idSimilar THEN 1 ELSE 0 END AS principal\n"
                 + "	, ISNULL(D.idPedido, 0) AS idPedido, ISNULL(D.idEmpaque,S.idEmpaque) AS idEmpaque\n"
                 + "	, ISNULL(D.cantFacturada, 0) AS cantFacturada, ISNULL(D.cantSinCargo, 0) AS cantSinCargo\n"
@@ -876,20 +876,20 @@ public class DAOMovimientosOld {
         return boletin;
     }
 
-    public void trasferirSinCargo(int idPedido, int idProdOrigen, TOProductoPedido to, int idImpuestoZona, double cantidad) throws SQLException {
+    public void trasferirSinCargo(int idVenta, int idProdOrigen, TOPedidoProducto to, int idImpuestoZona, double cantidad) throws SQLException {
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                if (to.getIdPedido() == 0) {
-                    strSQL = "SELECT idEmpresa, idTienda FROM pedidosOC WHERE idPedido=" + idPedido;
+                if (to.getIdVenta() == 0) {
+                    strSQL = "SELECT idEmpresa, idTienda FROM pedidosOC WHERE idPedido=" + idVenta;
                     ResultSet rs = st.executeQuery(strSQL);
                     if (rs.next()) {
                         TOPedido toPed = new TOPedido();
                         int idEmpresa = rs.getInt("idEmpresa");
                         toPed.setIdReferencia(rs.getInt("idTienda"));
 
-                        to.setIdPedido(idPedido);
+                        to.setIdVenta(idVenta);
                         to.setCantSinCargo(cantidad);
 
                         this.agregarProductoPedido(idEmpresa, toPed, idImpuestoZona, to);
@@ -899,11 +899,11 @@ public class DAOMovimientosOld {
 
                     strSQL = "UPDATE pedidosOCTiendaDetalle\n"
                             + "SET cantSinCargo=cantSinCargo+" + cantidad + "\n"
-                            + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + to.getIdProducto();
+                            + "WHERE idPedido=" + idVenta + " AND idEmpaque=" + to.getIdProducto();
                     st.executeUpdate(strSQL);
                 }
                 strSQL = "UPDATE pedidosOCTiendaDetalle SET cantSinCargo=cantSinCargo-" + cantidad + "\n"
-                        + "WHERE idPedido=" + idPedido + " AND idEmpaque=" + idProdOrigen;
+                        + "WHERE idPedido=" + idVenta + " AND idEmpaque=" + idProdOrigen;
                 st.executeUpdate(strSQL);
 
                 cn.commit();
@@ -916,8 +916,8 @@ public class DAOMovimientosOld {
         }
     }
 
-    public ArrayList<TOProductoPedido> obtenerPedidoSimilares(int idPedido, int idProducto) throws SQLException {
-        ArrayList<TOProductoPedido> productos = new ArrayList<>();
+    public ArrayList<TOPedidoProducto> obtenerPedidoSimilares(int idPedido, int idProducto) throws SQLException {
+        ArrayList<TOPedidoProducto> productos = new ArrayList<>();
         String strSQL = "SELECT D.*\n"
                 + "FROM empaquesSimilares S\n"
                 + "INNER JOIN pedidosOCTiendaDetalle D ON D.idEmpaque=S.idEmpaque\n"
@@ -933,7 +933,7 @@ public class DAOMovimientosOld {
         return productos;
     }
 
-    public void grabarPedidoDetalle(int idEmpresa, TOPedido toPed, TOProductoPedido toProd) throws SQLException {
+    public void grabarPedidoDetalle(int idEmpresa, TOPedido toPed, TOPedidoProducto toProd) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
@@ -948,7 +948,7 @@ public class DAOMovimientosOld {
         }
     }
 
-    public boolean grabarPedidoDetalle1(int idEmpresa, TOPedido toPed, TOProductoPedido prod, double cantFacturadaOld) throws SQLException {
+    public boolean grabarPedidoDetalle1(int idEmpresa, TOPedido toPed, TOPedidoProducto prod, double cantFacturadaOld) throws SQLException {
         double cantSolicitada, cantSeparada, cantLiberar, cantLiberada;
         double cantSinCargo, boletinConCargo, boletinSinCargo;
         int idProducto = prod.getIdProducto();
@@ -1116,17 +1116,17 @@ public class DAOMovimientosOld {
         to.setIdImpuestoGrupo(rs.getInt("idImpuestoGrupo"));
     }
 
-    public TOProductoPedido construirProductoPedido(ResultSet rs) throws SQLException {
-        TOProductoPedido to = new TOProductoPedido();
-        to.setIdPedido(rs.getInt("idPedido"));
+    public TOPedidoProducto construirProductoPedido(ResultSet rs) throws SQLException {
+        TOPedidoProducto to = new TOPedidoProducto();
+        to.setIdVenta(rs.getInt("idVenta"));
         to.setCantOrdenada(rs.getDouble("cantOrdenada"));
         to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
         this.construirProducto(rs, to);
         return to;
     }
 
-    public ArrayList<TOProductoPedido> obtenerPedidoDetalle(int idMovto) throws SQLException {
-        ArrayList<TOProductoPedido> productos = new ArrayList<>();
+    public ArrayList<TOPedidoProducto> obtenerPedidoDetalle(int idMovto) throws SQLException {
+        ArrayList<TOPedidoProducto> productos = new ArrayList<>();
         String strSQL = "SELECT MD.*\n"
                 + "         , ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada"
                 + "         , ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
@@ -1207,7 +1207,7 @@ public class DAOMovimientosOld {
         return precio;
     }
 
-    public void agregarProductoPedido(int idEmpresa, TOPedido toPed, int idImpuestoZona, TOProductoPedido to) throws SQLException {
+    public void agregarProductoPedido(int idEmpresa, TOPedido toPed, int idImpuestoZona, TOPedidoProducto to) throws SQLException {
         String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -1218,8 +1218,8 @@ public class DAOMovimientosOld {
 
                 this.actualizaProductoPrecio(cn, idEmpresa, toPed, to);
 
-                strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo)\n"
-                        + "VALUES (" + to.getIdPedido() + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantOrdenadaSinCargo() + ")";
+                strSQL = "INSERT INTO ventasDetalle (idVenta, idEmpaque, cantOrdenada, cantOrdenadaSinCargo)\n"
+                        + "VALUES (" + to.getIdVenta() + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantOrdenadaSinCargo() + ")";
                 st.executeUpdate(strSQL);
                 cn.commit();
             } catch (SQLException ex) {
@@ -1232,7 +1232,7 @@ public class DAOMovimientosOld {
     }
 
     
-    private ArrayList<Double> actualizaProductoCantidad(Connection cn, int idEmpresa, int idTienda, TOProductoPedido toProd) throws SQLException {
+    private ArrayList<Double> actualizaProductoCantidad(Connection cn, int idEmpresa, int idTienda, TOPedidoProducto toProd) throws SQLException {
         ArrayList<Double> boletin = this.obtenerBoletinSinCargo(cn, idEmpresa, idTienda, toProd.getIdProducto());
         if (boletin.get(0) > 0) {
             toProd.setCantSinCargo((int) (toProd.getCantFacturada() / boletin.get(0)) * boletin.get(1));
@@ -1249,7 +1249,7 @@ public class DAOMovimientosOld {
         return boletin;
     }
 
-    private void actualizaProductoCantidadPedido(Connection cn, int idEmpresa, int idTienda, int idPedido, TOProductoPedido toProd) throws SQLException {
+    private void actualizaProductoCantidadPedido(Connection cn, int idEmpresa, int idTienda, int idPedido, TOPedidoProducto toProd) throws SQLException {
         ArrayList<Double> boletin = this.obtenerBoletinSinCargo(cn, idEmpresa, idTienda, toProd.getIdProducto());
         if (boletin.get(0) > 0) {
             toProd.setCantOrdenadaSinCargo((int) (toProd.getCantOrdenada() / boletin.get(0)) * boletin.get(1));
@@ -1299,16 +1299,16 @@ public class DAOMovimientosOld {
 //        movimientos.Movimientos.calculaImpuestosProducto(cn, toProd.getIdMovto(), toProd.getIdProducto());
     }
 
-    private void actualizaProductoPedido(Connection cn, int idEmpresa, TOMovimientoOficina toMov, TOProductoPedido to) throws SQLException {
+    private void actualizaProductoPedido(Connection cn, int idEmpresa, TOMovimientoOficina toMov, TOPedidoProducto to) throws SQLException {
         this.actualizaProductoPrecio(cn, idEmpresa, toMov, to);
-        this.actualizaProductoCantidadPedido(cn, idEmpresa, toMov.getIdReferencia(), to.getIdPedido(), to);
+        this.actualizaProductoCantidadPedido(cn, idEmpresa, toMov.getIdReferencia(), to.getIdVenta(), to);
     }
 
-    public void actualizarPedido(int idEmpresa, TOMovimientoOficina toMov, ArrayList<TOProductoPedido> tos) throws SQLException {
+    public void actualizarPedido(int idEmpresa, TOMovimientoOficina toMov, ArrayList<TOPedidoProducto> tos) throws SQLException {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                for (TOProductoPedido toProd : tos) {
+                for (TOPedidoProducto toProd : tos) {
                     this.actualizaProductoPedido(cn, idEmpresa, toMov, toProd);
                 }
                 cn.commit();
@@ -1364,7 +1364,7 @@ public class DAOMovimientosOld {
     public void agregarPedido(TOPedido toPed) throws SQLException {
 //        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 //        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        String strSQL;
+//        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -1372,21 +1372,21 @@ public class DAOMovimientosOld {
                 rs.next();
                 toPed.setFecha(new Date(rs.getDate("fecha").getTime()));
 
-                strSQL = "INSERT INTO pedidosOC (fecha, ordenDeCompra, ordenDeCompraFecha, embarqueFecha, entregaFolio, entregaFecha)\n"
-                        + "VALUES (GETDATE(), '" + toPed.getOrdenDeCompra() + "', '1900-01-01', '1900-01-01', '', '1900-01-01')";
-                st.executeUpdate(strSQL);
-
-                rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
-                if (rs.next()) {
-                    toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
-                }
-                strSQL = "INSERT INTO pedidos (idPedidoOC, canceladoMotivo, canceladoFecha)\n"
-                        + "VALUES (" + toPed.getIdPedidoOC() + ", '', '1900-01-01')";
-                st.executeUpdate(strSQL);
-                rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
-                if (rs.next()) {
-                    toPed.setReferencia(rs.getInt("idPedido"));
-                }
+//                strSQL = "INSERT INTO pedidosOC (fecha, ordenDeCompra, ordenDeCompraFecha, embarqueFecha, entregaFolio, entregaFecha)\n"
+//                        + "VALUES (GETDATE(), '" + toPed.getOrdenDeCompra() + "', '1900-01-01', '1900-01-01', '', '1900-01-01')";
+//                st.executeUpdate(strSQL);
+//
+//                rs = st.executeQuery("SELECT @@IDENTITY AS idPedidoOC");
+//                if (rs.next()) {
+//                    toPed.setIdPedidoOC(rs.getInt("idPedidoOC"));
+//                }
+//                strSQL = "INSERT INTO pedidos (idPedidoOC, canceladoMotivo, canceladoFecha)\n"
+//                        + "VALUES (" + toPed.getIdPedidoOC() + ", '', '1900-01-01')";
+//                st.executeUpdate(strSQL);
+//                rs = st.executeQuery("SELECT @@IDENTITY AS idPedido");
+//                if (rs.next()) {
+//                    toPed.setReferencia(rs.getInt("idPedido"));
+//                }
 //                TOMovimiento toMov = new TOMovimiento();
 //                toMov.setIdTipo(28);
 //                toMov.setIdCedis(this.idCedis);
@@ -1417,7 +1417,7 @@ public class DAOMovimientosOld {
 
     private TOPedido construirPedido(ResultSet rs) throws SQLException {
         TOPedido to = new TOPedido();
-        to.setIdPedidoOC(rs.getInt("idPedidoOC"));
+//        to.setIdPedidoOC(rs.getInt("idPedidoOC"));
         to.setOrdenDeCompra(rs.getString("ordenDeCompra"));
         to.setOrdenDeCompraFecha(new java.util.Date(rs.getTimestamp("ordenDeCompraFecha").getTime()));
         to.setCanceladoMotivo(rs.getString("canceladoMotivo"));

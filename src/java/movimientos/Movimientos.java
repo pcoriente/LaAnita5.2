@@ -303,9 +303,12 @@ public class Movimientos {
 
     public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, int idProducto) throws SQLException {
         String strFechaOrdenCompra = "GETDATE()";
-        if(fechaOrdenCompra!=null) {
+        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
             strFechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
         }
+//        if(fechaOrdenCompra!=null) {
+//            strFechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
+//        }
         ArrayList<Double> boletin;
         String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
                 + "FROM clientesTiendas T\n"
@@ -373,7 +376,7 @@ public class Movimientos {
     
     private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
         String strfechaOrdenCompra = "GETDATE()";
-        if(fechaOrdenCompra!=null) {
+        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
             strfechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
         }
         ArrayList<Double> precio = new ArrayList<>();

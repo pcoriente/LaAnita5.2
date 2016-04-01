@@ -21,6 +21,7 @@ public class EnvioProducto extends TraspasoProducto {
     private double directa;
     private double solicitada;
     private double solicitada2;
+    private double peso;
     
     public EnvioProducto() {
         super();
@@ -132,5 +133,13 @@ public class EnvioProducto extends TraspasoProducto {
 
     public void setSolicitada2(double solicitada2) {
         this.solicitada2 = solicitada2;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
     }
 }

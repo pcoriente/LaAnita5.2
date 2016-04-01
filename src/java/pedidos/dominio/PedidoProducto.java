@@ -11,7 +11,7 @@ public class PedidoProducto extends ProductoOficina {
     private int idEnvio;
     private double cantEnviada;
     private double cantEnviada2;
-    private int idPedido;
+    private int idVenta;
     private double cajas;
     private double cajasSinCargo;
     private double cantOrdenada;
@@ -51,12 +51,12 @@ public class PedidoProducto extends ProductoOficina {
         this.cantEnviada2 = cantEnviada2;
     }
 
-    public int getIdPedido() {
-        return idPedido;
+    public int getIdVenta() {
+        return idVenta;
     }
 
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
+    public void setIdVenta(int idVenta) {
+        this.idVenta = idVenta;
     }
 
     public double getCajas() {

@@ -13,10 +13,14 @@ import tiendas.to.TOTienda;
  * @author jesc
  */
 public class Pedido extends MovimientoOficina {
+    private int idEnvio;
+    private double peso;
+    private int orden;
+    private int envioEstatus;
+    
     private int idPedido;
     private TOTienda tienda;
     private Comprobante comprobante;
-    private int idPedidoOC;
     private int pedidoFolio;
     private Date pedidoFecha;
     private int diasCredito;
@@ -24,10 +28,7 @@ public class Pedido extends MovimientoOficina {
     private int pedidoIdUsuario;
     private String canceladoMotivo;
     private boolean directo;
-    private double peso;
-    private int idEnvio;
-    private int orden;
-    private int envioEstatus;
+    private int idSolicitud;
     private int pedidoEstatus;
     private String electronico;
     private String ordenDeCompra;
@@ -35,50 +36,51 @@ public class Pedido extends MovimientoOficina {
     private String entregaFolio;
     private Date entregaFecha;
     private Date entregaFechaMaxima;
+    private int idVenta;
 
     public Pedido() {
         super(new MovimientoTipo(28, "VENTA"));
         this.tienda=new TOTienda();
         this.comprobante=new Comprobante();
-        this.pedidoFecha=new Date();
+        this.pedidoFecha=new Date(-2208965004000L);
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.ordenDeCompraFecha=new Date(-2208965004000L);
         this.entregaFolio = "";
-        this.entregaFecha = new Date();
-        this.entregaFechaMaxima = new Date();
+        this.entregaFecha = new Date(-2208965004000L);
+        this.entregaFechaMaxima = new Date(-2208965004000L);
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Comprobante comprobante) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=comprobante;
-        this.pedidoFecha=new Date();
+        this.pedidoFecha=new Date(-2208965004000L);
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.ordenDeCompraFecha=new Date(-2208965004000L);
         this.entregaFolio = "";
-        this.entregaFecha = new Date();
-        this.entregaFechaMaxima = new Date();
+        this.entregaFecha = new Date(-2208965004000L);
+        this.entregaFechaMaxima = new Date(-2208965004000L);
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Moneda moneda) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=new Comprobante(super.getTipo().getIdTipo(), almacen.getIdEmpresa(), tienda.getIdTienda(), moneda);
-        this.pedidoFecha=new Date();
+        this.pedidoFecha=new Date(-2208965004000L);
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date();
+        this.ordenDeCompraFecha=new Date(-2208965004000L);
         this.entregaFolio = "";
-        this.entregaFecha = new Date();
-        this.entregaFechaMaxima = new Date();
+        this.entregaFecha = new Date(-2208965004000L);
+        this.entregaFechaMaxima = new Date(-2208965004000L);
     }
 
     @Override
@@ -125,14 +127,6 @@ public class Pedido extends MovimientoOficina {
 
     public void setComprobante(Comprobante comprobante) {
         this.comprobante = comprobante;
-    }
-
-    public int getIdPedidoOC() {
-        return idPedidoOC;
-    }
-
-    public void setIdPedidoOC(int idPedidoOC) {
-        this.idPedidoOC = idPedidoOC;
     }
 
     public int getPedidoFolio() {
@@ -231,6 +225,14 @@ public class Pedido extends MovimientoOficina {
         this.directo = directo;
     }
 
+    public int getIdSolicitud() {
+        return idSolicitud;
+    }
+
+    public void setIdSolicitud(int idSolicitud) {
+        this.idSolicitud = idSolicitud;
+    }
+
     public double getPeso() {
         return peso;
     }
@@ -285,5 +287,13 @@ public class Pedido extends MovimientoOficina {
 
     public void setEntregaFechaMaxima(Date entregaFechaMaxima) {
         this.entregaFechaMaxima = entregaFechaMaxima;
+    }
+
+    public int getIdVenta() {
+        return idVenta;
+    }
+
+    public void setIdVenta(int idVenta) {
+        this.idVenta = idVenta;
     }
 }

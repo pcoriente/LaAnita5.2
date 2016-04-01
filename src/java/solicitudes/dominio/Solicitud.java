@@ -18,6 +18,7 @@ public class Solicitud {
     private int propietario;
     private int estatus;
     private boolean envio;
+    private boolean directo;
     
     public Solicitud() {
         this.almacen = new TOAlmacenJS();
@@ -109,5 +110,13 @@ public class Solicitud {
 
     public void setEnvio(boolean envio) {
         this.envio = envio;
+    }
+
+    public boolean isDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(boolean directo) {
+        this.directo = directo;
     }
 }

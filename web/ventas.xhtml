@@ -457,7 +457,7 @@
                             <p:commandButton id="btnVentaCerrar" value="CERRAR" title="Cerrar la venta para surtir almacen" 
                                              disabled="#{mbVentas.venta.estatus ge 5}"
                                              process="@this" actionListener="#{mbVentas.cerrarVenta()}" 
-                                             update=":main:msgsVenta :main:detalleVenta :main:totales" >
+                                             update=":main:msgsVenta :main:btnAgregarProducto :main:detalleVenta :main:totales" >
                                 <p:confirm header="Cerra la venta" message="Confirma ?" icon="ui-icon-alert" />
                             </p:commandButton>
                             <p:commandButton id="btnSurtirOC" icon="ui-icon-gear" value="SURTIR OC" title="Surtir Orden de Compra" 

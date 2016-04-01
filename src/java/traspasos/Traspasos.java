@@ -117,18 +117,16 @@ public class Traspasos {
     }
 
     public static String sqlTraspaso() {
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*, ISNULL(ES.idEnvio, 0) AS idEnvio\n"
-                + "     , ISNULL(ES.diasInventario, 0) AS diasInventario, ISNULL(ES.fechaProduccion, '1900-01-01') AS fechaProduccion\n"
+        String strSQL = "S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
+                + "     , S.estatus AS solicitudEstatus, M.*\n"
                 + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
-                + "LEFT JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud";
+                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia";
         return strSQL;
     }
 
     public static TOTraspaso obtenerTraspaso(Connection cn, int idSolicitud) throws SQLException {
         TOTraspaso toTraspaso = new TOTraspaso();
-        String strSQL = sqlTraspaso() + "\n"
+        String strSQL = "SELECT " + sqlTraspaso() + "\n"
                 + "WHERE S.idSolicitud=" + idSolicitud;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);

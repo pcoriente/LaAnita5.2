@@ -1,38 +1,48 @@
 package pedidos.to;
 
+import movimientos.to.TOProductoOficina;
+
 /**
  *
  * @author jesc
  */
-public class TOPedidoProducto {
-    private int idPedido;
-    private int idProducto;
+public class TOPedidoProducto extends TOProductoOficina {
+    private int idEnvio;
+    private double cantEnviada;
+    private int idVenta;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
-    private double cantFacturada;
-    private double cantSinCargo;
-    private double costoPromedio;
-    private double costo;
-    private double desctoProducto1;
-    private double desctoProducto2;
-    private double desctoConfidencial;
-    private double unitario;
-    private int idImpuestoGrupo;
+    private int piezas;
+    private String cod_pro;
+//    private boolean similar;
 
-    public int getIdPedido() {
-        return idPedido;
+    public TOPedidoProducto() {
+        super();
+        this.cod_pro="";
     }
 
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
+    public int getIdEnvio() {
+        return idEnvio;
     }
 
-    public int getIdProducto() {
-        return idProducto;
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
     }
 
-    public void setIdProducto(int idProducto) {
-        this.idProducto = idProducto;
+    public double getCantEnviada() {
+        return cantEnviada;
+    }
+
+    public void setCantEnviada(double cantEnviada) {
+        this.cantEnviada = cantEnviada;
+    }
+
+    public int getIdVenta() {
+        return idVenta;
+    }
+
+    public void setIdVenta(int idVenta) {
+        this.idVenta = idVenta;
     }
 
     public double getCantOrdenada() {
@@ -51,75 +61,27 @@ public class TOPedidoProducto {
         this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
 
-    public double getCantFacturada() {
-        return cantFacturada;
+//    public boolean isSimilar() {
+//        return similar;
+//    }
+//
+//    public void setSimilar(boolean similar) {
+//        this.similar = similar;
+//    }
+//    
+    public int getPiezas() {
+        return piezas;
     }
 
-    public void setCantFacturada(double cantFacturada) {
-        this.cantFacturada = cantFacturada;
+    public void setPiezas(int piezas) {
+        this.piezas = piezas;
     }
 
-    public double getCantSinCargo() {
-        return cantSinCargo;
+    public String getCod_pro() {
+        return cod_pro;
     }
 
-    public void setCantSinCargo(double cantSinCargo) {
-        this.cantSinCargo = cantSinCargo;
-    }
-
-    public double getCostoPromedio() {
-        return costoPromedio;
-    }
-
-    public void setCostoPromedio(double costoPromedio) {
-        this.costoPromedio = costoPromedio;
-    }
-
-    public double getCosto() {
-        return costo;
-    }
-
-    public void setCosto(double costo) {
-        this.costo = costo;
-    }
-
-    public double getDesctoProducto1() {
-        return desctoProducto1;
-    }
-
-    public void setDesctoProducto1(double desctoProducto1) {
-        this.desctoProducto1 = desctoProducto1;
-    }
-
-    public double getDesctoProducto2() {
-        return desctoProducto2;
-    }
-
-    public void setDesctoProducto2(double desctoProducto2) {
-        this.desctoProducto2 = desctoProducto2;
-    }
-
-    public double getDesctoConfidencial() {
-        return desctoConfidencial;
-    }
-
-    public void setDesctoConfidencial(double desctoConfidencial) {
-        this.desctoConfidencial = desctoConfidencial;
-    }
-
-    public double getUnitario() {
-        return unitario;
-    }
-
-    public void setUnitario(double unitario) {
-        this.unitario = unitario;
-    }
-
-    public int getIdImpuestoGrupo() {
-        return idImpuestoGrupo;
-    }
-
-    public void setIdImpuestoGrupo(int idImpuestoGrupo) {
-        this.idImpuestoGrupo = idImpuestoGrupo;
+    public void setCod_pro(String cod_pro) {
+        this.cod_pro = cod_pro;
     }
 }
