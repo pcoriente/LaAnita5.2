@@ -80,6 +80,17 @@ public class MbClientesGrupos implements Serializable {
         return ok;
     }
 
+    public ClienteGrupo obtenerGrupo(int idGrupo) {
+        ClienteGrupo e = new ClienteGrupo();
+        try {
+            DAOClientesGrupo dao = new DAOClientesGrupo();
+            e = dao.dameClientesGrupo(idGrupo);
+        } catch (NamingException | SQLException ex) {
+            Logger.getLogger(MbClientesGrupos.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return e;
+    }
+
     public void dameDetalleFormato(int grupoCliente) throws SQLException {
         mbFormatos.cargarArrayListListaFormatos(grupoCliente);
     }

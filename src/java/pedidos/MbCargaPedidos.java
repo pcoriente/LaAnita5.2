@@ -14,8 +14,6 @@ import empresas.dominio.MiniEmpresa;
 import mbMenuClientesGrupos.MbClientesGrupos;
 import formatos.MbFormatos;
 import gruposBancos.MbGruposBancos;
-//import pedidos.dominio.Chedraui;
-//import pedidos.dominio.SamsClub;
 import pedidos.dominio.Textual;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -41,12 +39,13 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
 //import org.apache.poi.ss.usermodel.Workbook;
 import pedidos.dao.DAOCargaPedidos;
 import pedidos.dao.DAOPedidos;
@@ -56,10 +55,6 @@ import tiendas.MbMiniTiendas;
 import tiendas.to.TOTienda;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
-import jxl.Cell;
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.read.biff.BiffException;
 import pedidos.dominio.EntregasWallMart;
 
 /**
@@ -107,6 +102,7 @@ public class MbCargaPedidos implements Serializable {
     private DAOCargaPedidos dao;
     private String file = "";
 //    private HashSet gln = new HashSet();
+    private Object facesContext;
 
     /**
      * Creates a new instance of MbPedido
@@ -133,6 +129,9 @@ public class MbCargaPedidos implements Serializable {
     public void upload(FileUploadEvent event) {
         try {
             copyFile(event.getFile().getFileName(), event.getFile().getInputstream());
+            //String entrada =destination + this.setFile(file);
+            //InputStream fstream = event.getFile().getInputstream();
+
             String entrada = (destination + event.getFile().getFileName());
             int idEmp = this.mbEmpresas.getEmpresa().getIdEmpresa();
             int idFto = this.mbFormatos.getFormato().getIdFormato();
@@ -155,6 +154,9 @@ public class MbCargaPedidos implements Serializable {
                         System.out.print("SUPERAMA " + idFto);
                     }
                     break;
+                case 175: //IMSS
+                    textual = leerTextuales.leerArchivoImss(entrada);
+                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                 case 188:
                     textual = leerTextuales.leerArchivoCHedraui(entrada);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
@@ -183,12 +185,41 @@ public class MbCargaPedidos implements Serializable {
 ////                    }
                     break;
                 case 176: //Comercial Mexicana
-                    textual = leerTextuales.leerArchivoComercialMexicana(entrada, fechaEntrega, fechaCancelacion);
-                    this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
+                    if (fechaEntrega == null || fechaCancelacion == null) {
+                        Mensajes.mensajeError("Capture Fecha de Entrega y/o Fecha de Cancelación");
+                    } else {
+                        textual = leerTextuales.leerArchivoComercialMexicana(entrada, fechaEntrega, fechaCancelacion);
+                        this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
+                    }
                     break;
                 case 189: //Soriana
-//                    textual = leerTextuales.leerArchivoSoriana(entrada);
-                    System.out.println(entrada);
+                    textual = leerTextuales.leerArchivoSoriana(entrada);
+                    //System.out.println(entrada);
+                    //File excelFile;
+//                    InputStream excelStream = null;
+//                    try {
+//                        excelStream = new FileInputStream(entrada);
+//                        HSSFWorkbook workbook = new HSSFWorkbook(excelStream);
+//                        HSSFSheet sheet = workbook.getSheetAt(0);
+//                        HSSFRow fila;
+//                        int totFilas = sheet.getLastRowNum();
+//                        for (int r = 0; r < totFilas; r++) {
+//                            fila = sheet.getRow(r);
+//                            //String cellTda = fila.getCell(0).getStringCellValue();
+//                            String cellTda = fila.getCell(0) == null?"":
+//                                    (fila.getCell(0).getCellType() == Cell.CELL_TYPE_STRING) ? fila.getCell(0).getStringCellValue():
+//                                    (fila.getCell(0).getCellType() == Cell.CELL_TYPE_NUMERIC)?"" + fila.getCell(0).getNumericCellValue():"";
+//                            //String celltda = (fila.getCell(0).getCellType() == Cell.CELL_TYPE_STRING) ? fila.getCell(0).getStringCellValue();
+//                            //hssfRow.getCell(c).getCellType() == Cell.CELL_TYPE_STRING)?hssfRow.getCell(c).getStringCellValue():
+//                            //HSSFCell cellTda = fila.fila.getCell(r).;
+//                            //(hssfRow.getCell(c).getCellType() == Cell.CELL_TYPE_STRING)?hssfRow.getCell(c).getStringCellValue():
+//
+//                            System.out.println("va la celda tienda " + cellTda);
+//                        }
+//                    } catch (IOException ex) {
+//                        Mensajes.mensajeError(ex.getMessage());
+//                    }
+
 //                     File inputWorkbook = new File(inputFile);
 //
 ////                    File input = new File(entrada);
@@ -204,25 +235,23 @@ public class MbCargaPedidos implements Serializable {
 //                            Logger.getLogger(MbCargaPedidos.class.getName()).log(Level.SEVERE, null, ex);
 //                        }
 //                    }
-
-                    Workbook workbook = null;
-                    try {
-                        workbook = Workbook.getWorkbook(new File("c:\\textuales\\PedTda_46072127.xls"));
-                    } catch (IOException | BiffException ex) {
-                        Mensajes.mensajeError(ex.getMessage());
-                        //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+//                    Workbook workbook = null;
+//                    try {
+//                        workbook = Workbook.getWorkbook(new File("entrada"));
+//                    } catch (IOException | BiffException ex) {
+//                        Mensajes.mensajeError(ex.getMessage());
+//                        //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
                     //Se obtiene la segunda hoja
-                    Sheet sheet = workbook.getSheet(0);
-                    int totFilas;
-                    totFilas = sheet.getRows();
-                    System.out.println(totFilas);
-                    for (int fila = 1; fila < totFilas; fila++) {
-                        Cell cellTda = sheet.getCell(0, fila);
-                        Cell cellGln = sheet.getCell(1, fila);
-                        System.out.println(" primera celda "+cellTda+" segunda celda "+cellGln);
-                    }
-
+//                        Sheet sheet = workbook.getSheet(0);
+//                        int totFilas;
+//                        totFilas = sheet.getRows();
+//                        System.out.println(totFilas);
+//                        for (int fila = 1; fila < totFilas; fila++) {
+//                            Cell cellTda = sheet.getCell(0, fila);
+//                            Cell cellGln = sheet.getCell(1, fila);
+//                            System.out.println(" primera celda " + cellTda + " segunda celda " + cellGln);
+//                        }
 //                    try {
 //                        Workbook workbook = Workbook.getWorkbook(new File(entrada));
 //                    } catch (BiffException ex) {
@@ -230,6 +259,7 @@ public class MbCargaPedidos implements Serializable {
 //                    }
                     break;
                 //leerTextuales.leerArchivoSoriana(entrada);
+
                 default:
                     System.out.println("No hay ningun grupo de clientes");
                     break;
@@ -290,7 +320,6 @@ public class MbCargaPedidos implements Serializable {
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
-
 //        mbClientesGrupos.getMbFormatos().setLstFormatos(null);
 //        mbGruposBancos.setLstGruposBancos(null);
 //        mbClientesGrupos.getMbFormatos().cargarListaFormatos(mbClientesGrupos.getCmbClientesGrupos().getIdGrupoCte());

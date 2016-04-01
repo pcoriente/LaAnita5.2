@@ -49,15 +49,13 @@
                         <p:dataTable
                             id="tablaClientesGrupos"
                             scrollable="true"
-                            scrollHeight="300"
+                            scrollHeight="325"
                             value="#{mbMenuClientesGrupos.lstClientesGrupos}"
                             var="lstClienteGrupos"
                             selection="#{mbMenuClientesGrupos.clienteGrupoSeleccionado}"
                             selectionMode="single"
                             rowKey="#{lstClienteGrupos}"
-                            emptyMessage="No hay clientes Grupos"
-                            paginator="true"
-                            rows="7"
+                            emptyMessage="No hay Grupos"
                             >
                             <p:ajax event="rowSelect"
                                     process="@this"

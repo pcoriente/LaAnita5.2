@@ -1,7 +1,6 @@
 package clientes;
 
 import Message.Mensajes;
-import clientes.dao.DAOTiendasFormatos;
 import clientes.dominio.TiendaFormato;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
@@ -94,6 +93,17 @@ public class MbTiendasFormatos implements Serializable {
             Mensajes.mensajeError(e.getMessage());
         }
     }
+        public ClienteFormato obtenerFormato(int idFormato) {
+        ClienteFormato f = new ClienteFormato();
+        try {
+            DAOFormatos dao = new DAOFormatos();
+            f = dao.obtenerClientesFormato(idFormato);
+        } catch (NamingException | SQLException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
+        return f;
+    }
+
 
 
     public ArrayList<SelectItem> getListaFormatos() {

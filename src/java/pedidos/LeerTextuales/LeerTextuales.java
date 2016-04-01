@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Date;
 import java.sql.SQLException;
@@ -21,6 +22,10 @@ import java.util.HashMap;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import pedidos.dao.DAOCargaPedidos;
 import pedidos.dominio.Textual;
 //import pedidos.dominio.Chedraui;
@@ -262,18 +267,46 @@ public class LeerTextuales {
     }
 
 //    public ArrayList<Textual> leerArchivoSoriana(String lectura) throws IOException {
-    public void leerArchivoSoriana(String lectura) throws IOException {
-        int totFilas;
-        Workbook workbook = null;
+    public ArrayList<Textual> leerArchivoSoriana(String lectura) throws IOException {
+        ArrayList<Textual> lstSoriana = new ArrayList<>();
+        InputStream excelStream = null;
         try {
-            workbook = Workbook.getWorkbook(new File(lectura));
-        } catch (IOException | BiffException ex) {
+            excelStream = new FileInputStream(lectura);
+            HSSFWorkbook workbook = new HSSFWorkbook(excelStream);
+            HSSFSheet sheet = workbook.getSheetAt(0);
+            HSSFRow fila;
+            int totFilas = sheet.getLastRowNum();
+            System.out.println("total de Registros "+totFilas);
+            int r = 0;
+            fila = sheet.getRow(r); 
+            for ( r = 0; r < totFilas; r++) {
+                fila = sheet.getRow(r);
+                //String cellTda = fila.getCell(0).getStringCellValue();
+                String cellTda = fila.getCell(0) == null ? ""
+                        : (fila.getCell(0).getCellType() == Cell.CELL_TYPE_STRING) ? fila.getCell(0).getStringCellValue()
+                                : (fila.getCell(0).getCellType() == Cell.CELL_TYPE_NUMERIC) ? "" + fila.getCell(0).getNumericCellValue() : "";
+                            //String celltda = (fila.getCell(0).getCellType() == Cell.CELL_TYPE_STRING) ? fila.getCell(0).getStringCellValue();
+                //hssfRow.getCell(c).getCellType() == Cell.CELL_TYPE_STRING)?hssfRow.getCell(c).getStringCellValue():
+                //HSSFCell cellTda = fila.fila.getCell(r).;
+                //(hssfRow.getCell(c).getCellType() == Cell.CELL_TYPE_STRING)?hssfRow.getCell(c).getStringCellValue():
+
+                System.out.println("va la celda tienda " + cellTda+" numero de registro "+r);
+            }
+        } catch (IOException ex) {
             Mensajes.mensajeError(ex.getMessage());
-            //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Sheet sheet = workbook.getSheet(0);
-        totFilas = sheet.getRows();
-        System.out.println(totFilas);
+
+//            int totFilas;
+//            Workbook workbook = null;
+//            try {
+//                workbook = Workbook.getWorkbook(new File(lectura));
+//            } catch (IOException | BiffException ex) {
+//                Mensajes.mensajeError(ex.getMessage());
+//                //Logger.getLogger(CargaGlnWallMart.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//            Sheet sheet = workbook.getSheet(0);
+//            totFilas = sheet.getRows();
+//            System.out.println(totFilas);
 //        String registro = null;
 //        FileInputStream fstream = new FileInputStream(lectura);
 //        DataInputStream entrada = new DataInputStream(fstream);
@@ -282,7 +315,6 @@ public class LeerTextuales {
 //        while ((registro = buffer.readLine()) != null) {
 //            System.out.println(registro);
 //        }
-
 //        String registro = null;
 //        String anio, mes, dia;
 ////        String mes;
@@ -293,7 +325,7 @@ public class LeerTextuales {
 ////        String fechaEmbarque;
 ////        String fechaCancelacion;
 //        String[] pedidoArray;
-//        ArrayList<Textual> lstSoriana = new ArrayList<>();
+        
 //        FileInputStream fstream = new FileInputStream(lectura);
 //        try (DataInputStream entrada = new DataInputStream(fstream)) {
 //            BufferedReader buffer = new BufferedReader(new InputStreamReader(entrada));
@@ -342,10 +374,10 @@ public class LeerTextuales {
 //                System.out.println("Orden Compra "+sori.getOrdenCompra()+" numero tienda "+sori.getCodigoTienda()+" codigo "+sori.getUpc());
 //                lstSoriana.add(sori);
 //            }
-//            entrada.close();
-//            return lstSoriana;
-//        }
-    }
+            excelStream.close();
+            return lstSoriana;
+        }
+//    }
         //    public ArrayList<WallMart> leerArchivoWallMart(File archivoTexto) throws IOException, SQLException {
     //        DAOCargaPedidos dao = new DAOCargaPedidos();
     //        ArrayList<WallMart> lstWallMart = new ArrayList<WallMart>();

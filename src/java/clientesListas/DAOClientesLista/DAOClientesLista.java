@@ -1,5 +1,6 @@
 package clientesListas.DAOClientesLista;
 
+import Message.Mensajes;
 import clientesListas.dominio.ClientesListas;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -13,6 +14,8 @@ import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 import usuarios.dominio.UsuarioSesion;
+import clientes.to.TOClienteLista;
+import java.util.ArrayList;
 
 /**
  *
@@ -33,6 +36,43 @@ public class DAOClientesLista {
         } catch (NamingException ex) {
             throw (ex);
         }
+    }
+
+    public ArrayList<TOClienteLista> cargaListas() throws SQLException {
+        ArrayList<TOClienteLista> listas = new ArrayList<>();
+        String strSQL;
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "SELECT cl.idClienteLista,idEmpresa,idGrupoCte,idFormato,idCliente,idTienda\n"
+                        + "FROM (SELECT DISTINCT cld.idClienteLista,idGrupoCte,idFormato,idCliente,idTienda\n"
+                        + "			FROM clientesListasDetalle cld) cld\n"
+                        + "INNER JOIN clientesListas cl ON cl.idClienteLista = cld.idClienteLista";
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    listas.add(construirToLista(rs));
+                }
+                cn.commit();
+            } catch (SQLException e) {
+                cn.rollback();
+                Mensajes.MensajeErrorP(e.getMessage());
+                //throw (e);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return listas;
+    }
+
+    public static TOClienteLista construirToLista(ResultSet rs) throws SQLException {
+        TOClienteLista to = new TOClienteLista();
+        to.setIdClienteLista(rs.getInt("idClienteLista"));
+        to.setIdEmpresa(rs.getInt("idEmpresa"));
+        to.setIdGrupoCte(rs.getInt("idGrupoCte"));
+        to.setIdFormato(rs.getInt("idFormato"));
+        to.setIdCliente(rs.getInt("idcliente"));
+        to.setIdCliente(rs.getInt("idCliente"));
+        return to;
     }
 
     public ClientesListas dameInformacion(int idEmpresa, int idGrupoCte, int idFormato) throws SQLException {
@@ -70,7 +110,6 @@ public class DAOClientesLista {
                 clientes.setMercanciaSinCargo(rs.getDouble("mercanciaSinCargo"));
                 clientes.setPorcentajaBoletin(rs.getDouble("porcentajeBoletin"));
                 clientes.setNumeroProveedor(rs.getString("numeroProveedor"));
-                
 
             }
         } finally {

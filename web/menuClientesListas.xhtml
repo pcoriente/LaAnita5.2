@@ -7,8 +7,10 @@
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:pe="http://primefaces.org/ui/extensions">
     <h:head>
-        <h:outputStylesheet library="css" name="main.css"/>
         <title>Relación de Clientes Grupos</title>
+        <h:outputStylesheet library="css" name="main.css"/>
+        <h:outputStylesheet library="css" name="estilos.css"/>
+
     </h:head>
     <body>
         <div id="wrapper" align="center">
@@ -36,149 +38,107 @@
                                          action="#{mbClientesListas.salir()}"
                                          />
                     </div>
-                    <p:panel header="Precio Ideal" 
+                    <p:panel header="Lista de Precios"
                              styleClass="quitaCuadro">
-                        <p:dataTable> 
+                        <p:dataTable
+                            id="listaGpos"
+                            value="#{mbClientesListas.listaPrecios}"
+                            var="gpos"
+                            selectionMode="single"
+                            rowKey="#{gpos.idClienteLista}"
 
+                            scrollable="true"
+                            scrollHeight="325" 
+                            emptyMessage="No hay Listas Disponibles"
+                            >
+                            <p:ajax event="rowSelect"
+                                    listener="#{mbClientesListas.obtenerListaSeleccionada}"
+                                    oncomplete="PF('dlgListasPrecios').show()"
+                                    update=":form
+                                    :form:listaGpos"
+                                    process="@this"
+                                    >                             
+                            </p:ajax>
+
+                            <p:column headerText="Empresa"
+                                      style="width: 50px;"
+                                      filterBy="#{gpos.miniemp.nombreComercial}"
+                                      filterMatchMode="contains">
+                                #{gpos.miniemp.nombreComercial}
+                            </p:column>
+                            <p:column headerText="Grupo"
+                                      style="width: 50px;"
+                                      filterBy="#{gpos.clientegrupo.grupoCte}"
+                                      filterMatchMode="contains">
+                                #{gpos.clientegrupo.grupoCte}
+                            </p:column>
+                            <p:column headerText="Formato"
+                                      style="width: 50px;"
+                                      filterBy="#{gpos.clienteformato.formato}"
+                                      filterMatchMode="contains"> 
+                                #{gpos.clienteformato.formato}
+                            </p:column>
+                            <p:column headerText="Cliente"
+                                      style="width: 50px;">    
+                            </p:column>
+                            <p:column headerText="Tienda"
+                                      style="width: 50px;">    
+                            </p:column>
+
+                            <f:facet name="footer">
+                                #{mbClientesListas.listaPrecios.size()} Listas de Precios
+                            </f:facet>
                         </p:dataTable>
+
                     </p:panel>
-                    <p:dialog widgetVar="dlgListasPrecio"
+                    <p:dialog widgetVar="dlgListasPrecios"
+                              width="800"
+                              header="LISTA DE PRECIOS"
+                              id="dlgLP"
+                              resizable="true"
                               modal="true"
                               closable="true"
-                              header="Listas precio ideal"
-                              resizable="false"> 
-
-                        <br></br>
-                        <h:panelGrid columns="6"
-                                     id="panel1"
-                                     >
-                            <h:outputText value="Empresa:"/>
-                            <p:selectOneMenu filter="true"
-                                             value="#{mbClientesListas.mbEmpresas.empresa}">
-                                <f:selectItems value="#{mbClientesListas.mbEmpresas.listaMiniEmpresasCmb}"/>
-                                <f:converter converterId="converters.MiniEmpresa"/>
-                                <p:ajax event="change" 
-                                        listener="#{mbClientesListas.traerInformacionClientesListas()}"
-                                        update=":form:panel2 :form:txtDescuentos"/>
-                            </p:selectOneMenu>
-                            <h:outputText value="Grupo Cliente: "/>
-                            <p:selectOneMenu filter="true" 
-                                             value="#{mbClientesListas.mbClientesGrupos.cmbClientesGrupos}">
-                                <f:selectItems value="#{mbClientesListas.mbClientesGrupos.itemsClientesGrupos}"/>
-                                <f:converter converterId="converters.ClientesGrupos"/>
-                                <p:ajax event="change" 
-                                        listener="#{mbClientesListas.cargarFormatos()}"
-                                        update="cmbFormatos :form:panel2 :form:txtDescuentos"/>
-                            </p:selectOneMenu>
-                            <h:outputText value="Formato: "/>
-                            <p:selectOneMenu filter="true" 
-                                             id="cmbFormatos"
-                                             style="width: 243px"
-                                             value="#{mbClientesListas.mbClientesGrupos.mbFormatos.cmbClientesFormatos}">
-                                <f:selectItems value="#{mbClientesListas.mbClientesGrupos.mbFormatos.lstFormatos}"/>
-                                <f:converter converterId="converter.formatos"/>
-                                <p:ajax event="change" 
-                                        listener="#{mbClientesListas.traerInformacionClientesListas()}"
-                                        update=":form:panel2 :form:txtDescuentos"/>
-                            </p:selectOneMenu>
-                        </h:panelGrid>
-                        <p:separator/>
-                        <h:panelGrid columns="10"
-                                     id="panel2">
-                            <h:outputText value="Descuentos: "/>
-                            <p:inputText style="width: 60px"
-                                         value="#{mbClientesListas.clientesListas.descuetos}"
-                                         id="txtDescuentos"
-                                         />
-                            <h:outputText value="Mercancias sn/cargo"/>
-                            <pe:inputNumber emptyValue="zero" 
-                                            decimalPlaces="0"
-                                            style="width: 60px"
-                                            value="#{mbClientesListas.clientesListas.mercanciaSinCargo}"
-                                            />
-                            <h:outputText value="Mercancias cn/cargo"/>
-                            <pe:inputNumber emptyValue="zero" 
-                                            style="width: 80px"
-                                            value="#{mbClientesListas.clientesListas.mercanciaConCargo}"/>
-
-                            <h:outputText value="Boletin :"/>
-                            <pe:inputNumber emptyValue="zero" 
-                                            symbol="%" 
-                                            decimalPlaces="0"
-                                            symbolPosition="s"
-                                            style="width: 60px"
-                                            value="#{mbClientesListas.clientesListas.boletin}"/>
-                            <h:outputText value="Numero Proveedor :"/>
-                            <p:inputText style="width: 60px"
-                                         value="#{mbClientesListas.clientesListas.numeroProveedor}"/>
-                        </h:panelGrid>
-                        <div style="float: right">
-
-                            <p:commandButton icon="ui-icon-disk"
-                                             title="Guardar lista productos"
-                                             oncomplete="nuevaListaPrecios(xhr, status, args)"
-                                             process="@this :form:panel1 :form:panel2"
-                                             actionListener="#{mbClientesListas.guardar()}"/>
-                            <p:commandButton icon="ui-icon-trash"
-                                             id="btnEliminarProducto"
-                                             title="Quitar producto"
-                                             process="@this"
-                                             actionListener="#{mbClientesListas.quitarProductoTabla()}"
-                                             disabled="#{mbClientesListas.eliminar== false}"
-                                             update=":form:tablaFormatoDetalle 
-                                             :form:btnEliminarProducto"
-                                             />
-                            <p:commandButton icon="ui-icon-search"
-                                             title="Busqueda de Productos"
-                                             oncomplete="PF('buscarProductoDlg').show();"
-                                             process="@this"
-                                             actionListener="#{mbClientesListas.limpiarBuscador()}"
-                                             update=":form:multipleSelectProductos"/>
-                            <p:commandButton icon="ui-icon-arrowreturnthick-1-w"
-                                             title="Cancelar"
-                                             />
-                        </div>
-
-                        <div style="margin-top: 35px">
-                            <p:dataTable emptyMessage="No hay productos seleccionados"
-                                         value="#{mbClientesListas.lstListaProductos}"
-                                         var="formatoDetalle"
-                                         id="tablaFormatoDetalle"
-                                         scrollable="true"
-                                         scrollHeight="150"
-                                         style="width: 900px ;"
-                                         selectionMode="single"
-                                         selection="#{mbClientesListas.clientesListasSeleccion}"
-                                         rowKey="#{formatoDetalle}"
-                                         >
-
-                                <p:ajax event="rowSelect"
-                                        process="@this"
-                                        update=":form:btnEliminarProducto"
-                                        listener="#{mbClientesListas.eliminarProduco()}"/>
-                                <p:column headerText="Producto" width="500">
-                                    #{formatoDetalle.producto}
-                                </p:column>
-                                <p:column headerText="Precio Venta">
-                                    <pe:inputNumber emptyValue="zero" decimalPlaces="4"
-                                                    value="#{formatoDetalle.precioVenta}"
-                                                    style="width: 89px"/>
-                                </p:column>
-                                <p:column headerText="Descuentos">
-                                    <p:inputText value="#{formatoDetalle.descuentos}" 
-                                                 style="width:89px"/>
-                                </p:column>
-                                <p:column headerText="Inicio Vigencia">
-                                    <p:calendar  size="10" 
-                                                 value="#{formatoDetalle.inicioVigencia}" />
-                                </p:column>
-                                <f:facet name="footer">
-                                    Tolal de Productos agregados #{(mbClientesListas.lstListaProductos.size())}
-                                </f:facet>
-                            </p:dataTable>
-                        </div>
+                              >
+                        <p:dataTable
+                            id="listaProds"
+                            value="#{mbClientesListas.listaPrecios}"
+                            var="prods"
+                            selectionMode="single"
+                            scrollable="true"
+                            scrollHeight="325" 
+                            emptyMessage="No hay Productos Disponibles"
+                            >
+                            <p:column headerText="UPC"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="SKU"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="PRODUCTO"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="UNID/EMP"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="EMPAQUE"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="PRECIO UNIDAD"
+                                      style="width: 50px;">
+                            </p:column>
+                            <p:column headerText="PRECIO EMPAQUE"
+                                      style="width: 50px;">
+                            </p:column>
+                        </p:dataTable>
+                        <p:toolbar id="tbProds">
+                            <f:facet name="right">
+                                <p:commandButton icon="ui-icon-note"
+                                                 process="@this"
+                                                 title="Generar Hoja Cálculo"
+                                                 />
+                            </f:facet>
+                        </p:toolbar>
                     </p:dialog>
-
                     <p:dialog header="BUSCADOR DE PRODUCTOS" 
                               widgetVar="buscarProductoDlg" 
                               resizable="false" style="width: 600px;" 
@@ -263,7 +223,7 @@
                                 <p:commandButton id="seleccionMultiple" value="Seleccionar" 
                                                  oncomplete="PF('buscarProductoDlg').hide();"
                                                  actionListener="#{mbClientesListas.construir()}"
-                                                 update=":form:tablaFormatoDetalle"/>
+                                                 update=":form"/>
                             </f:facet>
                         </p:dataTable>
                     </p:dialog>
@@ -271,21 +231,22 @@
             </div>
             <ui:include src="footer.html" />
         </div>
-    </body>
-    <script>
-                            function nuevaListaPrecios(xhr, status, args) {
-                                if (args.validationFailed || !args.ok) {
-                                    PF('dlgListasPrecio').jq.effect("shake", {times: 5}, 100);
-                                }
-                                else {
-                                    PF('dlgListasPrecio').hide();
-                                }
-                            }
-                            function handleBuscar(xhr, status, args) {
-                                if (!(args.validationFailed || !args.okBuscar)) {
-                                    PF('buscarProductoDlg').hide();
-                                }
-                            }
 
-    </script>
+        <script>
+            function nuevaListaPrecios(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlgListasPrecio').jq.effect("shake", {times: 5}, 100);
+                }
+                else {
+                    PF('dlgListasPrecio').hide();
+                }
+            }
+            function handleBuscar(xhr, status, args) {
+                if (!(args.validationFailed || !args.okBuscar)) {
+                    PF('buscarProductoDlg').hide();
+                }
+            }
+
+        </script>
+    </body>
 </html>
