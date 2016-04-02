@@ -247,6 +247,11 @@ public class DAOEnvios {
                 } else {
                     if (toPedido.getDirecto() != 0 && toPedido.getIdSolicitud() == 0) {
                         toPedido.setIdSolicitud(Solicitudes.agregarSolicitudDirecto(cn, toPedido.getIdAlmacen(), idAlmacenOrigen, this.idUsuario));
+
+                        strSQL = "UPDATE ventas\n"
+                                + "SET idSolicitud=" + toPedido.getIdSolicitud() + "\n"
+                                + "WHERE idVenta=" + toPedido.getReferencia();
+                        st.executeUpdate(strSQL);
                     }
                     strSQL = "INSERT INTO enviosPedidos (idVenta, idEnvio, orden)\n"
                             + "VALUES (" + toPedido.getReferencia() + ", " + idEnvio + ", 0)";
