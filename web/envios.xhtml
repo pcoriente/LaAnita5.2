@@ -96,7 +96,7 @@
                                 <p:column style="width: 75px" >
                                     <p:inputText id="diasInventario" value="#{mbEnvios.traspaso.diasInventario}"
                                                  title="Calcular dias inventario"  maxlength="3" size="3" style="width: 20px"
-                                                 readonly="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked}" >
+                                                 readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}" >
                                         <p:ajax event="change" listener="#{mbEnvios.actualizaDiasInventarioGeneral()}"
                                                 update=":main:msgs pesoDirectos pesoBodega pesoTotal detalle" />
                                     </p:inputText>

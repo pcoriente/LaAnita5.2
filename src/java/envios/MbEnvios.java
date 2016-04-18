@@ -575,15 +575,13 @@ public class MbEnvios implements Serializable {
 
     public void actualizaDiasInventarioGeneral() {
         TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+        this.traspaso.setDiasInventario(this.traspaso.getDiasInventario2());
         try {
-            this.detalle = new ArrayList<>();
+//            this.detalle = new ArrayList<>();
+            this.dao.calcularDiasInventarioGeneral(toTraspaso);
             this.envio.setPeso(this.envio.getPeso() - this.traspaso.getPeso());
             this.envio.setPesoDirectos(this.envio.getPesoDirectos() - this.traspaso.getPesoDirectos());
-            this.traspaso.setDiasInventario(this.traspaso.getDiasInventario2());
-
-            this.dao.calcularDiasInventarioGeneral(toTraspaso);
             this.obtenDetalleTraspaso(true);
-//            this.obtenFincados(true, true);
             this.traspaso.setDiasInventario(toTraspaso.getDiasInventario());
             this.traspaso.setDiasInventario2(toTraspaso.getDiasInventario());
         } catch (SQLException ex) {
