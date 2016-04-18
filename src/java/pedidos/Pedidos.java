@@ -257,7 +257,7 @@ public class Pedidos {
 
     public static String sqlObtenProducto() {
         // LEFT JOIN con ventasDetalle por los posibles productos agregados (SIMILARES) por cantidad sin cargo
-        return "SELECT ISNULL(EPD.idEnvio, 0) AS idEnvio, ISNULL(EPD.cantEnviada, 0) AS cantEnviada\n"
+        return "SELECT ISNULL(EPD.idEnvio, 0) AS idEnvio, ISNULL(EPD.cantEnviar, 0) AS cantEnviar, ISNULL(EPD.cantEnviarSinCargo, 0) AS cantEnviarSinCargo\n"
                 + "         , PD.idVenta, PD.cantOrdenada-PD.cantSurtida AS cantOrdenada\n"
                 + "         , PD.cantOrdenadaSinCargo-PD.cantSurtidaSinCargo AS cantOrdenadaSinCargo, D.*, E.piezas\n"
                 + "FROM movimientosDetalle D\n"
