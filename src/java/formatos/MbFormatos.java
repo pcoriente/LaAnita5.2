@@ -142,7 +142,7 @@ public class MbFormatos {
     public ArrayList<ClienteFormato> cargarArrayListListaFormatos(int idGrupoCliente) throws SQLException {
 //        try {
 //            if(idGrupoCliente==0) {
-        this.listaFormatosFormatos = new ArrayList<ClienteFormato>();
+        this.listaFormatosFormatos = new ArrayList<>();
 //            } else {
         try {
             DAOFormatos dao1 = new DAOFormatos();

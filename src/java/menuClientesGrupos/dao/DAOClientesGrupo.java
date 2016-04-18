@@ -70,14 +70,31 @@ public class DAOClientesGrupo {
     }
 
     public void guardarClientesGrupo(ClienteGrupo clientesGrupos) throws SQLException {
-        Connection cn = ds.getConnection();
-        Statement st = cn.createStatement();
-        String sql = "INSERT INTO clientesGrupos (grupoCte,codigoGrupo) VALUES('" + clientesGrupos.getGrupoCte() + "','" + clientesGrupos.getCodigoGrupo() + "')";
-        try {
-            st.executeUpdate(sql);
-        } finally {
-            st.close();
-            cn.close();
+        int idGrupoCte = 0;
+        String sql;
+       
+        //Connection cn = ds.getConnection();
+        //Statement st = cn.createStatement();
+        ResultSet rs;
+        try (Connection cn = ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                sql = "INSERT INTO clientesGrupos (grupoCte,codigoGrupo) VALUES('" + clientesGrupos.getGrupoCte() + "','" + clientesGrupos.getCodigoGrupo() + "')";
+                st.executeUpdate(sql);
+                rs = st.executeQuery("SELECT @@IDENTITY AS id");
+                if (rs.next()) {
+                    idGrupoCte = rs.getInt("id");
+                }
+                sql = "INSERT INTO clientesFormatos (formato,idGrupoCte) VALUES ('" + clientesGrupos.getGrupoCte() + "', "+ idGrupoCte +")";
+                st.executeQuery(sql);
+                cn.commit();
+            } catch (SQLException e) {
+                cn.rollback();
+                throw (e);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+
         }
     }
 
@@ -111,7 +128,7 @@ public class DAOClientesGrupo {
             rs.close();
             c.close();
         }
-        System.out.println("el valor del id grupo es "+id);
+        System.out.println("el valor del id grupo es " + id);
         return clientesGrupos;
     }
 }

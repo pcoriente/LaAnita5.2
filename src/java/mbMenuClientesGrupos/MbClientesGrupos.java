@@ -29,6 +29,7 @@ import menuClientesGrupos.dao.DAOClientesGrupo;
 import menuClientesGrupos.dominio.ClienteGrupo;
 import menuClientesGrupos.dominio.ClientesGruposIconos;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.SelectEvent;
 
 /**
  *
@@ -58,6 +59,7 @@ public class MbClientesGrupos implements Serializable {
 
     public MbClientesGrupos() {
         mbContactos = new MbContactos();
+        clientesGrupos = new ClienteGrupo();
         if (lstClientesGrupos == null) {
             cargarListaGruposClientes();
         }
@@ -100,10 +102,11 @@ public class MbClientesGrupos implements Serializable {
     }
 
     public void cargaContactos() {
+        System.out.println("inicializando clase clientesGrupos");
         clientesGrupos.setGrupoCte("");
         clientesGrupos.setCodigoGrupo("");
         this.setActualizar(false);
-        clienteGrupoSeleccionado = null;
+        //clienteGrupoSeleccionado = null;
     }
 
     public MbContactos getMbContactos() {
@@ -310,10 +313,11 @@ public class MbClientesGrupos implements Serializable {
         context.addCallbackParam("okContacto", ok);
     }
 
-    public void cargarDatos() {
-        clientesGrupos.setGrupoCte(clienteGrupoSeleccionado.getGrupoCte());
-        clientesGrupos.setIdGrupoCte(clienteGrupoSeleccionado.getIdGrupoCte());
-        clientesGrupos.setCodigoGrupo(clienteGrupoSeleccionado.getCodigoGrupo());
+    public void cargarDatos(SelectEvent selectEvent) {
+        this.clienteGrupoSeleccionado = (ClienteGrupo) selectEvent.getObject();
+        //clientesGrupos.setGrupoCte(clienteGrupoSeleccionado.getGrupoCte());
+        //clientesGrupos.setIdGrupoCte(clienteGrupoSeleccionado.getIdGrupoCte());
+        //clientesGrupos.setCodigoGrupo(clienteGrupoSeleccionado.getCodigoGrupo());
     }
 
     public String salir() {

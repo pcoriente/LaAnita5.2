@@ -44,7 +44,7 @@
                                          immediate="true"
                                          action="#{mbMenuClientesGrupos.salir()}"/>
                     </div>
-                    <p:panel header="Grupo de Cliente" 
+                    <p:panel header="CATALOGO DE GRUPOS" 
                              styleClass="quitaCuadro">
                         <p:dataTable
                             id="tablaClientesGrupos"
@@ -52,26 +52,28 @@
                             scrollHeight="325"
                             value="#{mbMenuClientesGrupos.lstClientesGrupos}"
                             var="lstClienteGrupos"
-                            selection="#{mbMenuClientesGrupos.clienteGrupoSeleccionado}"
                             selectionMode="single"
-                            rowKey="#{lstClienteGrupos}"
+                            rowKey="#{lstClienteGrupos.idGrupoCte}"
                             emptyMessage="No hay Grupos"
                             >
                             <p:ajax event="rowSelect"
+                                    listener="#{mbMenuClientesGrupos.cargarDatos}"
+                                   
+                                    update=":form:txtClienteGrupo :form:actualizarContacto"
                                     process="@this"
-                                    listener="#{mbMenuClientesGrupos.cargarDatos()}"
-                                    update=":form:txtClienteGrupo :form:actualizarContacto"/>
-                            <p:column headerText="Nombre Comercial" width="400" 
+                                    >
+                            </p:ajax>
+                            <p:column headerText="GRUPO" width="400" 
                                       filterBy="#{lstClienteGrupos.grupoCte}"
                                       filterMatchMode="contains">
                                 #{lstClienteGrupos.grupoCte}
                             </p:column>
-                            <p:column headerText="Codigo Grupo" width="110"
+                            <p:column headerText="CODIGO" width="110"
                                       filterBy="#{lstClienteGrupos.codigoGrupo}"
                                       filterMatchMode="contains">
                                 <center> #{lstClienteGrupos.codigoGrupo}</center>
                             </p:column>
-                            <p:column headerText="Formatos" width="60">
+                            <p:column headerText="FORMATOS" width="60">
                                 <center>
                                     <p:commandButton icon="ui-icon-folder-collapsed" 
                                                      title="Detalle Formato:  #{lstClienteGrupos.grupoCte} "
@@ -80,7 +82,7 @@
                                                      update=":form:tableFormatoDetalle :form:growl"/>
                                 </center>
                             </p:column>
-                            <p:column headerText="Contactos" width="60">
+                            <p:column headerText="CONTACTOS" width="60">
                                 <center> 
                                     <p:commandButton icon="ui-icon-folder-collapsed" 
                                                      title="Detalle :  #{lstClienteGrupos.grupoCte} "
@@ -112,7 +114,7 @@
                                          disabled="#{mbMenuClientesGrupos.clienteGrupoSeleccionado!=null}"/>
                             <h:outputLabel/>
                             <h:outputLabel  value="Grupo :" style="color: black"/>
-                            <p:inputText value="#{mbMenuClientesGrupos.clientesGrupos.grupoCte}" 
+                            <p:inputText value="#{mbMenuClientesGrupos.clienteGrupoSeleccionado.idGrupoCte}" 
                                          id="txtClienteGrupo"/>
                             <h:outputLabel/>
 
@@ -443,47 +445,47 @@
             <ui:include src="footer.html" />
         </div>
         <script>
-                    function nuevoClienteGrupo(xhr, status, args) {
-                        if (args.validationFailed || !args.ok) {
-                          PF('dlgClientesGrupos')  .jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgClientesGrupos').hide();
-                        }
-                    }
-                    function nuevoContacto(xhr, status, args) {
-                        if (args.validationFailed || !args.okContacto) {
-                            PF('dlgContactos').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgContactos').hide();
-                        }
-                    }
+            function nuevoClienteGrupo(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlgClientesGrupos').jq.effect("shake", {times: 5}, 100);
+                }
+                else {
+                    PF('dlgClientesGrupos').hide();
+                }
+            }
+            function nuevoContacto(xhr, status, args) {
+                if (args.validationFailed || !args.okContacto) {
+                    PF('dlgContactos').jq.effect("shake", {times: 5}, 100);
+                }
+                else {
+                    PF('dlgContactos').hide();
+                }
+            }
 
-                    function nuevoTelefono(xhr, status, args) {
-                        if (args.validationFailed || !args.okTelefono) {
-                            PF('mttoTelefonosDialog').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('mttoTelefonosDialog').hide();
-                        }
-                    }
+            function nuevoTelefono(xhr, status, args) {
+                if (args.validationFailed || !args.okTelefono) {
+                    PF('mttoTelefonosDialog').jq.effect("shake", {times: 5}, 100);
+                }
+                else {
+                    PF('mttoTelefonosDialog').hide();
+                }
+            }
 
-                    function handleTelefonoTipo(xhr, status, args) {
-                        if (args.validationFailed || !args.okTelefonoTipo) {
-                            PF('mttoTelefonosTiposDialog').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoTelefonosTiposDialog').hide();
-                        }
-                    }
+            function handleTelefonoTipo(xhr, status, args) {
+                if (args.validationFailed || !args.okTelefonoTipo) {
+                    PF('mttoTelefonosTiposDialog').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('mttoTelefonosTiposDialog').hide();
+                }
+            }
 
-                    function dlgFormato(xhr, status, args) {
-                        if (args.validationFailed || !args.ok) {
-                            PF('dlgFormatos').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('dlgFormatos').hide();
-                        }
-                    }
+            function dlgFormato(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlgFormatos').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlgFormatos').hide();
+                }
+            }
 
 
 

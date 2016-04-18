@@ -29,12 +29,13 @@ public class MbMiniClientes implements Serializable {
     private DAOClientes dao;
 
     public MbMiniClientes() {
-        this.inicializa();
+        this.cliente = new TOCliente();
+        //this.inicializa();
     }
 
     public void obtenerClientesCedis(int idCedis) {
         this.listaClientes = new ArrayList<>();
-        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione POR UN CEDIS"));
         try {
             this.dao = new DAOClientes();
             for (TOCliente c : this.dao.obtenerClientesCedis(idCedis)) {
@@ -49,7 +50,7 @@ public class MbMiniClientes implements Serializable {
 
     public void obtenerClientesCedis() {
         this.listaClientes = new ArrayList<>();
-        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione TODOS LOS CEDIS"));
         try {
             this.dao = new DAOClientes();
             for (TOCliente c : this.dao.obtenerClientesCedis()) {
@@ -85,11 +86,12 @@ public class MbMiniClientes implements Serializable {
         boolean ok = false;
         FacesMessage fMsg = new FacesMessage(FacesMessage.SEVERITY_ERROR, "Aviso:", "cargarClientesGrupo");
         this.listaClientes = new ArrayList<>();
-        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione Cliente"));
         try {
             this.dao = new DAOClientes();
             for (TOCliente c : this.dao.obtenerClientesGrupo(idGrupo)) {
                 this.listaClientes.add(new SelectItem(c, c.toString()));
+                System.out.println("El cliente es "+c.toString());
             }
             ok = true;
         } catch (NamingException ex) {
