@@ -202,5 +202,7 @@ public class Utilerias {
         return fecha;
     }
     
-
+    public static Date fechaInicial() {
+        return new Date(-2208965004000L);
+    }
 }

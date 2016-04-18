@@ -121,7 +121,7 @@
                                 <h:outputLabel for="txtOriginalSinCargo" value="Sin Cargo :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText id="txtOriginalSinCargo" value="#{mbPedidos.producto.cajasSinCargo}" size="14" readonly="true" >
+                                <p:inputText id="txtOriginalSinCargo" value="#{mbPedidos.producto.enviarSinCargo}" size="14" readonly="true" >
                                     <f:convertNumber pattern="###,##0.0000" />
                                 </p:inputText>
                             </p:column>
@@ -151,13 +151,13 @@
                         </p:column>
 
                         <p:column headerText="Cajas" >
-                            <h:outputText value="#{similar.cajas}" >
+                            <h:outputText value="#{similar.enviar}" >
                                 <f:convertNumber pattern="##,###,##0.000" />
                             </h:outputText>
                         </p:column>
 
                         <p:column headerText="Sin Cargo" >
-                            <h:outputText value="#{similar.cajasSinCargo}" >
+                            <h:outputText value="#{similar.enviarSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
@@ -188,7 +188,7 @@
                                 <h:outputLabel value="CAJAS :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText value="#{mbPedidos.producto.cajas}" style="width: 80px;"
+                                <p:inputText value="#{mbPedidos.producto.enviar}" style="width: 80px;"
                                              readonly="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked or mbPedidos.pedido.especial}"
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
@@ -200,7 +200,7 @@
                                 <h:outputLabel value="SIN CARGO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText id="txtCantSinCargo" value="#{mbPedidos.producto.cajasSinCargo}" style="width: 80px;"
+                                <p:inputText id="txtCantSinCargo" value="#{mbPedidos.producto.enviarSinCargo}" style="width: 80px;"
                                              readonly="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked or !mbPedidos.pedido.especial}"
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
@@ -290,7 +290,6 @@
                                 </p:inputText>
                             </p:column>
                             <p:column colspan="2" >
-                                <h:outputLabel value="#{mbPedidos.pedido.directo?'Entrega Directa':'Entrega Almacén'}" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column style="text-align: right;" >
                                 <h:outputLabel for="txtDesctoComercial" value="DESCUENTO :" style="font-weight: bold; color: black;" />
@@ -320,12 +319,12 @@
                             <h:outputText value="#{prod.producto.toString()}" />
                         </p:column>
                         <p:column headerText="Cajas" style="width: 70px; text-align: right;" >
-                            <h:outputText value="#{prod.cajas}" >
+                            <h:outputText value="#{prod.enviar}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
                         <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
-                            <h:outputText value="#{prod.cajasSinCargo}" >
+                            <h:outputText value="#{prod.enviarSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
@@ -534,9 +533,6 @@
                                 </p:calendar>
                             </p:column>
                             <p:column colspan="2" >
-                                <p:selectBooleanCheckbox id="chkDirecto" itemLabel="Directo"
-                                                         value="#{mbPedidos.pedido.directo}" style="width: 75px;" >
-                                </p:selectBooleanCheckbox>
                                 <p:selectBooleanCheckbox id="chkEspeciales" itemLabel="Especial (Solo sin cargo)"
                                                          value="#{mbPedidos.pedido.especial}" style="width: 145px;" >
                                 </p:selectBooleanCheckbox>

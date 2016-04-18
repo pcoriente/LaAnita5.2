@@ -8,6 +8,9 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TOTraspaso extends TOMovimientoOficina {
+    private int idEnvio;
+    private int pedidoFolio;
+    private int envio;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int solicitudIdUsuario;
@@ -17,6 +20,30 @@ public class TOTraspaso extends TOMovimientoOficina {
     public TOTraspaso() {
         super();
         this.solicitudFecha=new Date();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public int getPedidoFolio() {
+        return pedidoFolio;
+    }
+
+    public void setPedidoFolio(int pedidoFolio) {
+        this.pedidoFolio = pedidoFolio;
+    }
+
+    public int getEnvio() {
+        return envio;
+    }
+
+    public void setEnvio(int envio) {
+        this.envio = envio;
     }
 
     public int getSolicitudFolio() {

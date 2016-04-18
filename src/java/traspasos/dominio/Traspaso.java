@@ -10,6 +10,9 @@ import movimientos.dominio.MovimientoTipo;
  * @author jesc
  */
 public class Traspaso extends MovimientoOficina {
+    private int idEnvio;
+    private int pedidoFolio;
+    private boolean envio;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int solicitudIdUsuario;
@@ -34,6 +37,30 @@ public class Traspaso extends MovimientoOficina {
     
     public String getId() {
         return String.valueOf(this.idSolicitud)+String.valueOf(super.getIdMovto());
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public int getPedidoFolio() {
+        return pedidoFolio;
+    }
+
+    public void setPedidoFolio(int pedidoFolio) {
+        this.pedidoFolio = pedidoFolio;
+    }
+
+    public boolean isEnvio() {
+        return envio;
+    }
+
+    public void setEnvio(boolean envio) {
+        this.envio = envio;
     }
     
     public int getIdSolicitud() {

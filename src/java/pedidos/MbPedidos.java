@@ -236,7 +236,7 @@ public class MbPedidos implements Serializable {
         try {
             if (this.cantTraspasar < 0) {
                 Mensajes.mensajeAlert("La cantidad a traspasar debe ser mayor que cero !!!");
-            } else if(this.cantTraspasar > this.producto.getCajasSinCargo()) {
+            } else if(this.cantTraspasar > this.producto.getEnviarSinCargo()) {
                 Mensajes.mensajeAlert("La cantidad a traspasar no puede ser mayor que la cantidad sin cargo !!!");
             } else if(this.cantTraspasar != 0) {
                 TOPedido toPed = this.convertir(this.pedido);
@@ -299,10 +299,10 @@ public class MbPedidos implements Serializable {
     }
 
     public void actualizaProductoSinCargo() {
-        this.producto.setCantOrdenadaSinCargo(this.producto.getCajasSinCargo() * this.producto.getProducto().getPiezas());
+        this.producto.setCantOrdenadaSinCargo(this.producto.getEnviarSinCargo() * this.producto.getProducto().getPiezas());
         TOPedidoProducto toProd = Pedidos.convertir(this.producto);
         this.producto.setCantOrdenadaSinCargo(this.producto.getCantSinCargo());
-        this.producto.setCajasSinCargo(this.producto.getCantSinCargo() / this.producto.getProducto().getPiezas());
+        this.producto.setEnviarSinCargo(this.producto.getCantSinCargo() / this.producto.getProducto().getPiezas());
         if (toProd.getCantOrdenadaSinCargo() < 0) {
             Mensajes.mensajeAlert("La cantidad sin cargo no debe ser menor que cero !!!");
         } else if (toProd.getCantOrdenadaSinCargo() != toProd.getCantSinCargo()) {
@@ -314,7 +314,7 @@ public class MbPedidos implements Serializable {
 
                 this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
                 this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setCajasSinCargo(toProd.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
+                this.producto.setEnviarSinCargo(toProd.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
@@ -361,10 +361,10 @@ public class MbPedidos implements Serializable {
 //
     public void actualizaProducto() {
         boolean ok = false;
-        this.producto.setCantOrdenada(this.producto.getCajas() * this.producto.getProducto().getPiezas());
+        this.producto.setCantOrdenada(this.producto.getEnviar() * this.producto.getProducto().getPiezas());
         TOPedidoProducto toProd = Pedidos.convertir(this.producto);
         this.producto.setCantOrdenada(this.producto.getCantFacturada());
-        this.producto.setCajas(this.producto.getCantFacturada() / this.producto.getProducto().getPiezas());
+        this.producto.setEnviar(this.producto.getCantFacturada() / this.producto.getProducto().getPiezas());
         try {
             if (toProd.getCantOrdenada() < 0) {
                 Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
@@ -378,8 +378,8 @@ public class MbPedidos implements Serializable {
                 this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
                 this.producto.setCantFacturada(toProd.getCantOrdenada());
                 this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setCajas(this.producto.getCantOrdenada() / this.producto.getProducto().getPiezas());
-                this.producto.setCajasSinCargo(this.producto.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
+                this.producto.setEnviar(this.producto.getCantOrdenada() / this.producto.getProducto().getPiezas());
+                this.producto.setEnviarSinCargo(this.producto.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
                 this.totalSuma(this.producto);
                 if (!listaSimilares.isEmpty()) {
                     this.procesaSimilares(listaSimilares);

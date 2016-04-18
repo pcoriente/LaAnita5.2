@@ -32,20 +32,20 @@
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column >
-                                <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbRecepcion.pendientes}"
-                                                         itemLabel="PENDIENTES" style="color: black; font-weight: bold; font-size: small;" >
-                                    <p:ajax listener="#{mbRecepcion.obtenerRecepciones()}" 
-                                            update=":main:msgs fechaInicial listaRecepciones" />
-                                </p:selectBooleanCheckbox>
-                            </p:column>
-                            <p:column >
-                                <p:calendar id="fechaInicial" value="#{mbRecepcion.fechaInicial}"
-                                            readonlyInput="true" disabled="#{mbRecepcion.almacen.idAlmacen==0 || mbRecepcion.pendientes}"
-                                            locale="es" navigator="true" pattern="dd/MM/yyyy" >
-                                    <p:ajax event="dateSelect" process="@this" listener="#{mbRecepcion.obtenerRecepciones()}" 
-                                            update=":main:msgs listaRecepciones" />
-                                </p:calendar>
-                            </p:column>
+                                    <p:selectBooleanCheckbox id="chkTodosLosPedios" value="#{mbRecepcion.pendientes}"
+                                                             itemLabel="PENDIENTES" style="color: black; font-weight: bold; font-size: small;" >
+                                        <p:ajax listener="#{mbRecepcion.obtenerRecepciones()}" 
+                                                update=":main:msgs fechaInicial listaRecepciones" />
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column >
+                                    <p:calendar id="fechaInicial" value="#{mbRecepcion.fechaInicial}"
+                                                readonlyInput="true" disabled="#{mbRecepcion.almacen.idAlmacen==0 || mbRecepcion.pendientes}"
+                                                locale="es" navigator="true" pattern="dd/MM/yyyy" >
+                                        <p:ajax event="dateSelect" process="@this" listener="#{mbRecepcion.obtenerRecepciones()}" 
+                                                update=":main:msgs listaRecepciones" />
+                                    </p:calendar>
+                                </p:column>
                                 <p:column >
                                     <p:commandButton icon="ui-icon-home" title="Salir" 
                                                      action="#{mbRecepcion.terminar()}" ajax="false" />
@@ -71,7 +71,7 @@
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
                             </p:column>
-                            
+
                         </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="RECEPCION" rendered="#{mbRecepcion.modoEdicion}" >
@@ -108,7 +108,8 @@
                                      var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="5" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.editar}" 
-                                    update=":main:listaLotes :main:lotesTotales" oncomplete="PF('editarLotesDlg').show();" />
+                                    update=":main:listaLotes :main:lotesTotales"
+                                    oncomplete="abrirEdicion(xhr, status, args);" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
                                 <h:outputText value="#{prod.producto.cod_pro}" style="width: 50px;" />
@@ -181,9 +182,9 @@
                             </p:column>
                             <f:facet name="footer">
                                 <p:commandButton id="btnNuevoLote" icon="ui-icon-document" title="Nuevo lote"
-                                                     disabled="#{mbRecepcion.recepcion.estatus!=5}"
-                                                     process="@this" actionListener="#{mbRecepcion.nuevoLote()}" 
-                                                     update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
+                                                 disabled="#{mbRecepcion.recepcion.estatus!=5}"
+                                                 process="@this" actionListener="#{mbRecepcion.nuevoLote()}" 
+                                                 update=":main:listaLotes" oncomplete="PF('agregarLoteDlg').show();" />
                             </f:facet>
                         </p:dataTable>
                         <p:panelGrid id="lotesTotales" >
@@ -199,12 +200,17 @@
                     </p:dialog>
                 </h:form>
                 <script type="text/javascript">
+                    function abrirEdicion(xhr, status, args) {
+                        if (!(args.validationFailed || !args.okEdicion)) {
+                            PF('editarLotesDlg').show();
+                        }
+                    }
                     function handleCerrarAgregarLote(xhr, status, args) {
                         if (!(args.validationFailed || !args.okLotes)) {
                             PF('agregarLoteDlg').hide();
                         }
                     }
-               </script>
+                </script>
             </div>
         </div>
     </body>

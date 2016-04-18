@@ -1,5 +1,6 @@
 package traspasos.dao;
 
+import envios.Envios;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,6 +42,22 @@ public class DAOTraspasos {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
+    
+    public int obtenerEstatusEnvioTraspaso(int idEnvio, int idAlmacenDestino) throws SQLException {
+        int estatus = 0;
+        try (Connection cn = this.ds.getConnection()) {
+            estatus = Envios.obtenerEstatusEnvioTraspaso(cn, idEnvio, idAlmacenDestino);
+        }
+        return estatus;
+    }
+    
+    public Date obtenerFechaProduccion(int idSolicitud, boolean envio) throws SQLException {
+        Date fechaProduccion=null;
+        try (Connection cn = this.ds.getConnection()) {
+            fechaProduccion = Envios.obtenerFechaProduccion(cn, idSolicitud, envio);
+        }
+        return fechaProduccion;
+    }
 
     public void cerrarAlmacen(TOTraspaso toTraspaso) throws SQLException {
         String strSQL;
@@ -57,7 +74,7 @@ public class DAOTraspasos {
                 movimientos.Movimientos.liberarMovimientoAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), this.idUsuario);
 
                 movimientos.Movimientos.actualizaDetalleOficina(cn, toTraspaso.getIdMovto(), toTraspaso.getIdTipo(), false);
-                strSQL="UPDATE movimientos SET estatus=" + toTraspaso.getEstatus() + " WHERE idMovto=" + toTraspaso.getIdMovto();
+                strSQL = "UPDATE movimientos SET estatus=" + toTraspaso.getEstatus() + " WHERE idMovto=" + toTraspaso.getIdMovto();
                 st.executeUpdate(strSQL);
                 movimientos.Movimientos.liberarMovimientoOficina(cn, toTraspaso.getIdMovto(), this.idUsuario);
 
@@ -112,7 +129,7 @@ public class DAOTraspasos {
                     toComplemento.setReferencia(toTraspaso.getReferencia());
                     this.procesa(cn, toComplemento);
                 } else {
-                    strSQL="UPDATE solicitudes SET estatus=7 WHERE idSolicitud=" + toTraspaso.getReferencia();
+                    strSQL = "UPDATE solicitudes SET estatus=7 WHERE idSolicitud=" + toTraspaso.getReferencia();
                     st.executeUpdate(strSQL);
                 }
                 cn.commit();
@@ -218,12 +235,16 @@ public class DAOTraspasos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*\n"
+        String strSQL = "SELECT ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
+                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
+                + "     , S.estatus AS solicitudEstatus, S.envio, M.*\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=M.idMovtoAlmacen\n"
                 + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + " AND S.envio=0\n";
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
+                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + "\n";
         if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
@@ -274,7 +295,7 @@ public class DAOTraspasos {
         }
         return detalle;
     }
-    
+
     public TOTraspaso obtenerTraspaso1(int idSolicitud) throws SQLException {
         TOTraspaso toTraspaso = new TOTraspaso();
         try (Connection cn = this.ds.getConnection()) {
@@ -291,7 +312,7 @@ public class DAOTraspasos {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
         String strSQL = "SELECT " + Traspasos.sqlTraspaso() + "\n"
-                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + " AND S.envio=0\n";
+                + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.estatus >= 3 AND M.estatus" + condicion + "\n";
         if (estatus == 7) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
@@ -369,7 +390,7 @@ public class DAOTraspasos {
 
                 strSQL = "UPDATE movimientos SET propietario=0, estatus=6 WHERE idMovto=" + idMovto;
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "UPDATE S\n"
                         + "SET idUsuarioOrigen=" + this.idUsuario + ", estatus=CASE WHEN S.estatus=3 THEN 6 ELSE 7 END\n"
                         + "FROM movimientos M\n"
@@ -396,7 +417,7 @@ public class DAOTraspasos {
                 toTraspaso.setPropietario(0);
                 toTraspaso.setEstatus(5);
 
-                strSQL="UPDATE movimientosAlmacen SET estatus=" + toTraspaso.getEstatus() + "\n"
+                strSQL = "UPDATE movimientosAlmacen SET estatus=" + toTraspaso.getEstatus() + "\n"
                         + "WHERE idMovtoAlmacen=" + toTraspaso.getIdMovtoAlmacen();
                 st.executeUpdate(strSQL);
                 movimientos.Movimientos.liberarMovimientoAlmacen(cn, toTraspaso.getIdMovtoAlmacen(), this.idUsuario);
@@ -501,7 +522,6 @@ public class DAOTraspasos {
 //        movimientos.Movimientos.construirProductoOficina(rs, toProd);
 //        return toProd;
 //    }
-
     public ArrayList<TOTraspasoProducto> obtenerDetalleSolicitud(TOTraspaso toTraspaso) throws SQLException {
         ArrayList<TOTraspasoProducto> detalle = new ArrayList<>();
         String strSQL = "SELECT S.cantSolicitada, 0 AS cantTraspasada, " + toTraspaso.getIdMovto() + " AS idMovto, S.idEmpaque\n"
@@ -542,7 +562,8 @@ public class DAOTraspasos {
 //
     public ArrayList<TOTraspaso> obtenerSolicitudes(int idAlmacenOrigen) throws SQLException {
         ArrayList<TOTraspaso> solicitudes = new ArrayList<>();
-        String strSQL = "SELECT S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
+        String strSQL = "SELECT ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
+                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.envio\n"
                 + "     , S.idUsuario AS solicitudIdUsuario, S.estatus AS solicitudEstatus\n"
                 + "     , 0 AS idMovto, 35 AS idTipo, A.idEmpresa, S.idAlmacenOrigen AS idAlmacen, 0 AS folio\n"
                 + "     , 0 AS idComprobante, 0 AS idImpuestoZona, 0 AS desctoComercial, 0 AS desctoProntoPago, GETDATE() AS fecha\n"
@@ -550,7 +571,10 @@ public class DAOTraspasos {
                 + "     , 0 AS propietario, 0 AS estatus, 0 AS idMovtoAlmacen\n"
                 + "FROM solicitudes S\n"
                 + "INNER JOIN almacenes A ON A.idAlmacen=S.idAlmacen\n"
-                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1 AND envio=0\n"
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
+                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+                + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {

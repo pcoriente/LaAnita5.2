@@ -14,8 +14,10 @@ import tiendas.to.TOTienda;
  */
 public class Pedido extends MovimientoOficina {
     private int idEnvio;
+    private boolean agregado;
     private double peso;
     private int orden;
+    private int orden2;
     private int envioEstatus;
     
     private int idPedido;
@@ -249,12 +251,28 @@ public class Pedido extends MovimientoOficina {
         this.idEnvio = idEnvio;
     }
 
+    public boolean isAgregado() {
+        return agregado;
+    }
+
+    public void setAgregado(boolean agregado) {
+        this.agregado = agregado;
+    }
+
     public int getOrden() {
         return orden;
     }
 
     public void setOrden(int orden) {
         this.orden = orden;
+    }
+
+    public int getOrden2() {
+        return orden2;
+    }
+
+    public void setOrden2(int orden2) {
+        this.orden2 = orden2;
     }
 
     public int getEnvioEstatus() {

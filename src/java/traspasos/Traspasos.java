@@ -65,6 +65,9 @@ public class Traspasos {
     }
 
     public static void convertir(TOTraspaso toTraspaso, Traspaso traspaso) {
+        traspaso.setIdEnvio(toTraspaso.getIdEnvio());
+        traspaso.setPedidoFolio(toTraspaso.getPedidoFolio());
+        traspaso.setEnvio(toTraspaso.getEnvio()!=0);
         traspaso.setSolicitudFolio(toTraspaso.getSolicitudFolio());
         traspaso.setSolicitudFecha(toTraspaso.getSolicitudFecha());
         traspaso.setSolicitudIdUsuario(toTraspaso.getSolicitudIdUsuario());
@@ -74,6 +77,9 @@ public class Traspasos {
     }
 
     public static void convertir(Traspaso traspaso, TOTraspaso toTraspaso) {
+        toTraspaso.setIdEnvio(traspaso.getIdEnvio());
+        toTraspaso.setPedidoFolio(traspaso.getPedidoFolio());
+        toTraspaso.setEnvio(traspaso.isEnvio()?1:0);
         toTraspaso.setSolicitudFolio(traspaso.getSolicitudFolio());
         toTraspaso.setSolicitudFecha(traspaso.getSolicitudFecha());
         toTraspaso.setSolicitudIdUsuario(traspaso.getSolicitudIdUsuario());
@@ -103,6 +109,9 @@ public class Traspasos {
     }
 
     public static void construir(ResultSet rs, TOTraspaso toTraspaso) throws SQLException {
+        toTraspaso.setIdEnvio(rs.getInt("idEnvio"));
+        toTraspaso.setPedidoFolio(rs.getInt("pedidoFolio"));
+        toTraspaso.setEnvio(rs.getInt("envio"));
         toTraspaso.setSolicitudFolio(rs.getInt("solicitudFolio"));
         toTraspaso.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
         toTraspaso.setSolicitudIdUsuario(rs.getInt("solicitudIdUsuario"));
@@ -117,10 +126,14 @@ public class Traspasos {
     }
 
     public static String sqlTraspaso() {
-        String strSQL = "S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, M.*\n"
+        String strSQL = "ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
+                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
+                + "     , S.estatus AS solicitudEstatus, S.envio, M.*\n"
                 + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia";
+                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
+                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido";
         return strSQL;
     }
 

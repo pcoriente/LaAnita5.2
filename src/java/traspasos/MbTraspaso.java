@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -46,6 +47,7 @@ import traspasos.to.TOTraspaso;
 import traspasos.to.TOTraspasoProducto;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
+import utilerias.Utilerias;
 
 /**
  *
@@ -69,9 +71,9 @@ public class MbTraspaso implements Serializable {
     private boolean pendientes;
     private Date fechaInicial;
     private boolean locked;
+    private TimeZone zonaHoraria = TimeZone.getDefault();
     DAOMovimientosAlmacen daoAlm;
     private DAOTraspasos dao;
-    
     private ArrayList<Accion> acciones;
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
@@ -90,7 +92,7 @@ public class MbTraspaso implements Serializable {
 
         this.inicializa();
     }
-    
+
     private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to, int piezas) {
         TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
         toProd.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
@@ -207,7 +209,7 @@ public class MbTraspaso implements Serializable {
                 this.traspaso.setIdUsuario(to.getIdUsuario());
                 this.traspaso.setPropietario(to.getPropietario());
                 this.traspaso.setEstatus(to.getEstatus());
-                this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
+                this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
                 Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
             } else {
                 Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
@@ -226,12 +228,11 @@ public class MbTraspaso implements Serializable {
 //        movimientos.Movimientos.convertir(prod, toProd);
 //        return toProd;
 //    }
-
     public void gestionar() {
         if (this.producto.getCantFacturada() < 0) {
             this.producto.setCantFacturada(this.producto.getSeparados());
             Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
-        } else if (this.producto.getCantFacturada() > this.producto.getCantSolicitada()-this.producto.getCantTraspasada()) {
+        } else if (this.producto.getCantFacturada() > this.producto.getCantSolicitada() - this.producto.getCantTraspasada()) {
             this.producto.setCantFacturada(this.producto.getSeparados());
             Mensajes.mensajeAlert("La cantidad traspasada no debe ser mayor que la solicitada !!!");
         } else if (this.producto.getCantFacturada() != this.producto.getSeparados()) {
@@ -290,19 +291,36 @@ public class MbTraspaso implements Serializable {
     }
 
     public void procesar() {
+        boolean ok = true;
         TOTraspaso toMov = this.convertir(this.traspaso);
         try {
             this.dao = new DAOTraspasos();
-            this.dao.procesar(toMov);
-            this.traspaso.setIdMovto(toMov.getIdMovto());
-            this.traspaso.setFecha(toMov.getFecha());
-            this.traspaso.setIdUsuario(toMov.getIdUsuario());
-            this.traspaso.setPropietario(toMov.getPropietario());
-            this.traspaso.setEstatus(toMov.getEstatus());
-            this.traspaso.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
-            this.obtenDetalleTraspaso();
-            Mensajes.mensajeSucces("La solicitud fue aceptada !!!");
-//            this.obtenTraspasos();
+            if (this.traspaso.getIdEnvio() != 0) {
+                if(this.dao.obtenerEstatusEnvioTraspaso(toMov.getIdEnvio(), toMov.getIdReferencia())==0) {
+                    Mensajes.mensajeAlert("El envío para este almacén no ha sido cerrado !!!");
+                    ok = false;
+                }
+            } else if (this.traspaso.isEnvio()) {
+                Date fechaProduccion = this.dao.obtenerFechaProduccion(this.traspaso.getIdSolicitud(), this.traspaso.isEnvio());
+                if (fechaProduccion.equals(Utilerias.fechaInicial())) {
+                    Mensajes.mensajeAlert("No se ha asignado fecha de entrega de producción");
+                    ok = false;
+                } else if (!fechaProduccion.before(new Date())) {
+                    Mensajes.mensajeAlert("La solicitud no se puede procesar antes de la entrega de producción");
+                    ok = false;
+                }
+            }
+            if (ok) {
+                this.dao.procesar(toMov);
+                this.traspaso.setIdMovto(toMov.getIdMovto());
+                this.traspaso.setFecha(toMov.getFecha());
+                this.traspaso.setIdUsuario(toMov.getIdUsuario());
+                this.traspaso.setPropietario(toMov.getPropietario());
+                this.traspaso.setEstatus(toMov.getEstatus());
+                this.traspaso.setIdMovtoAlmacen(toMov.getIdMovtoAlmacen());
+                this.obtenDetalleTraspaso();
+                Mensajes.mensajeSucces("La solicitud fue aceptada !!!");
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -329,14 +347,14 @@ public class MbTraspaso implements Serializable {
         } else {
             this.liberarSolicitud();
         }
-        if(this.solicitudes) {
+        if (this.solicitudes) {
             this.obtenerSolicitudes();
         } else {
             this.obtenerTraspasos();
         }
         this.modoEdicion = false;
     }
-    
+
     public void liberarSolicitud() {
         boolean ok = false;
         if (this.traspaso == null) {
@@ -357,7 +375,7 @@ public class MbTraspaso implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okTraspaso", ok);
     }
-    
+
     public void liberarTraspaso() {
         boolean ok = false;
         if (this.traspaso == null) {
@@ -399,7 +417,7 @@ public class MbTraspaso implements Serializable {
             this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
             this.traspaso.setPropietario(toTraspaso.getPropietario());
             this.traspaso.setEstatus(toTraspaso.getEstatus());
-            this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
+            this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -418,7 +436,7 @@ public class MbTraspaso implements Serializable {
             this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
             this.traspaso.setPropietario(toTraspaso.getPropietario());
             this.traspaso.setEstatus(toTraspaso.getEstatus());
-            this.setLocked(this.traspaso.getIdUsuario()==this.traspaso.getPropietario());
+            this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
@@ -440,7 +458,7 @@ public class MbTraspaso implements Serializable {
     private void obtenTraspasos() throws NamingException, SQLException {
         this.traspasos = new ArrayList<>();
         this.dao = new DAOTraspasos();
-        for (TOTraspaso to : this.dao.obtenerTraspasos(this.almacen.getIdAlmacen(), this.pendientes?0:5 , this.fechaInicial)) {
+        for (TOTraspaso to : this.dao.obtenerTraspasos(this.almacen.getIdAlmacen(), this.pendientes ? 0 : 5, this.fechaInicial)) {
             traspasos.add(this.convertir(to));
         }
     }
@@ -471,7 +489,7 @@ public class MbTraspaso implements Serializable {
 
     public void obtenerSolicitudes() {
         try {
-            if(this.isSolicitudes()) {
+            if (this.isSolicitudes()) {
                 this.obtenSolicitudes();
             } else {
                 this.obtenTraspasos();
@@ -500,7 +518,7 @@ public class MbTraspaso implements Serializable {
         this.almacen = (TOAlmacenJS) this.listaAlmacenes.get(0).getValue();
         this.mbCedis.cargaMiniCedisTodos();
         this.mbBuscar.inicializar();
-        
+
         inicializaLocales();
     }
 
@@ -674,7 +692,6 @@ public class MbTraspaso implements Serializable {
 //    public void setSumaLotes(double sumaLotes) {
 //        this.sumaLotes = sumaLotes;
 //    }
-
     public TOAlmacenJS getAlmacen() {
         return almacen;
     }
@@ -697,5 +714,13 @@ public class MbTraspaso implements Serializable {
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    public TimeZone getZonaHoraria() {
+        return zonaHoraria;
+    }
+
+    public void setZonaHoraria(TimeZone zonaHoraria) {
+        this.zonaHoraria = zonaHoraria;
     }
 }

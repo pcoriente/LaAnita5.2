@@ -371,8 +371,74 @@ public class Movimientos {
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
                         + "		AND CONVERT(date, "+fechaOrdenCompra+") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, "+fechaOrdenCompra+") ELSE B.finVigencia END";
+//        String strSQL = "SELECT TOP 1 D.*\n"
+//                        + "FROM (SELECT * FROM clientesListasDetalle L\n"
+//                        + "      WHERE L.idEmpresa=" + idEmpresa + "\n"
+//                        + "		AND ((L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=0 AND L.idCliente=0 AND L.idTienda=0)\n"
+//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
+//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
+//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + ")) L\n"
+//                +        " INNER JOIN clientesListasDetalle D ON D.idClienteLista=L.idClienteLista\n"
+//                        + "WHERE  D.idEmpaque=" + idProducto + "\n"
+//                        + "		AND CONVERT(date, "+fechaOrdenCompra+") BETWEEN D.iniVigencia AND CASE WHEN D.finVigencia='1900-01-01' THEN CONVERT(date, "+fechaOrdenCompra+") ELSE D.finVigencia END\n"
+//                + "ORDER BY L.idGrupoCte DESC, L.idFromato DESC, L.idCliente DESC, L.idTienda DESC, CASE WHEN D.finVigencia='1900-01-01' THEN 10000 ELSE DATEDIFF(DAY, D.finVigencia, D.iniVigencia)";
         return strSQL;
     }
+    
+//    private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
+//        String strfechaOrdenCompra = "GETDATE()";
+//        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
+//            strfechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
+//        }
+//        ArrayList<Double> precio = new ArrayList<>();
+//        double precioUnitario, precioLista;
+//        String strSQL = "SELECT *\n"
+//                + "FROM clientesTiendas T\n"
+//                + "INNER JOIN clientesFormatos F ON F.idFormato=T.idFormato\n"
+//                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=F.idGrupoCte\n"
+//                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+//                + "WHERE T.idTienda=" + idTienda;
+//        try (Statement st = cn.createStatement()) {
+//            ResultSet rs = st.executeQuery(strSQL);
+//            if (rs.next()) {
+//                int idGrupoCte = rs.getInt("idGrupoCte");
+//                int idCliente = rs.getInt("idCliente");
+//                int idFormato = rs.getInt("idFormato");
+//                strSQL = sqlObtenerPrecioUnitario(idEmpresa, idGrupoCte, idCliente, idTienda, idFormato, idProducto, strfechaOrdenCompra);
+//                rs = st.executeQuery(strSQL);
+//                if (rs.next()) {
+//                    if (rs.getDouble("precioVenta") == 0) {
+//                        throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
+//                    } else {
+////                        precioUnitario = rs.getDouble("precioVenta");
+//                        precioLista = rs.getDouble("precioVenta");
+////                        if (!rs.getString("descuentos").equals("")) {
+////                            double descuento = 1.00;
+////                            for (String str : rs.getString("descuentos").split(",")) {
+////                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
+////                            }
+////                            desctoProducto1 = (1.00 - descuento) * 100.00;
+////                        } else {
+////                            desctoProducto1 = 0.00;
+////                        }
+////                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
+////                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+//                        precioUnitario = (precioLista * (1 - desctoComercial / 100.00));
+//
+//                        precio.add(precioUnitario);
+////                        precio.add(desctoProducto1);
+//                        precio.add(0.0);
+//                        precio.add(precioLista);
+//                    }
+//                } else {
+//                    throw (new SQLException("No se encontro precio de venta para el producto id=" + idProducto + " !!!"));
+//                }
+//            } else {
+//                throw new SQLException("No se encotro el detalle de la tienda id=" + idTienda + " para obtener precio del producto id=" + idProducto + " !!!");
+//            }
+//        }
+//        return precio;
+//    }
     
     private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
         String strfechaOrdenCompra = "GETDATE()";

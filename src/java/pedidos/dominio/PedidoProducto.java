@@ -9,15 +9,16 @@ import producto2.dominio.Producto;
  */
 public class PedidoProducto extends ProductoOficina {
     private int idEnvio;
-    private double cantEnviada;
-    private double cantEnviada2;
     private int idVenta;
-    private double cajas;
-    private double cajasSinCargo;
+    private double enviar;
+    private double enviar2;
+    private double enviarSinCargo;
+    private double enviarSinCargo2;
+    private double cantEnviar;
+    private double cantEnviarSinCargo;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private boolean similar;
-//    private double cantOrdenadaTotal;
 
     public PedidoProducto() {
         super();
@@ -35,22 +36,6 @@ public class PedidoProducto extends ProductoOficina {
         this.idEnvio = idEnvio;
     }
 
-    public double getCantEnviada() {
-        return cantEnviada;
-    }
-
-    public void setCantEnviada(double cantEnviada) {
-        this.cantEnviada = cantEnviada;
-    }
-
-    public double getCantEnviada2() {
-        return cantEnviada2;
-    }
-
-    public void setCantEnviada2(double cantEnviada2) {
-        this.cantEnviada2 = cantEnviada2;
-    }
-
     public int getIdVenta() {
         return idVenta;
     }
@@ -59,20 +44,52 @@ public class PedidoProducto extends ProductoOficina {
         this.idVenta = idVenta;
     }
 
-    public double getCajas() {
-        return cajas;
+    public double getEnviar() {
+        return enviar;
     }
 
-    public void setCajas(double cajas) {
-        this.cajas = cajas;
+    public void setEnviar(double enviar) {
+        this.enviar = enviar;
     }
 
-    public double getCajasSinCargo() {
-        return cajasSinCargo;
+    public double getEnviar2() {
+        return enviar2;
     }
 
-    public void setCajasSinCargo(double cajasSinCargo) {
-        this.cajasSinCargo = cajasSinCargo;
+    public void setEnviar2(double enviar2) {
+        this.enviar2 = enviar2;
+    }
+
+    public double getEnviarSinCargo() {
+        return enviarSinCargo;
+    }
+
+    public void setEnviarSinCargo(double enviarSinCargo) {
+        this.enviarSinCargo = enviarSinCargo;
+    }
+
+    public double getEnviarSinCargo2() {
+        return enviarSinCargo2;
+    }
+
+    public void setEnviarSinCargo2(double enviarSinCargo2) {
+        this.enviarSinCargo2 = enviarSinCargo2;
+    }
+
+    public double getCantEnviar() {
+        return cantEnviar;
+    }
+
+    public void setCantEnviar(double cantEnviar) {
+        this.cantEnviar = cantEnviar;
+    }
+
+    public double getCantEnviarSinCargo() {
+        return cantEnviarSinCargo;
+    }
+
+    public void setCantEnviarSinCargo(double cantEnviarSinCargo) {
+        this.cantEnviarSinCargo = cantEnviarSinCargo;
     }
 
     public double getCantOrdenada() {
@@ -90,14 +107,6 @@ public class PedidoProducto extends ProductoOficina {
     public void setCantOrdenadaSinCargo(double cantOrdenadaSinCargo) {
         this.cantOrdenadaSinCargo = cantOrdenadaSinCargo;
     }
-
-//    public double getCantOrdenadaTotal() {
-//        return cantOrdenadaTotal;
-//    }
-//
-//    public void setCantOrdenadaTotal(double cantOrdenadaTotal) {
-//        this.cantOrdenadaTotal = cantOrdenadaTotal;
-//    }
 
     public boolean isSimilar() {
         return similar;

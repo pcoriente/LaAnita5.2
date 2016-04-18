@@ -18,6 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
 import javax.servlet.ServletOutputStream;
@@ -63,7 +65,6 @@ public class MbRecepcion implements Serializable {
     @ManagedProperty(value = "#{mbProductosBuscar}")
     private MbProductosBuscar mbBuscar;
     private boolean modoEdicion;
-
     private TOAlmacenJS almacen;
     private ArrayList<SelectItem> listaAlmacenes;
     private ArrayList<Recepcion> recepciones;
@@ -83,7 +84,7 @@ public class MbRecepcion implements Serializable {
         this.mbBuscar = new MbProductosBuscar();
         this.inicializa();
     }
-    
+
     private TORechazoProductoAlmacen convertir(TORecepcionProductoAlmacen to, int piezas) {
         TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
         toProd.setCantRecibida(0);
@@ -227,7 +228,7 @@ public class MbRecepcion implements Serializable {
                 this.recepcion.setEstatus(toMov.getEstatus());
                 this.recepcion.setIdUsuario(toMov.getIdUsuario());
                 this.recepcion.setPropietario(toMov.getPropietario());
-                this.setLocked(this.recepcion.getIdUsuario()==this.recepcion.getPropietario());
+                this.setLocked(this.recepcion.getIdUsuario() == this.recepcion.getPropietario());
                 Mensajes.mensajeSucces("La recepción se grabo correctamente !!!");
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -236,7 +237,7 @@ public class MbRecepcion implements Serializable {
             }
         }
     }
-    
+
     public void agregarLote() {
         boolean ok = false;
         ArrayList<String> turnos = new ArrayList<>();
@@ -273,7 +274,7 @@ public class MbRecepcion implements Serializable {
         this.lote.setIdMovtoAlmacen(this.recepcion.getIdMovtoAlmacen());
         this.lote.setIdProducto(this.producto.getProducto().getIdProducto());
     }
-    
+
     public void gestionar() {
         double cantSolicitada = this.lote.getCantidad();
         this.lote.setCantidad(this.lote.getSeparados());
@@ -289,11 +290,11 @@ public class MbRecepcion implements Serializable {
         } else {
             try {
                 this.dao = new DAORecepciones();
-                if(cantSolicitada > this.lote.getCantidad()) {
+                if (cantSolicitada > this.lote.getCantidad()) {
                     cantSolicitada -= this.lote.getCantidad();
                     this.dao.separar(this.recepcion.getIdMovto(), toProd, cantSolicitada);
                     this.producto.setCantFacturada(this.producto.getCantFacturada() + cantSolicitada);
-                } else if(cantSolicitada < this.lote.getCantidad()) {
+                } else if (cantSolicitada < this.lote.getCantidad()) {
                     cantSolicitada = this.lote.getCantidad() - cantSolicitada;
                     this.dao.liberar(this.recepcion.getIdMovto(), toProd, cantSolicitada);
                     this.producto.setCantFacturada(this.producto.getCantFacturada() - cantSolicitada);
@@ -321,9 +322,21 @@ public class MbRecepcion implements Serializable {
     }
 
     public void editar(SelectEvent event) {
-        this.producto = (RecepcionProducto) event.getObject();
+        boolean ok = false;
+        try {
+            if (this.dao.obtenerTraspaso(this.recepcion.getIdTraspaso()).getEnvio() != 0) {
+                Mensajes.mensajeAlert("La recepción es directa y no se puede modificar, aplicar grabar !!!");
+                ok = false;
+            } else {
+                this.producto = (RecepcionProducto) event.getObject();
+            }
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
+        RequestContext context = RequestContext.getCurrentInstance();
+        context.addCallbackParam("okEdicion", ok);
     }
-    
+
     public void liberarRecepcion() {
         boolean ok = false;
         if (this.recepcion == null) {
@@ -351,7 +364,7 @@ public class MbRecepcion implements Serializable {
         this.obtenerRecepciones();
         this.modoEdicion = false;
     }
-    
+
 //    private RecepcionProductoAlmacen convertirProductoAlmacen(TORecepcionProductoAlmacen toProd) {
 //        RecepcionProductoAlmacen prod = new RecepcionProductoAlmacen();
 ////        prod.setCantSolicitada(toProd.getCantSolicitada());
@@ -360,7 +373,6 @@ public class MbRecepcion implements Serializable {
 //        prod.setSeparados(prod.getCantidad());
 //        return prod;
 //    }
-
     private RecepcionProducto convertir(TORecepcionProducto toProd) throws SQLException {
         RecepcionProducto prod = new RecepcionProducto();
         prod.setCantSolicitada(toProd.getCantSolicitada());
@@ -394,7 +406,7 @@ public class MbRecepcion implements Serializable {
             this.recepcion.setEstatus(toRecepcion.getEstatus());
             this.recepcion.setIdUsuario(toRecepcion.getIdUsuario());
             this.recepcion.setPropietario(toRecepcion.getPropietario());
-            this.setLocked(this.recepcion.getIdUsuario()==this.recepcion.getPropietario());
+            this.setLocked(this.recepcion.getIdUsuario() == this.recepcion.getPropietario());
             this.modoEdicion = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -469,7 +481,7 @@ public class MbRecepcion implements Serializable {
     public void setLote(TORecepcionProductoAlmacen lote) {
         this.lote = lote;
     }
-    
+
     public boolean isPendientes() {
         return pendientes;
     }

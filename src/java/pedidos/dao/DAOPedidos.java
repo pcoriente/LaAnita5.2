@@ -1,6 +1,7 @@
 package pedidos.dao;
 
 import comprobantes.to.TOComprobante;
+import envios.Envios;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -40,6 +41,120 @@ public class DAOPedidos {
 
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
+    }
+
+    public ArrayList<TOPedidoProducto> cerrarFincadoDirecto(TOPedido toPed, int recepcionIdMovto) throws SQLException {
+        String strSQL;
+        ArrayList<TOPedidoProducto> detalle = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                toPed.setIdUsuario(this.idUsuario);
+                toPed.setPropietario(0);
+                toPed.setEstatus(5);
+
+                strSQL = "UPDATE D\n"
+                        + "SET cantFacturada=EPD.cantEnviar, cantSinCargo=EPD.cantEnviarSinCargo\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN enviosPedidosDetalle EPD ON EPD.idVenta=M.referencia AND EPD.idEmpaque=D.idEmpaque\n"
+                        + "WHERE M.idMovto=" + toPed.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "SELECT *\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "LEFT JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toPed.getIdMovto() + " AND (A.idEmpaque IS NULL OR A.existencia - A.separados < D.cantFacturada + D.cantSinCargo)";
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    throw new SQLException("No hay existencia suficiente !!");
+                }
+                strSQL = "UPDATE A\n"
+                        + "SET separados=A.separados+(D.cantFacturada+D.cantSinCargo)\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toPed.getIdMovto();
+                st.executeUpdate(strSQL);
+
+                Pedidos.cerrarVenta(cn, toPed);
+
+                toPed.setIdUsuario(this.idUsuario);
+                toPed.setPropietario(0);
+                toPed.setEstatus(7);
+
+                int recepcionIdMovtoAlmacen = 0;
+                strSQL = "SELECT idMovtoAlmacen FROM movimientos WHERE idMovto=" + recepcionIdMovto;
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    recepcionIdMovtoAlmacen = rs.getInt("idMovtoAlmacen");
+                }
+                strSQL = "SELECT D.idEmpaque\n"
+                        + "FROM (SELECT idEmpaque, SUM(cantidad) AS cantidad\n"
+                        + "	FROM movimientosDetalleAlmacen\n"
+                        + "	WHERE idMovtoAlmacen=" + recepcionIdMovtoAlmacen + "\n"
+                        + "	GROUP BY idEmpaque) A\n"
+                        + "INNER JOIN movimientosDetalle D ON D.idEmpaque=A.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toPed.getIdMovto() + " AND A.cantidad != D.cantFacturada + D.cantSinCargo";
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    throw new SQLException("Cantidades recibidas no coinciden con lotes !!");
+                }
+                strSQL = "INSERT INTO movimientosDetalleAlmacen (idMovtoAlmacen, idEmpaque, lote, cantidad, fecha, existenciaAnterior)\n"
+                        + "SELECT " + toPed.getIdMovtoAlmacen() + " AS idMovtoAlmacen, idEmpaque, lote, cantidad, '' AS fecha, 0 AS existenciaAnterior\n"
+                        + "FROM movimientosDetalleAlmacen\n"
+                        + "WHERE idMovtoAlmacen=" + recepcionIdMovtoAlmacen;
+                st.executeUpdate(strSQL);
+
+                strSQL = "SELECT *\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "LEFT JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+                        + "WHERE D.idMovtoAlmacen=" + toPed.getIdMovtoAlmacen() + " AND (A.lote IS NULL OR A.existencia - A.separados < D.cantidad)";
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    throw new SQLException("No hay existencia de lotes suficiente !!!");
+                }
+                strSQL = "UPDATE A\n"
+                        + "SET separados=A.separados+D.cantidad\n"
+                        + "FROM movimientosDetalleAlmacen D\n"
+                        + "INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                        + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
+                        + "WHERE D.idMovtoAlmacen=" + toPed.getIdMovtoAlmacen();
+                st.executeUpdate(strSQL);
+
+                Pedidos.cierraVentaAlmacen(cn, toPed);
+                detalle = this.obtenDetalle(cn, toPed);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return detalle;
+    }
+
+    public int obtenerIdMovtoRecepcion(int idSolicitud) throws SQLException {
+        int idMovtoRecepcion = 0;
+        try (Connection cn = this.ds.getConnection()) {
+            Envios.obtenerIdMovtoRecepcion(cn, idSolicitud);
+        }
+        return idMovtoRecepcion;
+    }
+
+    public int obtenerEstatusTraspasoDirecto(int idEnvio, int idAlmacen, int idSolicitud) throws SQLException {
+        int estatus = 0;
+        try (Connection cn = this.ds.getConnection()) {
+            estatus = Envios.obtenerEstatusEnvioTraspaso(cn, idEnvio, idAlmacen);
+            if (estatus == 1) {
+                estatus = Envios.obtenerEstatusTraspasoDirecto(cn, idSolicitud);
+            }
+        }
+        return estatus;
     }
 
     public void cancelarPedido(TOPedido toPed) throws SQLException {
@@ -311,7 +426,7 @@ public class DAOPedidos {
                 if (rs.next()) {
                     throw new Exception("El pedido ya tiene una venta pendiente !!!");
                 }
-                this.generaPedidoVenta(cn, toPed.getIdPedido());
+                Pedidos.generarPedidoVenta(cn, toPed.getIdPedido(), this.idUsuario);
                 detalle = this.obtenDetalle(cn, toPed);
 
                 cn.commit();
@@ -328,123 +443,26 @@ public class DAOPedidos {
         return detalle;
     }
 
-    private void generaPedidoVenta(Connection cn, int idPedido) throws SQLException {
-        // Obtiene el movimiento original (el primer idMovto) del pedido, para con este crear el nuevo
-//        String strSQL = "SELECT M.*, P.idPedidoOC, P.folio AS pedidoFolio, P.fecha AS pedidoFecha, P.diasCredito, P.especial, P.idUsuario AS pedidoIdUsuario, P.canceladoMotivo\n"
-//                + "     , P.directo, P.idEnvio, P.peso, P.orden, P.estatus AS pedidoEstatus, C.idMoneda\n"
-//                + "     , ISNULL(OC.electronico, '') AS electronico, ISNULL(OC.ordenDeCompra, '') AS ordenDeCompra, ISNULL(OC.ordenDeCompraFecha, '1900-01-01') AS ordenDeCompraFecha\n"
-//                + "FROM movimientos M\n"
-//                + "INNER JOIN comprobantes C ON C.idComprobante=M.idComprobante\n"
-//                + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-//                + "LEFT JOIN pedidosOC OC ON OC.idPedidoOC=P.idPedidoOC\n"
-//                + "WHERE P.idPedido=" + idPedido + " AND M.estatus=5\n"
-//                + "ORDER BY M.idMovto";
-        String strSQL;
-        int idMovto;
-        TOPedido toPed;
-        try (Statement st = cn.createStatement()) {
-            strSQL = "SELECT " + Pedidos.sqlPedidos() + "\n"
-                    + "WHERE P.idPedido=" + idPedido + " AND M.estatus=5\n"
-                    + "ORDER BY M.idMovto";
-            ResultSet rs = st.executeQuery(strSQL);
-            if (!rs.next()) {
-                throw new SQLException("No se encontró el pedido !!!");
-            }
-            toPed = Pedidos.construirPedido(rs);
-            idMovto = toPed.getIdMovto();
-            toPed.setIdUsuario(this.idUsuario);
-            toPed.setPropietario(0);
-            toPed.setEstatus(0);
-            toPed.setFolio(0);
-
-            strSQL = "SELECT idMoneda FROM comprobantes WHERE idComprobante=" + toPed.getIdComprobante();
-            rs = st.executeQuery(strSQL);
-            if (!rs.next()) {
-                throw new SQLException("No se encontró el comprobante !!!");
-            }
-            TOComprobante to = new TOComprobante(toPed.getIdTipo(), toPed.getIdEmpresa(), toPed.getIdReferencia(), rs.getInt("idMoneda"));
-            to.setTipo(1);
-            to.setNumero("");
-            to.setIdUsuario(this.idUsuario);
-            to.setPropietario(0);
-            comprobantes.Comprobantes.agregar(cn, to);
-
-            toPed.setIdComprobante(to.getIdComprobante());
-            movimientos.Movimientos.agregaMovimientoAlmacen(cn, toPed, false);
-            movimientos.Movimientos.agregaMovimientoOficina(cn, toPed, false);
-
-            strSQL = "UPDATE comprobantes SET numero=" + String.valueOf(toPed.getIdMovto()) + " WHERE idComprobante=" + toPed.getIdComprobante();
-            st.executeUpdate(strSQL);
-
-            strSQL = "INSERT INTO movimientosDetalle\n"
-                    + "SELECT " + toPed.getIdMovto() + " AS idMovto, D.idEmpaque, 0 AS cantFacturada, 0 AS cantSinCargo, D.costoPromedio, D.costo\n"
-                    + "     , D.desctoProducto1, D.desctoProducto2, D.desctoConfidencial, D.unitario, D.idImpuestoGrupo, '' AS fecha"
-                    + "     , 0 AS existenciaAnterior, 0 AS ctoPromAnterior\n"
-                    + "FROM movimientosDetalle D\n"
-                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                    + "INNER JOIN ventasDetalle PD ON PD.idVenta=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
-                    + "WHERE D.idMovto=" + idMovto + " AND (PD.cantSurtida<PD.cantOrdenada OR PD.cantSurtidaSinCargo<PD.cantOrdenadaSinCargo)";
-            st.executeUpdate(strSQL);
-
-            strSQL = "INSERT INTO movimientosDetalleImpuestos\n"
-                    + "SELECT D.idMovto, I.idEmpaque, I.idImpuesto, I.impuesto, I.valor, I.aplicable, I.modo, I.acreditable, I.importe, I.acumulable\n"
-                    + "FROM (SELECT * FROM movimientosDetalleImpuestos WHERE idMovto=" + idMovto + ") I\n"
-                    + "INNER JOIN movimientosDetalle D ON D.idEmpaque=I.idEmpaque\n"
-                    + "WHERE D.idMovto=" + toPed.getIdMovto();
-            st.executeUpdate(strSQL);
-        }
-    }
-
+//    private void generaPedidoVenta(Connection cn, int idPedido) throws SQLException {
+//        // Obtiene el movimiento original (el primer idMovto) del pedido, para con este crear el nuevo
+//        String strSQL;
+//        int idMovto;
+//        TOPedido toPed;
+//        try {
+//            Pedidos.generarPedidoVenta(cn, idPedido, this.idUsuario);
+//        }
+//    }
+//
     public void cerrarVenta(TOPedido toPed) throws SQLException {
-        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
+            try {
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
                 toPed.setEstatus(5);
 
-                strSQL = "UPDATE movimientosAlmacen SET estatus=" + toPed.getEstatus() + " WHERE idMovtoAlmacen=" + toPed.getIdMovtoAlmacen();
-                st.executeUpdate(strSQL);
-                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toPed.getIdMovtoAlmacen(), this.idUsuario);
+                Pedidos.cerrarVenta(cn, toPed);
 
-                toPed.setFolio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, toPed.getIdAlmacen(), toPed.getIdTipo()));
-                movimientos.Movimientos.grabaMovimientoOficina(cn, toPed);
-                movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
-
-                strSQL = "UPDATE comprobantes\n"
-                        + "SET fechaFactura=GETDATE(), tipo=2, numero='" + String.valueOf(toPed.getFolio()) + "'\n"
-                        + "WHERE idComprobante=" + toPed.getIdComprobante();
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE PD\n"
-                        + "SET cantSurtida=PD.cantSurtida+D.cantFacturada, cantSurtidaSinCargo=PD.cantSurtidaSinCargo+D.cantSinCargo\n"
-                        + "FROM movimientosDetalle D\n"
-                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                        + "INNER JOIN ventasDetalle PD ON PD.idVenta=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
-                        + "WHERE D.idMovto=" + toPed.getIdMovto();
-                st.executeUpdate(strSQL);
-
-                strSQL = "UPDATE ventas\n"
-                        + "SET diasCredito=" + toPed.getDiasCredito() + "\n"
-                        + "WHERE idVenta=" + toPed.getReferencia();
-                st.executeUpdate(strSQL);
-
-                if (toPed.getIdPedido() != 0) {
-                    strSQL = "SELECT * FROM ventasDetalle\n"
-                            + "WHERE idVenta=" + toPed.getReferencia() + " AND (cantSurtida<cantOrdenada OR cantSurtidaSinCargo<cantOrdenadaSinCargo)";
-                    ResultSet rs = st.executeQuery(strSQL);
-                    if (rs.next()) {
-                        this.generaPedidoVenta(cn, toPed.getIdPedido());
-                        toPed.setPedidoEstatus(5);
-                    } else {
-                        toPed.setPedidoEstatus(7);
-                    }
-                    strSQL = "UPDATE pedidos\n"
-                            + "SET estatus=" + toPed.getPedidoEstatus() + "\n"
-                            + "WHERE idPedido=" + toPed.getIdPedido();
-                    st.executeUpdate(strSQL);
-                }
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -784,11 +802,8 @@ public class DAOPedidos {
 
     public ArrayList<TOPedidoProducto> obtenerSimilares(int idMovto, int idProducto) throws SQLException {
         ArrayList<TOPedidoProducto> productos = new ArrayList<>();
-        Connection cn = this.ds.getConnection();
-        try {
+        try (Connection cn = this.ds.getConnection()) {
             this.obtenSimilares(cn, idMovto, idProducto);
-        } finally {
-            cn.close();
         }
         return productos;
     }
@@ -860,7 +875,6 @@ public class DAOPedidos {
 //        movimientos.Movimientos.construirProductoOficina(rs, to);
 //        return to;
 //    }
-
     public void actualizarProductoSinCargo(TOPedido toPed, TOPedidoProducto toProd, double cantSeparada) throws SQLException {
         // Solo para capturar la cantidad sin cargo, cuando la venta es con pedido
         double cantSolicitada;
@@ -1267,17 +1281,11 @@ public class DAOPedidos {
     }
 
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial, boolean isVenta) throws SQLException {
-//        String condicion = "=0";
-//        if (estatus != 0) {
-//            condicion = ">=" + estatus;
-//        }
         String condicion = "";
         if (isVenta) {
             if (estatus != 0) {
-//                condicion += "P.estatus>=6";
                 condicion += "M.estatus>=5";
             } else {
-//                condicion += "((P.estatus=0 AND P.idUsuario=0) OR P.estatus=5)";
                 condicion += "((V.idPedido=0 OR P.estatus>=1) AND M.estatus=0)";
             }
         } else if (estatus != 0) {

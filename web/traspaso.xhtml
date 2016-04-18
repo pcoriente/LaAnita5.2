@@ -68,18 +68,29 @@
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbTraspaso.obtenerDetalle}" update="main" />
 
-                            <p:column headerText="IDMOVTO" style="width: 60px;" >
-                                <h:outputText value="#{traspaso.idMovto}" />
-                            </p:column>
                             <p:column headerText="SOLICITUD" style="width: 60px;" >
                                 <h:outputText value="#{traspaso.solicitudFolio}" />
                             </p:column>
                             <p:column headerText="ALMACEN" >
                                 <h:outputText value="#{traspaso.almacenDestino.toString()}" />
                             </p:column>
-                            <p:column headerText="FECHA" style="width: 130px;" >
+                            <p:column headerText="ENVIO" style="width: 40px" >
+                                <h:outputText value="#{traspaso.idEnvio!=0 or traspaso.envio?'Si':'No'}" />
+                            </p:column>
+                            <p:column headerText="PEDIDO" style="width: 50px" >
+                                <h:outputText value="#{traspaso.pedidoFolio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 60px;" >
+                                <h:outputText value="#{traspaso.solicitudFecha}" >
+                                    <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbTraspaso.zonaHoraria.ID}" />
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="TRASPASO" style="width: 60px;" >
+                                <h:outputText value="#{traspaso.folio}" />
+                            </p:column>
+                            <p:column headerText="FECHA" style="width: 60px;" >
                                 <h:outputText value="#{traspaso.fecha}" >
-                                    <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
+                                    <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbTraspaso.zonaHoraria.ID}" />
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="ESTATUS" style="width: 60px; text-align: left;" >
@@ -118,9 +129,9 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="detalleTraspaso" value="#{mbTraspaso.detalle}" style="border:solid 1px;"
+                        <p:dataTable id="detalleTraspaso" value="#{mbTraspaso.detalle}" style="border:solid 1px; width: 825px;"
                                      var="prod" rowKey="#{prod.producto.idProducto}"  editable="true" editMode="cell"
-                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="10" >
+                                     emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="300px;" >
                             <p:ajax event="cellEdit" listener="#{mbTraspaso.onCellEdit}" />
 
                             <p:column headerText="SKU" style="width: 60px;" >
@@ -156,7 +167,7 @@
                             </p:column>
                             <f:facet name="footer">
                                 <p:commandButton id="btnRechazarSolicitud" icon="ui-icon-cancel" value="Rechazar" title="Rechazar la solicitud"
-                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0 or !mbTraspaso.locked}"
+                                                 disabled="#{mbTraspaso.traspaso.idMovto!=0 or !mbTraspaso.locked or mbTraspaso.traspaso.idEnvio!=0 or mbTraspaso.traspaso.envio}"
                                                  process="@this" actionListener="#{mbTraspaso.rechazar()}" update="main" >
                                     <p:confirm header="Rechazar solicitud" message="Confirma ?" icon="ui-icon-alert" />
                                 </p:commandButton>
@@ -166,7 +177,7 @@
                                     <p:confirm header="Procesar solicitud" message="Confirma ?" icon="ui-icon-alert"  />
                                 </p:commandButton>
                                 <p:commandButton id="btnCancelarTraspaso" icon="ui-icon-trash" value="Cancelar" title="Cancelar el traspaso"
-                                                 disabled="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=0 or !mbTraspaso.locked}"
+                                                 disabled="#{mbTraspaso.traspaso.idMovto==0 or mbTraspaso.traspaso.estatus!=0 or !mbTraspaso.locked or mbTraspaso.traspaso.idEnvio!=0 or mbTraspaso.traspaso.envio}"
                                                  process="@this" actionListener="#{mbTraspaso.cancelar()}" update="main" >
                                     <p:confirm header="Cancelar traspaso" message="Confirma ?" icon="ui-icon-alert" />
                                 </p:commandButton>

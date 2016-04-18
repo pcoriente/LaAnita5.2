@@ -62,23 +62,14 @@ public class DAOVentas {
     }
 
     public void cerrarVentaAlmacen(TOPedido toPed) throws SQLException {
-        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
+            try {
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
                 toPed.setEstatus(7);
-
-                toPed.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toPed.getIdAlmacen(), toPed.getIdTipo()));
-                movimientos.Movimientos.grabaMovimientoAlmacen(cn, toPed);
-                movimientos.Movimientos.actualizaDetalleAlmacen(cn, toPed.getIdMovtoAlmacen(), false);
-                movimientos.Movimientos.liberarMovimientoAlmacen(cn, toPed.getIdMovtoAlmacen(), this.idUsuario);
-
-                movimientos.Movimientos.actualizaDetalleOficina(cn, toPed.getIdMovto(), toPed.getIdTipo(), false);
-                strSQL = "UPDATE movimientos SET estatus=" + toPed.getEstatus() + " WHERE idMovto=" + toPed.getIdMovto();
-                st.executeUpdate(strSQL);
-                movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
+                
+                Pedidos.cierraVentaAlmacen(cn, toPed);
 
                 cn.commit();
             } catch (SQLException ex) {

@@ -12,6 +12,7 @@ import traspasos.dominio.Traspaso;
 public class EnvioTraspaso extends Traspaso {
     private int idEnvio;
     private double peso;
+    private double pesoDirectos;
     private int diasInventario;
     private int diasInventario2;
     private Date fechaProduccion;
@@ -41,6 +42,14 @@ public class EnvioTraspaso extends Traspaso {
 
     public void setPeso(double peso) {
         this.peso = peso;
+    }
+
+    public double getPesoDirectos() {
+        return pesoDirectos;
+    }
+
+    public void setPesoDirectos(double pesoDirectos) {
+        this.pesoDirectos = pesoDirectos;
     }
 
     public int getDiasInventario() {

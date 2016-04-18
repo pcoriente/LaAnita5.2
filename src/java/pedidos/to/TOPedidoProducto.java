@@ -8,13 +8,13 @@ import movimientos.to.TOProductoOficina;
  */
 public class TOPedidoProducto extends TOProductoOficina {
     private int idEnvio;
-    private double cantEnviada;
     private int idVenta;
+    private double cantEnviar;
+    private double cantEnviarSinCargo;
     private double cantOrdenada;
     private double cantOrdenadaSinCargo;
     private int piezas;
     private String cod_pro;
-//    private boolean similar;
 
     public TOPedidoProducto() {
         super();
@@ -28,21 +28,29 @@ public class TOPedidoProducto extends TOProductoOficina {
     public void setIdEnvio(int idEnvio) {
         this.idEnvio = idEnvio;
     }
-
-    public double getCantEnviada() {
-        return cantEnviada;
-    }
-
-    public void setCantEnviada(double cantEnviada) {
-        this.cantEnviada = cantEnviada;
-    }
-
+    
     public int getIdVenta() {
         return idVenta;
     }
 
     public void setIdVenta(int idVenta) {
         this.idVenta = idVenta;
+    }
+
+    public double getCantEnviar() {
+        return cantEnviar;
+    }
+
+    public void setCantEnviar(double cantEnviar) {
+        this.cantEnviar = cantEnviar;
+    }
+
+    public double getCantEnviarSinCargo() {
+        return cantEnviarSinCargo;
+    }
+
+    public void setCantEnviarSinCargo(double cantEnviarSinCargo) {
+        this.cantEnviarSinCargo = cantEnviarSinCargo;
     }
 
     public double getCantOrdenada() {
