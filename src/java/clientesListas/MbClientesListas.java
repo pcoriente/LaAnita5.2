@@ -131,6 +131,7 @@ public class MbClientesListas implements Serializable {
 //    }
     public void obtenerListaSeleccionada(SelectEvent selectEvent) {
         this.clientesListaSeleccionada = (TOClienteLista) selectEvent.getObject();
+        //this.mbBuscar.obtenerProducto(clientesListaSeleccionada);
         //System.out.println("estamos" + this.clientesListaSeleccionada.getIdClienteLista());
     }
 

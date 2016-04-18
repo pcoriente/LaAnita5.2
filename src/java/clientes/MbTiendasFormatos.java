@@ -1,7 +1,7 @@
 package clientes;
 
 import Message.Mensajes;
-import clientes.dominio.TiendaFormato;
+//import clientes.dominio.TiendaFormato;
 import javax.inject.Named;
 import javax.enterprise.context.SessionScoped;
 import java.io.Serializable;
@@ -78,14 +78,15 @@ public class MbTiendasFormatos implements Serializable {
 
     public void cargarListaCombo(int idGrupoClte) {
         try {
-            listaFormatos = new ArrayList<SelectItem>();
+            listaFormatos = new ArrayList<>();
             DAOFormatos dao = new DAOFormatos();
             ClienteFormato fmto0 = new ClienteFormato();
             fmto0.setIdFormato(0);
-            fmto0.setFormato("Nuevo Formato");
+            fmto0.setFormato("Seleccione Formato");
             listaFormatos.add(new SelectItem(fmto0, fmto0.getFormato()));
             for (ClienteFormato fmto : dao.dameFormatos(idGrupoClte)) {
                 listaFormatos.add(new SelectItem(fmto, fmto.getFormato()));
+                System.out.println("El formato es "+fmto.getFormato());
             }
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
@@ -104,8 +105,6 @@ public class MbTiendasFormatos implements Serializable {
         return f;
     }
 
-
-
     public ArrayList<SelectItem> getListaFormatos() {
         return listaFormatos;
     }
@@ -113,4 +112,12 @@ public class MbTiendasFormatos implements Serializable {
     public void setListaFormatos(ArrayList<SelectItem> listaFormatos) {
         this.listaFormatos = listaFormatos;
     }
+        public ClienteFormato getFormato() {
+        return formato;
+    }
+
+    public void setFormato(ClienteFormato formato) {
+        this.formato = formato;
+    }
+
 }

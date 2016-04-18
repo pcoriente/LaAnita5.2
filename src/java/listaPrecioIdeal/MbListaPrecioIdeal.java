@@ -6,11 +6,10 @@
 package listaPrecioIdeal;
 
 import Message.Mensajes;
+
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
@@ -21,9 +20,22 @@ import javax.inject.Named;
 import javax.naming.NamingException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.faces.model.SelectItem;
+
+import empresas.MbMiniEmpresas;
+import mbMenuClientesGrupos.MbClientesGrupos;
+import clientes.MbMiniClientes;
+import clientes.MbTiendasFormatos;
+
+import empresas.dominio.MiniEmpresa;
+import formatos.dominio.ClienteFormato;
+import menuClientesGrupos.dominio.ClienteGrupo;
+import clientes.to.TOCliente;
+//import clientes.dominio.TiendaFormato;
 import listaPrecioIdeal.DAO.DAOListaPrecio;
 import listaPrecioIdeal.dominio.ListaPrecioIdeal;
 import listaPrecioIdeal.to.TOPrecioListaIdeal;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -31,9 +43,6 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
-import ordenesDeCompra.dominio.OrdenCompraDetalle;
-import ordenesDeCompra.dominio.OrdenCompraEncabezado;
-import ordenesDeCompra.dominio.TotalesOrdenCompra;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.RowEditEvent;
 import producto2.MbProductosBuscar;
@@ -52,6 +61,16 @@ public class MbListaPrecioIdeal implements Serializable {
     /**
      * Creates a new instance of MbListaPrecioIdeal
      */
+    @ManagedProperty(value = "#{mbMiniEmpresas}")
+    private MbMiniEmpresas mbEmpresas;
+    @ManagedProperty(value = "#{mbClientesGrupos}")
+    private MbClientesGrupos mbClientesGrupos = new MbClientesGrupos();
+    @ManagedProperty(value = "#{mbTiendasFormatos}")
+    private MbTiendasFormatos mbTiendasFormatos = new MbTiendasFormatos();
+    @ManagedProperty(value = "#{mbMiniClientes}")
+    private MbMiniClientes mbMiniClientes = new MbMiniClientes();
+
+    //private Empresa empresa = new Empresa();
     private ArrayList<Producto> lstProducto = new ArrayList<Producto>();
     private ArrayList<ListaPrecioIdeal> lstListaPrecioIdeal = new ArrayList<ListaPrecioIdeal>();
     private ListaPrecioIdeal precioIdeal = new ListaPrecioIdeal();
@@ -61,12 +80,19 @@ public class MbListaPrecioIdeal implements Serializable {
     private ListaPrecioIdeal listaPrecioSeleccionPrincipal;
     private ListaPrecioIdeal listaPrecioSeleccionSecundaria;
     private boolean actualizar = false;
-    private ArrayList<ListaPrecioIdeal>filterLstPrecioIdeal;
+    private ArrayList<ListaPrecioIdeal> filterLstPrecioIdeal;
+    private ArrayList<SelectItem> listaFormatos;
 
     public MbListaPrecioIdeal() {
+        this.mbEmpresas = new MbMiniEmpresas();
+        this.mbClientesGrupos = new MbClientesGrupos();
+        this.mbTiendasFormatos = new MbTiendasFormatos();
+        this.mbMiniClientes = new MbMiniClientes();
+               this.mbMiniClientes.setListaClientes(null);// para probar
     }
 
     public void buscar() {
+
         this.mbBuscar.buscarLista();
     }
 
@@ -99,12 +125,39 @@ public class MbListaPrecioIdeal implements Serializable {
     }
 
     public String salir() {
+        this.mbEmpresas.setEmpresa(new MiniEmpresa());
+        this.mbEmpresas.setListaEmpresas(null);
+        this.mbClientesGrupos.setClientesGrupos(new ClienteGrupo());
+        this.mbClientesGrupos.setItemsClientesGrupos(null);
+        this.mbTiendasFormatos.setFormato(new ClienteFormato()); // aqui me pidio importa la clase ClienteFormato
+        this.mbTiendasFormatos.setListaFormatos(null);
+        this.mbMiniClientes.setCliente(new TOCliente());
+        this.mbMiniClientes.setListaClientes(null);
         return "index.xhtml";
+    }
+
+    public void cargaCombos() {
+        //this.listaFormatos = new ArrayList<>();
+        //TiendaFormato tf = new TiendaFormato();
+        //----esta es la ok this.mbTiendasFormatos.cargarListaCombo(this.mbClientesGrupos.getClienteGrupoSeleccionado().getIdGrupoCte());
+
+        this.mbTiendasFormatos.cargarListaCombo(this.mbClientesGrupos.getClientesGrupos().getIdGrupoCte());
+        this.mbMiniClientes.cargarClientesGrupo(this.mbClientesGrupos.getClientesGrupos().getIdGrupoCte());
+        //for (TiendaFormato t : this.mbTiendasFormatos.cargarListaCombo(this.mbClientesGrupos.getClienteGrupoSeleccionado().getIdGrupoCte())){
+        //    listaFormatos.add(new SelectItem(t.getIdFormato(), t.getFormato()));
+        //}
+        //TiendaFormato tf = new TiendaFormato(0,"Seleeciones un Formato");
+        //this.listaSubUsuarios.add(new SelectItem(usu, usu.toString()));
+        //for (Usuario us : this.mbUsuarios.obtenerSubUsuarios(this.mbDepto.getDeptos().getIdDepto())) {
+        //    listaSubUsuarios.add(new SelectItem(us, us.toString()));
+        //for (TiendaFormato tfl : this.mbTiendasFormatos.cargarListaCombo(this.mbClientesGrupos.)nuevoFormato(idGrupoCte)){
+        //}
+
     }
 
     public void actualizarPrecioLista(ListaPrecioIdeal ls) {
 //        System.out.println(ls.getPrecioLista());
-        
+
 //        FacesContext context = FacesContext.getCurrentInstance();
         try {
             DAOListaPrecio dao = new DAOListaPrecio();
@@ -230,9 +283,9 @@ public class MbListaPrecioIdeal implements Serializable {
 
     public ListaPrecioIdeal convertir(TOPrecioListaIdeal to) {
         ListaPrecioIdeal precioIdeal = new ListaPrecioIdeal();
-        Producto pr=this.mbBuscar.obtenerProducto(to.getIdProducto());
-        if(pr==null) {
-            pr=new Producto();
+        Producto pr = this.mbBuscar.obtenerProducto(to.getIdProducto());
+        if (pr == null) {
+            pr = new Producto();
             pr.setIdProducto(to.getIdProducto());
             System.out.println(to.getIdProducto());
         }
@@ -309,6 +362,46 @@ public class MbListaPrecioIdeal implements Serializable {
 
     public void setFilterLstPrecioIdeal(ArrayList<ListaPrecioIdeal> filterLstPrecioIdeal) {
         this.filterLstPrecioIdeal = filterLstPrecioIdeal;
+    }
+
+    public MbMiniEmpresas getMbEmpresas() {
+        return mbEmpresas;
+    }
+
+    public void setMbEmpresas(MbMiniEmpresas mbEmpresas) {
+        this.mbEmpresas = mbEmpresas;
+    }
+
+    public MbClientesGrupos getMbClientesGrupos() {
+        return mbClientesGrupos;
+    }
+
+    public void setMbClientesGrupos(MbClientesGrupos mbClientesGrupos) {
+        this.mbClientesGrupos = mbClientesGrupos;
+    }
+
+    public ArrayList<SelectItem> getListaFormatos() {
+        return listaFormatos;
+    }
+
+    public void setListaFormatos(ArrayList<SelectItem> listaFormatos) {
+        this.listaFormatos = listaFormatos;
+    }
+
+    public MbTiendasFormatos getMbTiendasFormatos() {
+        return mbTiendasFormatos;
+    }
+
+    public void setMbTiendasFormatos(MbTiendasFormatos mbTiendasFormatos) {
+        this.mbTiendasFormatos = mbTiendasFormatos;
+    }
+
+    public MbMiniClientes getMbMiniClientes() {
+        return mbMiniClientes;
+    }
+
+    public void setMbMiniClientes(MbMiniClientes mbMiniClientes) {
+        this.mbMiniClientes = mbMiniClientes;
     }
 
 }

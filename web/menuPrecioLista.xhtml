@@ -34,6 +34,55 @@
                     </div>
                     <p:panel header="Lista de Precios Ideal" 
                              styleClass="quitaCuadro">
+                        <p:panelGrid  >
+                            <p:row>
+                                <p:column colspan="2">
+                                    <p:selectOneMenu id="empresa" 
+                                                     value="#{mbListaPrecioIdeal.mbEmpresas.empresa}" 
+                                                     style="width: 200px;">
+                                        <f:converter converterId="converters.MiniEmpresa" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbEmpresas.listaEmpresas}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>        
+                                <p:column>
+                                    <p:selectOneMenu id="grupocliente" 
+                                                     value="#{mbListaPrecioIdeal.mbClientesGrupos.clientesGrupos}" 
+                                                     style="width: 200px;"
+                                                     filter="true">
+                                        <f:converter converterId="converters.ClientesGrupos" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbClientesGrupos.itemsClientesGrupos}" />
+                                        <p:ajax event="change" 
+                                                listener="#{mbListaPrecioIdeal.cargaCombos()}" 
+                                                update="grupoFormato cliente"
+                                                process="@this"/>
+                                    </p:selectOneMenu>
+                                </p:column>
+                                <p:column>
+                                    <p:selectOneMenu id="grupoFormato" 
+                                                     value="#{mbListaPrecioIdeal.mbTiendasFormatos.formato}" 
+                                                     style="width: 200px;"
+                                                     filter="true">
+                                        <f:converter converterId="converter.formatos" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbTiendasFormatos.listaFormatos}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+                                <p:row>
+                                <p:column>
+                                    <p:selectOneMenu id="cliente"
+                                                     value="#{mbListaPrecioIdeal.mbMiniClientes.cliente}"
+                                                     style="width: 200px;"
+                                                     filter="true">
+                                        <f:converter converterId="converters.miniCliente" />
+                                        <f:selectItems value="#{mbListaPrecioIdeal.mbMiniClientes.listaClientes}" />
+                                        <p:ajax event="change" />
+                                    </p:selectOneMenu>
+                                </p:column>
+                            </p:row>
+
+                        </p:panelGrid>
                         <p:dataTable value="#{mbListaPrecioIdeal.lstListaPrecioTable}"
                                      var="listaPrecioIdeal"
                                      scrollHeight="300"
@@ -65,12 +114,12 @@
                                       filterBy="#{listaPrecioIdeal.precioLista}"
                                       filterMatchMode="contains">
                                 <pe:inputNumber id="precio"
-                                    value="#{listaPrecioIdeal.precioLista}"
-                                    style="width: 80px"
-                                    decimalPlaces="6"  
-                                    minValue="0" 
-                                    
-                                    >
+                                                value="#{listaPrecioIdeal.precioLista}"
+                                                style="width: 80px"
+                                                decimalPlaces="6"  
+                                                minValue="0" 
+
+                                                >
                                     <p:ajax event="blur" 
                                             listener="#{mbListaPrecioIdeal.actualizarPrecioLista(listaPrecioIdeal)}"
                                             update=":form:growl"/>
