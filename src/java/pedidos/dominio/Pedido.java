@@ -44,45 +44,45 @@ public class Pedido extends MovimientoOficina {
         super(new MovimientoTipo(28, "VENTA"));
         this.tienda=new TOTienda();
         this.comprobante=new Comprobante();
-        this.pedidoFecha=new Date(-2208965004000L);
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date(-2208965004000L);
+        this.ordenDeCompraFecha=new Date();
         this.entregaFolio = "";
-        this.entregaFecha = new Date(-2208965004000L);
-        this.entregaFechaMaxima = new Date(-2208965004000L);
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Comprobante comprobante) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=comprobante;
-        this.pedidoFecha=new Date(-2208965004000L);
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date(-2208965004000L);
+        this.ordenDeCompraFecha=new Date();
         this.entregaFolio = "";
-        this.entregaFecha = new Date(-2208965004000L);
-        this.entregaFechaMaxima = new Date(-2208965004000L);
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
     
     public Pedido(TOAlmacenJS almacen, TOTienda tienda, Moneda moneda) {
         super(new MovimientoTipo(28, "VENTA"), almacen);
         this.tienda=tienda;
         this.comprobante=new Comprobante(super.getTipo().getIdTipo(), almacen.getIdEmpresa(), tienda.getIdTienda(), moneda);
-        this.pedidoFecha=new Date(-2208965004000L);
+        this.pedidoFecha=new Date();
         this.canceladoMotivo="";
 //        this.canceladoFecha=new Date();
         this.electronico="";
         this.ordenDeCompra="";
-        this.ordenDeCompraFecha=new Date(-2208965004000L);
+        this.ordenDeCompraFecha=new Date();
         this.entregaFolio = "";
-        this.entregaFecha = new Date(-2208965004000L);
-        this.entregaFechaMaxima = new Date(-2208965004000L);
+        this.entregaFecha = new Date();
+        this.entregaFechaMaxima = new Date();
     }
 
     @Override
