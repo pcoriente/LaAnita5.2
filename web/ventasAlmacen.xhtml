@@ -138,7 +138,7 @@
                         <p:column style="width: 90px;" >
                             <h:outputLabel for="txtTienda" value="TIENDA:" style="font-weight: bold; color: black;" />
                         </p:column>
-                        <p:column colspan="2" style="width: 400px;" >
+                        <p:column colspan="3" style="width: 400px;" >
                             <p:inputText id="txtTienda" value="#{mbVentasAlmacen.venta.tienda.tienda}" readonly="true" size="50" />
                         </p:column>
                     </p:row>
@@ -163,15 +163,21 @@
                                 <f:convertDateTime pattern="dd/MM/yyyy" type="date" timeZone="#{mbVentasAlmacen.zonaHoraria.ID}" />
                             </p:inputText>
                         </p:column>
-                        <p:column colspan="2" style="text-align: right;" >
+                        <p:column style="text-align: right;" >
+                            <p:commandButton id="btnSurtirLotes" icon="ui-icon-gear" title="Surtir lotes"
+                                             disabled="#{mbVentasAlmacen.venta.estatus ge 7 or not empty mbVentasAlmacen.detalle or !mbVentasAlmacen.locked}"
+                                             process="@this" actionListener="#{mbVentasAlmacen.surtirVentaAlmacen()}" 
+                                             update=":main:msgsVenta :main:detalle" 
+                                             oncomplete="cerrarVenta(xhr, status, args);" />
+                        </p:column>
+                        <p:column style="text-align: right;" >
                             <p:commandButton icon="ui-icon-print" title="Imprimir venta"
                                                      disabled="#{mbVentasAlmacen.venta.estatus le 6}"
                                                      ajax="false" immediate="true" action="#{mbVentasAlmacen.imprimir()}" />
-                            <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Remisionar la venta"
+                            <p:commandButton id="btnPedidoCerrar" icon="ui-icon-disk" title="Cerrar la venta"
                                              disabled="#{mbVentasAlmacen.venta.estatus ge 7}"
-                                             process="@this" actionListener="#{mbVentasAlmacen.cerrarVentaAlmacen()}" 
-                                             update=":main:msgs :main:listaDeVentas" 
-                                             oncomplete="cerrarVenta(xhr, status, args);" />
+                                             process="@this" actionListener="#{mbVentasAlmacen.cerrarVentaAlmacen()}"
+                                             update=" :main:listaDeVentas :main:msgsVenta :main:venta :main:detalle" />
                         </p:column>
                     </p:row>
                 </p:panelGrid>

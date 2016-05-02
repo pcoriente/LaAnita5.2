@@ -42,7 +42,7 @@ public class DAOTraspasos {
         Context cI = new InitialContext();
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
-    
+
     public int obtenerEstatusEnvioTraspaso(int idEnvio, int idAlmacenDestino) throws SQLException {
         int estatus = 0;
         try (Connection cn = this.ds.getConnection()) {
@@ -50,9 +50,9 @@ public class DAOTraspasos {
         }
         return estatus;
     }
-    
+
     public Date obtenerFechaProduccion(int idSolicitud, boolean envio) throws SQLException {
-        Date fechaProduccion=null;
+        Date fechaProduccion = null;
         try (Connection cn = this.ds.getConnection()) {
             fechaProduccion = Envios.obtenerFechaProduccion(cn, idSolicitud, envio);
         }
@@ -473,7 +473,20 @@ public class DAOTraspasos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                this.procesa(cn, toMov);
+                if (toMov.getEnvio() != 0) {
+                    strSQL = "SELECT M.idMovto, M.idMovtoAlmacen\n"
+                            + "FROM movimientos M INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                            + "WHERE M.idAlmacen=" + toMov.getIdAlmacen() + " AND M.idTipo=35 AND S.idSolicitud=" + toMov.getReferencia();
+                    ResultSet rs = st.executeQuery(strSQL);
+                    if (rs.next()) {
+                        toMov.setIdMovto(rs.getInt("idMovto"));
+                        toMov.setIdMovtoAlmacen(rs.getInt("idMovtoAlmacen"));
+                    } else {
+                        throw new SQLException("No se encontró movimiento de la solicitud !!!");
+                    }
+                } else {
+                    this.procesa(cn, toMov);
+                }
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toMov, this.idUsuario);
 
                 strSQL = "UPDATE solicitudes\n"

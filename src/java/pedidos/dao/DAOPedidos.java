@@ -1,6 +1,6 @@
 package pedidos.dao;
 
-import comprobantes.to.TOComprobante;
+import Message.Mensajes;
 import envios.Envios;
 import impuestos.dominio.ImpuestosProducto;
 import java.sql.Connection;
@@ -10,6 +10,8 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.naming.Context;
@@ -17,6 +19,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.Movimientos;
 import pedidos.to.TOPedido;
 import pedidos.to.TOPedidoProducto;
 import pedidos.Pedidos;
@@ -89,6 +92,8 @@ public class DAOPedidos {
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     recepcionIdMovtoAlmacen = rs.getInt("idMovtoAlmacen");
+                } else {
+                    throw new SQLException("No se encontró el movimiento de la recepción !!!");
                 }
                 strSQL = "SELECT D.idEmpaque\n"
                         + "FROM (SELECT idEmpaque, SUM(cantidad) AS cantidad\n"
@@ -137,25 +142,45 @@ public class DAOPedidos {
         }
         return detalle;
     }
+    
+    public void obtenerEstatusTraspaso(int idSolicitud) throws SQLException, Exception {
+        try (Connection cn = this.ds.getConnection()) {
+            Envios.obtenerEstatusTraspaso(cn, idSolicitud);
+        }
+    }
 
-    public int obtenerIdMovtoRecepcion(int idSolicitud) throws SQLException {
+    public int obtenerIdMovtoRecepcion(int idSolicitud) throws SQLException, Exception {
         int idMovtoRecepcion = 0;
         try (Connection cn = this.ds.getConnection()) {
-            Envios.obtenerIdMovtoRecepcion(cn, idSolicitud);
+            idMovtoRecepcion = Envios.obtenerIdMovtoRecepcion(cn, idSolicitud);
         }
         return idMovtoRecepcion;
     }
-
-    public int obtenerEstatusTraspasoDirecto(int idEnvio, int idAlmacen, int idSolicitud) throws SQLException {
-        int estatus = 0;
-        try (Connection cn = this.ds.getConnection()) {
-            estatus = Envios.obtenerEstatusEnvioTraspaso(cn, idEnvio, idAlmacen);
-            if (estatus == 1) {
-                estatus = Envios.obtenerEstatusTraspasoDirecto(cn, idSolicitud);
-            }
-        }
-        return estatus;
-    }
+//
+//    public int obtenerEstatusRecepcion(int idSolicitud) throws SQLException {
+//        int estatus = 0;
+//        int idMovto;
+//        try (Connection cn = this.ds.getConnection()) {
+//            try {
+//                Envios.obtenerEstatusTraspaso(cn, idSolicitud);
+//            } catch (Exception ex) {
+//                Mensajes.mensajeAlert(ex.getMessage());
+//            }
+//            estatus = Envios.obtenerEstatusRecepcion(cn, idSolicitud);
+//        }
+//        return estatus;
+//    }
+//    
+//    public int obtenerEstatusTraspasoDirecto1(int idEnvio, int idAlmacen, int idSolicitud) throws SQLException {
+//        int estatus = 0;
+//        try (Connection cn = this.ds.getConnection()) {
+//            estatus = Envios.obtenerEstatusEnvioTraspaso(cn, idEnvio, idAlmacen);
+//            if (estatus == 1) {
+//                estatus = Envios.obtenerEstatusTraspasoDirecto(cn, idSolicitud);
+//            }
+//        }
+//        return estatus;
+//    }
 
     public void cancelarPedido(TOPedido toPed) throws SQLException {
         String strSQL;
@@ -167,13 +192,13 @@ public class DAOPedidos {
                 rs.next();
                 toPed.setPedidoEstatus(rs.getInt("estatus"));
                 if (toPed.getPedidoEstatus() != 1) {
-                    throw new SQLException("El pedido ya ha sido " + (toPed.getPedidoEstatus() != 2 ? "Aceptado" : "Rechazado") + " en otro equipo !!!");
+                    throw new SQLException("El pedido ya no puede ser cancelado !!!");
                 }
                 toPed.setPedidoIdUsuario(this.idUsuario);
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
-                toPed.setPedidoEstatus(2);
-                toPed.setEstatus(2);
+                toPed.setPedidoEstatus(6);
+                toPed.setEstatus(6);
 
                 strSQL = "UPDATE A\n"
                         + "SET separados=A.separados-D.cantidad\n"
@@ -318,7 +343,11 @@ public class DAOPedidos {
                         if (to.getCantFacturada() < to.getCantOrdenada()) {
                             cantSolicitada = to.getCantOrdenada() - to.getCantFacturada();
                             try {
-                                movimientos.Movimientos.separar(cn, toPed, to.getIdProducto(), cantSolicitada, "cantFacturada");
+                                if (this.idCedis == 1) {
+                                    Movimientos.separar(cn, toPed.getIdMovto(), to.getIdProducto(), cantSolicitada, "cantFacturada");
+                                } else {
+                                    movimientos.Movimientos.separar(cn, toPed, to.getIdProducto(), cantSolicitada, "cantFacturada");
+                                }
                                 to.setCantFacturada(to.getCantOrdenada());
                             } catch (Exception ex) {
                                 // Si no se pudieron surtir todos los solicitados, pasa al siguiete producto
@@ -327,7 +356,11 @@ public class DAOPedidos {
                         if (to.getCantSinCargo() < to.getCantOrdenadaSinCargo()) {
                             cantSolicitada = to.getCantOrdenadaSinCargo() - to.getCantSinCargo();
                             try {
-                                movimientos.Movimientos.separar(cn, toPed, to.getIdProducto(), cantSolicitada, "cantSinCargo");
+                                if (this.idCedis == 1) {
+                                    Movimientos.separar(cn, toPed.getIdMovto(), to.getIdProducto(), cantSolicitada, "cantSinCargo");
+                                } else {
+                                    movimientos.Movimientos.separar(cn, toPed, to.getIdProducto(), cantSolicitada, "cantSinCargo");
+                                }
                                 to.setCantSinCargo(to.getCantOrdenadaSinCargo());
                             } catch (Exception ex) {
                                 // Si no se pudieron surtir todos los solicitados, pasa al siguiete producto
@@ -635,6 +668,42 @@ public class DAOPedidos {
         return similares;
     }
 
+    public void transferirSinCargoVenta(TOPedido toPed, TOPedidoProducto toProd, TOPedidoProducto toSimilar, double cantidad) throws SQLException, Exception {
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                if (toSimilar.getIdMovto() == 0) {
+                    toSimilar.setIdMovto(toProd.getIdMovto());
+                    toSimilar.setCantOrdenada(0);
+                    toSimilar.setCantOrdenadaSinCargo(0);
+//                    this.agregaProducto(cn, toPed, toSimilar);
+//                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
+                    Pedidos.agregaProductoPedido(cn, toPed, toProd);
+                }
+                if (this.idCedis == 1) {
+                    Movimientos.separar(cn, toPed.getIdMovto(), toSimilar.getIdProducto(), cantidad, "cantSinCargo");
+                    Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), toProd.getIdProducto(), cantidad, "cantSinCargo");
+                } else {
+                    movimientos.Movimientos.separar(cn, toPed, toSimilar.getIdProducto(), cantidad, "cantSinCargo");
+                    movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantidad, "cantSinCargo");
+                }
+                toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
+                toProd.setCantSinCargo(toProd.getCantSinCargo() - cantidad);
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw (ex);
+            } catch (Exception ex) {
+                cn.rollback();
+                throw (ex);
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+//        return similares;
+    }
+
     public ArrayList<TOPedidoProducto> transferirSinCargo(TOPedido toPed, TOPedidoProducto toProd, TOPedidoProducto toSimilar, double cantidad) throws SQLException {
         String strSQL;
         ArrayList<TOPedidoProducto> similares = new ArrayList<>();
@@ -875,6 +944,7 @@ public class DAOPedidos {
 //        movimientos.Movimientos.construirProductoOficina(rs, to);
 //        return to;
 //    }
+//    
     public void actualizarProductoSinCargo(TOPedido toPed, TOPedidoProducto toProd, double cantSeparada) throws SQLException {
         // Solo para capturar la cantidad sin cargo, cuando la venta es con pedido
         double cantSolicitada;
@@ -884,13 +954,22 @@ public class DAOPedidos {
                 if (toProd.getCantFacturada() + toProd.getCantSinCargo() > cantSeparada) {
                     cantSolicitada = toProd.getCantFacturada() + toProd.getCantSinCargo() - cantSeparada;
                     try {
-                        movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                        if (this.idCedis == 1) {
+                            Movimientos.separar(cn, toPed.getIdMovto(), toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            cantSeparada = cantSolicitada;
+                        } else {
+                            movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                        }
                     } catch (Exception ex) {
                         throw new SQLException(ex.getMessage());
                     }
                 } else {
                     cantSolicitada = cantSeparada - toProd.getCantFacturada() - toProd.getCantSinCargo();
-                    movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                    if (this.idCedis == 1) {
+                        Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                    } else {
+                        movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                    }
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -898,6 +977,30 @@ public class DAOPedidos {
                 throw ex;
             } finally {
                 cn.setAutoCommit(true);
+            }
+        }
+    }
+
+    private void liberaSimilaresSinCargo(Connection cn, TOPedido toPed, int idProducto, double cantSolicitada) throws SQLException {
+        double cantLiberar;
+        String strSQL = "SELECT M.idAlmacen, D.idEmpaque, D.cantSinCargo\n"
+                + "FROM empaquesSimilares S\n"
+                + "INNER JOIN movimientosDetalle D ON D.idEmpaque=S.idSimilar\n"
+                + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                + "WHERE S.idEmpaque=" + idProducto + " AND D.idMovto=" + toPed.getIdMovto() + " AND D.cantSinCargo > 0\n"
+                + "ORDER BY IIF(S.idEmpaque=S.idSimilar, 0, 1)";
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next() && cantSolicitada != 0) {
+                cantLiberar = rs.getDouble("cantSinCargo");
+                if (cantSolicitada < cantLiberar) {
+                    cantLiberar = cantSolicitada;
+                }
+                Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), idProducto, cantLiberar, "cantSinCargo");
+                cantSolicitada -= cantLiberar;
+            }
+            if (cantSolicitada != 0) {
+                throw new SQLException("No se pudo liberar el total de similares !!!");
             }
         }
     }
@@ -921,6 +1024,89 @@ public class DAOPedidos {
         }
     }
 
+    private void separaSimilaresSinCargo(Connection cn, TOPedido toPed, int idProducto, double cantSolicitada) throws SQLException {
+        double disponibles;
+        TOPedidoProducto toSimilar = new TOPedidoProducto();
+        String strSQL = "SELECT ISNULL(SUM(A.existencia-A.separados), 0) AS disponibles\n"
+                + "FROM empaquesSimilares S\n"
+                + "RIGHT JOIN almacenesEmpaques A ON A.idEmpaque=S.idSimilar\n"
+                + "WHERE A.idAlmacen=" + toPed.getIdAlmacen() + " AND S.idEmpaque=" + idProducto;
+        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            rs.next();
+            if (rs.getDouble("disponibles") < cantSolicitada) {
+                throw new SQLException("No hay existencia suficiente. Disponibles=" + rs.getDouble("disponibles"));
+            }
+            strSQL = "SELECT ISNULL(D.idVenta, 0) AS idVenta, ISNULL(D.idMovto, 0) AS idMovto, E.idEmpaque, P.idImpuesto, ISNULL(A.disponibles, 0) AS disponibles\n"
+                    + "FROM empaquesSimilares S\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
+                    + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+                    + "LEFT JOIN (SELECT idEmpaque, existencia-separados AS disponibles\n"
+                    + "             FROM almacenesEmpaques\n"
+                    + "             WHERE idAlmacen=" + toPed.getIdAlmacen() + " AND existencia-separados > 0) A ON S.idSimilar=A.idEmpaque\n"
+                    + "LEFT JOIN (SELECT V.idVenta, D.idMovto, D.idEmpaque\n"
+                    + "             FROM movimientosDetalle D\n"
+                    + "             INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "             INNER JOIN ventasDetalle V ON V.idVenta=M.referencia AND V.idEmpaque=D.idEmpaque\n"
+                    + "             WHERE D.idMovto=" + toPed.getIdMovto() + ") D ON S.idSimilar=D.idEmpaque\n"
+                    + "WHERE S.idEmpaque=" + idProducto + " AND ISNULL(A.disponibles, 0) > 0\n"
+                    + "ORDER BY IIF(S.idSimilar=S.idEmpaque, 0, 1), ISNULL(D.idMovto, 0) DESC, ISNULL(D.idPedido, 0) DESC";
+            rs = st.executeQuery(strSQL);
+            while (rs.next() && cantSolicitada > 0) {
+                toSimilar.setIdVenta(0);
+                toSimilar.setIdMovto(toPed.getIdMovto());
+                toSimilar.setIdProducto(rs.getInt("idEmpaque"));
+                toSimilar.setCantOrdenada(0);
+                toSimilar.setCantOrdenadaSinCargo(0);
+                toSimilar.setCantFacturada(0);
+                toSimilar.setCantSinCargo(0);
+                toSimilar.setCostoPromedio(0);
+                toSimilar.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
+                disponibles = rs.getDouble("disponibles");
+//                if (rs.getInt("idVenta") != 0) {
+//                    if (rs.getInt("idMovto") == 0) {
+//                        Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
+//                    }
+//                    strSQL = "UPDATE ventasDetalle\n"
+//                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + disponibles + "\n"
+//                            + "WHERE idVenta=" + toPed.getReferencia() + " AND idEmpaque=" + idProducto;
+//                    st1.executeUpdate(strSQL);
+//                } else if (toPed.getIdPedido() != 0) {
+//                    if (rs.getInt("idMovto") == 0) {
+//                        Pedidos.agregaProductoPedido(cn, toPed, toSimilar);
+//                    } else {
+//                        Pedidos.agregaProducto(cn, toSimilar);
+//                    }
+//                    strSQL = "UPDATE ventasDetalle\n"
+//                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + disponibles + "\n"
+//                            + "WHERE idVenta=" + toPed.getReferencia() + " AND idEmpaque=" + idProducto;
+//                    st1.executeUpdate(strSQL);
+//                } else if (rs.getInt("idMovto") == 0) {
+//                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
+//                }
+                if (rs.getInt("idVenta") == 0) {
+                    Pedidos.agregaProductoPedido(cn, toPed, toSimilar);
+
+                    strSQL = "UPDATE ventasDetalle\n"
+                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+" + disponibles + "\n"
+                            + "WHERE idVenta=" + toPed.getReferencia() + " AND idEmpaque=" + idProducto;
+                    st1.executeUpdate(strSQL);
+                }
+                strSQL = "UPDATE almacenesEmpaques\n"
+                        + "SET separados=separados+" + disponibles + "\n"
+                        + "WHERE idAlmacen=" + toPed.getIdAlmacen() + " AND idEmpaque=" + idProducto;
+                st1.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalle\n"
+                        + "SET cantSinCargo=cantSinCargo+" + disponibles + "\n"
+                        + "WHERE idMovto=" + toPed.getIdMovto() + " AND idEmpaque=" + idProducto;
+                st1.executeUpdate(strSQL);
+
+                cantSolicitada -= disponibles;
+            }
+        }
+    }
+
     private void separaSimilaresSinCargo(Connection cn, TOPedido toPed, TOPedidoProducto toProd, double cantSolicitada) throws SQLException, Exception {
         int idEmpaque;
         ArrayList<String> empaques = new ArrayList<>();
@@ -935,7 +1121,7 @@ public class DAOPedidos {
                 + "	  GROUP BY L.idEmpaque) L\n"
                 + "INNER JOIN almacenesEmpaques E ON E.idEmpaque=L.idEmpaque\n"
                 + "WHERE E.idAlmacen=" + toPed.getIdAlmacen();
-        try (Statement st = cn.createStatement()) {
+        try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 // Calculo disponibles (minimo disponible entre almacen y oficina) de los empaques similares
@@ -973,6 +1159,11 @@ public class DAOPedidos {
                     toSimilar.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
                     Pedidos.agregaProductoPedido(cn, toPed, toSimilar);
                     empaques.add(String.valueOf(idEmpaque));
+                } else {
+                    strSQL = "UPDATE ventasDetalle\n"
+                            + "SET cantOrdenadaSinCargo=cantOrdenadaSinCargo+disponibles\n"
+                            + "WHERE idVenta=" + toPed.getReferencia() + " AND idEmpaque=" + idEmpaque;
+                    st1.executeUpdate(strSQL);
                 }
                 cantSolicitada -= movimientos.Movimientos.separarLote(cn, toPed, idEmpaque, rs.getString("lote"), cantSolicitada, "cantSinCargo");
             }
@@ -988,11 +1179,20 @@ public class DAOPedidos {
         ArrayList<TOPedidoProducto> similares = new ArrayList<>();
         if (toProd.getCantFacturada() > cantFacturadaOrig) {
             cantSolicitada = toProd.getCantFacturada() - cantFacturadaOrig;
-            cantSeparada = movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+            if (this.idCedis == 1) {
+                Movimientos.separar(cn, toPed.getIdMovto(), toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+                cantSeparada = cantSolicitada;
+            } else {
+                cantSeparada = movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+            }
             toProd.setCantFacturada(cantFacturadaOrig + cantSeparada);
         } else if (toProd.getCantFacturada() < cantFacturadaOrig) {
             cantSolicitada = cantFacturadaOrig - toProd.getCantFacturada();
-            movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+            if (this.idCedis == 1) {
+                Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+            } else {
+                movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantFacturada");
+            }
             toProd.setCantFacturada(cantFacturadaOrig - cantSolicitada);
         }
         ArrayList<Double> boletin;
@@ -1020,10 +1220,18 @@ public class DAOPedidos {
                         if (cantSinCargoOrig != rs.getDouble("cantSinCargo")) {
                             if (cantSinCargoOrig > rs.getDouble("cantSinCargo")) {
                                 cantSolicitada = cantSinCargoOrig - rs.getDouble("cantSinCargo");
-                                this.separaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                                if (this.idCedis == 1) {
+                                    this.separaSimilaresSinCargo(cn, toPed, toProd.getIdProducto(), cantSolicitada);
+                                } else {
+                                    this.separaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                                }
                             } else if (cantSinCargoOrig < rs.getDouble("cantSinCargo")) {
                                 cantSolicitada = rs.getDouble("cantSinCargo") - cantSinCargoOrig;
-                                this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                                if (this.idCedis == 1) {
+                                    this.liberaSimilaresSinCargo(cn, toPed, toProd.getIdProducto(), cantSolicitada);
+                                } else {
+                                    this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                                }
                             }
                             similares = this.obtenSimilares(cn, toPed.getIdMovto(), toProd.getIdProducto());
                             toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
@@ -1034,24 +1242,41 @@ public class DAOPedidos {
                         toProd.setCantSinCargo((int) (toProd.getCantFacturada() / boletin.get(0)) * boletin.get(1));
                         if (toProd.getCantSinCargo() > cantSinCargoOrig) {
                             cantSolicitada = toProd.getCantSinCargo() - cantSinCargoOrig;
-                            cantSeparada = movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            if (this.idCedis == 1) {
+                                Movimientos.separar(cn, toPed.getIdMovto(), toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                                cantSeparada = cantSolicitada;
+                            } else {
+                                cantSeparada = movimientos.Movimientos.separar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            }
                             toProd.setCantSinCargo(cantSinCargoOrig + cantSeparada);
                         } else if (toProd.getCantSinCargo() < cantSinCargoOrig) {
                             cantSolicitada = cantSinCargoOrig - toProd.getCantSinCargo();
-                            movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            if (this.idCedis == 1) {
+                                Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            } else {
+                                movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSolicitada, "cantSinCargo");
+                            }
                             toProd.setCantSinCargo(cantSinCargoOrig - cantSolicitada);
                         }
                     }
                 } else if (rs.next()) {
                     cantSolicitada = rs.getDouble("cantSinCargo");
                     if (cantSolicitada > 0) {
-                        this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                        if (this.idCedis == 1) {
+                            this.liberaSimilaresSinCargo(cn, toPed, toProd.getIdProducto(), cantSolicitada);
+                        } else {
+                            this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
+                        }
                         similares = this.obtenSimilares(cn, toPed.getIdMovto(), toProd.getIdProducto());
                         toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
                         similares.remove(0);
                     }
                 } else if (cantSinCargoOrig > 0) {
-                    movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSinCargoOrig, "cantSinCargo");
+                    if (this.idCedis == 1) {
+                        Movimientos.liberar(cn, toPed.getIdMovto(), toPed.getIdAlmacen(), toProd.getIdProducto(), cantSinCargoOrig, "cantSinCargo");
+                    } else {
+                        movimientos.Movimientos.liberar(cn, toPed, toProd.getIdProducto(), cantSinCargoOrig, "cantSinCargo");
+                    }
                     toProd.setCantSinCargo(0);
                 }
             }
@@ -1107,9 +1332,9 @@ public class DAOPedidos {
         return detalle;
     }
 
-    public ArrayList<TOPedidoProducto> obtenerDetalleOficina(TOPedido toPed, String aviso) throws SQLException {
+    public ArrayList<TOPedidoProducto> obtenerDetalleOficina(TOPedido toPed) throws SQLException {
         // Al cargar una venta no cerrada, actualiza precios y verifica boletines de productos
-        aviso = "";
+        String aviso = "";
         String strSQL;
         double separados;
         ArrayList<TOPedidoProducto> detalle = new ArrayList<>();
@@ -1118,7 +1343,33 @@ public class DAOPedidos {
             try (Statement st = cn.createStatement()) {
                 detalle = this.obtenDetalleOficina(cn, toPed);
                 if (toPed.getIdUsuario() == toPed.getPropietario()) {
-                    if (toPed.getIdPedido() == 0 && toPed.getEstatus() == 0) {
+                    if (toPed.getIdPedido() != 0) {
+                        if (toPed.getPedidoEstatus() == 0) {
+                            movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
+                            toPed.setPropietario(0);
+                        } else if (toPed.getDirecto() != 0) {
+                            try {
+                                Envios.obtenerEstatusTraspaso(cn, toPed.getIdSolicitud());
+                            } catch (Exception ex) {
+                                movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
+                                toPed.setPropietario(0);
+                            }
+                        } else {
+                            strSQL = "SELECT estatus FROM pedidos WHERE idPedido=" + toPed.getIdPedido();
+                            ResultSet rs = st.executeQuery(strSQL);
+                            if (rs.next()) {
+                                toPed.setPedidoEstatus(rs.getInt("estatus"));
+                                if (toPed.getPedidoEstatus() == 1) {
+                                    strSQL = "UPDATE pedidos SET estatus=3 WHERE idPedido=" + toPed.getIdPedido();
+                                    st.executeUpdate(strSQL);
+                                } else {
+                                    toPed.setPropietario(0);
+                                }
+                            } else {
+                                toPed.setPropietario(0);
+                            }
+                        }
+                    } else if (toPed.getEstatus() == 0) {
                         TOPedidoProducto toProd;
                         for (TOPedidoProducto to : detalle) {
                             toProd = this.obtenerProductoOficina(cn, toPed.getIdMovto(), to.getIdProducto());
@@ -1137,25 +1388,6 @@ public class DAOPedidos {
                         if (!aviso.isEmpty()) {
                             movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
                             toPed.setPropietario(0);
-                        }
-                    } else if (toPed.getIdPedido() != 0 && toPed.getPedidoEstatus() == 1) {
-                        if (toPed.getIdSolicitud() != 0 && (toPed.getIdEnvio() == 0 || toPed.getEnvioEstatus() != 7)) {
-                            movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
-                            toPed.setPropietario(0);
-                        } else {
-                            strSQL = "SELECT estatus FROM pedidos WHERE idPedido=" + toPed.getIdPedido();
-                            ResultSet rs = st.executeQuery(strSQL);
-                            if (rs.next()) {
-                                toPed.setPedidoEstatus(rs.getInt("estatus"));
-                                if (toPed.getPedidoEstatus() == 1) {
-                                    strSQL = "UPDATE pedidos SET estatus=3 WHERE idPedido=" + toPed.getIdPedido();
-                                    st.executeUpdate(strSQL);
-                                } else {
-                                    toPed.setPropietario(0);
-                                }
-                            } else {
-                                toPed.setPropietario(0);
-                            }
                         }
                     }
                 }

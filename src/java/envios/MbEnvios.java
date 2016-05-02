@@ -73,6 +73,7 @@ public class MbEnvios implements Serializable {
     private boolean pendientes;
     private Date fechaInicial;
     private boolean locked;
+    private boolean fincadoLocked;
     private boolean modoEdicion;
     private TimeZone zonaHoraria = TimeZone.getDefault();
     private DAOEnvios dao;
@@ -106,9 +107,13 @@ public class MbEnvios implements Serializable {
     }
 
     public void eliminarTraspaso() {
+        ArrayList<Double> pesos;
         TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
             this.obtenTraspasos(this.dao.eliminarTraspaso(this.envio.getIdEnvio(), toTraspaso));
+            pesos = this.dao.obtenerEnvioPeso(this.envio.getIdEnvio());
+            this.envio.setPesoDirectos(pesos.get(1));
+            this.envio.setPeso(pesos.get(0));
             if (this.traspasos.isEmpty()) {
                 this.modoEdicion = false;
                 this.envios.remove(this.envio);
@@ -120,20 +125,18 @@ public class MbEnvios implements Serializable {
     
     public void gestionarEnviadaSinCargo() {
         TOPedidoProducto toProd = Pedidos.convertir(this.productoFincado);
-        toProd.setCantEnviarSinCargo(this.productoFincado.getEnviarSinCargo() * this.productoFincado.getProducto().getPiezas());
-        this.productoFincado.setEnviarSinCargo(this.productoFincado.getEnviarSinCargo2());
-        if (toProd.getCantEnviar() < 0) {
+        this.productoFincado.setEnviarSinCargo(this.productoFincado.getRespaldoSinCargo());
+        if (toProd.getCantEnviarSinCargo()< 0) {
             Mensajes.mensajeAlert("La cantidad a enviar no debe ser menor que cero !!!");
-        } else if (toProd.getCantEnviar() > this.productoFincado.getCantOrdenada() * this.productoFincado.getProducto().getPiezas()) {
+        } else if (toProd.getCantEnviarSinCargo() > this.productoFincado.getEnviarSinCargo() * this.productoFincado.getProducto().getPiezas()) {
             Mensajes.mensajeAlert("La cantidad a enviar no debe ser mayor que la cantidad pendiente de envío !!!");
-        } else if (toProd.getCantEnviar() != this.productoFincado.getCantEnviar()) {
+        } else if (toProd.getCantEnviarSinCargo() != this.productoFincado.getEnviarSinCargo() * this.productoFincado.getProducto().getPiezas()) {
             TOPedido toPed = this.convertir(this.fincado);
             try {
                 this.dao.grabarEnviadaSinCargo(toPed, toProd);
                 this.restaPesoFincado(this.productoFincado);
-                this.productoFincado.setCantEnviarSinCargo(toProd.getCantEnviarSinCargo());
-                this.productoFincado.setEnviar(toProd.getCantEnviarSinCargo() / toProd.getPiezas());
-                this.productoFincado.setEnviar2(this.productoFincado.getEnviar());
+                this.productoFincado.setEnviarSinCargo(toProd.getCantEnviarSinCargo() / toProd.getPiezas());
+                this.productoFincado.setRespaldoSinCargo(this.productoFincado.getEnviarSinCargo());
                 this.sumaPesoFincado(this.productoFincado, true);
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -143,20 +146,20 @@ public class MbEnvios implements Serializable {
 
     public void gestionarEnviada() {
         TOPedidoProducto toProd = Pedidos.convertir(this.productoFincado);
-        toProd.setCantEnviar(this.productoFincado.getEnviar() * this.productoFincado.getProducto().getPiezas());
-        this.productoFincado.setEnviar(this.productoFincado.getEnviar2());
+        this.productoFincado.setEnviar(this.productoFincado.getRespaldo());
+//        toProd.setCantEnviar(this.productoFincado.getEnviar() * this.productoFincado.getProducto().getPiezas());
+//        this.productoFincado.setEnviar(this.productoFincado.getEnviar2());
         if (toProd.getCantEnviar() < 0) {
             Mensajes.mensajeAlert("La cantidad a enviar no debe ser menor que cero !!!");
-        } else if (toProd.getCantEnviar() > this.productoFincado.getCantOrdenada()) {
+        } else if (toProd.getCantEnviar() > this.productoFincado.getOrdenada() * this.productoFincado.getProducto().getPiezas()) {
             Mensajes.mensajeAlert("La cantidad a enviar no debe ser mayor que la cantidad pendiente de envío !!!");
-        } else if (toProd.getCantEnviar() != this.productoFincado.getCantEnviar()) {
+        } else if (toProd.getCantEnviar() != this.productoFincado.getOrdenada() * this.productoFincado.getProducto().getPiezas()) {
             TOPedido toPed = this.convertir(this.fincado);
             try {
                 this.dao.grabarEnviada(toPed, toProd);
                 this.restaPesoFincado(this.productoFincado);
-                this.productoFincado.setCantEnviar(toProd.getCantEnviar());
                 this.productoFincado.setEnviar(toProd.getCantEnviar() / toProd.getPiezas());
-                this.productoFincado.setEnviar2(this.productoFincado.getEnviar());
+                this.productoFincado.setRespaldo(this.productoFincado.getEnviar());
                 this.sumaPesoFincado(this.productoFincado, true);
             } catch (SQLException ex) {
                 Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -176,10 +179,11 @@ public class MbEnvios implements Serializable {
         }
     }
 
-    private void liberarFincado() {
+    public void liberarFincado() {
         TOPedido toPedido = this.convertir(this.fincado);
         try {
             this.dao.liberarFincado(toPedido);
+            this.setFincadoLocked(false);
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
@@ -228,37 +232,44 @@ public class MbEnvios implements Serializable {
     public void entregaDirecta() {
         TOPedido toPedido = this.convertir(this.fincado);
         this.fincado.setDirecto(!this.fincado.isDirecto());
+        TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
-            this.dao.grabarDirecto(toPedido, this.traspaso.getAlmacen().getIdAlmacen(), this.traspaso.getIdSolicitud());
-            int idx;
-            EnvioProducto prod = new EnvioProducto();
-            for (PedidoProducto p : this.detalleFincado) {
-                this.restaPesoFincado(p);
-                prod.setProducto(p.getProducto());
-                if ((idx = this.detalle.indexOf(prod)) != -1) {
-                    prod = this.detalle.get(idx);
-                    if (this.fincado.isDirecto()) {
-                        this.detalle.get(idx).setDirecta(this.detalle.get(idx).getDirecta() - (p.getEnviar()+p.getEnviarSinCargo()));
-                    } else {
-                        this.detalle.get(idx).setFincada(this.detalle.get(idx).getFincada() - (p.getEnviar()+p.getEnviarSinCargo()));
-                    }
-                }
-            }
+////            this.dao.grabarDirecto(toPedido, toTraspaso, this.traspaso.getAlmacen().getIdAlmacen(), this.traspaso.getIdSolicitud());
+            ArrayList<TOEnvioProducto> det = this.dao.grabarDirecto(toPedido, toTraspaso);
+//            if(this.fincado.isDirecto()) {
+                this.envio.setPesoDirectos(this.envio.getPesoDirectos()-this.traspaso.getPesoDirectos());
+//            }
+            this.envio.setPeso(this.envio.getPeso() - this.traspaso.getPeso());
+            this.procesarDetalleTraspaso(det, true);
+////            int idx;
+////            EnvioProducto prod = new EnvioProducto();
+////            for (PedidoProducto p : this.detalleFincado) {
+////                this.restaPesoFincado(p);
+////                prod.setProducto(p.getProducto());
+////                if ((idx = this.detalle.indexOf(prod)) != -1) {
+////                    prod = this.detalle.get(idx);
+////                    if (this.fincado.isDirecto()) {
+////                        this.detalle.get(idx).setDirecta(this.detalle.get(idx).getDirecta() - (p.getEnviar()+p.getEnviarSinCargo()));
+////                    } else {
+////                        this.detalle.get(idx).setFincada(this.detalle.get(idx).getFincada() - (p.getEnviar()+p.getEnviarSinCargo()));
+////                    }
+////                }
+////            }
             this.fincado.setDirecto(toPedido.getDirecto() != 0);
             this.fincado.setIdSolicitud(toPedido.getIdSolicitud());
             this.fincado.setOrden(toPedido.getOrden());
-            for (PedidoProducto p : this.detalleFincado) {
-                this.sumaPesoFincado(p, true);
-                prod.setProducto(p.getProducto());
-                if ((idx = this.detalle.indexOf(prod)) != -1) {
-                    prod = this.detalle.get(idx);
-                    if (this.fincado.isDirecto()) {
-                        this.detalle.get(idx).setDirecta(this.detalle.get(idx).getDirecta() + (p.getEnviar()+p.getEnviarSinCargo()));
-                    } else {
-                        this.detalle.get(idx).setFincada(this.detalle.get(idx).getFincada() + (p.getEnviar()+p.getEnviarSinCargo()));
-                    }
-                }
-            }
+////            for (PedidoProducto p : this.detalleFincado) {
+////                this.sumaPesoFincado(p, true);
+////                prod.setProducto(p.getProducto());
+////                if ((idx = this.detalle.indexOf(prod)) != -1) {
+////                    prod = this.detalle.get(idx);
+////                    if (this.fincado.isDirecto()) {
+////                        this.detalle.get(idx).setDirecta(this.detalle.get(idx).getDirecta() + (p.getEnviar()+p.getEnviarSinCargo()));
+////                    } else {
+////                        this.detalle.get(idx).setFincada(this.detalle.get(idx).getFincada() + (p.getEnviar()+p.getEnviarSinCargo()));
+////                    }
+////                }
+////            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
@@ -266,10 +277,10 @@ public class MbEnvios implements Serializable {
 
     private void restaPesoFincado(PedidoProducto prod) {
         double peso = (prod.getEnviar()+prod.getEnviarSinCargo()) * prod.getProducto().getPeso();
-        if (this.fincado.isDirecto()) {
-            this.traspaso.setPesoDirectos(this.traspaso.getPesoDirectos() - peso);
-            this.envio.setPesoDirectos(this.envio.getPesoDirectos() - peso);
-        }
+//        if (this.fincado.isDirecto()) {
+//            this.traspaso.setPesoDirectos(this.traspaso.getPesoDirectos() - peso);
+//            this.envio.setPesoDirectos(this.envio.getPesoDirectos() - peso);
+//        }
         this.traspaso.setPeso(this.traspaso.getPeso() - peso);
         this.envio.setPeso(this.envio.getPeso() - peso);
     }
@@ -291,59 +302,91 @@ public class MbEnvios implements Serializable {
     public void grabarFincado() {
         TOPedido toPedido = this.convertir(this.fincado);
         this.fincado.setAgregado(!this.fincado.isAgregado());
+        TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
         try {
-            int idx;
-            EnvioProducto prod = new EnvioProducto();
+            ArrayList<TOEnvioProducto> det;
             if (this.fincado.isAgregado()) {
-                this.dao.eliminarFincado(toPedido, this.traspaso.getAlmacen().getIdAlmacen(), this.traspaso.getIdSolicitud());
+                det = this.dao.eliminarFincado(toPedido, toTraspaso);
                 this.fincado.setIdSolicitud(toPedido.getIdSolicitud());
-                for (PedidoProducto p : this.detalleFincado) {
-                    this.restaPesoFincado(p);
-                    prod.setProducto(p.getProducto());
-                    if ((idx = this.detalle.indexOf(prod)) != -1) {
-                        prod = this.detalle.get(idx);
-                        if (this.fincado.isDirecto()) {
-                            prod.setDirecta(prod.getDirecta() - (p.getEnviar()+p.getEnviarSinCargo()));
-                        } else {
-                            prod.setFincada(prod.getFincada() - (p.getEnviar()+p.getEnviarSinCargo()));
-                        }
-                    }
-                    p.setIdEnvio(0);
-                    p.setEnviar(0);
-                    p.setEnviar2(0);
-                    p.setEnviarSinCargo(0);
-                    p.setEnviarSinCargo2(0);
-                    p.setCantEnviar(0);
-                    p.setCantEnviarSinCargo(0);
-                }
             } else {
                 toPedido.setIdEnvio(this.envio.getIdEnvio());
-                this.dao.agregarFincado(toPedido, this.traspaso.getAlmacen().getIdAlmacen(), this.traspaso.getIdSolicitud());
-                TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
-                for (PedidoProducto p : this.detalleFincado) {
+                det = this.dao.agregarFincado(toPedido, toTraspaso);
+            }
+            this.envio.setPesoDirectos(this.envio.getPesoDirectos()-this.traspaso.getPesoDirectos());
+            this.envio.setPeso(this.envio.getPeso()-this.traspaso.getPeso());
+            this.procesarDetalleTraspaso(det, true);
+            for (PedidoProducto p : this.detalleFincado) {
+                if (this.fincado.isAgregado()) {
+                    p.setIdEnvio(0);
+                    p.setEnviar(0);
+//                    p.setEnviar2(0);
+                    p.setEnviarSinCargo(0);
+//                    p.setEnviarSinCargo2(0);
+//                    p.setCantEnviar(0);
+//                    p.setCantEnviarSinCargo(0);
+                } else {
                     p.setIdEnvio(this.traspaso.getIdEnvio());
-                    p.setEnviar(p.getCantOrdenada() / p.getProducto().getPiezas());
-                    p.setEnviar2(p.getEnviar());
-                    p.setEnviarSinCargo(p.getCantOrdenadaSinCargo() / p.getProducto().getPiezas());
-                    p.setEnviarSinCargo2(p.getEnviarSinCargo2());
-                    p.setCantEnviar(p.getCantOrdenada());
-                    p.setCantEnviarSinCargo(p.getCantOrdenadaSinCargo());
-                    this.sumaPesoFincado(p, true);
-                    prod.setProducto(p.getProducto());
-                    if ((idx = this.detalle.indexOf(prod)) != -1) {
-                        prod = this.detalle.get(idx);
-                        if (this.fincado.isDirecto()) {
-                            prod.setDirecta(prod.getDirecta() + (p.getEnviar() + p.getEnviarSinCargo()));
-                        } else {
-                            prod.setFincada(prod.getFincada() + (p.getEnviar() + p.getEnviarSinCargo()));
-                        }
-                    } else {
-                        this.detalle.add(this.convertir(this.dao.obtenerDetalle(toTraspaso, prod.getProducto().getIdProducto())));
-                    }
+                    p.setEnviar(p.getOrdenada());
+//                    p.setEnviar2(p.getEnviar());
+                    p.setEnviarSinCargo(p.getOrdenadaSinCargo());
+//                    p.setEnviarSinCargo2(p.getEnviarSinCargo2());
+//                    p.setCantEnviar(p.getCantOrdenada());
+//                    p.setCantEnviarSinCargo(p.getCantOrdenadaSinCargo());
                 }
             }
             this.fincado.setAgregado(toPedido.getIdEnvio() != 0);
             this.fincado.setIdEnvio(toPedido.getIdEnvio());
+//            int idx;
+//            EnvioProducto prod = new EnvioProducto();
+//            if (this.fincado.isAgregado()) {
+//                this.fincado.setIdSolicitud(toPedido.getIdSolicitud());
+//                for (PedidoProducto p : this.detalleFincado) {
+//                    this.restaPesoFincado(p);
+//                    prod.setProducto(p.getProducto());
+//                    if ((idx = this.detalle.indexOf(prod)) != -1) {
+//                        prod = this.detalle.get(idx);
+//                        if (this.fincado.isDirecto()) {
+//                            prod.setDirecta(prod.getDirecta() - (p.getEnviar()+p.getEnviarSinCargo()));
+//                        } else {
+//                            prod.setFincada(prod.getFincada() - (p.getEnviar()+p.getEnviarSinCargo()));
+//                        }
+//                    }
+//                    p.setIdEnvio(0);
+//                    p.setEnviar(0);
+//                    p.setEnviar2(0);
+//                    p.setEnviarSinCargo(0);
+//                    p.setEnviarSinCargo2(0);
+//                    p.setCantEnviar(0);
+//                    p.setCantEnviarSinCargo(0);
+//                }
+//            } else {
+//                toPedido.setIdEnvio(this.envio.getIdEnvio());
+//                this.dao.agregarFincado(toPedido, this.traspaso.getAlmacen().getIdAlmacen(), this.traspaso.getIdSolicitud());
+//                TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+//                for (PedidoProducto p : this.detalleFincado) {
+//                    p.setIdEnvio(this.traspaso.getIdEnvio());
+//                    p.setEnviar(p.getCantOrdenada() / p.getProducto().getPiezas());
+//                    p.setEnviar2(p.getEnviar());
+//                    p.setEnviarSinCargo(p.getCantOrdenadaSinCargo() / p.getProducto().getPiezas());
+//                    p.setEnviarSinCargo2(p.getEnviarSinCargo2());
+//                    p.setCantEnviar(p.getCantOrdenada());
+//                    p.setCantEnviarSinCargo(p.getCantOrdenadaSinCargo());
+//                    this.sumaPesoFincado(p, true);
+//                    prod.setProducto(p.getProducto());
+//                    if ((idx = this.detalle.indexOf(prod)) != -1) {
+//                        prod = this.detalle.get(idx);
+//                        if (this.fincado.isDirecto()) {
+//                            prod.setDirecta(prod.getDirecta() + (p.getEnviar() + p.getEnviarSinCargo()));
+//                        } else {
+//                            prod.setFincada(prod.getFincada() + (p.getEnviar() + p.getEnviarSinCargo()));
+//                        }
+//                    } else {
+//                        this.detalle.add(this.convertir(this.dao.obtenerDetalle(toTraspaso, prod.getProducto().getIdProducto())));
+//                    }
+//                }
+//            }
+//            this.fincado.setAgregado(toPedido.getIdEnvio() != 0);
+//            this.fincado.setIdEnvio(toPedido.getIdEnvio());
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
@@ -387,7 +430,7 @@ public class MbEnvios implements Serializable {
         this.fincado.setEstatus(toPed.getEstatus());
         this.fincado.setIdUsuario(toPed.getIdUsuario());
         this.fincado.setPropietario(toPed.getPropietario());
-        this.setLocked(this.fincado.getIdUsuario() == this.fincado.getPropietario());
+        this.setFincadoLocked(this.fincado.getIdUsuario() == this.fincado.getPropietario());
     }
 
     public void obtenerFincados() {
@@ -467,7 +510,7 @@ public class MbEnvios implements Serializable {
     }
     
     private void restaPesoTraspaso() {
-        double peso = this.producto.getCantSolicitada() * this.producto.getProducto().getPeso() / this.producto.getProducto().getPiezas();
+        double peso = this.producto.getSolicitada() * this.producto.getProducto().getPeso();
         this.traspaso.setPeso(this.traspaso.getPeso() - peso);
 //        if(restarEnvio) {
         this.envio.setPeso(this.envio.getPeso() - peso);
@@ -479,9 +522,9 @@ public class MbEnvios implements Serializable {
         toProd.setCantSolicitada(this.producto.getSolicitada() * this.producto.getProducto().getPiezas());
         this.producto.setSolicitada(this.producto.getSolicitada2());
         if (toProd.getCantSolicitada() < 0) {
-            Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
-        } else if (toProd.getCantSolicitada() < this.producto.getFincada() * this.producto.getProducto().getPiezas()) {
-            Mensajes.mensajeAlert("La cantidad solicitada no debe ser menor que la fincada !!!");
+            Mensajes.mensajeAlert("La cantidad solicitada no debe ser menor que cero !!!");
+//        } else if (toProd.getCantSolicitada() < this.producto.getFincada() * this.producto.getProducto().getPiezas()) {
+//            Mensajes.mensajeAlert("La cantidad solicitada no puede ser menor que la fincada !!!");
         } else {
             TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
             toProd.setBanCajas(1);
@@ -555,19 +598,24 @@ public class MbEnvios implements Serializable {
     }
 
     public void actualizaPesoGeneral() {
-        TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+        ArrayList<Double> pesos;
+        EnvioTraspaso t = this.traspaso;
         try {
-            this.envio.setPeso(0);
-            this.envio.setPesoDirectos(0);
-            this.traspaso.setPeso(0);
-            this.detalle = new ArrayList<>();
-            for (TOEnvioProducto to : this.dao.calcularPesoGeneral(toTraspaso, this.pesoMaximo)) {
-                this.producto = this.convertir(to);
-                this.sumaPesoTraspaso(false);
-                this.detalle.add(this.producto);
+            this.obtenTraspasos(this.dao.calcularPesoGeneral(this.traspaso.getIdEnvio(), this.traspaso.getDiasInventario(), this.pesoMaximo));
+            for(EnvioTraspaso e : this.traspasos) {
+                if(e.getId().equals(t.getId())) {
+                    this.traspaso = e;
+                    break;
+                }
             }
-            this.traspaso.setDiasInventario(toTraspaso.getDiasInventario());
-            this.traspaso.setDiasInventario2(toTraspaso.getDiasInventario());
+            this.mbAlmacenes.setToAlmacen(this.traspaso.getAlmacenDestino());
+            this.obtenDetalleTraspaso(false);
+//            Checar si en realidad encuentra el traspaso correcto;
+//            int idx = this.traspasos.indexOf(t);
+//            this.traspaso = this.traspasos.get(idx);
+            pesos = this.dao.obtenerEnvioPeso(t.getIdEnvio());
+            this.envio.setPesoDirectos(pesos.get(1));
+            this.envio.setPeso(pesos.get(0));
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
@@ -671,34 +719,28 @@ public class MbEnvios implements Serializable {
         Traspasos.convertir(traspaso, toTraspaso);
         return toTraspaso;
     }
-
-    private void obtenDetalleTraspaso(boolean sumarEnvio) throws SQLException {
-        TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+    
+    private void procesarDetalleTraspaso(ArrayList<TOEnvioProducto> det, boolean sumarEnvio) {
         double peso;
         this.traspaso.setPeso(0);
         this.traspaso.setPesoDirectos(0);
         this.detalle = new ArrayList<>();
-        for (TOEnvioProducto to : this.dao.obtenerDetalle(toTraspaso)) {
+        for (TOEnvioProducto to : det) {
             this.producto = this.convertir(to);
-////            this.sumaPesoTraspaso(sumarEnvio);
-//            if (this.producto.getSolicitada() > 0) {
-//                peso = 0;
-//            } else if (this.producto.getDirecta() > 0) {
-//                peso = 0;
-//            } else if (this.producto.getFincada() > 0) {
-//                peso = 0;
-//            }
             peso = this.producto.getSolicitada() * this.producto.getProducto().getPeso();
             this.traspaso.setPeso(this.traspaso.getPeso() + peso);
-//            this.traspaso.setPeso(this.traspaso.getPeso() + (this.producto.getFincada() + this.producto.getDirecta()) * this.producto.getProducto().getPeso());
             this.traspaso.setPesoDirectos(this.traspaso.getPesoDirectos() + this.producto.getDirecta() * this.producto.getProducto().getPeso());
             if (sumarEnvio) {
                 this.envio.setPeso(this.envio.getPeso() + this.producto.getSolicitada() * this.producto.getProducto().getPeso());
-//                this.envio.setPeso(this.envio.getPeso() + (this.producto.getFincada() + this.producto.getDirecta()) * this.producto.getProducto().getPeso());
                 this.envio.setPesoDirectos(this.envio.getPesoDirectos() + this.producto.getDirecta() * this.producto.getProducto().getPeso());
             }
             this.detalle.add(this.producto);
         }
+    }
+
+    private void obtenDetalleTraspaso(boolean sumarEnvio) throws SQLException {
+        TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+        this.procesarDetalleTraspaso(this.dao.obtenerDetalle(toTraspaso), sumarEnvio);
         this.traspaso.setIdUsuario(toTraspaso.getIdUsuario());
         this.traspaso.setPropietario(toTraspaso.getPropietario());
         this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
@@ -713,9 +755,9 @@ public class MbEnvios implements Serializable {
             this.traspaso = this.convertir(to);
             this.traspasos.add(this.traspaso);
             this.mbAlmacenes.getListaAlmacenes().add(new SelectItem(this.traspaso.getAlmacenDestino(), this.traspaso.getAlmacenDestino().toString()));
-            this.obtenDetalleTraspaso(true);
-//            this.obtenFincados(true, true);
-            this.dao.liberarTraspaso(to);
+//            this.obtenDetalleTraspaso(true);
+////            this.obtenFincados(true, true);
+//            this.dao.liberarTraspaso(to);
         }
         this.mbAlmacenes.inicializaLista();
         this.traspaso = new EnvioTraspaso();
@@ -724,8 +766,13 @@ public class MbEnvios implements Serializable {
 
     public void obtenerTraspasos(SelectEvent event) {
         this.envio = (Envio) event.getObject();
+//        Double peso=0.0, pesoDirectos=0.0;
+        ArrayList<Double> pesos;
         try {
             this.obtenTraspasos(this.dao.obtenerTraspasos(this.envio.getIdEnvio()));
+            pesos = this.dao.obtenerEnvioPeso(this.envio.getIdEnvio());
+            this.envio.setPesoDirectos(pesos.get(1));
+            this.envio.setPeso(pesos.get(0));
             this.modoEdicion = true;
             this.setLocked(false);
         } catch (SQLException ex) {
@@ -1034,6 +1081,14 @@ public class MbEnvios implements Serializable {
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    public boolean isFincadoLocked() {
+        return fincadoLocked;
+    }
+
+    public void setFincadoLocked(boolean fincadoLocked) {
+        this.fincadoLocked = fincadoLocked;
     }
 
     public boolean isModoEdicion() {

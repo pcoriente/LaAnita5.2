@@ -212,7 +212,7 @@ public class MbPedidos implements Serializable {
     public void eliminarProducto() {
         boolean ok = false;
         TOPedido toPed = this.convertir(this.pedido);
-        TOPedidoProducto toProd = Pedidos.convertir(this.producto);
+        TOPedidoProducto toProd = this.convertir(this.producto);
         try {
             this.dao = new DAOPedidos();
             ArrayList<TOPedidoProducto> detalleSimilares = this.dao.eliminarProductoPedido(toPed, toProd);
@@ -240,8 +240,8 @@ public class MbPedidos implements Serializable {
                 Mensajes.mensajeAlert("La cantidad a traspasar no puede ser mayor que la cantidad sin cargo !!!");
             } else if(this.cantTraspasar != 0) {
                 TOPedido toPed = this.convertir(this.pedido);
-                TOPedidoProducto toProd = Pedidos.convertir(this.producto);
-                TOPedidoProducto toSimilar = Pedidos.convertir(this.similar);
+                TOPedidoProducto toProd = this.convertir(this.producto);
+                TOPedidoProducto toSimilar = this.convertir(this.similar);
 
                 this.dao = new DAOPedidos();
                 this.procesaSimilares(this.dao.transferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar * this.producto.getProducto().getPiezas()));
@@ -287,22 +287,20 @@ public class MbPedidos implements Serializable {
                 nuevo.setAcumulable(impuesto.isAcumulable());
                 nuevo.setAplicable(impuesto.isAplicable());
                 nuevo.setIdImpuesto(impuesto.getIdImpuesto());
-                nuevo.setImporte(impuesto.getImporte() * prod.getCantOrdenada());
+                nuevo.setImporte(impuesto.getImporte() * prod.getCantFacturada());
                 nuevo.setImpuesto(impuesto.getImpuesto());
                 nuevo.setModo(impuesto.getModo());
                 nuevo.setValor(impuesto.getValor());
                 this.impuestosTotales.add(nuevo);
             } else {
-                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() - impuesto.getImporte() * prod.getCantOrdenada());
+                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() - impuesto.getImporte() * prod.getCantFacturada());
             }
         }
     }
 
     public void actualizaProductoSinCargo() {
-        this.producto.setCantOrdenadaSinCargo(this.producto.getEnviarSinCargo() * this.producto.getProducto().getPiezas());
-        TOPedidoProducto toProd = Pedidos.convertir(this.producto);
-        this.producto.setCantOrdenadaSinCargo(this.producto.getCantSinCargo());
-        this.producto.setEnviarSinCargo(this.producto.getCantSinCargo() / this.producto.getProducto().getPiezas());
+        TOPedidoProducto toProd = this.convertir(this.producto);
+        this.producto.setOrdenadaSinCargo(this.producto.getRespaldoSinCargo());
         if (toProd.getCantOrdenadaSinCargo() < 0) {
             Mensajes.mensajeAlert("La cantidad sin cargo no debe ser menor que cero !!!");
         } else if (toProd.getCantOrdenadaSinCargo() != toProd.getCantSinCargo()) {
@@ -311,10 +309,10 @@ public class MbPedidos implements Serializable {
 
                 this.dao = new DAOPedidos();
                 this.dao.grabarProductoCantidadSinCargo(toPed, toProd);
-
+                
+                this.producto.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / toProd.getPiezas());
+                this.producto.setRespaldoSinCargo(this.producto.getOrdenadaSinCargo());
                 this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setEnviarSinCargo(toProd.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
             } catch (NamingException ex) {
                 Mensajes.mensajeError(ex.getMessage());
             } catch (SQLException ex) {
@@ -361,10 +359,8 @@ public class MbPedidos implements Serializable {
 //
     public void actualizaProducto() {
         boolean ok = false;
-        this.producto.setCantOrdenada(this.producto.getEnviar() * this.producto.getProducto().getPiezas());
-        TOPedidoProducto toProd = Pedidos.convertir(this.producto);
-        this.producto.setCantOrdenada(this.producto.getCantFacturada());
-        this.producto.setEnviar(this.producto.getCantFacturada() / this.producto.getProducto().getPiezas());
+        TOPedidoProducto toProd = this.convertir(this.producto);
+        this.producto.setOrdenada(this.producto.getRespaldo());
         try {
             if (toProd.getCantOrdenada() < 0) {
                 Mensajes.mensajeAlert("La cantidad no debe ser menor que cero !!!");
@@ -374,12 +370,13 @@ public class MbPedidos implements Serializable {
                 this.dao = new DAOPedidos();
                 ArrayList<TOPedidoProducto> listaSimilares = this.dao.grabarProductoCantidad(toPed, toProd);
                 this.totalResta(this.producto);
-                this.producto.setCantOrdenada(toProd.getCantOrdenada());
-                this.producto.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+                this.producto.setOrdenada(toProd.getCantOrdenada() / toProd.getPiezas());
+                this.producto.setRespaldo(this.producto.getOrdenada());
                 this.producto.setCantFacturada(toProd.getCantOrdenada());
+                this.producto.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / toProd.getPiezas());
+                this.producto.setRespaldoSinCargo(this.producto.getOrdenadaSinCargo());
                 this.producto.setCantSinCargo(toProd.getCantOrdenadaSinCargo());
-                this.producto.setEnviar(this.producto.getCantOrdenada() / this.producto.getProducto().getPiezas());
-                this.producto.setEnviarSinCargo(this.producto.getCantOrdenadaSinCargo() / this.producto.getProducto().getPiezas());
+                
                 this.totalSuma(this.producto);
                 if (!listaSimilares.isEmpty()) {
                     this.procesaSimilares(listaSimilares);
@@ -426,6 +423,13 @@ public class MbPedidos implements Serializable {
 //        to.setIdImpuestoGrupo(p.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
 //        return to;
 //    }
+    
+    private TOPedidoProducto convertir(PedidoProducto prod) {
+        TOPedidoProducto toProd = Pedidos.convertir(prod);
+        toProd.setCantFacturada(0);
+        toProd.setCantSinCargo(0);
+        return toProd;
+    }
 
     public void actualizaProductoSeleccionado() {
         int idx;
@@ -438,7 +442,7 @@ public class MbPedidos implements Serializable {
             this.producto.setIdVenta(this.pedido.getIdVenta());
             try {
                 TOPedido toPed = this.convertir(this.pedido);
-                TOPedidoProducto toProd = Pedidos.convertir(this.producto);
+                TOPedidoProducto toProd = this.convertir(this.producto);
 
                 this.dao = new DAOPedidos();
                 this.dao.agregarProductoPedido(toPed, toProd);
@@ -481,13 +485,13 @@ public class MbPedidos implements Serializable {
                 nuevo.setAcumulable(impuesto.isAcumulable());
                 nuevo.setAplicable(impuesto.isAplicable());
                 nuevo.setIdImpuesto(impuesto.getIdImpuesto());
-                nuevo.setImporte(impuesto.getImporte() * prod.getCantOrdenada());
+                nuevo.setImporte(impuesto.getImporte() * prod.getCantFacturada());
                 nuevo.setImpuesto(impuesto.getImpuesto());
                 nuevo.setModo(impuesto.getModo());
                 nuevo.setValor(impuesto.getValor());
                 this.impuestosTotales.add(nuevo);
             } else {
-                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantOrdenada());
+                this.impuestosTotales.get(index).setImporte(this.impuestosTotales.get(index).getImporte() + impuesto.getImporte() * prod.getCantFacturada());
             }
         }
     }
@@ -495,6 +499,8 @@ public class MbPedidos implements Serializable {
     private PedidoProducto convertir(TOPedidoProducto toProd) throws SQLException {
         PedidoProducto prod = new PedidoProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
         Pedidos.convertir(toProd, prod);
+        prod.setCantFacturada(prod.getOrdenada() * prod.getProducto().getPiezas());
+        prod.setCantSinCargo(prod.getOrdenadaSinCargo() * prod.getProducto().getPiezas());
         prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
         return prod;
     }

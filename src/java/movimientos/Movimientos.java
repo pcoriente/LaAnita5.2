@@ -300,11 +300,10 @@ public class Movimientos {
 //        }
 //        return num2 == 0 ? num1 : 1;
 //    }
-
     public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, int idProducto) throws SQLException {
         String strFechaOrdenCompra = "GETDATE()";
-        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
-            strFechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
+        if (!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
+            strFechaOrdenCompra = "'" + new java.sql.Date(fechaOrdenCompra.getTime()).toString() + "'";
         }
 //        if(fechaOrdenCompra!=null) {
 //            strFechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
@@ -340,7 +339,7 @@ public class Movimientos {
                         + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
                         + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                        + "		AND CONVERT(date, "+strFechaOrdenCompra+") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, "+strFechaOrdenCompra+") ELSE B.finVigencia END";
+                        + "		AND CONVERT(date, " + strFechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + strFechaOrdenCompra + ") ELSE B.finVigencia END";
                 rs = st.executeQuery(strSQL);
                 if (rs.next()) {
                     if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
@@ -357,20 +356,25 @@ public class Movimientos {
         }
         return boletin;
     }
-    
+
+    public static void agregarProductoVenta(Connection cn, TOMovimientoOficina toMov, TOProductoOficina toProd, Date fechaOrdenCompra) throws SQLException {
+        agregaProductoOficina(cn, toProd, toMov.getIdImpuestoZona());
+        actualizaProductoPrecio(cn, toMov, toProd, fechaOrdenCompra);
+    }
+
     private static String sqlObtenerPrecioUnitario(int idEmpresa, int idGrupoCte, int idCliente, int idTienda, int idFormato, int idGrupo, int idSubGrupo, int idProducto, String fechaOrdenCompra) {
         String strSQL = "SELECT B.*\n"
-                        + "FROM clientesListasDetalle B\n"
-                        + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
-                        + "WHERE L.idEmpresa=" + idEmpresa + "\n"
-                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
-                        + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
-                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
-                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                        + "		AND CONVERT(date, "+fechaOrdenCompra+") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, "+fechaOrdenCompra+") ELSE B.finVigencia END";
+                + "FROM clientesListasDetalle B\n"
+                + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
+                + "WHERE L.idEmpresa=" + idEmpresa + "\n"
+                + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
+                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
+                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
+                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
+                + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
+                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
+                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
+                + "		AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
 //        String strSQL = "SELECT TOP 1 D.*\n"
 //                        + "FROM (SELECT * FROM clientesListasDetalle L\n"
 //                        + "      WHERE L.idEmpresa=" + idEmpresa + "\n"
@@ -384,7 +388,7 @@ public class Movimientos {
 //                + "ORDER BY L.idGrupoCte DESC, L.idFromato DESC, L.idCliente DESC, L.idTienda DESC, CASE WHEN D.finVigencia='1900-01-01' THEN 10000 ELSE DATEDIFF(DAY, D.finVigencia, D.iniVigencia)";
         return strSQL;
     }
-    
+
 //    private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
 //        String strfechaOrdenCompra = "GETDATE()";
 //        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
@@ -439,11 +443,10 @@ public class Movimientos {
 //        }
 //        return precio;
 //    }
-    
     private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
         String strfechaOrdenCompra = "GETDATE()";
-        if(!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
-            strfechaOrdenCompra = "'"+new java.sql.Date(fechaOrdenCompra.getTime()).toString()+"'";
+        if (!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
+            strfechaOrdenCompra = "'" + new java.sql.Date(fechaOrdenCompra.getTime()).toString() + "'";
         }
         ArrayList<Double> precio = new ArrayList<>();
 //        double precioUnitario, desctoProducto1, precioLista;
@@ -554,7 +557,7 @@ public class Movimientos {
 //        }
 //        return precio;
 //    }
-
+//    
     public static void actualizaProductoPrecio(Connection cn, TOMovimientoOficina toMov, TOProductoOficina toProd, Date fechaOrdenCompra) throws SQLException {
         ArrayList<Double> precio = obtenerPrecioUnitario(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), fechaOrdenCompra, toMov.getDesctoComercial(), toProd.getIdProducto());
         toProd.setUnitario((double) Math.round(precio.get(0) * 1000000) / 1000000);
@@ -604,6 +607,38 @@ public class Movimientos {
 
         suma = prod.getNeto() * prod.getCantFacturada(); // Calcula el importe total
         mov.setTotal(mov.getTotal() + Math.round(suma * 1000000.00) / 1000000.00);          // Suma el importe al total
+    }
+
+    public static void liberar(Connection cn, int idMovto, int idAlmacen, int idProducto, double cantSolicitada, String campo) throws SQLException {
+        String strSQL = "SELECT E.cod_pro, A.separados\n"
+                + "FROM almacenesEmpaques A\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=A.idEmpaque\n"
+                + "WHERE A.idAlmacen=" + idAlmacen + " AND A.idEmpaque=" + idProducto;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                if (rs.getDouble("separados") < cantSolicitada) {
+                    throw new SQLException("El producto (cod_pro='" + rs.getString("cod_pro") + "') sin separados suficiente para liberar !!!");
+                }
+                strSQL = "UPDATE almacenesEmpaques\n"
+                        + "SET separados=separados-" + cantSolicitada + "\n"
+                        + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalle\n"
+                        + "SET " + campo + "=" + campo + "-" + cantSolicitada + "\n"
+                        + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+            } else {
+                strSQL = "SELECT cod_pro FROM empaques WHERE idEmpaque=" + idProducto;
+                rs = st.executeQuery(strSQL);
+                if(rs.next()) {
+                    throw new SQLException("El producto (cod_pro='" + rs.getString("cod_pro") + "') no cuenta con existencia !!!");
+                } else {
+                    throw new SQLException("El producto (idEmpaque=" + idProducto + ") no se encontró !!!");
+                }
+            }
+        }
     }
 
     public static void liberar(Connection cn, TOMovimientoOficina toMov, int idProducto, double cantSolicitada, String campo) throws SQLException {
@@ -778,6 +813,58 @@ public class Movimientos {
         return cantSeparada;
     }
 
+    public static void separar(Connection cn, int idMovto, int idProducto, double cantSolicitada, String campo) throws SQLException, Exception {
+        double disponibles;
+        String strSQL;
+        try (Statement st = cn.createStatement()) {
+//            strSQL = "SELECT E.cod_pro, existencia-separados AS disponibles\n"
+//                    + "FROM almacenesEmpaques A\n"
+//                    + "INNER JOIN empaques E ON E.idEmpaque=A.idEmpaque\n"
+//                    + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + idProducto;
+            strSQL = "SELECT E.cod_pro, existencia-separados AS disponibles\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
+                    + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                disponibles = rs.getDouble("disponibles");
+                if (disponibles < 0) {
+                    throw new SQLException("Error de existencia codigo='" + rs.getString("cod_pro") + "': disponibles negativos !!!");
+                } else if (cantSolicitada > disponibles) {
+                    throw new Exception("No hay existencia requerida codigo='" + rs.getString("cod_pro") + "'. Disponibles = " + rs.getDouble("disponibles"));
+                }
+//                strSQL = "UPDATE almacenesEmpaques\n"
+//                        + "SET separados=separados+" + cantSolicitada + "\n"
+//                        + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + idProducto;
+//                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE A\n"
+                        + "SET separados=A.separados+" + cantSolicitada + "\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                        + "INNER JOIN almacenesEmpaques A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE movimientosDetalle\n"
+                        + "SET " + campo + "=" + campo + "+" + cantSolicitada + "\n"
+                        + "WHERE idMovto=" + idMovto + " AND idEmpaque=" + idProducto;
+                st.executeUpdate(strSQL);
+            } else {
+                strSQL = "SELECT cod_pro FROM empaques WHERE idEmpaque=" + idProducto;
+                rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    throw new Exception("El producto no cuenta con existencia. codigo='" + rs.getString("cod_pro") + "' !!!");
+                } else {
+                    throw new SQLException("El producto no se encontró. idEmpaque=" + idProducto);
+                }
+
+            }
+        }
+    }
+
     // Solo para DAOVentas
     public static double separar(Connection cn, TOMovimientoOficina toMov, int idProducto, double cantSolicitada, String campo) throws SQLException, Exception {
         int n;
@@ -800,7 +887,7 @@ public class Movimientos {
                 }
                 if (disponibles != 0) {
                     if (disponibles < 0) {
-                        throw new Exception("Error de existencia: disponibles negativos !!!");
+                        throw new SQLException("Error de existencia: disponibles negativos !!!");
                     } else if (disponibles < cantSolicitada) {
                         throw new Exception("No hay existencia requerida. Disponibles=" + disponibles + " !!!");
                     } else {
@@ -962,7 +1049,7 @@ public class Movimientos {
         toMov.setEstatus(mov.getEstatus());
         toMov.setIdMovtoAlmacen(mov.getIdMovtoAlmacen());
     }
-    
+
     public static void convertir(TOProductoOficina toProd, ProductoOficina prod, Producto prod2) {
         prod.setProducto(prod2);
         convertir(toProd, prod);
@@ -1413,7 +1500,11 @@ public class Movimientos {
         }
     }
 
-    public static void agregaProductoOficina(Connection cn, TOProductoOficina to, int idZonaImpuestos) throws SQLException {
+    public static void agregarProductoOficina(Connection cn, TOProductoOficina to, int idZonaImpuestos) throws SQLException {
+        agregaProductoOficina(cn, to, idZonaImpuestos);
+    }
+
+    private static void agregaProductoOficina(Connection cn, TOProductoOficina to, int idZonaImpuestos) throws SQLException {
         String strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior) "
                 + "VALUES (" + to.getIdMovto() + ", " + to.getIdProducto() + ", " + to.getCantFacturada() + ", " + to.getCantSinCargo() + ", " + to.getCostoPromedio() + ", " + to.getCosto() + ", " + to.getDesctoProducto1() + ", " + to.getDesctoProducto2() + ", " + to.getDesctoConfidencial() + ", " + to.getUnitario() + ", " + to.getIdImpuestoGrupo() + ", '', 0, 0)";
         try (Statement st = cn.createStatement()) {

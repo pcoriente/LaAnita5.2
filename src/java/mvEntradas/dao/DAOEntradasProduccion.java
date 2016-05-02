@@ -14,6 +14,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.Movimientos;
 import movimientos.to.TOMovimientoProductoAlmacen;
 import movimientos.to.TOProductoOficina;
 import mvEntradas.to.TOEntradaProduccion;
@@ -207,7 +208,7 @@ public class DAOEntradasProduccion {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                movimientos.Movimientos.agregaProductoOficina(cn, toProd, 0);
+                Movimientos.agregarProductoOficina(cn, toProd, 0);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

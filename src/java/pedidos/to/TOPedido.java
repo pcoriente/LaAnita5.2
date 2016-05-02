@@ -11,7 +11,7 @@ public class TOPedido extends TOMovimientoOficina {
     private int idEnvio;
     private double peso;
     private int orden;
-    private int envioEstatus;
+//    private int envioEstatus;
     
     private int idPedido;
     private int pedidoFolio;
@@ -216,11 +216,11 @@ public class TOPedido extends TOMovimientoOficina {
         this.orden = orden;
     }
 
-    public int getEnvioEstatus() {
-        return envioEstatus;
-    }
-
-    public void setEnvioEstatus(int envioEstatus) {
-        this.envioEstatus = envioEstatus;
-    }
+//    public int getEnvioEstatus() {
+//        return envioEstatus;
+//    }
+//
+//    public void setEnvioEstatus(int envioEstatus) {
+//        this.envioEstatus = envioEstatus;
+//    }
 }

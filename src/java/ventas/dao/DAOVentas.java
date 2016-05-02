@@ -16,7 +16,9 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
+import movimientos.Movimientos;
 import movimientos.to.TOMovimientoProductoAlmacen;
+import movimientos.to.TOProductoAlmacen;
 import pedidos.Pedidos;
 import pedidos.to.TOPedido;
 import usuarios.dominio.UsuarioSesion;
@@ -68,7 +70,7 @@ public class DAOVentas {
                 toPed.setIdUsuario(this.idUsuario);
                 toPed.setPropietario(0);
                 toPed.setEstatus(7);
-                
+
                 Pedidos.cierraVentaAlmacen(cn, toPed);
 
                 cn.commit();
@@ -79,6 +81,74 @@ public class DAOVentas {
                 cn.setAutoCommit(true);
             }
         }
+    }
+
+    public ArrayList<TOVentaProductoAlmacen> sutirVentaAlmacen(TOPedido toPed) throws SQLException {
+        String strSQL, sku, lote;
+        int idAlmacen, idProducto;
+        double cantSolicitada, cantSeparar;
+        ArrayList<TOVentaProductoAlmacen> detalle = new ArrayList<>();
+        TOProductoAlmacen toProd = new TOProductoAlmacen();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement(); Statement st1 = cn.createStatement(); Statement st2 = cn.createStatement()) {
+                strSQL = "SELECT idAlmacen, idMovtoAlmacen FROM movimientos WHERE idMovto=" + toPed.getIdMovto();
+                ResultSet rs1 = st1.executeQuery(strSQL);
+                if (rs1.next()) {
+                    idAlmacen = rs1.getInt("idAlmacen");
+                    toProd.setIdMovtoAlmacen(rs1.getInt("idMovtoAlmacen"));
+                } else {
+                    throw new SQLException("No se encontro el idMovto=" + toPed.getIdMovto());
+                }
+                strSQL = "SELECT E.cod_pro, D.idEmpaque, D.cantFacturada+D.cantSinCargo AS cantSolicitada\n"
+                        + "FROM movimientosDetalle D\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
+                        + "WHERE D.idMovto=" + toPed.getIdMovto();
+                ResultSet rs = st.executeQuery(strSQL);
+                while (rs.next()) {
+                    sku = rs.getString("cod_pro");
+                    idProducto = rs.getInt("idEmpaque");
+                    cantSolicitada = rs.getDouble("cantSolicitada");
+
+                    strSQL = "SELECT A.lote, A.existencia-A.separados AS disponibles\n"
+                            + "FROM almacenesLotes A\n"
+                            + "WHERE A.idAlmacen=" + idAlmacen + " AND A.idEmpaque=" + idProducto + " AND A.existencia - A.separados != 0\n"
+                            + "ORDER BY A.fechaCaducidad";
+                    rs1 = st1.executeQuery(strSQL);
+                    while (rs1.next() && cantSolicitada > 0) {
+                        lote = rs1.getString("lote");
+                        cantSeparar = rs1.getDouble("disponibles");
+                        if (cantSeparar < 0) {
+                            throw new SQLException("Error de existencias cod_pro='" + sku + "', lote='" + lote + "'. Disponibles negativos !!!");
+                        } else if (cantSolicitada < cantSeparar) {
+                            cantSeparar = cantSolicitada;
+                        }
+                        toProd.setIdProducto(idProducto);
+                        toProd.setLote(lote);
+                        toProd.setCantidad(cantSeparar);
+                        Movimientos.agregaProductoAlmacen(cn, toProd);
+
+                        strSQL = "UPDATE almacenesLotes\n"
+                                + "SET separados=separados+" + cantSeparar + "\n"
+                                + "WHERE idAlmacen=" + idAlmacen + " AND idEmpaque=" + idProducto + " AND lote='" + lote + "'";
+                        st2.executeUpdate(strSQL);
+
+                        cantSolicitada -= cantSeparar;
+                    }
+                    if (cantSolicitada > 0) {
+                        throw new SQLException("La venta no se puedo surtir completa. Producto (cod_pro='" + sku + "') sin existencia suficiente !!!");
+                    }
+                }
+                detalle = this.obtenDetalleAlmacen(cn, toPed);
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+        return detalle;
     }
 
     public void traspasarLote(int idAlmacen, TOVentaProductoAlmacen toOrigen, TOVentaProductoAlmacen toDestino, double cantTraspasar) throws SQLException {
@@ -137,7 +207,7 @@ public class DAOVentas {
         return toProd;
     }
 
-    public ArrayList<TOVentaProductoAlmacen> obtenerDetalleAlmacen(TOPedido toPed) throws SQLException {
+    private ArrayList<TOVentaProductoAlmacen> obtenDetalleAlmacen(Connection cn, TOPedido toPed) throws SQLException {
         ArrayList<TOVentaProductoAlmacen> productos = new ArrayList<>();
         String strSQL = "SELECT D.*, 0 AS disponibles, A.fechaCaducidad\n"
                 + "FROM movimientosDetalleAlmacen D\n"
@@ -145,15 +215,22 @@ public class DAOVentas {
                 + "INNER JOIN almacenesLotes A ON A.idAlmacen=M.idAlmacen AND A.idEmpaque=D.idEmpaque AND A.lote=D.lote\n"
                 + "WHERE D.idMovtoAlmacen=" + toPed.getIdMovtoAlmacen() + "\n"
                 + "ORDER BY D.idEmpaque, A.fechaCaducidad";
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                productos.add(this.construirProductoAlmacen(rs));
+            }
+        }
+        return productos;
+    }
+
+    public ArrayList<TOVentaProductoAlmacen> obtenerDetalleAlmacen(TOPedido toPed) throws SQLException {
+        ArrayList<TOVentaProductoAlmacen> productos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
-            try (Statement st = cn.createStatement()) {
-                ResultSet rs = st.executeQuery(strSQL);
-                while (rs.next()) {
-                    productos.add(this.construirProductoAlmacen(rs));
-                }
+            try {
+                productos = this.obtenDetalleAlmacen(cn, toPed);
                 movimientos.Movimientos.bloquearMovimientoAlmacen(cn, toPed, this.idUsuario);
-
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -164,8 +241,8 @@ public class DAOVentas {
         }
         return productos;
     }
-
-    public ArrayList<TOPedido> obtenerVentasAlmacen(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
+    
+    private ArrayList<TOPedido> obtenVentasAlmacen(Connection cn, int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = ">=7";
         if (estatus == 5) {
             condicion = "=5";
@@ -181,14 +258,19 @@ public class DAOVentas {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
         }
         strSQL += "ORDER BY M.fecha DESC";
-        Connection cn = this.ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
                 ventas.add(this.construir(rs));
             }
-        } finally {
-            cn.close();
+        }
+        return ventas;
+    }
+
+    public ArrayList<TOPedido> obtenerVentasAlmacen(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
+        ArrayList<TOPedido> ventas = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            ventas = this.obtenVentasAlmacen(cn, idAlmacen, estatus, fechaInicial);
         }
         return ventas;
     }
@@ -658,14 +740,15 @@ public class DAOVentas {
         return similares;
     }
 
-    public void tranferirSinCargo(TOPedido toPed, TOVentaProducto toProd, TOVentaProducto toSimilar, int idZonaImpuestos, double cantidad) throws SQLException, Exception {
+    public void tranferirSinCargoVenta(TOPedido toPed, TOVentaProducto toProd, TOVentaProducto toSimilar, double cantidad) throws SQLException, Exception {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 if (toSimilar.getIdMovto() == 0) {
                     toSimilar.setIdMovto(toProd.getIdMovto());
                     toSimilar.setCantOrdenadaSinCargo(0);
-                    this.agregaProducto(cn, toPed, toSimilar);
+//                    this.agregaProducto(cn, toPed, toSimilar);
+                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
                 }
                 movimientos.Movimientos.separar(cn, toPed, toSimilar.getIdProducto(), cantidad, "cantSinCargo");
                 toSimilar.setCantSinCargo(toSimilar.getCantSinCargo() + cantidad);
@@ -885,7 +968,8 @@ public class DAOVentas {
                     toSimilar.setCantSinCargo(0);
                     toSimilar.setCostoPromedio(0);
                     toSimilar.setIdImpuestoGrupo(rs.getInt("idImpuesto"));
-                    this.agregaProducto(cn, toPed, toSimilar);
+//                    this.agregaProducto(cn, toPed, toSimilar);
+                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
                     empaques.add(String.valueOf(idEmpaque));
                 }
                 cantSolicitada -= movimientos.Movimientos.separarLote(cn, toPed, idEmpaque, rs.getString("lote"), cantSolicitada, "cantSinCargo");
@@ -1153,11 +1237,10 @@ public class DAOVentas {
         return importeImpuestos;
     }
 
-    private void agregaProducto(Connection cn, TOPedido toPed, TOVentaProducto toProd) throws SQLException {
-        movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
-        movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd, null);
-    }
-
+//    private void agregaProducto(Connection cn, TOPedido toPed, TOVentaProducto toProd) throws SQLException {
+//        Movimientos.agregarProductoVenta(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
+//    }
+//
     public void agregarProducto(TOPedido toPed, TOVentaProducto toProd) throws SQLException {
         String strSQL = "INSERT INTO pedidosDetalle (idPedido, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCArgo)\n"
                 + "VALUES (" + toPed.getReferencia() + ", " + toProd.getIdProducto() + ", 0, 0, 0, 0)";
@@ -1167,7 +1250,8 @@ public class DAOVentas {
                 st.executeUpdate(strSQL);
                 toProd.setIdPedido(toPed.getReferencia());
 
-                this.agregaProducto(cn, toPed, toProd);
+//                this.agregaProducto(cn, toPed, toProd);
+                Movimientos.agregarProductoVenta(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -1257,13 +1341,14 @@ public class DAOVentas {
                             toPed.setPropietario(0);
                         }
                     } else if (toPed.getReferencia() != 0 && toPed.getPedidoEstatus() == 1) {
-                        if (toPed.getIdSolicitud() != 0 && (toPed.getIdEnvio() == 0 || toPed.getEnvioEstatus()!=7)) {
+//                        if (toPed.getIdSolicitud() != 0 && (toPed.getIdEnvio() == 0 || toPed.getEnvioEstatus() != 7)) {
+                        if (toPed.getIdSolicitud() != 0 && toPed.getIdEnvio() == 0) {
                             movimientos.Movimientos.liberarMovimientoOficina(cn, toPed.getIdMovto(), this.idUsuario);
                             toPed.setPropietario(0);
                         } else {
                             strSQL = "SELECT estatus FROM pedidos WHERE idPedido=" + toPed.getReferencia();
                             ResultSet rs = st.executeQuery(strSQL);
-                            if(rs.next()) {
+                            if (rs.next()) {
                                 toPed.setPedidoEstatus(rs.getInt("estatus"));
                                 if (toPed.getPedidoEstatus() == 1) {
                                     strSQL = "UPDATE pedidos SET estatus=3 WHERE idPedido=" + toPed.getReferencia();

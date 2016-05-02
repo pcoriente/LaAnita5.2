@@ -17,7 +17,7 @@
             <h:form id="main" onkeypress="return event.keyCode !== 13;" >
                 <p:messages id="msgsPedidos" autoUpdate="false" showDetail="true" closable="true" />
                 <p:panel id="panelPedidos" header="Mantenimiento de Pedidos" style="float: left;"
-                         rendered="#{not empty mbPedidos.obtenerAcciones(36)}" >
+                         rendered="#{not empty mbPedidos.obtenerAcciones(31)}" >
                     <p:panelGrid id="pedidos" >
                         <f:facet name="header" >
                             <p:row >
@@ -86,7 +86,7 @@
                             <h:outputText value="#{pedido.ordenDeCompra}" />
                         </p:column>
                         <p:column headerText="Estatus" style="width: 40px;" >
-                            <h:outputText value="#{pedido.pedidoEstatus==0?'Pendiente':pedido.pedidoEstatus==1?'Solicitado':pedido.pedidoEstatus==2?'Rechazado':pedido.pedidoEstatus==3?'Aceptado':pedido.pedidoEstatus==5?'Ordenado':'Cerrado'}" />
+                            <h:outputText value="#{pedido.pedidoEstatus==0?'Pendiente':pedido.pedidoEstatus==1?'Solicitado':pedido.pedidoEstatus==2?'Rechazado':pedido.pedidoEstatus==3?'Aceptado':pedido.pedidoEstatus==5?'Ordenado':pedido.pedidoEstatus==6?'Cancelado':'Cerrado'}" />
                         </p:column>
                     </p:dataTable>
                 </p:panel>
@@ -188,7 +188,7 @@
                                 <h:outputLabel value="CAJAS :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText value="#{mbPedidos.producto.enviar}" style="width: 80px;"
+                                <p:inputText value="#{mbPedidos.producto.ordenada}" style="width: 80px;"
                                              readonly="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked or mbPedidos.pedido.especial}"
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
@@ -200,7 +200,7 @@
                                 <h:outputLabel value="SIN CARGO :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText id="txtCantSinCargo" value="#{mbPedidos.producto.enviarSinCargo}" style="width: 80px;"
+                                <p:inputText id="txtCantSinCargo" value="#{mbPedidos.producto.ordenadaSinCargo}" style="width: 80px;"
                                              readonly="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked or !mbPedidos.pedido.especial}"
                                              converterMessage="El valor proporcionado no es un numero" >
                                     <f:validateDoubleRange minimum="0.0" maximum="10000.0" />
@@ -211,7 +211,7 @@
                             <p:column >
                                 <p:commandButton id="btnSimilares" icon="ui-icon-transfer-e-w" title="Traspasar sin cargo a similar"
                                                  disabled="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked 
-                                                             or mbPedidos.producto.cantOrdenadaSinCargo==0 or mbPedidos.pedido.especial}"
+                                                             or mbPedidos.producto.ordenadaSinCargo==0 or mbPedidos.pedido.especial}"
                                                  process="@this" actionListener="#{mbPedidos.traspasoSimilar()}" 
                                                  update=":main:msgsPedido :main:panelSimilares :main:detalleSimilares"
                                                  oncomplete="handleAbrirSimilares(xhr, status, args);" />
@@ -319,12 +319,12 @@
                             <h:outputText value="#{prod.producto.toString()}" />
                         </p:column>
                         <p:column headerText="Cajas" style="width: 70px; text-align: right;" >
-                            <h:outputText value="#{prod.enviar}" >
+                            <h:outputText value="#{prod.ordenada}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
                         <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
-                            <h:outputText value="#{prod.enviarSinCargo}" >
+                            <h:outputText value="#{prod.ordenadaSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>
@@ -334,7 +334,7 @@
                             </h:outputText>
                         </p:column>
                         <p:column headerText="Importe" style="width: 70px; text-align: right;" >
-                            <h:outputText value="#{prod.unitario*prod.cantOrdenada}" >
+                            <h:outputText value="#{prod.unitario*prod.cantFacturada}" >
                                 <f:convertNumber pattern="###,##0.000000" />
                             </h:outputText>
                         </p:column>
@@ -394,7 +394,7 @@
                                                  process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
                                                  update=":main:msgsPedido :main:pedido :main:totales" />
                                 <p:commandButton id="btnPedidoCancelar" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar el pedido" 
-                                                 disabled="#{mbPedidos.pedido.pedidoEstatus!=1 or !mbPedidos.locked}"
+                                                 disabled="#{mbPedidos.pedido.pedidoEstatus != 1 or !mbPedidos.locked}"
                                                  process="@this" update=":main:cancelarPedido" 
                                                  oncomplete="PF('cancelarPedidoDlg').show();" />
                             </p:column>

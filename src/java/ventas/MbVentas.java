@@ -11,6 +11,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.bean.ManagedProperty;
 import javax.inject.Named;
@@ -110,7 +112,7 @@ public class MbVentas implements Serializable {
             } else {
                 for (TOPedidoProducto to : this.dao.surtirFincado(toPed)) {
                     prod = this.convertir(to);
-                    if (prod.getCantOrdenada() + prod.getCantOrdenadaSinCargo() != prod.getCantFacturada() + prod.getCantSinCargo()) {
+                    if ((prod.getOrdenada() + prod.getOrdenadaSinCargo()) * prod.getProducto().getPiezas() != prod.getCantFacturada() + prod.getCantSinCargo()) {
                         completo = false;
                     }
                     this.totalSuma(prod);
@@ -350,7 +352,7 @@ public class MbVentas implements Serializable {
                 TOPedidoProducto toSimilar = this.convertir(this.similar);
 
                 this.dao = new DAOPedidos();
-                this.dao.transferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar);
+                this.dao.transferirSinCargoVenta(toPed, toProd, toSimilar, this.cantTraspasar);
 
                 this.producto.setCantSinCargo(this.producto.getCantSinCargo() - this.cantTraspasar);
                 this.producto.setSeparados(this.producto.getCantFacturada() + this.producto.getCantSinCargo());
@@ -446,8 +448,9 @@ public class MbVentas implements Serializable {
 
     private TOPedidoProducto convertir(PedidoProducto prod) {
         TOPedidoProducto toProd = new TOPedidoProducto();
-        toProd.setCantOrdenada(prod.getCantOrdenada());
-        toProd.setCantOrdenadaSinCargo(prod.getCantOrdenadaSinCargo());
+        toProd.setPiezas(prod.getProducto().getPiezas());
+        toProd.setCantOrdenada(prod.getOrdenada() * toProd.getPiezas());
+        toProd.setCantOrdenadaSinCargo(prod.getOrdenadaSinCargo() * toProd.getPiezas());
         movimientos.Movimientos.convertir(prod, toProd);
         return toProd;
     }
@@ -506,9 +509,9 @@ public class MbVentas implements Serializable {
         boolean ok = false;
         if (this.venta.isDirecto()) {
             Mensajes.mensajeAlert("La venta es directa y no se puede modificar, aplicar surtir fincado !!!");
-            ok = false;
         } else {
             this.producto = (PedidoProducto) event.getObject();
+            ok = true;
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okEdicion", ok);
@@ -579,24 +582,24 @@ public class MbVentas implements Serializable {
         }
     }
 
-    private PedidoProducto convertir(TOPedidoProducto toProd, Producto producto) throws SQLException {
-        PedidoProducto prod = new PedidoProducto(producto);
+    private void convertir(TOPedidoProducto toProd, PedidoProducto prod) throws SQLException {
         prod.setIdVenta(toProd.getIdVenta());
-        prod.setCantOrdenada(toProd.getCantOrdenada());
-        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+        prod.setOrdenada(toProd.getCantOrdenada() / toProd.getPiezas());
+        prod.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / toProd.getPiezas());
         movimientos.Movimientos.convertir(toProd, prod);
         prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
+    }
+
+    private PedidoProducto convertir(TOPedidoProducto toProd, Producto producto) throws SQLException {
+        PedidoProducto prod = new PedidoProducto(producto);
+        this.convertir(toProd, prod);
         return prod;
     }
 
     private PedidoProducto convertir(TOPedidoProducto toProd) throws SQLException {
         PedidoProducto prod = new PedidoProducto();
-        prod.setIdVenta(toProd.getIdVenta());
-        prod.setCantOrdenada(toProd.getCantOrdenada());
-        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
         prod.setProducto(this.mbBuscar.obtenerProducto(toProd.getIdProducto()));
-        movimientos.Movimientos.convertir(toProd, prod);
-        prod.setNeto(prod.getUnitario() + this.dao.obtenerImpuestosProducto(toProd.getIdMovto(), toProd.getIdProducto(), prod.getImpuestos()));
+        this.convertir(toProd, prod);
         return prod;
     }
 
@@ -604,7 +607,6 @@ public class MbVentas implements Serializable {
         this.venta = (Pedido) event.getObject();
 
         boolean ok = false;
-        int estatus = 7;
         String aviso = "";
         PedidoProducto prod;
         this.detalle = new ArrayList<>();
@@ -612,27 +614,20 @@ public class MbVentas implements Serializable {
         try {
             this.dao = new DAOPedidos();
             if (this.venta.isDirecto()) {
-                estatus = this.dao.obtenerEstatusTraspasoDirecto(this.venta.getIdEnvio(), this.venta.getAlmacen().getIdAlmacen(), this.venta.getIdSolicitud());
-                if (estatus == 0) {
-                    Mensajes.mensajeAlert("El envío para este almacén no se ha cerrado !!!");
-                } else if (estatus == 1) {
-                    Mensajes.mensajeError("El traspaso no se ha realizado !!!");
-                    estatus = 0;
-                } else if (estatus == 2) {
-                    Mensajes.mensajeAlert("La recepción no se ha realizado !!!");
-                    estatus = 0;
-                } else {
-                    estatus = 7;
+                try {
+                    this.dao.obtenerEstatusTraspaso(this.venta.getIdSolicitud());
+                } catch (Exception ex) {
+                    Mensajes.mensajeAlert(ex.getMessage());
                 }
             }
-            if (estatus != 0) {
+//            if (estatus != 0) {
                 this.venta.setSubTotal(0);
                 this.venta.setDescuento(0);
                 this.venta.setImpuesto(0);
                 this.venta.setTotal(0);
                 TOPedido toPed = this.convertir(this.venta);
 
-                for (TOPedidoProducto to : this.dao.obtenerDetalleOficina(toPed, aviso)) {
+                for (TOPedidoProducto to : this.dao.obtenerDetalleOficina(toPed)) {
                     prod = this.convertir(to);
                     this.totalSuma(prod);
                     this.detalle.add(prod);
@@ -645,7 +640,7 @@ public class MbVentas implements Serializable {
                 this.venta.setPropietario(toPed.getPropietario());
                 this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
                 ok = true;
-            }
+//            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {

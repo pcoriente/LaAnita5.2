@@ -1214,7 +1214,7 @@ public class DAOMovimientosOld {
             try (Statement st = cn.createStatement()) {
 
 //                this.agregaProductoOficina(cn, to, idImpuestoZona);
-                movimientos.Movimientos.agregaProductoOficina(cn, to, idImpuestoZona);
+                movimientos.Movimientos.agregarProductoOficina(cn, to, idImpuestoZona);
 
                 this.actualizaProductoPrecio(cn, idEmpresa, toPed, to);
 
@@ -1459,7 +1459,7 @@ public class DAOMovimientosOld {
             cn.setAutoCommit(false);
             try {
 //                this.agregaProductoOficina(cn, to, idImpuestoZona);
-                movimientos.Movimientos.agregaProductoOficina(cn, to, idImpuestoZona);
+                movimientos.Movimientos.agregarProductoOficina(cn, to, idImpuestoZona);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

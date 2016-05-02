@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.context.FacesContext;
 import javax.naming.NamingException;
@@ -82,7 +84,6 @@ public class MbVentasAlmacen implements Serializable {
     @ManagedProperty(value = "#{mbAcciones}")
     private MbAcciones mbAcciones;
     private ArrayList<Accion> acciones;
-    
     private Pedido venta;
     private ArrayList<Pedido> ventas;
     private VentaProductoAlmacen loteOrigen, loteDestino;
@@ -109,7 +110,7 @@ public class MbVentasAlmacen implements Serializable {
 
         this.inicializa();
     }
-    
+
     private TORechazoProductoAlmacen convertir(TOMovimientoProductoAlmacen to) {
         TORechazoProductoAlmacen toProd = new TORechazoProductoAlmacen();
         toProd.setIdMovtoAlmacen(to.getIdMovtoAlmacen());
@@ -119,7 +120,7 @@ public class MbVentasAlmacen implements Serializable {
         toProd.setFechaCaducidad(to.getFechaCaducidad());
         return toProd;
     }
-    
+
     private TraspasoProductoReporte convertirProductoReporte(TOVentaProducto toProd) throws SQLException {
         boolean ya = false;
         Producto producto = this.mbBuscar.obtenerProducto(toProd.getIdProducto());
@@ -142,7 +143,7 @@ public class MbVentasAlmacen implements Serializable {
         }
         return rep;
     }
-    
+
     private void totalSuma(VentaProducto prod) {
         int index;
         ImpuestosProducto nuevo;
@@ -182,22 +183,22 @@ public class MbVentasAlmacen implements Serializable {
 //        DateFormat formatoHora = new SimpleDateFormat("HH:mm:ss");
         try {
             TOPedido toPed = this.convertir(this.venta);
-            
+
             dir = this.mbDireccion.obtener(this.venta.getAlmacen().getIdDireccion());
             String cedisDir = dir.toString2();
             String cedisLoc = dir.toString3();
-            
+
             this.mbClientes.setCliente(this.mbClientes.obtenerCliente(this.venta.getTienda().getIdCliente()));
             dir = this.mbDireccion.obtener(this.mbClientes.getCliente().getIdDireccionFiscal());
             String clienteDir = dir.toString2();
             String clienteLoc = dir.toString3();
-            
+
             dir = this.mbDireccion.obtener(this.venta.getTienda().getIdDireccion());
             String tiendaDir = dir.toString2();
             String tiendaLoc = dir.toString3();
-            
-            double peso=0;
-            double volumen=0;
+
+            double peso = 0;
+            double volumen = 0;
             this.venta.setSubTotal(0);
             this.venta.setDescuento(0);
             this.venta.setImpuesto(0);
@@ -208,10 +209,10 @@ public class MbVentasAlmacen implements Serializable {
             this.dao = new DAOVentas();
             for (TOVentaProducto to : this.dao.obtenerDetalleOficina(toPed, "")) {
                 prod = this.convertir(to);
-                peso+=prod.getProducto().getPeso()*(prod.getCantFacturada()+prod.getCantSinCargo());
-                volumen+=prod.getProducto().getVolumen()*(prod.getCantFacturada()+prod.getCantSinCargo());
+                peso += prod.getProducto().getPeso() * (prod.getCantFacturada() + prod.getCantSinCargo());
+                volumen += prod.getProducto().getVolumen() * (prod.getCantFacturada() + prod.getCantSinCargo());
                 this.totalSuma(prod);
-                if (to.getCantFacturada()+to.getCantSinCargo() != 0) {
+                if (to.getCantFacturada() + to.getCantSinCargo() != 0) {
                     detalleReporte.add(this.convertirProductoReporte(to));
                 }
             }
@@ -228,9 +229,9 @@ public class MbVentasAlmacen implements Serializable {
             parameters.put("cliente", this.mbClientes.getCliente().getContribuyente());
             parameters.put("clienteDir", clienteDir);
             parameters.put("clienteLoc", clienteLoc);
-            parameters.put("formaPago", this.mbClientes.getCliente().getDiasCredito()==0?"Contado":"Crédito "+this.mbClientes.getCliente().getDiasCredito()+" días");
-            
-            parameters.put("tienda", "("+this.venta.getTienda().getCodigoTienda()+") "+this.venta.getTienda().getTienda());
+            parameters.put("formaPago", this.mbClientes.getCliente().getDiasCredito() == 0 ? "Contado" : "Crédito " + this.mbClientes.getCliente().getDiasCredito() + " días");
+
+            parameters.put("tienda", "(" + this.venta.getTienda().getCodigoTienda() + ") " + this.venta.getTienda().getTienda());
             parameters.put("tiendaDir", tiendaDir);
             parameters.put("tiendaLoc", tiendaLoc);
 
@@ -240,14 +241,14 @@ public class MbVentasAlmacen implements Serializable {
             parameters.put("remisionFecha", this.venta.getFecha());
             parameters.put("peso", peso);
             parameters.put("volumen", volumen);
-            
+
             parameters.put("subTotal", this.venta.getSubTotal());
             parameters.put("descuento", this.venta.getDescuento());
             parameters.put("impuestos", this.impuestosTotales);
             parameters.put("total", this.venta.getTotal());
 //            parameters.put("letras", utilerias.NumerosALetrasConvertidor.convertNumberToLetter(this.venta.getTotal()));
             Numero_a_Letra numeroALetra = new Numero_a_Letra();
-            parameters.put("letras", numeroALetra.Convertir(String.valueOf((double)Math.round(this.venta.getTotal()*100)/100), true, this.venta.getComprobante().getMoneda()));
+            parameters.put("letras", numeroALetra.Convertir(String.valueOf((double) Math.round(this.venta.getTotal() * 100) / 100), true, this.venta.getComprobante().getMoneda()));
 
             parameters.put("idUsuario", this.venta.getIdUsuario());
 
@@ -270,7 +271,7 @@ public class MbVentasAlmacen implements Serializable {
             Mensajes.mensajeError(ex.getMessage());
         }
     }
-    
+
     public void salir() {
         try {
             this.dao = new DAOVentas();
@@ -324,8 +325,9 @@ public class MbVentasAlmacen implements Serializable {
             this.venta.setEstatus(toPed.getEstatus());
             this.venta.setIdUsuario(toPed.getIdUsuario());
             this.venta.setPropietario(toPed.getPropietario());
-            this.setLocked(this.venta.getIdUsuario()==this.venta.getPropietario());
+            this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
             Mensajes.mensajeSucces("El pedido se cerró correctamente !!!");
+            this.obtenerVentas();
             ok = true;
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
@@ -334,6 +336,20 @@ public class MbVentasAlmacen implements Serializable {
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
+    }
+
+    public void surtirVentaAlmacen() {
+        TOPedido toPed = this.convertir(this.venta);
+        try {
+            this.dao = new DAOVentas();
+            for (TOVentaProductoAlmacen toProd : this.dao.sutirVentaAlmacen(toPed)) {
+                this.detalle.add(this.convertirAlmacenProducto(toProd));
+            }
+        } catch (NamingException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        } catch (SQLException ex) {
+            Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
+        }
     }
 
     public void actualizaTraspasoLote() {
@@ -374,7 +390,7 @@ public class MbVentasAlmacen implements Serializable {
     public void inicializaTraspasoLote() {
         boolean ok = false;
         try {
-            if(this.venta.getEstatus()!=5) {
+            if (this.venta.getEstatus() != 5) {
                 Mensajes.mensajeAlert("La venta ya ha sido cerrada !!!");
             } else {
                 this.empaqueLotes = new ArrayList<>();
@@ -408,7 +424,7 @@ public class MbVentasAlmacen implements Serializable {
         prod.setFechaCaducidad(toProd.getFechaCaducidad());
         return prod;
     }
-    
+
     private TOPedido convertir(Pedido pedido) {
         TOPedido toPed = new TOPedido();
         Pedidos.convertirPedido(pedido, toPed);
@@ -447,13 +463,17 @@ public class MbVentasAlmacen implements Serializable {
         return vta;
     }
 
+    private void obtenVentasAlmacen() throws NamingException, SQLException {
+        this.ventas = new ArrayList<>();
+        this.dao = new DAOVentas();
+        for (TOPedido to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
+            this.ventas.add(this.convertir(to));
+        }
+    }
+
     public void obtenerVentas() {
         try {   // Segun fecha y status
-            this.ventas = new ArrayList<>();
-            this.dao = new DAOVentas();
-            for (TOPedido to : this.dao.obtenerVentasAlmacen(this.mbAlmacenes.getToAlmacen().getIdAlmacen(), (this.pendientes ? 5 : 7), this.fechaInicial)) {
-                this.ventas.add(this.convertir(to));
-            }
+            this.obtenVentasAlmacen();
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {

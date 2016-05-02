@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import utilerias.Utilerias;
 
@@ -12,6 +13,25 @@ import utilerias.Utilerias;
  * @author jesc
  */
 public class Envios {
+
+    public static ArrayList<Double> obtenerEnvioPeso(Connection cn, int idEnvio) throws SQLException {
+        ArrayList<Double> pesos = new ArrayList<>();
+        String strSQL = "SELECT SUM(SD.cantSolicitada*E.peso/E.piezas) AS peso, SUM(ESD.directos*E.peso) AS pesoDirectos\n"
+                + "FROM enviosSolicitudesDetalle ESD\n"
+                + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=ESD.idSolicitud AND SD.idEmpaque=ESD.idEmpaque\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=SD.idEmpaque\n"
+                + "INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=SD.idSolicitud\n"
+                + "INNER JOIN envios N ON N.idEnvio=ES.idEnvio\n"
+                + "WHERE N.idEnvio=" + idEnvio;
+
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            rs.next();
+            pesos.add(rs.getDouble("peso"));
+            pesos.add(rs.getDouble("pesoDirectos"));
+        }
+        return pesos;
+    }
 
     public static int obtenerEstatusEnvioTraspaso(Connection cn, int idEnvio, int idAlmacenDestino) throws SQLException {
         int estatus = 0;
@@ -29,7 +49,8 @@ public class Envios {
         return estatus;
     }
 
-    public static int obtenerIdMovtoRecepcion(Connection cn, int idSolicitud) throws SQLException {
+    public static int obtenerIdMovtoRecepcion(Connection cn, int idSolicitud) throws SQLException, Exception {
+        int estatus = 0;
         int idAlmacen = 0;
         int idMovtoRecepcion = 0;
         String strSQL = "SELECT idAlmacenOrigen FROM solicitudes WHERE idSolicitud=" + idSolicitud;
@@ -38,26 +59,86 @@ public class Envios {
             if (rs.next()) {
                 idAlmacen = rs.getInt("idAlmacenOrigen");
             } else {
-                throw new SQLException("No se encontro la solicitud !!!");
+                throw new SQLException("No se encontró la solicitud !!!");
             }
-            strSQL = "SELECT M.idMovto, M.idReferencia FROM movimientos M\n"
+            strSQL = "SELECT M.idMovto, M.idReferencia, M.estatus FROM movimientos M\n"
                     + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
                     + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.idSolicitud=" + idSolicitud;
             rs = st.executeQuery(strSQL);
             if (rs.next()) {
-                strSQL = "SELECT idMovto FROM movimientos\n"
-                        + "WHERE idAlmacen=" + rs.getInt("idReferencia") + " AND idTipo=9 AND referencia=" + rs.getInt("idMovto");
-                rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    idMovtoRecepcion = rs.getInt("idMovto");
+                estatus = rs.getInt("estatus");
+                if (estatus == 7) {
+                    strSQL = "SELECT idMovto, estatus FROM movimientos\n"
+                            + "WHERE idAlmacen=" + rs.getInt("idReferencia") + " AND idTipo=9 AND referencia=" + rs.getInt("idMovto");
+                    rs = st.executeQuery(strSQL);
+                    if (rs.next()) {
+                        if(rs.getInt("estatus")!=7) {
+                            throw new Exception("La recepción no se ha cerrado");
+                        }
+                        idMovtoRecepcion = rs.getInt("idMovto");
+                    } else {
+                        throw new Exception("No se encontró la recepción !!!");
+                    }
+                } else if(estatus == 5) {
+                    throw new Exception("El traspaso no se ha cerrado !!!");
                 } else {
-                    throw new SQLException("No se encontró la recepción !!!");
+                    throw new Exception("Checar estatus del traspaso !!!");
                 }
             } else {
-                throw new SQLException("No se encontró el traspaso !!!");
+                throw new SQLException("No se ha aceptado la solicitud !!!");
             }
         }
         return idMovtoRecepcion;
+    }
+    
+    public static void obtenerEstatusTraspaso(Connection cn, int idSolicitud) throws SQLException, Exception {
+        int estatus = 0;
+        int idAlmacen = 0;
+        String strSQL = "SELECT idAlmacenOrigen FROM solicitudes WHERE idSolicitud=" + idSolicitud;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                idAlmacen = rs.getInt("idAlmacenOrigen");
+            } else {
+                throw new Exception("No se encontró la solicitud !!!");
+            }
+            strSQL = "SELECT M.idMovto, M.idReferencia, M.estatus\n"
+                    + "FROM movimientos M INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
+                    + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.idSolicitud=" + idSolicitud;
+            rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                estatus = rs.getInt("estatus");
+                if(estatus != 7) {
+                    throw new Exception("El traspaso no se ha completado (estatus = " + estatus + ") !!!");
+                } else {
+                    strSQL = "SELECT estatus FROM movimientos\n"
+                            + "WHERE idAlmacen=" + rs.getInt("idReferencia") + " AND idTipo=9 AND referencia=" + rs.getInt("idMovto");
+                    rs = st.executeQuery(strSQL);
+                    if(rs.next()) {
+                        estatus = rs.getInt("estatus");
+                        if(estatus != 7) {
+                            throw new Exception("La recepción no se ha completado (estatus = " + estatus + ") !!!");
+                        }
+                    } else {
+                        throw new SQLException("No se encontró la recepción !!!");
+                    }
+                }
+            } else {
+                throw new Exception("No se ha aceptado la solicitud !!!");
+            }
+        }
+    }
+
+    public static int obtenerEstatusRecepcion(Connection cn, int idMovtoRecepcion) throws SQLException {
+        int estatus = 0;
+        String strSQL = "SELECT estatus FROM movimientos WHERE idMovto=" + idMovtoRecepcion;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                estatus = rs.getInt("estatus");
+            }
+        }
+        return estatus;
     }
 
     public static int obtenerEstatusTraspasoDirecto(Connection cn, int idSolicitud) throws SQLException {

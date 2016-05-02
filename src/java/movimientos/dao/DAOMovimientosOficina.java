@@ -301,7 +301,7 @@ public class DAOMovimientosOficina {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                movimientos.Movimientos.agregaProductoOficina(cn, toProd, idImpuestosZona);
+                movimientos.Movimientos.agregarProductoOficina(cn, toProd, idImpuestosZona);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();

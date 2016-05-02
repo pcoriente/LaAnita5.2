@@ -696,7 +696,7 @@ public class DAOComprasOficina {
                 toProd.setCostoPromedio(movimientos.Movimientos.obtenCostoUltimaCompraProveedor(cn, toMov.getIdEmpresa(), toMov.getIdReferencia(), toProd.getIdProducto()));
                 toProd.setCosto(toProd.getCostoPromedio() * toMov.getTipoDeCambio());
 
-                movimientos.Movimientos.agregaProductoOficina(cn, toProd, toMov.getIdImpuestoZona());
+                movimientos.Movimientos.agregarProductoOficina(cn, toProd, toMov.getIdImpuestoZona());
                 toProd.setUnitario(movimientos.Movimientos.grabaProductoCambios(cn, toProd));
 
                 cn.commit();

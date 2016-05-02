@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import movimientos.Movimientos;
 import pedidos.dominio.Pedido;
 import pedidos.dominio.PedidoProducto;
 import pedidos.to.TOPedido;
@@ -19,6 +20,19 @@ public class Pedidos {
     public static void cierraVentaAlmacen(Connection cn, TOPedido toPed) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
+            strSQL = "SELECT D.idEmpaque\n"
+                    + "FROM movimientosDetalle D\n"
+                    + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
+                    + "LEFT JOIN (SELECT D.idEmpaque, SUM(D.cantidad) AS cantidad\n"
+                    + "			FROM movimientosDetalleAlmacen D\n"
+                    + "			INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
+                    + "			WHERE D.idMovtoAlmacen=" + toPed.getIdMovtoAlmacen() + "\n"
+                    + "			GROUP BY D.idEmpaque) A ON A.idEmpaque=D.idEmpaque\n"
+                    + "WHERE D.idMovto=" + toPed.getIdMovto() + " AND (A.idEmpaque IS NULL OR D.cantFacturada+D.cantSinCargo != A.cantidad)";
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                throw new SQLException("Lotes incompletos !!!");
+            }
             toPed.setFolio(movimientos.Movimientos.obtenMovimientoFolioAlmacen(cn, toPed.getIdAlmacen(), toPed.getIdTipo()));
             movimientos.Movimientos.grabaMovimientoAlmacen(cn, toPed);
             movimientos.Movimientos.actualizaDetalleAlmacen(cn, toPed.getIdMovtoAlmacen(), false);
@@ -134,15 +148,17 @@ public class Pedidos {
         }
     }
 
-    public static void agregaProductoPedido(Connection cn, TOPedido toPed, TOPedidoProducto toProd) throws SQLException {
+    public static void agregaProducto(Connection cn, TOPedidoProducto toProd) throws SQLException {
         String strSQL = "INSERT INTO ventasDetalle (idVenta, idEmpaque, cantOrdenada, cantOrdenadaSinCargo, cantSurtida, cantSurtidaSinCargo)\n"
                 + "VALUES (" + toProd.getIdVenta() + ", " + toProd.getIdProducto() + ", " + toProd.getCantOrdenada() + ", " + toProd.getCantOrdenadaSinCargo() + ", 0, 0)";
         try (Statement st = cn.createStatement()) {
-            movimientos.Movimientos.agregaProductoOficina(cn, toProd, toPed.getIdImpuestoZona());
-            movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
-
             st.executeUpdate(strSQL);
         }
+    }
+
+    public static void agregaProductoPedido(Connection cn, TOPedido toPed, TOPedidoProducto toProd) throws SQLException {
+        Movimientos.agregarProductoVenta(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
+        agregaProducto(cn, toProd);
     }
 
     public static void agregarVenta(Connection cn, TOPedido toPed, int idMoneda) throws SQLException {
@@ -204,25 +220,25 @@ public class Pedidos {
         toPedido.setPropietario(0);
     }
 
-    public static TOPedidoProducto convertir(PedidoProducto p) {
-        TOPedidoProducto to = new TOPedidoProducto();
-        to.setIdEnvio(p.getIdEnvio());
-        to.setIdVenta(p.getIdVenta());
-        to.setCantEnviar(p.getCantEnviar());
-        to.setCantEnviarSinCargo(p.getCantEnviarSinCargo());
-        to.setIdMovto(p.getIdMovto());
-        to.setIdProducto(p.getProducto().getIdProducto());
-        to.setCantOrdenada(p.getCantOrdenada());
-        to.setCantOrdenadaSinCargo(p.getCantOrdenadaSinCargo());
-//        to.setSimilar(p.isSimilar());
-        to.setPiezas(p.getProducto().getPiezas());
-        to.setCantFacturada(p.getCantFacturada());
-        to.setCantSinCargo(p.getCantSinCargo());
-        to.setCosto(p.getCosto());
-        to.setDesctoProducto1(p.getDesctoProducto1());
-        to.setUnitario(p.getUnitario());
-        to.setIdImpuestoGrupo(p.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
-        return to;
+    public static TOPedidoProducto convertir(PedidoProducto prod) {
+        TOPedidoProducto toProd = new TOPedidoProducto();
+        toProd.setIdEnvio(prod.getIdEnvio());
+        toProd.setIdVenta(prod.getIdVenta());
+        toProd.setIdMovto(prod.getIdMovto());
+        toProd.setIdProducto(prod.getProducto().getIdProducto());
+        toProd.setPiezas(prod.getProducto().getPiezas());
+        
+        toProd.setCantEnviar(prod.getEnviar() * toProd.getPiezas());
+        toProd.setCantEnviarSinCargo(prod.getEnviarSinCargo() * toProd.getPiezas());
+        toProd.setCantOrdenada(prod.getOrdenada() * toProd.getPiezas());
+        toProd.setCantOrdenadaSinCargo(prod.getOrdenadaSinCargo() * toProd.getPiezas());
+        toProd.setCantFacturada(prod.getCantFacturada());
+        toProd.setCantSinCargo(prod.getCantSinCargo());
+        toProd.setCosto(prod.getCosto());
+        toProd.setDesctoProducto1(prod.getDesctoProducto1());
+        toProd.setUnitario(prod.getUnitario());
+        toProd.setIdImpuestoGrupo(prod.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
+        return toProd;
     }
 
     public static void convertir(TOPedidoProducto toProd, PedidoProducto prod) throws SQLException {
@@ -230,16 +246,18 @@ public class Pedidos {
         prod.setIdVenta(toProd.getIdVenta());
 
         prod.setEnviar(toProd.getCantEnviar() / prod.getProducto().getPiezas());
-        prod.setEnviar2(prod.getEnviar());
         prod.setEnviarSinCargo(toProd.getCantEnviarSinCargo() / prod.getProducto().getPiezas());
-        prod.setEnviarSinCargo2(prod.getCantEnviarSinCargo());
-        prod.setCantEnviar(toProd.getCantEnviar());
-        prod.setCantEnviarSinCargo(toProd.getCantEnviarSinCargo());
-        prod.setCantOrdenada(toProd.getCantOrdenada());
-        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+//        prod.setEnviar2(prod.getEnviar());
+//        prod.setEnviarSinCargo2(prod.getEnviarSinCargo());
+//        prod.setCantEnviar(toProd.getCantEnviar() / prod.getProducto().getPiezas());
+//        prod.setCantEnviarSinCargo(toProd.getCantEnviarSinCargo());
+//        prod.setCantOrdenada(toProd.getCantOrdenada());
+//        prod.setCantOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo());
+        prod.setOrdenada(toProd.getCantOrdenada() / prod.getProducto().getPiezas());
+        prod.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / prod.getProducto().getPiezas());
         movimientos.Movimientos.convertir(toProd, prod);
-        prod.setCantFacturada(prod.getCantOrdenada());
-        prod.setCantSinCargo(prod.getCantOrdenadaSinCargo());
+//        prod.setCantFacturada(prod.getCantOrdenada());
+//        prod.setCantSinCargo(prod.getCantOrdenadaSinCargo());
     }
 
     public static TOPedidoProducto construirProducto(ResultSet rs) throws SQLException {
@@ -258,14 +276,14 @@ public class Pedidos {
     public static String sqlObtenProducto() {
         // LEFT JOIN con ventasDetalle por los posibles productos agregados (SIMILARES) por cantidad sin cargo
         return "SELECT ISNULL(EPD.idEnvio, 0) AS idEnvio, ISNULL(EPD.cantEnviar, 0) AS cantEnviar, ISNULL(EPD.cantEnviarSinCargo, 0) AS cantEnviarSinCargo\n"
-                + "         , PD.idVenta, PD.cantOrdenada-PD.cantSurtida AS cantOrdenada\n"
-                + "         , PD.cantOrdenadaSinCargo-PD.cantSurtidaSinCargo AS cantOrdenadaSinCargo, D.*, E.piezas\n"
+                + "         , VD.idVenta, VD.cantOrdenada-VD.cantSurtida AS cantOrdenada\n"
+                + "         , VD.cantOrdenadaSinCargo-VD.cantSurtidaSinCargo AS cantOrdenadaSinCargo, D.*, E.piezas\n"
                 + "FROM movimientosDetalle D\n"
                 + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
-                + "INNER JOIN ventasDetalle PD ON PD.idVenta=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
+                + "INNER JOIN ventasDetalle VD ON VD.idVenta=M.referencia AND VD.idEmpaque=D.idEmpaque\n"
                 + "LEFT JOIN enviosPedidos EP ON EP.idVenta=M.referencia\n"
-                + "LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=EP.idVenta AND EPD.idEmpaque=PD.idEmpaque";
+                + "LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=VD.idVenta AND EPD.idEmpaque=VD.idEmpaque";
     }
 
     public static void convertirPedido(Pedido ped, TOPedido toPed) {

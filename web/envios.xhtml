@@ -91,20 +91,20 @@
                                     </p:selectOneMenu>
                                 </p:column>
                                 <p:column colspan="2" >
-                                    <h:outputLabel for="diasInventario" value="Dias inventario :" style="font-weight: bold; color: black; width: 115px" />
+                                    <h:outputLabel for="diasInventario" value="Días inventario :" style="font-weight: bold; color: black; width: 115px" />
                                 </p:column>
                                 <p:column style="width: 75px" >
                                     <p:inputText id="diasInventario" value="#{mbEnvios.traspaso.diasInventario}"
                                                  title="Calcular dias inventario"  maxlength="3" size="3" style="width: 20px"
                                                  readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}" >
                                         <p:ajax event="change" listener="#{mbEnvios.actualizaDiasInventarioGeneral()}"
-                                                update=":main:msgs pesoDirectos pesoBodega pesoTotal detalle" />
+                                                update=":main:msgs :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                     </p:inputText>
                                 </p:column>
                                 <p:column >
                                     <p:commandButton id="btnCalcularPeso" icon="ui-icon-refresh"
                                                      title="Calcular dias inventario según Peso" process="@this"
-                                                     disabled="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked}"
+                                                     disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}"
                                                      update=":main:pesoMaximo" oncomplete="PF('pesoDlg').show();" />
                                 </p:column>
                                 <p:column >
@@ -114,11 +114,11 @@
                                                      update=":main:lstFincados" oncomplete="PF('fincadosDlg').show();" />
                                 </p:column>
                                 <p:column >
-                                        <p:commandButton id="btnTerminar" icon="ui-icon-unlocked" title="Terminar"
-                                                         disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0}"
-                                                         process="@this" actionListener="#{mbEnvios.liberarTraspaso()}"
-                                                         update=":main:gridMtto :main:detalle" />
-                                    </p:column>
+                                    <p:commandButton id="btnTerminar" icon="ui-icon-unlocked" title="Terminar"
+                                                     disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0}"
+                                                     process="@this" actionListener="#{mbEnvios.liberarTraspaso()}"
+                                                     update=":main:gridMtto :main:detalle" />
+                                </p:column>
                                 <p:column >
                                     <p:commandButton icon="ui-icon-arrowreturnthick-1-w" title="Salir"
                                                      disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen!=0}"
@@ -132,7 +132,7 @@
                                         <h:outputLabel for="pesoBodega" value="Peso Bodega :" style="font-weight: bold; color: black; width: 110px" />
                                     </p:column>
                                     <p:column style="width: 110px;" >
-                                        <p:inputText id="pesoBodega" value="#{mbEnvios.traspaso.peso-mbEnvios.traspaso.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
+                                        <p:inputText id="pesoBodega" value="#{mbEnvios.traspaso.peso}" readonly="true" maxlength="10" size="10" ></p:inputText>
                                     </p:column>
                                     <p:column style="width: 100px;" >
                                         <h:outputLabel for="pesoDirectos" value="Peso Directos :" style="font-weight: bold; color: black; width: 110px;" />
@@ -144,17 +144,17 @@
                                         <h:outputLabel for="pesoTotal" value="Peso Total :" style="font-weight: bold; color: black; width: 85px" />
                                     </p:column>
                                     <p:column colspan="3" >
-                                        <p:inputText id="pesoTotal" value="#{mbEnvios.traspaso.peso}" readonly="true" maxlength="10" size="10" ></p:inputText>
+                                        <p:inputText id="pesoTotal" value="#{mbEnvios.traspaso.peso+mbEnvios.traspaso.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
                                     </p:column>
                                     <p:column >
                                         <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" title="Agregar productos"
-                                                         disabled="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked}"
+                                                         disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}"
                                                          process="@this" actionListener="#{mbEnvios.buscarProductos(':main:msgs :main:detalle :main:pesoDirectos :main:pesoBodega :main:pesoTotal')}" 
                                                          oncomplete="PF('buscarProductoDlg').show();" />
                                     </p:column>
                                     <p:column >
                                         <p:commandButton id="btnEliminarTraspaso" icon="ui-icon-trash" title="Eliminar traspaso"
-                                                         disabled="#{mbEnvios.traspaso.solicitudEstatus==0 or mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0 or !mbEnvios.locked}"
+                                                         disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0 or !mbEnvios.locked}"
                                                          process="@this" actionListener="#{mbEnvios.eliminarTraspaso()}"
                                                          update="main" >
                                             <p:confirm header="Eliminar el traspaso" message="Confirma ?" icon="ui-icon-alert" />
@@ -201,11 +201,11 @@
                                     </f:facet>
                                     <f:facet name="input" >
                                         <p:inputText value="#{prod.diasInventario}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked or prod.estadistica==0}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked or prod.estadistica==0}" >
                                             <f:convertNumber maxIntegerDigits="3" maxFractionDigits="0" />
                                             <p:ajax event="change" 
                                                     process="@this" listener="#{mbEnvios.gestionarDiasInventario()}"
-                                                    update=":main:msgs :main:gridMtto detalle :main:gridEnvioTotales" />
+                                                    update=":main:msgs :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>
@@ -219,7 +219,7 @@
                                     </f:facet>
                                     <f:facet name="input" >
                                         <p:inputText value="#{prod.sugerido}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" 
@@ -238,12 +238,12 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.solicitada}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=3 or !mbEnvios.locked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" 
                                                     process="@this" listener="#{mbEnvios.gestionarSolicitada()}"
-                                                    update=":main:msgs :main:pesoBodega :main:pesoTotal detalle" />
+                                                    update=":main:msgs :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>
@@ -268,7 +268,7 @@
                                     <h:outputLabel for="pesoEnvioBodega" value="Peso Bodega :" style="font-weight: bold; color: black; width: 110px" />
                                 </p:column>
                                 <p:column style="width: 110px;" >
-                                    <p:inputText id="pesoEnvioBodega" value="#{mbEnvios.envio.peso-mbEnvios.envio.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
+                                    <p:inputText id="pesoEnvioBodega" value="#{mbEnvios.envio.peso}" readonly="true" maxlength="10" size="10" ></p:inputText>
                                 </p:column>
                                 <p:column style="width: 100px;" >
                                     <h:outputLabel for="pesoEnvioDirectos" value="Peso Directos :" style="font-weight: bold; color: black; width: 110px;" />
@@ -280,7 +280,7 @@
                                     <h:outputLabel for="pesoEnvioTotal" value="Peso Total :" style="font-weight: bold; color: black; width: 85px" />
                                 </p:column>
                                 <p:column style="width: 110px;" >
-                                    <p:inputText id="pesoEnvioTotal" value="#{mbEnvios.envio.peso}" readonly="true" maxlength="10" size="10" ></p:inputText>
+                                    <p:inputText id="pesoEnvioTotal" value="#{mbEnvios.envio.peso+mbEnvios.envio.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
@@ -371,7 +371,7 @@
                                         <p:commandButton icon="ui-icon-gear"
                                                          title="Calcular" process="@this pesoMaximo"
                                                          actionListener="#{mbEnvios.actualizaPesoGeneral()}"
-                                                         update=":main:msgs diasInventario pesoDirectos pesoBodega pesoTotal detalle"
+                                                         update=":main:msgs gridMtto detalle gridEnvioTotales"
                                                          oncomplete="PF('pesoDlg').hide();"/>
                                     </p:column>
                                 </p:row>
@@ -380,6 +380,7 @@
                     </p:dialog>
                     <p:dialog widgetVar="fincadosDetalleDlg" closable="true" header="Edición de enviados" modal="true" resizable="false" >
                         <p:messages id="msgsEdicion" autoUpdate="false" showDetail="true" closable="true" />
+                        <p:ajax event="close" listener="#{mbEnvios.liberarFincado()}" />
                         <p:panelGrid id="encabezadoFincado" style="width: 650px;" >
                             <p:row >
                                 <p:column style="width: 50px" >
@@ -401,18 +402,18 @@
                                 </p:column>
                                 <p:column style="width: 80px" >
                                     <p:selectBooleanCheckbox id="chkAgregado" value="#{mbEnvios.fincado.agregado}"
-                                                             disabled="#{!mbEnvios.locked or mbEnvios.fincado.directo}"
+                                                             disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked or mbEnvios.fincado.directo}"
                                                              itemLabel="Agregado" style="color: black; font-weight: bold; font-size: small;" >
                                         <p:ajax listener="#{mbEnvios.grabarFincado()}" 
-                                                update="msgsEdicion chkDirecto detalleFincado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
+                                                update="@this msgsEdicion chkDirecto detalleFincado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column style="width: 70px" >
                                     <p:selectBooleanCheckbox id="chkDirecto" value="#{mbEnvios.fincado.directo}"
-                                                             disabled="#{!mbEnvios.locked or !mbEnvios.fincado.agregado}"
+                                                             disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked or !mbEnvios.fincado.agregado}"
                                                              itemLabel="Directo" style="color: black; font-weight: bold; font-size: small;" >
                                         <p:ajax listener="#{mbEnvios.entregaDirecta()}" 
-                                                update="msgsEdicion chkAgregado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
+                                                update="@this msgsEdicion chkAgregado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column style="width: 40px;" >
@@ -447,17 +448,16 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.enviar}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{!mbEnvios.locked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
-                                            <p:ajax event="change" 
-                                                    process="@this" listener="#{mbEnvios.gestionarEnviada()}"
+                                            <p:ajax event="change" process="@this" listener="#{mbEnvios.gestionarEnviada()}"
                                                     update=":main:msgsEdicion detalleFincado :main:gridMtto :main:gridEnvioTotales" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>
                             </p:column>
-                            <p:column rendered="#{prod.cantOrdenadaSinCargo gt 0}" headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                            <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
                                         <h:outputText value="#{prod.enviarSinCargo}" >
@@ -466,23 +466,22 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.enviarSinCargo}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{!mbEnvios.locked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
-                                            <p:ajax event="change" 
-                                                    process="@this" listener="#{mbEnvios.gestionarEnviadaSinCargo()}"
+                                            <p:ajax event="change" process="@this" listener="#{mbEnvios.gestionarEnviadaSinCargo()}"
                                                     update=":main:msgsEdicion detalleFincado :main:gridMtto :main:gridEnvioTotales" />
                                         </p:inputText>
                                     </f:facet>
                                 </p:cellEditor>
                             </p:column>
                             <p:column headerText="Pedida" style="width: 70px; text-align: right;" >
-                                <h:outputText value="#{prod.cantOrdenada / prod.producto.piezas}" >
+                                <h:outputText value="#{prod.ordenada}" >
                                     <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>
                             </p:column>
-                            <p:column rendered="#{prod.cantOrdenadaSinCargo gt 0}" headerText="Sin Cargo" style="width: 56px; text-align: right;" >
-                                <h:outputText value="#{prod.cantOrdenadaSinCargo / prod.producto.piezas}" >
+                            <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
+                                <h:outputText value="#{prod.ordenadaSinCargo}" >
                                     <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>
                             </p:column>
@@ -492,7 +491,7 @@
                                 </h:outputText>
                             </p:column>
                             <p:column headerText="Importe" style="width: 70px; text-align: right;" >
-                                <h:outputText value="#{prod.unitario*prod.cantEnviar}" >
+                                <h:outputText value="#{prod.unitario*prod.cantFacturada}" >
                                     <f:convertNumber pattern="###,##0.000000" />
                                 </h:outputText>
                             </p:column>
@@ -579,7 +578,7 @@
                             PF('fincadosDetalleDlg').show();
                         }
                     }
-                    
+
                     function handleBuscar(xhr, status, args) {
                         if (!(args.validationFailed || !args.okBuscar)) {
                             PF('buscarProductoDlg').hide();
