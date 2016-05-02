@@ -50,7 +50,7 @@ public class MbMiniClientes implements Serializable {
 
     public void obtenerClientesCedis() {
         this.listaClientes = new ArrayList<>();
-        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione TODOS LOS CEDIS"));
+        this.listaClientes.add(new SelectItem(new TOCliente(), "Seleccione"));
         try {
             this.dao = new DAOClientes();
             for (TOCliente c : this.dao.obtenerClientesCedis()) {

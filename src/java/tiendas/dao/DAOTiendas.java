@@ -97,7 +97,7 @@ public class DAOTiendas {
         String strSQL = Tiendas.sqlTienda() + "\n"
                 + "INNER JOIN agentes A ON A.idAgente=T.idAgente\n"
                 + "WHERE A.idCedis=" + this.idCedis + " AND T.idCliente=" + idCliente + "\n"
-                + "ORDER BY T.tienda";
+                + "ORDER BY T.tienda, T.codigoCliente";
         Connection cn = ds.getConnection();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
