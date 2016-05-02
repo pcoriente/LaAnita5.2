@@ -51,7 +51,7 @@ public class Traspasos {
         if (idProducto != 0) {
             condicion = " AND D.idEmpaque=" + idProducto;
         }
-        return "SELECT SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada, M.referencia AS idSolicitud, D.*\n"
+        return "SELECT SD.cantSolicitada, ISNULL(SS.cantTraspasada, 0) AS cantTraspasada, M.referencia AS idSolicitud, D.*, E.cod_pro\n"
                 + "FROM movimientosDetalle D\n"
                 + "INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
                 + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=M.referencia AND SD.idEmpaque=D.idEmpaque\n"
@@ -61,6 +61,7 @@ public class Traspasos {
                 + "             INNER JOIN movimientosDetalle D ON D.idMovto=M.idMovto\n"
                 + "             WHERE S.idSolicitud="+toTraspaso.getReferencia()+" AND M.idTipo=35 AND M.estatus=7\n"
                 + "             GROUP BY S.idSolicitud, D.idEmpaque) SS ON SS.idSolicitud=SD.idSolicitud AND SS.idEmpaque=SD.idEmpaque\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
                 + "WHERE D.idMovto="+toTraspaso.getIdMovto() + condicion;
     }
 

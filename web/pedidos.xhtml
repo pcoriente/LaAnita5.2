@@ -578,13 +578,13 @@
                                 <p:dataTable id="listaTiendas" widgetVar="listaTiendasDlg" value="#{mbPedidos.mbTiendas.tiendas}" 
                                              var="tienda" rowKey="#{tienda.idTienda}" selectionMode="single" selection="#{mbPedidos.mbTiendas.tienda}"
                                              scrollable="true" scrollHeight="200"
-                                             style="border:solid 1px; width: 660px;" emptyMessage="No existen tiendas" >
+                                             style="border:solid 1px; width: 910px;" emptyMessage="No existen tiendas" >
                                     <p:ajax event = "rowSelect" update=":main:btnCrearPedido" />
 
                                     <p:column headerText="CODIGO" style="width: 50px;" >
                                         <h:outputText value="#{tienda.codigoTienda}" />
                                     </p:column>
-                                    <p:column headerText="TIENDA" style="width: 550px;" >
+                                    <p:column headerText="TIENDA" style="width: 800px;" >
                                         <h:outputText value="#{tienda.toString()}" />
                                     </p:column>
                                 </p:dataTable>

@@ -582,11 +582,11 @@
                                              style="border:solid 1px; width: 910px;" emptyMessage="No existen tiendas" >
                                     <p:ajax event = "rowSelect" update=":main:btnCrearVenta" />
 
-                                    <p:column headerText="TIENDA" style="width: 250px;" >
-                                        <h:outputText value="#{tda.toString()}" />
-                                    </p:column>
-                                    <p:column headerText="CODIGO" style="width: 40px;" >
+                                    <p:column headerText="CODIGO" style="width: 50px;" >
                                         <h:outputText value="#{tda.codigoTienda}" />
+                                    </p:column>
+                                    <p:column headerText="TIENDA" style="width: 800px;" >
+                                        <h:outputText value="#{tda.toString()}" />
                                     </p:column>
                                 </p:dataTable>
                             </p:column>

@@ -1008,7 +1008,8 @@ public class DAOEnvios {
                 + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
                 + "             FROM almacenesLotes\n"
                 + "             WHERE idAlmacen=" + toTraspaso.getIdReferencia() + "\n"
-                + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque";
+                + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
+                + "ORDER BY RIGHT(TD.cod_pro, 4), LEFT(TD.cod_pro, 3)";
         return strSQL;
     }
 
