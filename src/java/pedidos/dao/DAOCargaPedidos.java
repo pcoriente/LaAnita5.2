@@ -105,7 +105,7 @@ public class DAOCargaPedidos {
                         throw new SQLException("¡¡ No se encontró el UPC pedido !!\n"
                                 + "en tabla empaquesUpcs (UPC='" + che.getUpc() + "')");
                     }
-                    toProd.setIdVenta(toPed.getReferencia());
+                    toProd.setIdPedido(toPed.getReferencia());
                     toProd.setIdProducto(rs.getInt("idEmpaque"));
                     toProd.setPiezas(rs.getInt("piezas"));
                     toProd.setCantOrdenada(che.getCantidad() * rs.getInt("piezas"));

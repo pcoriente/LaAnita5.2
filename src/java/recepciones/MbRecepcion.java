@@ -183,10 +183,14 @@ public class MbRecepcion implements Serializable {
 
     public TORecepcion convertir(Recepcion mov) {
         TORecepcion toMov = new TORecepcion();
+        toMov.setIdEnvio(mov.getIdEnvio());
+        toMov.setEnvioFolio(mov.getEnvioFolio());
         toMov.setSolicitudFolio(mov.getSolicitudFolio());
         toMov.setSolicitudFecha(mov.getSolicitudFecha());
         toMov.setTraspasoFolio(mov.getTraspasoFolio());
         toMov.setTraspasoFecha(mov.getTraspasoFecha());
+        toMov.setPedidoFolio(mov.getPedidoFolio());
+        toMov.setPedidoFecha(mov.getPedidoFecha());
         movimientos.Movimientos.convertir(mov, toMov);
         toMov.setIdReferencia(mov.getAlmacenOrigen().getIdAlmacen());
         toMov.setReferencia(mov.getIdTraspaso());
@@ -324,11 +328,11 @@ public class MbRecepcion implements Serializable {
     public void editar(SelectEvent event) {
         boolean ok = false;
         try {
-            if (this.dao.obtenerTraspaso(this.recepcion.getIdTraspaso()).getEnvio() != 0) {
+            if (this.dao.obtenerTraspaso(this.recepcion.getIdTraspaso()).getPedidoFolio() != 0) {
                 Mensajes.mensajeAlert("La recepción es directa y no se puede modificar, aplicar grabar !!!");
-                ok = false;
             } else {
                 this.producto = (RecepcionProducto) event.getObject();
+                ok = true;
             }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -417,10 +421,14 @@ public class MbRecepcion implements Serializable {
 
     private Recepcion convertir(TORecepcion toMov) {
         Recepcion mov = new Recepcion(new MovimientoTipo(9, "Recepcion"), this.almacen, this.mbAlmacenes.obtenerTOAlmacen(toMov.getIdReferencia()));
+        mov.setIdEnvio(toMov.getIdEnvio());
+        mov.setEnvioFolio(toMov.getEnvioFolio());
         mov.setSolicitudFolio(toMov.getSolicitudFolio());
         mov.setSolicitudFecha(toMov.getSolicitudFecha());
         mov.setTraspasoFolio(toMov.getTraspasoFolio());
         mov.setTraspasoFecha(toMov.getTraspasoFecha());
+        mov.setPedidoFolio(toMov.getPedidoFolio());
+        mov.setPedidoFecha(toMov.getPedidoFecha());
         movimientos.Movimientos.convertir(toMov, mov);
         mov.setIdTraspaso(toMov.getReferencia());
         return mov;

@@ -55,8 +55,7 @@ public class DAOEnvios {
         ds = (DataSource) cI.lookup("java:comp/env/" + usuarioSesion.getJndi());
     }
 
-    public int grabarTraspaso(TOEnvioTraspaso toTraspaso) throws SQLException {
-        int envioEstatus = 0;
+    public void grabarTraspaso(TOEnvio toEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
         String strSQL = "";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
@@ -74,6 +73,11 @@ public class DAOEnvios {
                 if (rs.next()) {
                     toTraspaso.setSolicitudFecha(new java.util.Date(rs.getTimestamp("fecha").getTime()));
                 }
+                strSQL = "DELETE DT FROM movimientosDetalle DT INNER JOIN movimientos T ON T.idMovto=DT.idMovto\n"
+                        + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=T.referencia AND SD.idEmpaque=DT.idEmpaque\n"
+                        + "WHERE DT.idMovto=" + toTraspaso.getIdMovto() + " AND SD.cantSolicitada=0";
+                st.executeUpdate(strSQL);
+
                 strSQL = "SELECT S.idSolicitud\n"
                         + "FROM solicitudes S\n"
                         + "INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud\n"
@@ -81,9 +85,7 @@ public class DAOEnvios {
                         + "WHERE E.idEnvio=" + toTraspaso.getIdEnvio() + " AND S.estatus=0";
                 rs = st.executeQuery(strSQL);
                 if (!rs.next()) {
-                    envioEstatus = 7;
-                    strSQL = "UPDATE envios SET estatus=" + envioEstatus + " WHERE idEnvio=" + toTraspaso.getIdEnvio();
-                    st.executeUpdate(strSQL);
+                    this.cierraEnvio(cn, toEnvio);
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -93,12 +95,22 @@ public class DAOEnvios {
                 cn.setAutoCommit(true);
             }
         }
-        return envioEstatus;
     }
 
-    public ArrayList<TOEnvioTraspaso> eliminarTraspaso(int idEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
+    private void cierraEnvio(Connection cn, TOEnvio toEnvio) throws SQLException {
+        toEnvio.setEstatus(7);
+        try (Statement st = cn.createStatement()) {
+            toEnvio.setFolioEnvio(movimientos.Movimientos.obtenMovimientoFolioOficina(cn, 0, 1055));
+            String strSQL = "UPDATE envios\n"
+                    + "SET folio=" + toEnvio.getFolioEnvio() + ", estatus=" + toEnvio.getEstatus() + "\n"
+                    + "WHERE idEnvio=" + toEnvio.getIdEnvio();
+            st.executeUpdate(strSQL);
+        }
+    }
+
+    public ArrayList<TOEnvioTraspaso> eliminarTraspaso(TOEnvio toEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
         ArrayList<TOEnvioTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT COUNT(*) AS traspasos FROM enviosSolicitudes ES INNER JOIN envios E ON E.idEnvio=ES.idEnvio WHERE E.idEnvio=" + idEnvio;
+        String strSQL = "SELECT COUNT(*) AS traspasos FROM enviosSolicitudes ES INNER JOIN envios E ON E.idEnvio=ES.idEnvio WHERE E.idEnvio=" + toEnvio.getIdEnvio();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -107,7 +119,7 @@ public class DAOEnvios {
 
                 strSQL = "DELETE FROM solicitudesDetalle WHERE idSolicitud=" + toTraspaso.getReferencia();
                 st.executeUpdate(strSQL);
-                
+
                 strSQL = "DELETE MA FROM movimientos M INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=M.idMovtoAlmacen\n"
                         + "WHERE M.idMovto=" + toTraspaso.getIdMovto();
                 st.executeUpdate(strSQL);
@@ -128,17 +140,28 @@ public class DAOEnvios {
                 st.executeUpdate(strSQL);
 
                 strSQL = "DELETE EPD FROM enviosPedidosDetalle EPD INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta\n"
-                        + "WHERE EP.idSolicitudEnvio=" + toTraspaso.getReferencia() + " AND EP.idEnvio=" + idEnvio;
-                st.executeUpdate(strSQL);
-                
-                strSQL = "DELETE FROM enviosPedidos\n"
-                        + "WHERE idSolicitudEnvio=" + toTraspaso.getReferencia() + " AND idEnvio=" + idEnvio;
+                        + "WHERE EP.idSolicitudEnvio=" + toTraspaso.getReferencia() + " AND EP.idEnvio=" + toEnvio.getIdEnvio();
                 st.executeUpdate(strSQL);
 
-                traspasos = this.obtenTraspasos(cn, idEnvio);
+                strSQL = "DELETE FROM enviosPedidos\n"
+                        + "WHERE idSolicitudEnvio=" + toTraspaso.getReferencia() + " AND idEnvio=" + toEnvio.getIdEnvio();
+                st.executeUpdate(strSQL);
+
+                traspasos = this.obtenTraspasos(cn, toEnvio.getIdEnvio());
                 if (traspasos.isEmpty()) {
-                    strSQL = "DELETE FROM envios WHERE idEnvio=" + idEnvio;
+                    strSQL = "DELETE FROM envios WHERE idEnvio=" + toEnvio.getIdEnvio();
                     st.executeUpdate(strSQL);
+                } else {
+                    boolean cierraEnvio = true;
+                    for (TOEnvioTraspaso to : traspasos) {
+                        if (to.getSolicitudEstatus() == 0) {
+                            cierraEnvio = false;
+                            break;
+                        }
+                    }
+                    if (cierraEnvio) {
+                        this.cierraEnvio(cn, toEnvio);
+                    }
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -151,70 +174,122 @@ public class DAOEnvios {
         return traspasos;
     }
 
-    public void grabarEnviadaSinCargo(TOPedido toPed, TOPedidoProducto toProd) throws SQLException {
-        String strSQL = "UPDATE enviosPedidosDetalle SET cantEnviarSinCargo=" + toProd.getCantEnviarSinCargo() + "\n"
-                + "WHERE idVenta=" + toProd.getIdVenta() + " AND idEnvio=" + toProd.getIdEnvio() + " AND idEmpaque=" + toProd.getIdProducto();
-        Connection cn = this.ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            int n = st.executeUpdate(strSQL);
-            if (n != 0) {
-                if (toPed.getDirecto() != 0) {
-                    strSQL = "UPDATE SD\n"
-                            + "SET cantSolicitada=" + (toProd.getCantEnviar() + toProd.getCantEnviarSinCargo()) + "\n"
-                            + "FROM solicitudesDetalle SD\n"
-                            + "INNER JOIN empaques E ON E.idEmpaque=SD.idEmpaque\n"
-                            + "WHERE SD.idSolicitud=" + toPed.getIdSolicitud();
-                    st.executeUpdate(strSQL);
-                }
-            } else {
-                strSQL = "INSERT INTO enviosPedidosDetalle (idVenta, idEnvio, idEmpaque, cantEnviar, cantEnviarSinCargo, agregado)\n"
-                        + "VALUES (" + toPed.getReferencia() + ", " + toPed.getIdEnvio() + ", " + toProd.getIdProducto() + ", 0, " + toProd.getCantEnviarSinCargo() + ", 1)";
+    public ArrayList<Double> grabarEnviadaSinCargo(TOEnvioTraspaso toTraspaso, int directoIdSolicitud, TOPedidoProducto toProd) throws SQLException {
+        String strSQL;
+        ArrayList<Double> pesos = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE ESD\n"
+                        + "SET fincados=CASE WHEN EP.directo=1 THEN ESD.fincados ELSE ESD.fincados-EPD.cantEnviarSinCargo/E.piezas END\n"
+                        + "     , directos=CASE WHEN EP.directo=1 THEN ESD.directos-EPD.cantEnviarSinCargo/E.piezas ELSE ESD.directos END\n"
+                        + "FROM  enviosPedidosDetalle EPD\n"
+                        + "INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=EP.idSolicitudEnvio AND ESD.idEmpaque=EPD.idEmpaque\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                        + "WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + " AND ESD.idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                if (toPed.getDirecto() != 0) {
-                    TOSolicitudProducto to = new TOSolicitudProducto();
-                    to.setIdSolicitud(toPed.getIdSolicitud());
-                    to.setIdProducto(toProd.getIdProducto());
-                    to.setCantSolicitada(toProd.getCantEnviarSinCargo());
-                    Solicitudes.agregarProducto(cn, to);
-                }
+                strSQL = "UPDATE SD\n"
+                        + "SET cantSolicitada=SD.cantSolicitada-(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
+                        + "FROM enviosPedidosDetalle EPD INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=EP.idSolicitud AND SD.idEmpaque=EPD.idEmpaque\n"
+                        + "WHERE SD.idSolicitud=" + directoIdSolicitud + " AND SD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE enviosPedidosDetalle\n"
+                        + "SET cantEnviarSinCargo=" + toProd.getCantEnviarSinCargo() + "\n"
+                        + "WHERE idVenta=" + toProd.getIdMovto() + " AND idEnvio=" + toTraspaso.getIdEnvio() + " AND idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE ESD\n"
+                        + "SET fincados=CASE WHEN EP.directo=1 THEN ESD.fincados ELSE ESD.fincados+EPD.cantEnviarSinCargo/E.piezas END\n"
+                        + "     , directos=CASE WHEN EP.directo=1 THEN ESD.directos+EPD.cantEnviarSinCargo/E.piezas ELSE ESD.directos END\n"
+                        + "FROM  enviosPedidosDetalle EPD\n"
+                        + "INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=EP.idSolicitudEnvio AND ESD.idEmpaque=EPD.idEmpaque\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                        + "WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + " AND ESD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE SD\n"
+                        + "SET cantSolicitada=SD.cantSolicitada+(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
+                        + "FROM enviosPedidosDetalle EPD INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=EP.idSolicitud AND SD.idEmpaque=EPD.idEmpaque\n"
+                        + "WHERE SD.idSolicitud=" + directoIdSolicitud + " AND SD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                this.calculaSolicitada(cn, toTraspaso, toProd.getIdProducto());
+                pesos = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.close();
             }
-        } finally {
-            cn.close();
         }
+        return pesos;
     }
 
-    public void grabarEnviada(TOPedido toPed, TOPedidoProducto toProd) throws SQLException {
-        String strSQL = "UPDATE enviosPedidosDetalle SET cantEnviar=" + toProd.getCantEnviar() + "\n"
-                + "WHERE idVenta=" + toProd.getIdVenta() + " AND idEnvio=" + toProd.getIdEnvio() + " AND idEmpaque=" + toProd.getIdProducto();
-        Connection cn = this.ds.getConnection();
-        try (Statement st = cn.createStatement()) {
-            int n = st.executeUpdate(strSQL);
-            if (n != 0) {
-                if (toPed.getDirecto() != 0) {
-                    strSQL = "UPDATE SD\n"
-                            + "SET cantSolicitada=" + (toProd.getCantEnviar() + toProd.getCantEnviarSinCargo()) + "\n"
-                            + "FROM solicitudesDetalle SD\n"
-                            + "INNER JOIN empaques E ON E.idEmpaque=SD.idEmpaque\n"
-                            + "WHERE SD.idSolicitud=" + toPed.getIdSolicitud();
-                    st.executeUpdate(strSQL);
-                }
-            } else {
-                strSQL = "INSERT INTO enviosPedidosDetalle (idVenta, idEnvio, idEmpaque, cantEnviar, cantEnviarSinCargo, agregado)\n"
-                        + "VALUES (" + toPed.getReferencia() + ", " + toPed.getIdEnvio() + ", " + toProd.getIdProducto() + ", " + toProd.getCantEnviar() + ", 0, 1)";
+    public ArrayList<Double> grabarEnviada(TOEnvioTraspaso toTraspaso, int directoIdSolicitud, TOPedidoProducto toProd) throws SQLException {
+        String strSQL;
+        ArrayList<Double> pesos = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try (Statement st = cn.createStatement()) {
+                strSQL = "UPDATE ESD\n"
+                        + "SET fincados=CASE WHEN EP.directo=1 THEN ESD.fincados ELSE ESD.fincados-EPD.cantEnviar/E.piezas END\n"
+                        + "     , directos=CASE WHEN EP.directo=1 THEN ESD.directos-EPD.cantEnviar/E.piezas ELSE ESD.directos END\n"
+                        + "FROM  enviosPedidosDetalle EPD\n"
+                        + "INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=EP.idSolicitudEnvio AND ESD.idEmpaque=EPD.idEmpaque\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                        + "WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + " AND ESD.idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                if (toPed.getDirecto() != 0) {
-                    TOSolicitudProducto to = new TOSolicitudProducto();
-                    to.setIdSolicitud(toPed.getIdSolicitud());
-                    to.setIdProducto(toProd.getIdProducto());
-                    to.setCantSolicitada(toProd.getCantEnviar());
-                    Solicitudes.agregarProducto(cn, to);
-                }
+                strSQL = "UPDATE SD\n"
+                        + "SET cantSolicitada=SD.cantSolicitada-(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
+                        + "FROM enviosPedidosDetalle EPD INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=EP.idSolicitud AND SD.idEmpaque=EPD.idEmpaque\n"
+                        + "WHERE SD.idSolicitud=" + directoIdSolicitud + " AND SD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE enviosPedidosDetalle\n"
+                        + "SET cantEnviar=" + toProd.getCantEnviar() + "\n"
+                        + "WHERE idVenta=" + toProd.getIdMovto() + " AND idEnvio=" + toTraspaso.getIdEnvio() + " AND idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE ESD\n"
+                        + "SET fincados=CASE WHEN EP.directo=1 THEN ESD.fincados ELSE ESD.fincados+EPD.cantEnviar/E.piezas END\n"
+                        + "     , directos=CASE WHEN EP.directo=1 THEN ESD.directos+EPD.cantEnviar/E.piezas ELSE ESD.directos END\n"
+                        + "FROM  enviosPedidosDetalle EPD\n"
+                        + "INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=EP.idSolicitudEnvio AND ESD.idEmpaque=EPD.idEmpaque\n"
+                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                        + "WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + " AND ESD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                strSQL = "UPDATE SD\n"
+                        + "SET cantSolicitada=SD.cantSolicitada+(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
+                        + "FROM enviosPedidosDetalle EPD INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                        + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=EP.idSolicitud AND SD.idEmpaque=EPD.idEmpaque\n"
+                        + "WHERE SD.idSolicitud=" + directoIdSolicitud + " AND SD.idEmpaque=" + toProd.getIdProducto();
+                st.executeUpdate(strSQL);
+
+                this.calculaSolicitada(cn, toTraspaso, toProd.getIdProducto());
+                pesos = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
             }
-        } finally {
-            cn.close();
         }
+        return pesos;
     }
 
     public void grabarOrden(int idEnvio, TOPedido toPed) throws SQLException {
@@ -267,50 +342,32 @@ public class DAOEnvios {
         }
     }
 
-    public ArrayList<TOEnvioProducto> grabarDirecto(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
+    public ArrayList<Double> grabarDirecto(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
         String strSQL;
-        ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
+        ArrayList<Double> pesos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
                 if (toPedido.getDirecto() != 0) {
+                    // De fincado a directo
                     if (toPedido.getIdSolicitud() == 0) {
-//                    toPedido.setIdSolicitud(Solicitudes.agregarSolicitudDirecto(cn, toPedido.getIdAlmacen(), idAlmacenOrigen, this.idUsuario));
+                        // Si no tiene solicitud el pedido, le crea una
                         toPedido.setIdSolicitud(Solicitudes.agregarSolicitudDirecto(cn, toPedido.getIdAlmacen(), toTraspaso.getIdAlmacen(), this.idUsuario));
                     }
+                    // Actualiza el fincado con el id generado o ya existente
                     strSQL = "UPDATE enviosPedidos\n"
                             + "SET directo=" + toPedido.getDirecto() + ", idSolicitud=" + toPedido.getIdSolicitud() + "\n"
                             + "WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio();
                     st.executeUpdate(strSQL);
 
+                    // Agrega los productos del pedido fincado a la solicitud del pedido directo
                     strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
                             + "SELECT " + toPedido.getIdSolicitud() + ", idEmpaque, cantEnviar+cantEnviarSinCargo\n"
                             + "FROM enviosPedidosDetalle\n"
                             + "WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio();
                     st.executeUpdate(strSQL);
 
-//                strSQL = "UPDATE SD\n"
-//                        + "SET cantSolicitada=SD.cantSolicitada-(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
-//                        + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-//                        + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-//                        + "INNER JOIN solicitudesDetalle SD ON SD.idEmpaque=EPD.idEmpaque\n"
-//                        + "WHERE SD.idSolicitud=" + idSolicitudEnvio;
-                    strSQL = "UPDATE SD\n"
-                            + "SET cantSolicitada=SD.cantSolicitada-(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
-                            + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-                            + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-                            + "INNER JOIN solicitudesDetalle SD ON SD.idEmpaque=EPD.idEmpaque\n"
-                            + "WHERE SD.idSolicitud=" + toTraspaso.getReferencia();
-                    st.executeUpdate(strSQL);
-
-//                strSQL = "UPDATE ESD\n"
-//                        + "SET fincados=ESD.fincados-(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas"
-//                        + "     , directos=ESD.directos+(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
-//                        + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-//                        + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-//                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idEmpaque=EPD.idEmpaque\n"
-//                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
-//                        + "WHERE ESD.idEnvio=" + toPedido.getIdEnvio() + " AND ESD.idSolicitud=" + idSolicitudEnvio;
+                    // Resta la cantidad de fincados y la suma a directos de la solicitud del traspaso envio
                     strSQL = "UPDATE ESD\n"
                             + "SET fincados=ESD.fincados-(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
                             + "     , directos=ESD.directos+(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
@@ -320,66 +377,51 @@ public class DAOEnvios {
                             + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
                             + "WHERE ESD.idEnvio=" + toPedido.getIdEnvio() + " AND ESD.idSolicitud=" + toTraspaso.getReferencia();
                     st.executeUpdate(strSQL);
-                } else {
+
+                } else { // De directo a fincado
+                    // Borra el detalle de la solicitud del pedido directo
                     strSQL = "DELETE FROM solicitudesDetalle WHERE idSolicitud=" + toPedido.getIdSolicitud();
                     st.executeUpdate(strSQL);
 
+                    // Desmarca el pedido de directo sin eliminar la solicitud
                     strSQL = "UPDATE enviosPedidos\n"
                             + "SET directo=" + toPedido.getDirecto() + ", orden=0\n"
                             + "WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio();
                     st.executeUpdate(strSQL);
 
-//                strSQL = "UPDATE SD\n"
-//                        + "SET cantSolicitada=SD.cantSolicitada+(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
-//                        + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-//                        + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-//                        + "INNER JOIN solicitudesDetalle SD ON SD.idEmpaque=EPD.idEmpaque\n"
-//                        + "WHERE SD.idSolicitud=" + idSolicitudEnvio;
-                    strSQL = "UPDATE SD\n"
-                            + "SET cantSolicitada=SD.cantSolicitada+(EPD.cantEnviar+EPD.cantEnviarSinCargo)\n"
-                            + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-                            + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-                            + "INNER JOIN solicitudesDetalle SD ON SD.idEmpaque=EPD.idEmpaque\n"
-                            + "WHERE SD.idSolicitud=" + toTraspaso.getReferencia();
-                    st.executeUpdate(strSQL);
+                    toPedido.setOrden(0);
 
-//                strSQL = "UPDATE ESD\n"
-//                        + "SET fincados=ESD.fincados+EPD.cantEnviada/E.piezas, directos=ESD.directos-EPD.cantEnviada/E.piezas\n"
-//                        + "FROM (SELECT * FROM enviosPedidosDetalle WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
-//                        + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idEmpaque=EPD.idEmpaque\n"
-//                        + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
-//                        + "WHERE ESD.idEnvio=" + toPedido.getIdEnvio() + " AND ESD.idSolicitud=" + idSolicitudEnvio;
+                    // Resta del envio traspaso la cantidad directa
                     strSQL = "UPDATE ESD\n"
-                            + "SET fincados=ESD.fincados+(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
-                            + "     , directos=ESD.directos-(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
+                            + "SET directos=ESD.directos-(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
                             + "FROM (SELECT * FROM enviosPedidosDetalle WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
                             + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idEmpaque=EPD.idEmpaque\n"
                             + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
                             + "WHERE ESD.idEnvio=" + toPedido.getIdEnvio() + " AND ESD.idSolicitud=" + toTraspaso.getReferencia();
                     st.executeUpdate(strSQL);
 
-                    toPedido.setOrden(0);
-                }
-                this.calcularSolicitada(cn, toTraspaso, 0);
-                detalle = this.obtenDetalle(cn, toTraspaso, 0);
-            } catch (SQLException ex) {
-                cn.rollback();
-                throw ex;
-            } finally {
-                cn.setAutoCommit(true);
-            }
-        }
-        return detalle;
-    }
+                    // Actualiza las cantidades del fincado con lo no surtido del pedido original
+                    strSQL = "UPDATE EPD\n"
+                            + "SET cantEnviar=VD.cantOrdenada-VD.cantSurtida\n"
+                            + "     , cantEnviarSinCargo=VD.cantOrdenadaSinCargo-VD.cantSurtidaSinCargo\n"
+                            + "FROM enviosPedidosDetalle EPD\n"
+                            + "INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta AND EP.idEnvio=EPD.idEnvio\n"
+                            + "INNER JOIN ventasDetalle VD ON VD.idVenta=EP.idVenta AND VD.idEmpaque=EPD.idEmpaque\n"
+                            + "WHERE EPD.idVenta=" + toPedido.getReferencia() + " AND EPD.idEnvio=" + toTraspaso.getIdEnvio() + " AND EP.idSolicitudEnvio=" + toTraspaso.getReferencia();
+                    st.executeUpdate(strSQL);
 
-    public ArrayList<TOEnvioProducto> agregarFincado(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
-        ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
-        try (Connection cn = this.ds.getConnection()) {
-            cn.setAutoCommit(false);
-            try {
-                this.agregaFincado(cn, toPedido, toTraspaso);
-                this.calcularSolicitada(cn, toTraspaso, 0);
-                detalle = this.obtenDetalle(cn, toTraspaso, 0);
+                    // Actualiza los fincados del envio traspaso con las cantidades del pedido original
+                    strSQL = "UPDATE ESD\n"
+                            + "SET fincados=ESD.fincados+(EPD.cantEnviar+EPD.cantEnviarSinCargo)/E.piezas\n"
+                            + "FROM (SELECT * FROM enviosPedidosDetalle WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
+                            + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idEmpaque=EPD.idEmpaque\n"
+                            + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                            + "WHERE ESD.idEnvio=" + toPedido.getIdEnvio() + " AND ESD.idSolicitud=" + toTraspaso.getReferencia();
+                    st.executeUpdate(strSQL);
+                }
+                this.calculaSolicitada(cn, toTraspaso, 0);
+                pesos = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
+
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -388,7 +430,29 @@ public class DAOEnvios {
                 cn.setAutoCommit(true);
             }
         }
-        return detalle;
+        return pesos;
+    }
+
+    public ArrayList<Double> agregarFincado(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
+        ArrayList<Double> pesos = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            cn.setAutoCommit(false);
+            try {
+                this.agregaFincado(cn, toPedido, toTraspaso);
+
+                this.calculaSolicitada(cn, toTraspaso, 0);
+                pesos = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
+
+                cn.commit();
+            } catch (SQLException ex) {
+                cn.rollback();
+                throw ex;
+            } finally {
+                cn.setAutoCommit(true);
+            }
+        }
+//        return detalle;
+        return pesos;
     }
 
     public void liberarFincado(TOPedido toPedido) throws SQLException {
@@ -406,9 +470,9 @@ public class DAOEnvios {
         }
     }
 
-    public ArrayList<TOEnvioProducto> eliminarFincado(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
+    public ArrayList<Double> eliminarFincado(TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
         String strSQL;
-        ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
+        ArrayList<Double> pesos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -434,8 +498,8 @@ public class DAOEnvios {
                         + "WHERE SD.idSolicitud=" + toTraspaso.getReferencia();
                 st.executeUpdate(strSQL);
 
-                this.calcularSolicitada(cn, toTraspaso, 0);
-                detalle = this.obtenDetalle(cn, toTraspaso, 0);
+                this.calculaSolicitada(cn, toTraspaso, 0);
+                pesos = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
 
                 strSQL = "DELETE FROM enviosPedidosDetalle WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio();
                 st.executeUpdate(strSQL);
@@ -452,41 +516,41 @@ public class DAOEnvios {
                 cn.setAutoCommit(true);
             }
         }
-        return detalle;
+        return pesos;
     }
 
     private void agregaFincado(Connection cn, TOPedido toPedido, TOEnvioTraspaso toTraspaso) throws SQLException {
         String strSQL;
         try (Statement st = cn.createStatement()) {
             strSQL = "INSERT INTO enviosPedidos (idVenta, idSolicitudEnvio, idEnvio, directo, idSolicitud, orden)\n"
-                    + "VALUES (" + toPedido.getReferencia() + ", " + toTraspaso.getReferencia() + ", " + toPedido.getIdEnvio() + ", " + toPedido.getDirecto() + ", " + toPedido.getIdSolicitud() + ", 0)";
+                    + "VALUES (" + toPedido.getIdMovto() + ", " + toTraspaso.getReferencia() + ", " + toTraspaso.getIdEnvio() + ", " + toPedido.getDirecto() + ", " + toPedido.getIdSolicitud() + ", 0)";
             st.executeUpdate(strSQL);
 
             strSQL = "INSERT INTO enviosPedidosDetalle (idVenta, idEnvio, idEmpaque, cantEnviar, cantEnviarSinCargo, agregado)\n"
-                    + "SELECT D.idVenta, " + toPedido.getIdEnvio() + ", D.idEmpaque"
+                    + "SELECT " + toPedido.getIdMovto() + ", " + toPedido.getIdEnvio() + ", D.idEmpaque"
                     + "         , D.cantOrdenada-D.cantSurtida, D.cantOrdenadaSinCargo-D.cantSurtidaSinCargo, 1\n"
-                    + "FROM ventasDetalle D\n"
-                    + "WHERE D.idVenta=" + toPedido.getReferencia() + "\n"
+                    + "FROM pedidosDetalle D\n"
+                    + "WHERE D.idPedido=" + toPedido.getReferencia() + "\n"
                     + "         AND D.cantOrdenada+D.cantOrdenadaSinCargo > D.cantSurtida+D.cantSurtidaSinCargo";
             st.executeUpdate(strSQL);
 
             strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
-                    + "SELECT " + toTraspaso.getReferencia() + " AS idSolicitud, VD.idEmpaque, 0 AS cantSolicitada\n"
-                    + "FROM ventasDetalle VD\n"
+                    + "SELECT " + toTraspaso.getReferencia() + " AS idSolicitud, PD.idEmpaque, 0 AS cantSolicitada\n"
+                    + "FROM pedidosDetalle PD\n"
                     + "LEFT JOIN (SELECT * FROM solicitudesDetalle\n"
-                    + "             WHERE idSolicitud=" + toTraspaso.getReferencia() + ") SD ON SD.idEmpaque=VD.idEmpaque\n"
-                    + "WHERE VD.idVenta=" + toPedido.getReferencia() + "\n"
-                    + "         AND VD.cantOrdenada+VD.cantOrdenadaSinCargo > VD.cantSurtida+VD.cantSurtidaSinCargo\n"
+                    + "             WHERE idSolicitud=" + toTraspaso.getReferencia() + ") SD ON SD.idEmpaque=PD.idEmpaque\n"
+                    + "WHERE PD.idPedido=" + toPedido.getReferencia() + "\n"
+                    + "         AND PD.cantOrdenada+PD.cantOrdenadaSinCargo > PD.cantSurtida+PD.cantSurtidaSinCargo\n"
                     + "         AND SD.idEmpaque IS NULL";
             st.executeUpdate(strSQL);
 
             strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior)\n"
                     + "SELECT " + toTraspaso.getIdMovto() + " AS idMovto, D.idEmpaque, 0, 0, 0, 0, 0, 0, 0, 0, D.idImpuestoGrupo, '', 0, 0\n"
                     + "FROM movimientosDetalle D INNER JOIN movimientos M ON M.idMovto=D.idMovto\n"
-                    + "INNER JOIN ventasDetalle VD ON VD.idVenta=M.referencia AND VD.idEmpaque=D.idEmpaque\n"
+                    + "INNER JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=D.idEmpaque\n"
                     + "LEFT JOIN (SELECT idEmpaque FROM movimientosDetalle WHERE idMovto=" + toTraspaso.getIdMovto() + ") S ON S.idEmpaque=D.idEmpaque\n"
                     + "WHERE D.idMovto=" + toPedido.getIdMovto() + "\n"
-                    + "		AND VD.cantOrdenada+VD.cantOrdenadaSinCargo > VD.cantSurtida+VD.cantSurtidaSinCargo\n"
+                    + "		AND PD.cantOrdenada+PD.cantOrdenadaSinCargo > PD.cantSurtida+PD.cantSurtidaSinCargo\n"
                     + "		AND S.idEmpaque IS NULL";
             st.executeUpdate(strSQL);
 
@@ -495,14 +559,14 @@ public class DAOEnvios {
                     + "FROM enviosPedidosDetalle EPD\n"
                     + "LEFT JOIN (SELECT * FROM enviosSolicitudesDetalle\n"
                     + "             WHERE idSolicitud=" + toTraspaso.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") ESD ON EPD.idEmpaque=ESD.idEmpaque\n"
-                    + "WHERE EPD.idVenta=" + toPedido.getReferencia() + " AND EPD.idEnvio=" + toPedido.getIdEnvio() + "\n"
+                    + "WHERE EPD.idVenta=" + toPedido.getIdMovto() + " AND EPD.idEnvio=" + toPedido.getIdEnvio() + "\n"
                     + "         AND ESD.idEmpaque IS NULL";
             st.executeUpdate(strSQL);
 
             strSQL = "UPDATE SD\n"
                     + "SET cantSolicitada=SD.cantSolicitada+EPD.cantEnviar+EPD.cantEnviarSinCargo\n"
                     + "FROM (SELECT * FROM enviosPedidosDetalle\n"
-                    + "         WHERE idVenta=" + toPedido.getReferencia() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
+                    + "         WHERE idVenta=" + toPedido.getIdMovto() + " AND idEnvio=" + toPedido.getIdEnvio() + ") EPD\n"
                     + "INNER JOIN solicitudesDetalle SD ON SD.idEmpaque=EPD.idEmpaque\n"
                     + "WHERE SD.idSolicitud=" + toPedido.getIdSolicitud();
             st.executeUpdate(strSQL);
@@ -559,8 +623,8 @@ public class DAOEnvios {
     private ArrayList<TOPedido> obtenFincados(Connection cn, int idEnvio, TOEnvioTraspaso toTraspaso, boolean agregar) throws SQLException {
         ArrayList<TOPedido> pedidos = new ArrayList<>();
         String strSQL = "SELECT " + Pedidos.sqlPedidos() + "\n"
-                + "WHERE M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND M.estatus=0 AND P.estatus IN (1, 3, 5) AND ISNULL(EP.idEnvio, 0) IN (0, " + idEnvio + ")\n"
-                + "ORDER BY V.fecha";
+                + "WHERE M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND (ISNULL(EP.idEnvio, 0)=" + idEnvio + " OR (ISNULL(E.estatus, 0)=0 AND P.estatus IN (1,3,5) AND M.estatus=0))\n"
+                + "ORDER BY M.fecha";
         try (Statement st = cn.createStatement()) {
             TOPedido toPed;
             ResultSet rs = st.executeQuery(strSQL);
@@ -594,8 +658,8 @@ public class DAOEnvios {
     }
 
     public void agregarProducto(TOEnvioTraspaso toTraspaso, TOEnvioProducto toProd) throws SQLException {
-        String strSQL = "INSERT INTO enviosSolicitudesDetalle (idSolicitud, idEnvio, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario)\n"
-                + "VALUES (" + toProd.getIdSolicitud() + ", " + toProd.getIdEnvio() + ", " + toProd.getIdProducto() + ", 0, 0, 0, 1, " + this.idUsuario + ")";
+        String strSQL = "INSERT INTO enviosSolicitudesDetalle (idSolicitud, idEnvio, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario, fincados, directos)\n"
+                + "VALUES (" + toProd.getIdSolicitud() + ", " + toProd.getIdEnvio() + ", " + toProd.getIdProducto() + ", 0, 0, 0, 1, " + this.idUsuario + ", 0, 0)";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -678,7 +742,7 @@ public class DAOEnvios {
                 traspasos = this.obtenTraspasos(cn, idEnvio);
                 do {
                     for (TOEnvioTraspaso toTraspaso : traspasos) {
-                        if(toTraspaso.getSolicitudEstatus()==0) {
+                        if (toTraspaso.getSolicitudEstatus() == 0) {
                             toTraspaso.setDiasInventario(diasInventario);
                             this.calculaDiasInventarioGeneral(cn, toTraspaso);
                         }
@@ -734,7 +798,7 @@ public class DAOEnvios {
                     + "WHERE idSolicitud=" + toTraspaso.getReferencia();
             st.executeUpdate(strSQL);
 
-            this.calcularSolicitada(cn, toTraspaso, 0);
+            this.calculaSolicitada(cn, toTraspaso, 0);
         }
     }
 
@@ -768,7 +832,7 @@ public class DAOEnvios {
                         + "WHERE idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                this.calcularSolicitada(cn, toTraspaso, toProd.getIdProducto());
+                this.calculaSolicitada(cn, toTraspaso, toProd.getIdProducto());
                 to = this.obtenProducto(cn, toTraspaso, toProd.getIdProducto());
                 toProd.setCantSolicitada(to.getCantSolicitada());
                 toProd.setExistencia(to.getExistencia());
@@ -808,67 +872,75 @@ public class DAOEnvios {
 //        }
 //    }
 //
-    private void calcularSolicitada(Connection cn, TOEnvioTraspaso toTraspaso, int idProducto) throws SQLException {
-        String condicion = "";
-        String condicion1 = "";
+    private void calculaSolicitada(Connection cn, TOEnvioTraspaso toTraspaso, int idProducto) throws SQLException {
+        String strSQL;
+//        String condicion = "";
+//        String condicion1 = "";
         String condicion2 = "";
-        String condicion3 = "";
+//        String condicion3 = "";
         if (idProducto != 0) {
-            condicion1 = " AND EPD.idEmpaque=" + idProducto;
+//            condicion1 = " AND EPD.idEmpaque=" + idProducto;
             condicion2 = " AND ESD.idEmpaque=" + idProducto;
-            condicion3 = " AND idEmpaque=" + idProducto;
+//            condicion3 = " AND idEmpaque=" + idProducto;
         } else {
-            condicion = " AND ESD.banCajas=0 AND ESD.diasInventario=ES.diasInventario";
+//            condicion = " AND ESD.banCajas=0 AND ESD.diasInventario=ES.diasInventario";
         }
-        String strSQL = "UPDATE S\n"
-                + "SET cantSolicitada=CEILING(CASE WHEN E.banCajas=0\n"
-                + "				THEN CASE WHEN E.estadistica*E.diasInventario + E.fincado*E.piezas < E.existencia THEN 0\n"
-                + "						ELSE E.estadistica*E.diasInventario + E.fincado*E.piezas - E.existencia END\n"
-                + "                     WHEN E.fincado*E.piezas < E.cantSolicitada + E.existencia THEN E.cantSolicitada\n"
-                + "			ELSE E.fincado*E.piezas - E.existencia END/E.piezas)*E.piezas\n"
-                + "FROM (SELECT P.*, E.piezas, ISNULL(A.existencia, 0) AS existencia\n"
-                + "	FROM (SELECT ISNULL(ESD.idEmpaque, P.idEmpaque) AS idEmpaque, ISNULL(ESD.estadistica, 0) AS estadistica\n"
-                + "		, ISNULL(ESD.banCajas, 1)  AS banCajas, ISNULL(ESD.diasInventario, 0) AS diasInventario\n"
-                + "		, ISNULL(SD.cantSolicitada, 0) AS cantSolicitada\n"
-                + "		, ISNULL(P.fincado, 0) AS fincado, ISNULL(P.directo, 0) AS directo\n"
-                + "	FROM movimientos M\n"
-                + "	INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=M.referencia\n"
-                + "	INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=SD.idSolicitud\n"
-                + "	INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=SD.idSolicitud AND ESD.idEmpaque=SD.idEmpaque\n"
-                + "	FULL OUTER JOIN (SELECT EPD.idEmpaque\n"
-                + "                             , SUM(CASE WHEN EP.directo=1 THEN EPD.cantEnviar+EPD.cantEnviarSinCargo ELSE 0 END) AS directo\n"
-                + "                             , SUM(CASE WHEN EP.directo=0 THEN EPD.cantEnviar+EPD.cantEnviarSinCargo ELSE 0 END) AS fincado\n"
-                + "			FROM movimientos M\n"
-                + "			INNER JOIN enviosPedidosDetalle EPD ON EPD.idVenta=M.referencia\n"
-                + "			INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta\n"
-                + "                     INNER JOIN envios E ON E.idEnvio=EP.idEnvio\n"
-                + "			WHERE E.idEnvio=" + toTraspaso.getIdEnvio() + " AND M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND M.estatus=0" + condicion1 + "\n"
-                + "			GROUP BY EPD.idEmpaque) P ON P.idEmpaque=ESD.idEmpaque\n"
-                + "	WHERE SD.idSolicitud=" + toTraspaso.getReferencia() + condicion + condicion2 + ") P\n"
-                + "INNER JOIN empaques E ON P.idEmpaque=E.idEmpaque\n"
-                + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
-                + "		FROM almacenesLotes\n"
-                + "		WHERE idAlmacen=" + toTraspaso.getIdReferencia() + condicion3 + "\n"
-                + "		GROUP BY idEmpaque) A ON A.idEmpaque=E.idEmpaque) E\n"
-                + "INNER JOIN solicitudesDetalle S ON S.idEmpaque=E.idEmpaque\n"
-                + "WHERE S.idSolicitud=" + toTraspaso.getReferencia();
-
-        strSQL = "UPDATE SD\n"
-                + "SET cantSolicitada=CEILING(CASE WHEN D.banCajas=0\n"
-                + "				THEN CASE WHEN D.estadistica*D.diasInventario + D.fincados*D.piezas < D.existencia THEN 0\n"
-                + "					ELSE D.estadistica*D.diasInventario + D.fincados*D.piezas - D.existencia END\n"
-                + "                             WHEN D.fincados*D.piezas < D.cantSolicitada + D.existencia THEN D.cantSolicitada\n"
-                + "                             ELSE D.fincados*D.piezas - D.existencia END/D.piezas)*D.piezas\n"
-                + "FROM (SELECT ESD.*, SD.cantSolicitada, ISNULL(A.existencia, 0) AS existencia, E.piezas\n"
-                + "	FROM enviosSolicitudesDetalle ESD\n"
-                + "	INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=ESD.idSolicitud AND SD.idEmpaque=ESD.idEmpaque\n"
-                + "	INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
-                + "	LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
-                + "				FROM almacenesLotes WHERE idAlmacen=" + toTraspaso.getIdReferencia() + "\n"
-                + "                             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
-                + "	WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + condicion2 + ") D\n"
-                + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=D.idSolicitud AND SD.idEmpaque=D.idEmpaque";
+//        strSQL = "UPDATE S\n"
+//                + "SET cantSolicitada=CEILING(CASE WHEN E.banCajas=0\n"
+//                + "				THEN CASE WHEN E.estadistica*E.diasInventario + E.fincado*E.piezas < E.existencia THEN 0\n"
+//                + "						ELSE E.estadistica*E.diasInventario + E.fincado*E.piezas - E.existencia END\n"
+//                + "                     WHEN E.fincado*E.piezas < E.cantSolicitada + E.existencia THEN E.cantSolicitada\n"
+//                + "			ELSE E.fincado*E.piezas - E.existencia END/E.piezas)*E.piezas\n"
+//                + "FROM (SELECT P.*, E.piezas, ISNULL(A.existencia, 0) AS existencia\n"
+//                + "	FROM (SELECT ISNULL(ESD.idEmpaque, P.idEmpaque) AS idEmpaque, ISNULL(ESD.estadistica, 0) AS estadistica\n"
+//                + "		, ISNULL(ESD.banCajas, 1)  AS banCajas, ISNULL(ESD.diasInventario, 0) AS diasInventario\n"
+//                + "		, ISNULL(SD.cantSolicitada, 0) AS cantSolicitada\n"
+//                + "		, ISNULL(P.fincado, 0) AS fincado, ISNULL(P.directo, 0) AS directo\n"
+//                + "	FROM movimientos M\n"
+//                + "	INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=M.referencia\n"
+//                + "	INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=SD.idSolicitud\n"
+//                + "	INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=SD.idSolicitud AND ESD.idEmpaque=SD.idEmpaque\n"
+//                + "	FULL OUTER JOIN (SELECT EPD.idEmpaque\n"
+//                + "                             , SUM(CASE WHEN EP.directo=1 THEN EPD.cantEnviar+EPD.cantEnviarSinCargo ELSE 0 END) AS directo\n"
+//                + "                             , SUM(CASE WHEN EP.directo=0 THEN EPD.cantEnviar+EPD.cantEnviarSinCargo ELSE 0 END) AS fincado\n"
+//                + "			FROM movimientos M\n"
+//                + "			INNER JOIN enviosPedidosDetalle EPD ON EPD.idVenta=M.referencia\n"
+//                + "			INNER JOIN enviosPedidos EP ON EP.idVenta=EPD.idVenta\n"
+//                + "                     INNER JOIN envios E ON E.idEnvio=EP.idEnvio\n"
+//                + "			WHERE E.idEnvio=" + toTraspaso.getIdEnvio() + " AND M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND M.estatus=0" + condicion1 + "\n"
+//                + "			GROUP BY EPD.idEmpaque) P ON P.idEmpaque=ESD.idEmpaque\n"
+//                + "	WHERE SD.idSolicitud=" + toTraspaso.getReferencia() + condicion + condicion2 + ") P\n"
+//                + "INNER JOIN empaques E ON P.idEmpaque=E.idEmpaque\n"
+//                + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
+//                + "		FROM almacenesLotes\n"
+//                + "		WHERE idAlmacen=" + toTraspaso.getIdReferencia() + condicion3 + "\n"
+//                + "		GROUP BY idEmpaque) A ON A.idEmpaque=E.idEmpaque) E\n"
+//                + "INNER JOIN solicitudesDetalle S ON S.idEmpaque=E.idEmpaque\n"
+//                + "WHERE S.idSolicitud=" + toTraspaso.getReferencia();
+//        
         try (Statement st = cn.createStatement()) {
+            strSQL = "UPDATE ESD\n"
+                    + "SET existencia=ISNULL(A.existencia, 0)\n"
+                    + "FROM enviosSolicitudesDetalle ESD\n"
+                    + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
+                    + "             FROM almacenesLotes\n"
+                    + "             WHERE idAlmacen=" + toTraspaso.getIdReferencia() + "\n"
+                    + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
+                    + "WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + condicion2;
+            st.executeUpdate(strSQL);
+
+            strSQL = "UPDATE SD\n"
+                    + "SET cantSolicitada=CEILING(CASE WHEN D.banCajas=0\n"
+                    + "				THEN CASE WHEN D.estadistica*D.diasInventario + D.fincados*D.piezas < D.existencia THEN 0\n"
+                    + "					ELSE D.estadistica*D.diasInventario + D.fincados*D.piezas - D.existencia END\n"
+                    + "                             WHEN D.fincados*D.piezas < D.cantSolicitada + D.existencia THEN D.cantSolicitada\n"
+                    + "                             ELSE D.fincados*D.piezas - D.existencia END/D.piezas)*D.piezas\n"
+                    + "FROM (SELECT ESD.*, SD.cantSolicitada, E.piezas\n"
+                    + "     FROM enviosSolicitudesDetalle ESD\n"
+                    + "     INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=ESD.idSolicitud AND SD.idEmpaque=ESD.idEmpaque\n"
+                    + "     INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                    + "     WHERE ESD.idSolicitud=" + toTraspaso.getReferencia() + condicion2 + ") D\n"
+                    + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=D.idSolicitud AND SD.idEmpaque=D.idEmpaque";
             st.executeUpdate(strSQL);
         }
     }
@@ -889,7 +961,7 @@ public class DAOEnvios {
                         + "WHERE idSolicitud=" + toProd.getIdSolicitud() + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                this.calcularSolicitada(cn, toTraspaso, toProd.getIdProducto());
+                this.calculaSolicitada(cn, toTraspaso, toProd.getIdProducto());
 
 //                if (toProd.getEstadistica() != 0) {
                 strSQL = "UPDATE ESD\n"
@@ -1001,14 +1073,9 @@ public class DAOEnvios {
                 + "             GROUP BY idEmpaque) A ON A.idEmpaque=E.idEmpaque";
 
         strSQL = "SELECT ESD.idEnvio, ESD.estadistica, ESD.sugerido, ESD.diasInventario, ESD.banCajas\n"
-                + "         , ESD.fincados AS fincada, ESD.directos AS directa, ISNULL(A.existencia, 0) AS existencia\n"
-                + "         , TD.*\n"
+                + "         , ESD.fincados AS fincada, ESD.directos AS directa, ESD.existencia, TD.*\n"
                 + "FROM (" + Traspasos.sqlTraspasoDetalle(toTraspaso, idProducto) + ") TD\n"
                 + "INNER JOIN enviosSolicitudesDetalle ESD ON ESD.idSolicitud=TD.idSolicitud AND ESD.idEmpaque=TD.idEmpaque\n"
-                + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
-                + "             FROM almacenesLotes\n"
-                + "             WHERE idAlmacen=" + toTraspaso.getIdReferencia() + "\n"
-                + "             GROUP BY idEmpaque) A ON A.idEmpaque=ESD.idEmpaque\n"
                 + "ORDER BY RIGHT(TD.cod_pro, 4), LEFT(TD.cod_pro, 3)";
         return strSQL;
     }
@@ -1036,12 +1103,24 @@ public class DAOEnvios {
         return toProd;
     }
 
-    public ArrayList<TOEnvioProducto> obtenerDetalle(TOEnvioTraspaso toTraspaso) throws SQLException {
+    public ArrayList<Double> obtenerEnvioTraspasoPeso(int idSolicitud, int idEnvio) throws SQLException {
+        ArrayList<Double> pesos = new ArrayList<>();
+        try (Connection cn = this.ds.getConnection()) {
+            pesos = Envios.obtenerTraspasoEnvioPeso(cn, idSolicitud, idEnvio);
+        }
+        return pesos;
+    }
+
+    public ArrayList<TOEnvioProducto> obtenerDetalle(TOEnvioTraspaso toTraspaso, ArrayList<Double> pesos) throws SQLException {
+        ArrayList<Double> p = new ArrayList<>();
         ArrayList<TOEnvioProducto> detalle = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
                 detalle = this.obtenDetalle(cn, toTraspaso, 0);
+                p = Envios.obtenerTraspasoEnvioPeso(cn, toTraspaso.getReferencia(), toTraspaso.getIdEnvio());
+                pesos.set(0, p.get(0));
+                pesos.set(1, p.get(1));
                 movimientos.Movimientos.bloquearMovimientoOficina(cn, toTraspaso, this.idUsuario);
                 cn.commit();
             } catch (SQLException ex) {
@@ -1085,21 +1164,18 @@ public class DAOEnvios {
 
     private TOEnvioTraspaso construirTraspaso(ResultSet rs) throws SQLException {
         TOEnvioTraspaso toTraspaso = new TOEnvioTraspaso();
-        toTraspaso.setIdEnvio(rs.getInt("idEnvio"));
+//        toTraspaso.setIdEnvio(rs.getInt("idEnvio"));
         toTraspaso.setDiasInventario(rs.getInt("diasInventario"));
         toTraspaso.setFechaProduccion(new java.util.Date(rs.getDate("fechaProduccion").getTime()));
-        toTraspaso.setDirecto(rs.getInt("directo"));
+//        toTraspaso.setDirecto(rs.getInt("directo"));
         Traspasos.construir(rs, toTraspaso);
         return toTraspaso;
     }
 
     private ArrayList<TOEnvioTraspaso> obtenTraspasos(Connection cn, int idEnvio) throws SQLException {
         ArrayList<TOEnvioTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT SE.idEnvio, SE.diasInventario, SE.fechaProduccion, SE.directo\n"
-                + "     , " + Traspasos.sqlTraspaso() + "\n"
-                + "INNER JOIN enviosSolicitudes SE ON SE.idSolicitud=S.idSolicitud\n"
-                + "INNER JOIN envios E ON E.idEnvio=SE.idEnvio\n"
-                + "WHERE E.idEnvio=" + idEnvio + " AND M.idTipo=35";
+        String strSQL = this.sqlTraspaso() + "\n"
+                + "WHERE M.idTipo=35 AND E.idEnvio=" + idEnvio;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
@@ -1117,11 +1193,15 @@ public class DAOEnvios {
         return traspasos;
     }
 
+    private String sqlTraspaso() {
+        return "SELECT ES.diasInventario, ES.fechaProduccion, ES.idEnvio, E.folio AS envioFolio, 0 AS pedidoFolio\n"
+                + "     , " + Traspasos.sqlTraspasoBase() + "\n"
+                + "INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud INNER JOIN envios E ON E.idEnvio=ES.idEnvio";
+    }
+
     private TOEnvioTraspaso obtenTraspaso(Connection cn, int idSolicitud) throws SQLException {
         TOEnvioTraspaso toTraspaso = null;
-        String strSQL = "SELECT SE.idEnvio, SE.diasInventario, SE.fechaProduccion, SE.directo\n"
-                + "     , " + Traspasos.sqlTraspaso() + "\n"
-                + "INNER JOIN enviosSolicitudes SE ON SE.idSolicitud=S.idSolicitud\n"
+        String strSQL = this.sqlTraspaso() + "\n"
                 + "WHERE M.idTipo=35 AND S.idSolicitud=" + idSolicitud;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -1133,8 +1213,8 @@ public class DAOEnvios {
     }
 
     private String sqlCrearEnvio(int idEnvio, int idSolicitud, int idAlmacen, String hoy, String anioAnterior) {
-        String strSQL = "INSERT INTO enviosSolicitudesDetalle (idEnvio, idSolicitud, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario, fincados, directos)\n"
-                + "SELECT " + idEnvio + ", " + idSolicitud + ", EE.idEmpaque, CEILING(EE.estadistica), 0, 0, 0, " + this.idUsuario + ", 0, 0\n"
+        String strSQL = "INSERT INTO enviosSolicitudesDetalle (idEnvio, idSolicitud, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario, fincados, directos, existencia)\n"
+                + "SELECT " + idEnvio + ", " + idSolicitud + ", EE.idEmpaque, CEILING(EE.estadistica), 0, 0, 0, " + this.idUsuario + ", 0, 0, ISNULL(A.existencia, 0) AS existencia\n"
                 + "FROM (SELECT P.cod_pro, P.idEmpaque\n"
                 + "			, CASE WHEN P.ten <= 0 THEN 0\n"
                 + "					WHEN P.est_p <= 0 THEN P.ten\n"
@@ -1168,6 +1248,8 @@ public class DAOEnvios {
                 + "		LEFT JOIN (SELECT idEmpaque, SUM(cantidad)/60 AS est_f2 FROM estadisticaVentas\n"
                 + "					WHERE idAlmacen=" + idAlmacen + " AND fecha BETWEEN DATEADD(DAY,31, '" + anioAnterior + "') AND DATEADD(DAY,91, '" + anioAnterior + "')\n"
                 + "					GROUP BY idEmpaque) est_f2 ON est_f2.idEmpaque=E.idEmpaque) P) EE\n"
+                + "LEFT JOIN (SELECT idEmpaque, SUM(existencia-separados) AS existencia\n"
+                + "             FROM almacenesLotes WHERE idAlmacen=" + idAlmacen + " GROUP BY idEmpaque) A ON A.idEmpaque=EE.idEmpaque\n"
                 + "WHERE EE.estadistica > 0";
         return strSQL;
     }

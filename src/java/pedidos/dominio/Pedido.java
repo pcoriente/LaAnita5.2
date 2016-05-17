@@ -15,30 +15,34 @@ import tiendas.to.TOTienda;
 public class Pedido extends MovimientoOficina {
     private int idEnvio;
     private boolean agregado;
-    private double peso;
-    private int orden;
-    private int orden2;
-    private int envioEstatus;
-    
-    private int idPedido;
-    private TOTienda tienda;
-    private Comprobante comprobante;
-    private int pedidoFolio;
-    private Date pedidoFecha;
-    private int diasCredito;
-    private boolean especial;
-    private int pedidoIdUsuario;
-    private String canceladoMotivo;
     private boolean directo;
     private int idSolicitud;
-    private int pedidoEstatus;
-    private String electronico;
+    private int orden;
+    private int orden2;
+    private double peso;
+//    private int envioEstatus;
+    
+    private int idOrden;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private String electronico;
     private String entregaFolio;
     private Date entregaFecha;
     private Date entregaFechaMaxima;
-    private int idVenta;
+    private String canceladoMotivo;
+    
+    private int idPedido;
+    private int pedidoFolio;
+    private Date pedidoFecha;
+    private int pedidoIdUsuario;
+    private int pedidoEstatus;
+    
+    private int diasCredito;
+    private boolean especial;
+    
+    private TOTienda tienda;
+    private Comprobante comprobante;
+//    private int idVenta;
 
     public Pedido() {
         super(new MovimientoTipo(28, "VENTA"));
@@ -203,6 +207,14 @@ public class Pedido extends MovimientoOficina {
         this.electronico = electronico;
     }
 
+    public int getIdOrden() {
+        return idOrden;
+    }
+
+    public void setIdOrden(int idOrden) {
+        this.idOrden = idOrden;
+    }
+
     public String getOrdenDeCompra() {
         return ordenDeCompra;
     }
@@ -275,13 +287,13 @@ public class Pedido extends MovimientoOficina {
         this.orden2 = orden2;
     }
 
-    public int getEnvioEstatus() {
-        return envioEstatus;
-    }
-
-    public void setEnvioEstatus(int envioEstatus) {
-        this.envioEstatus = envioEstatus;
-    }
+//    public int getEnvioEstatus() {
+//        return envioEstatus;
+//    }
+//
+//    public void setEnvioEstatus(int envioEstatus) {
+//        this.envioEstatus = envioEstatus;
+//    }
 
     public String getEntregaFolio() {
         return entregaFolio;
@@ -307,11 +319,11 @@ public class Pedido extends MovimientoOficina {
         this.entregaFechaMaxima = entregaFechaMaxima;
     }
 
-    public int getIdVenta() {
-        return idVenta;
-    }
-
-    public void setIdVenta(int idVenta) {
-        this.idVenta = idVenta;
-    }
+//    public int getIdVenta() {
+//        return idVenta;
+//    }
+//
+//    public void setIdVenta(int idVenta) {
+//        this.idVenta = idVenta;
+//    }
 }

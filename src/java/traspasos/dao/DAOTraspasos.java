@@ -94,6 +94,10 @@ public class DAOTraspasos {
 
                 toRecepcion.setReferencia(toTraspaso.getIdMovto());
                 movimientos.Movimientos.agregaMovimientoOficina(cn, toRecepcion, false);
+                
+//                strSQL = "INSERT INTO recepciones (idMovto, idEnvio, folioTraspaso, folioRecepcion)\n"
+//                        + "VALUES ("+toRecepcion.getIdMovto()+", "+toTraspaso.getIdEnvio()+", "+toTraspaso.getFolio()+", "+toTraspaso.getPedidoFolio()+")";
+//                st.executeUpdate(strSQL);
 
                 strSQL = "INSERT INTO movimientosDetalle (idMovto, idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, fecha, existenciaAnterior, ctoPromAnterior)\n"
                         + "SELECT " + toRecepcion.getIdMovto() + ", idEmpaque, cantFacturada, cantSinCargo, costoPromedio, costo, desctoProducto1, desctoProducto2, desctoConfidencial, unitario, idImpuestoGrupo, '', 0, 0\n"
@@ -118,7 +122,7 @@ public class DAOTraspasos {
                         + "RIGHT JOIN solicitudesDetalle SD ON SD.idSolicitud=SS.idSolicitud AND SD.idEmpaque=SS.idEmpaque\n"
                         + "WHERE SD.idSolicitud=" + toTraspaso.getReferencia() + " AND SD.cantSolicitada > ISNULL(SS.cantTraspasada, 0)";
                 ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
+                if(rs.next() && (toTraspaso.getIdEnvio()==0 || toTraspaso.getPedidoFolio()!=0)) {
                     TOTraspaso toComplemento = new TOTraspaso();
                     toComplemento.setIdEmpresa(toTraspaso.getIdEmpresa());
                     toComplemento.setIdAlmacen(toTraspaso.getIdAlmacen());
@@ -235,15 +239,7 @@ public class DAOTraspasos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
-                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, S.envio, M.*\n"
-                + "FROM movimientos M\n"
-                + "INNER JOIN movimientosAlmacen MA ON MA.idMovtoAlmacen=M.idMovtoAlmacen\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
-                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
-                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+        String strSQL = "SELECT " + Traspasos.sqlTraspasoYY() + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND M.estatus" + condicion + "\n";
         if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
@@ -296,13 +292,14 @@ public class DAOTraspasos {
         return detalle;
     }
 
-    public TOTraspaso obtenerTraspaso1(int idSolicitud) throws SQLException {
+    public TOTraspaso obtenerTraspaso(int idSolicitud) throws SQLException {
         TOTraspaso toTraspaso = new TOTraspaso();
         try (Connection cn = this.ds.getConnection()) {
             Traspasos.obtenerTraspaso(cn, idSolicitud);
         }
         return toTraspaso;
     }
+    
 
     public ArrayList<TOTraspaso> obtenerTraspasos(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         String condicion = ">=5";
@@ -311,7 +308,7 @@ public class DAOTraspasos {
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TOTraspaso> traspasos = new ArrayList<>();
-        String strSQL = "SELECT " + Traspasos.sqlTraspaso() + "\n"
+        String strSQL = "SELECT " + Traspasos.sqlTraspasoYY() + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=35 AND S.estatus >= 3 AND M.estatus" + condicion + "\n";
         if (estatus == 7) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
@@ -473,7 +470,7 @@ public class DAOTraspasos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                if (toMov.getEnvio() != 0) {
+                if (toMov.getIdEnvio() != 0 && toMov.getPedidoFolio()==0) {
                     strSQL = "SELECT M.idMovto, M.idMovtoAlmacen\n"
                             + "FROM movimientos M INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
                             + "WHERE M.idAlmacen=" + toMov.getIdAlmacen() + " AND M.idTipo=35 AND S.idSolicitud=" + toMov.getReferencia();
@@ -575,7 +572,8 @@ public class DAOTraspasos {
 //
     public ArrayList<TOTraspaso> obtenerSolicitudes(int idAlmacenOrigen) throws SQLException {
         ArrayList<TOTraspaso> solicitudes = new ArrayList<>();
-        String strSQL = "SELECT ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
+        String strSQL = "SELECT ISNULL(ES.idEnvio, ISNULL(EP.idEnvio, 0)) AS idEnvio, ISNULL(E1.folio, ISNULL(E2.folio, 0)) AS envioFolio\n"
+                + "	, ISNULL(P.folio, 0) AS pedidoFolio\n"
                 + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.envio\n"
                 + "     , S.idUsuario AS solicitudIdUsuario, S.estatus AS solicitudEstatus\n"
                 + "     , 0 AS idMovto, 35 AS idTipo, A.idEmpresa, S.idAlmacenOrigen AS idAlmacen, 0 AS folio\n"
@@ -584,9 +582,9 @@ public class DAOTraspasos {
                 + "     , 0 AS propietario, 0 AS estatus, 0 AS idMovtoAlmacen\n"
                 + "FROM solicitudes S\n"
                 + "INNER JOIN almacenes A ON A.idAlmacen=S.idAlmacen\n"
-                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
-                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+                + "LEFT JOIN enviosSolicitudes ES ON S.idSolicitud=ES.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
                 + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {

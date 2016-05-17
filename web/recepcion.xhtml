@@ -52,26 +52,28 @@
                                 </p:column>
                             </p:row>
                         </p:panelGrid>
-                        <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px; width: 680px;"
+                        <p:dataTable id="listaRecepciones" value="#{mbRecepcion.recepciones}" style="border:solid 1px; width: 800px;"
                                      var="recepcion" rowKey="#{recepcion.idMovto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollHeight="220" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.obtenerDetalle}" update="main" />
 
-                            <p:column headerText="SOLICITUD" style="width: 60px; text-align: right;" >
-                                <h:outputText value="#{recepcion.solicitudFolio}" />
+                            <p:column headerText="ENVIO" style="width: 50px; text-align: right;" >
+                                <h:outputText value="#{recepcion.envioFolio}" />
                             </p:column>
-                            <p:column headerText="TRASPASO" style="width: 60px; text-align: right;" >
+                            <p:column headerText="TRASPASO" style="width: 70px; text-align: right;" >
                                 <h:outputText value="#{recepcion.traspasoFolio}" />
-                            </p:column>
-                            <p:column headerText="ALMACEN" >
-                                <h:outputText value="#{recepcion.almacenOrigen}" />
                             </p:column>
                             <p:column headerText="FECHA" style="width: 130px;" >
                                 <h:outputText value="#{recepcion.traspasoFecha}" >
                                     <f:convertDateTime dateStyle="short" locale="es_MX" type="both" timeZone="America/Merida" />
                                 </h:outputText>
                             </p:column>
-
+                            <p:column headerText="PEDIDO" style="width: 60px; text-align: right;" >
+                                <h:outputText value="#{recepcion.pedidoFolio}" />
+                            </p:column>
+                            <p:column headerText="ALMACEN" >
+                                <h:outputText value="#{recepcion.almacenOrigen}" />
+                            </p:column>
                         </p:dataTable>
                     </p:panel>
                     <p:panel id="mantenimiento" header="RECEPCION" rendered="#{mbRecepcion.modoEdicion}" >
@@ -108,7 +110,7 @@
                                      var="prod" rowKey="#{prod.producto.idProducto}" selectionMode="single" 
                                      emptyMessage="No hay elementos que desplegar" scrollable="true" scrollRows="5" >
                             <p:ajax process="@this" event="rowSelect" listener="#{mbRecepcion.editar}" 
-                                    update=":main:listaLotes :main:lotesTotales"
+                                    update=":main:msgs :main:listaLotes :main:lotesTotales"
                                     oncomplete="abrirEdicion(xhr, status, args);" />
 
                             <p:column headerText="SKU" style="width: 60px;" >

@@ -53,7 +53,7 @@
                 </p:panelGrid>
                 <p:dataTable id="listaDeTraspasos" value="#{mBTraspasoAlmacen.traspasos}" 
                              var="traspaso" rowKey="#{traspaso.idMovto}" selectionMode="single" 
-                             style="border:solid 1px; width: 750px;" emptyMessage="No existen traspasos" >
+                             style="border:solid 1px; width: 910px;" emptyMessage="No existen traspasos" >
                     <p:ajax event="rowSelect" listener="#{mBTraspasoAlmacen.obtenerDetalleAlmacen}" 
                             update=":main:msgsTraspasos :main:traspaso :main:detalleTraspaso" 
                             oncomplete="abrirTraspaso(xhr, status, args);" />
@@ -61,8 +61,14 @@
                     <p:column headerText="SOLICITUD" style="width: 60px;" >
                         <h:outputText value="#{traspaso.solicitudFolio}" />
                     </p:column>
-                    <p:column headerText="FOLIO" style="width: 60px;" >
+                    <p:column headerText="TRASPASO" style="width: 60px;" >
                         <h:outputText value="#{traspaso.folio}" />
+                    </p:column>
+                    <p:column headerText="ENVIO" style="width: 60px;" >
+                        <h:outputText value="#{traspaso.envioFolio}" />
+                    </p:column>
+                    <p:column headerText="PEDIDO" style="width: 60px;" >
+                        <h:outputText value="#{traspaso.pedidoFolio}" />
                     </p:column>
                     <p:column headerText="ALMACEN" >
                         <h:outputText value="#{traspaso.almacenDestino.toString()}" />

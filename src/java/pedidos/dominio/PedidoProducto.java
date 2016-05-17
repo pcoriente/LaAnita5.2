@@ -9,13 +9,13 @@ import producto2.dominio.Producto;
  */
 public class PedidoProducto extends ProductoOficina {
     private int idEnvio;
-    private int idVenta;
     private double enviar;          // Captura
 //    private double enviar2;         // Captura
     private double enviarSinCargo;  // Captura
 //    private double enviarSinCargo2; // Captura
 //    private double cantEnviar;          // Grabar
 //    private double cantEnviarSinCargo;  // Grabar
+    private int idPedido;
     private double ordenada;        // Captura
     private double ordenadaSinCargo;// Captura
 //    private double cantOrdenada;        // Grabar
@@ -40,12 +40,12 @@ public class PedidoProducto extends ProductoOficina {
         this.idEnvio = idEnvio;
     }
 
-    public int getIdVenta() {
-        return idVenta;
+    public int getIdPedido() {
+        return idPedido;
     }
 
-    public void setIdVenta(int idVenta) {
-        this.idVenta = idVenta;
+    public void setIdPedido(int idPedido) {
+        this.idPedido = idPedido;
     }
 
     public double getEnviar() {

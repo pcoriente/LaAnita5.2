@@ -11,8 +11,10 @@ import movimientos.dominio.MovimientoTipo;
  */
 public class Traspaso extends MovimientoOficina {
     private int idEnvio;
+    private int envioFolio;
     private int pedidoFolio;
     private boolean envio;
+    private boolean directo;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int solicitudIdUsuario;
@@ -47,6 +49,14 @@ public class Traspaso extends MovimientoOficina {
         this.idEnvio = idEnvio;
     }
 
+    public int getEnvioFolio() {
+        return envioFolio;
+    }
+
+    public void setEnvioFolio(int envioFolio) {
+        this.envioFolio = envioFolio;
+    }
+
     public int getPedidoFolio() {
         return pedidoFolio;
     }
@@ -61,6 +71,14 @@ public class Traspaso extends MovimientoOficina {
 
     public void setEnvio(boolean envio) {
         this.envio = envio;
+    }
+
+    public boolean isDirecto() {
+        return directo;
+    }
+
+    public void setDirecto(boolean directo) {
+        this.directo = directo;
     }
     
     public int getIdSolicitud() {

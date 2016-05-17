@@ -10,11 +10,15 @@ import movimientos.dominio.MovimientoTipo;
  * @author jesc
  */
 public class Recepcion extends MovimientoOficina {
+    private int idEnvio;
+    private int envioFolio;
 //    private int idSolicitud;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int traspasoFolio;
     private Date traspasoFecha;
+    private int pedidoFolio;
+    private Date pedidoFecha;
     private TOAlmacenJS almacenOrigen;
     private int idTraspaso;
     
@@ -30,6 +34,22 @@ public class Recepcion extends MovimientoOficina {
         this.almacenOrigen=almacenOrigen;
         this.solicitudFecha=new Date();
         this.traspasoFecha=new Date();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public int getEnvioFolio() {
+        return envioFolio;
+    }
+
+    public void setEnvioFolio(int envioFolio) {
+        this.envioFolio = envioFolio;
     }
 
 //    public int getIdSolicitud() {
@@ -86,5 +106,21 @@ public class Recepcion extends MovimientoOficina {
 
     public void setAlmacenOrigen(TOAlmacenJS almacenOrigen) {
         this.almacenOrigen = almacenOrigen;
+    }
+
+    public int getPedidoFolio() {
+        return pedidoFolio;
+    }
+
+    public void setPedidoFolio(int pedidoFolio) {
+        this.pedidoFolio = pedidoFolio;
+    }
+
+    public Date getPedidoFecha() {
+        return pedidoFecha;
+    }
+
+    public void setPedidoFecha(Date pedidoFecha) {
+        this.pedidoFecha = pedidoFecha;
     }
 }

@@ -8,7 +8,7 @@ import movimientos.to.TOProductoOficina;
  */
 public class TOPedidoProducto extends TOProductoOficina {
     private int idEnvio;
-    private int idVenta;
+    private int idPedido;
     private double cantEnviar;
     private double cantEnviarSinCargo;
     private double cantOrdenada;
@@ -29,12 +29,12 @@ public class TOPedidoProducto extends TOProductoOficina {
         this.idEnvio = idEnvio;
     }
     
-    public int getIdVenta() {
-        return idVenta;
+    public int getIdPedido() {
+        return idPedido;
     }
 
-    public void setIdVenta(int idVenta) {
-        this.idVenta = idVenta;
+    public void setIdPedido(int idPedido) {
+        this.idPedido = idPedido;
     }
 
     public double getCantEnviar() {

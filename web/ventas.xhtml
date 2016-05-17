@@ -352,6 +352,9 @@
                                 <p:inputText id="txtDesctoComercial" value="#{mbVentas.venta.desctoComercial}" readonly="true" size="6" />
                             </p:column>
                             <p:column style="width: 190px; text-align: right;" >
+                                <p:commandButton icon="ui-icon-print" title="Imprimir venta"
+                                                 disabled="#{mbVentas.venta.estatus le 4 or mbVentas.venta.estatus == 6}"
+                                                 ajax="false" immediate="true" action="#{mbVentas.imprimir()}" />
                                 <p:commandButton id="btnAgregarProducto" icon="ui-icon-search" value="Agregar" title="Agregar productos"
                                                  disabled="#{mbVentas.venta.pedidoFolio!=0 or mbVentas.venta.estatus!=0 or !mbVentas.locked}"
                                                  process="@this" actionListener="#{mbVentas.buscarProductos(':main:msgsVenta :main:detalleVenta :main:totales')}" 

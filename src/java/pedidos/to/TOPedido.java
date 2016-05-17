@@ -9,26 +9,29 @@ import movimientos.to.TOMovimientoOficina;
  */
 public class TOPedido extends TOMovimientoOficina {
     private int idEnvio;
-    private double peso;
+    private int directo;
+    private int idSolicitud;
     private int orden;
+    private double peso;
 //    private int envioEstatus;
     
-    private int idPedido;
-    private int pedidoFolio;
-    private Date pedidoFecha;
-    private int diasCredito;
-    private int especial;
-    private int pedidoIdUsuario;
-    private String canceladoMotivo;
-    private int pedidoEstatus;
-    private String electronico;
+    private int idOrden;
     private String ordenDeCompra;
     private Date ordenDeCompraFecha;
+    private String electronico;
     private String entregaFolio;
     private Date entregaFecha;
     private Date entregaFechaMaxima;
-    private int directo;
-    private int idSolicitud;
+    private String canceladoMotivo;
+    
+//    private int idPedido;
+    private int pedidoFolio;
+    private Date pedidoFecha;
+    private int pedidoIdUsuario;
+    private int pedidoEstatus;
+    
+    private int diasCredito;
+    private int especial;
 
     public TOPedido() {
         super();
@@ -56,13 +59,13 @@ public class TOPedido extends TOMovimientoOficina {
         this.entregaFechaMaxima = new Date();
     }
 
-    public int getIdPedido() {
-        return idPedido;
-    }
-
-    public void setIdPedido(int idPedido) {
-        this.idPedido = idPedido;
-    }
+//    public int getIdPedido() {
+//        return idPedido;
+//    }
+//
+//    public void setIdPedido(int idPedido) {
+//        this.idPedido = idPedido;
+//    }
 
     public int getPedidoFolio() {
         return pedidoFolio;
@@ -86,6 +89,14 @@ public class TOPedido extends TOMovimientoOficina {
 
     public void setDiasCredito(int diasCredito) {
         this.diasCredito = diasCredito;
+    }
+
+    public int getIdOrden() {
+        return idOrden;
+    }
+
+    public void setIdOrden(int idOrden) {
+        this.idOrden = idOrden;
     }
 
     public String getOrdenDeCompra() {

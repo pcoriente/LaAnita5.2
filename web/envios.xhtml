@@ -97,7 +97,7 @@
                                     <p:inputText id="diasInventario" value="#{mbEnvios.traspaso.diasInventario}"
                                                  title="Calcular dias inventario"  maxlength="3" size="3" style="width: 20px"
                                                  readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.locked}" >
-                                        <p:ajax event="change" listener="#{mbEnvios.actualizaDiasInventarioGeneral()}"
+                                        <p:ajax event="change" listener="#{mbEnvios.actualizaDiasInventarioTraspaso()}"
                                                 update=":main:msgs :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                                     </p:inputText>
                                 </p:column>
@@ -140,8 +140,8 @@
                                     <p:column style="width: 110px;" >
                                         <p:inputText id="pesoDirectos" value="#{mbEnvios.traspaso.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
                                     </p:column>
-                                    <p:column style="width: 90px" >
-                                        <h:outputLabel for="pesoTotal" value="Peso Total :" style="font-weight: bold; color: black; width: 85px" />
+                                    <p:column style="width: 82px" >
+                                        <h:outputLabel for="pesoTotal" value="Peso Total :" style="font-weight: bold; color: black" />
                                     </p:column>
                                     <p:column colspan="3" >
                                         <p:inputText id="pesoTotal" value="#{mbEnvios.traspaso.peso+mbEnvios.traspaso.pesoDirectos}" readonly="true" maxlength="10" size="10" ></p:inputText>
@@ -154,11 +154,16 @@
                                     </p:column>
                                     <p:column >
                                         <p:commandButton id="btnEliminarTraspaso" icon="ui-icon-trash" title="Eliminar traspaso"
-                                                         disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0 or !mbEnvios.locked}"
+                                                         rendered="#{mbEnvios.traspaso.solicitudEstatus==0}"
+                                                         disabled="#{mbEnvios.mbAlmacenes.toAlmacen.idAlmacen==0 or !mbEnvios.locked}"
                                                          process="@this" actionListener="#{mbEnvios.eliminarTraspaso()}"
                                                          update="main" >
                                             <p:confirm header="Eliminar el traspaso" message="Confirma ?" icon="ui-icon-alert" />
                                         </p:commandButton>
+                                        <p:commandButton icon="ui-icon-print" title="Imprimir traspaso envío"
+                                                 rendered="#{mbEnvios.traspaso.solicitudEstatus!=0}"
+                                                 disabled="#{mbEnvios.envio.folioEnvio==0 and false}"
+                                                 ajax="false" immediate="true" action="#{mbEnvios.imprimir()}" />
                                     </p:column>
                                     <p:column >
                                         <p:commandButton id="btnGrabar" icon="ui-icon-disk" title="Grabar y cerrar el traspaso"
@@ -370,7 +375,7 @@
                                     <p:column colspan="2" style="text-align: right;" >
                                         <p:commandButton icon="ui-icon-gear"
                                                          title="Calcular" process="@this pesoMaximo"
-                                                         actionListener="#{mbEnvios.actualizaPesoGeneral()}"
+                                                         actionListener="#{mbEnvios.actualizaPesoEnvio()}"
                                                          update=":main:msgs gridMtto detalle gridEnvioTotales"
                                                          oncomplete="PF('pesoDlg').hide();"/>
                                     </p:column>
@@ -405,7 +410,7 @@
                                                              disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked or mbEnvios.fincado.directo}"
                                                              itemLabel="Agregado" style="color: black; font-weight: bold; font-size: small;" >
                                         <p:ajax listener="#{mbEnvios.grabarFincado()}" 
-                                                update="@this msgsEdicion chkDirecto detalleFincado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
+                                                update="@this msgsEdicion chkDirecto detalleFincado :main:lstFincados :main:gridMtto :main:gridEnvioTotales" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column style="width: 70px" >
@@ -413,7 +418,7 @@
                                                              disabled="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked or !mbEnvios.fincado.agregado}"
                                                              itemLabel="Directo" style="color: black; font-weight: bold; font-size: small;" >
                                         <p:ajax listener="#{mbEnvios.entregaDirecta()}" 
-                                                update="@this msgsEdicion chkAgregado :main:lstFincados :main:gridMtto :main:detalle :main:gridEnvioTotales" />
+                                                update="@this msgsEdicion chkAgregado detalleFincado :main:lstFincados :main:gridMtto :main:gridEnvioTotales" />
                                     </p:selectBooleanCheckbox>
                                 </p:column>
                                 <p:column style="width: 40px;" >
@@ -448,7 +453,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.enviar}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincado.directo or !mbEnvios.fincadoLocked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" process="@this" listener="#{mbEnvios.gestionarEnviada()}"
@@ -466,7 +471,7 @@
                                     </f:facet>
                                     <f:facet name="input">
                                         <p:inputText value="#{prod.enviarSinCargo}" style="width:60px;" onblur="" label="CANTIDAD" 
-                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincadoLocked}" >
+                                                     readonly="#{mbEnvios.traspaso.solicitudEstatus!=0 or !mbEnvios.fincado.directo or !mbEnvios.fincadoLocked}" >
                                             <f:validateDoubleRange minimum="0.0" maximum="999999.999" />
                                             <f:convertNumber maxIntegerDigits="6" maxFractionDigits="3" />
                                             <p:ajax event="change" process="@this" listener="#{mbEnvios.gestionarEnviadaSinCargo()}"
@@ -499,6 +504,8 @@
                     </p:dialog>
                     <p:dialog widgetVar="fincadosDlg" closable="true" header="Lista de pedidos fincados" modal="true" resizable="false" >
                         <p:messages id="msgsFincados" autoUpdate="false" showDetail="true" closable="true" />
+                        <p:ajax event="close" listener="#{mbEnvios.obtenerDetalleTraspaso()}"
+                                update=":main:msgs :main:gridMtto :main:detalle :main:gridEnvioTotales" />
                         <p:dataTable id="lstFincados" value="#{mbEnvios.fincados}" style="border:solid 1px; width: 910px;" 
                                      var="ped" rowKey="#{ped.idMovto}" editable="true" editMode="cell"
                                      selectionMode="single" >

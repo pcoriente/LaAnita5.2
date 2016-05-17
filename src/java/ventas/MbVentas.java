@@ -4,20 +4,33 @@ import Message.Mensajes;
 import almacenes.MbAlmacenesJS;
 import clientes.MbMiniClientes;
 import comprobantes.MbComprobantes;
+import direccion.MbDireccion;
+import direccion.dominio.Direccion;
 import formatos.MbFormatos;
 import impuestos.dominio.ImpuestosProducto;
+import java.io.IOException;
 import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.naming.NamingException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import mbMenuClientesGrupos.MbClientesGrupos;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import net.sf.jasperreports.engine.util.JRLoader;
 import org.primefaces.context.RequestContext;
 import org.primefaces.event.SelectEvent;
 import pedidos.Pedidos;
@@ -31,6 +44,8 @@ import producto2.dominio.Producto;
 import tiendas.MbMiniTiendas;
 import usuarios.MbAcciones;
 import usuarios.dominio.Accion;
+import utilerias.Numero_a_Letra;
+import ventas.to.TOVentaProductoReporte;
 
 /**
  *
@@ -57,6 +72,8 @@ public class MbVentas implements Serializable {
     private MbProductosBuscar mbBuscar;
     @ManagedProperty(value = "#{mbComprobantes}")
     private MbComprobantes mbComprobantes;
+    @ManagedProperty(value = "#{mbDireccion}")
+    private MbDireccion mbDireccion;
     private Pedido venta;
     private ArrayList<Pedido> ventas, pedidos;
     private boolean locked;
@@ -79,8 +96,94 @@ public class MbVentas implements Serializable {
         this.mbTiendas = new MbMiniTiendas();
         this.mbBuscar = new MbProductosBuscar();
         this.mbComprobantes = new MbComprobantes();
+        this.mbDireccion = new MbDireccion();
 
         this.inicializa();
+    }
+    
+    private TOVentaProductoReporte convertirReporte(PedidoProducto prod) {
+        TOVentaProductoReporte toProd = new TOVentaProductoReporte();
+        toProd.setSku(prod.getProducto().getCod_pro());
+        toProd.setEmpaque(prod.getProducto().toString());
+        toProd.setCantFacturada(prod.getCantFacturada());
+        toProd.setCantSinCargo(prod.getCantSinCargo());
+        toProd.setUnitario(prod.getUnitario());
+        return toProd;
+    }
+    
+    public void imprimir() {
+        Direccion dir;
+        try {
+            dir = this.mbDireccion.obtener(this.venta.getAlmacen().getIdDireccion());
+            String cedisDir = dir.toString2();
+            String cedisLoc = dir.toString3();
+
+            this.mbClientes.setCliente(this.mbClientes.obtenerCliente(this.venta.getTienda().getIdCliente()));
+            dir = this.mbDireccion.obtener(this.mbClientes.getCliente().getIdDireccionFiscal());
+            String clienteDir = dir.toString2();
+            String clienteLoc = dir.toString3();
+
+            dir = this.mbDireccion.obtener(this.venta.getTienda().getIdDireccion());
+            String tiendaDir = dir.toString2();
+            String tiendaLoc = dir.toString3();
+
+            double peso = 0;
+            double volumen = 0;
+            ArrayList<TOVentaProductoReporte> detalleReporte = new ArrayList<>();
+            for (PedidoProducto prod : this.detalle) {
+                detalleReporte.add(this.convertirReporte(prod));
+                peso += prod.getProducto().getPeso() * (prod.getCantFacturada() + prod.getCantSinCargo());
+                volumen += prod.getProducto().getVolumen() * (prod.getCantFacturada() + prod.getCantSinCargo());
+            }
+            String sourceFileName = "C:\\Carlos Pat\\Reportes\\remisionPrefactura.jasper";
+            JRBeanCollectionDataSource beanColDataSource = new JRBeanCollectionDataSource(detalleReporte);
+            Map parameters = new HashMap();
+            parameters.put("empresa", this.venta.getAlmacen().getEmpresa());
+            parameters.put("cedis", this.venta.getAlmacen().getCedis());
+            parameters.put("almacen", this.venta.getAlmacen().getAlmacen());
+            parameters.put("cedisDir", cedisDir);
+            parameters.put("cedisLoc", cedisLoc);
+
+            parameters.put("clienteRFC", this.mbClientes.getCliente().getRfc());
+            parameters.put("cliente", this.mbClientes.getCliente().getContribuyente());
+            parameters.put("clienteDir", clienteDir);
+            parameters.put("clienteLoc", clienteLoc);
+            parameters.put("formaPago", this.mbClientes.getCliente().getDiasCredito() == 0 ? "Contado" : "Crédito " + this.mbClientes.getCliente().getDiasCredito() + " días");
+
+            parameters.put("tienda", "(" + this.venta.getTienda().getCodigoTienda() + ") " + this.venta.getTienda().getTienda());
+            parameters.put("tiendaDir", tiendaDir);
+            parameters.put("tiendaLoc", tiendaLoc);
+
+            parameters.put("pedido", this.venta.getIdPedido());
+            parameters.put("pedidoFecha", this.venta.getPedidoFecha());
+            parameters.put("remision", this.venta.getFolio());
+            parameters.put("remisionFecha", this.venta.getFecha());
+            parameters.put("peso", peso);
+            parameters.put("volumen", volumen);
+
+            parameters.put("subTotal", this.venta.getSubTotal());
+            parameters.put("descuento", this.venta.getDescuento());
+            parameters.put("impuestos", this.impuestosTotales);
+            parameters.put("total", this.venta.getTotal());
+            Numero_a_Letra numeroALetra = new Numero_a_Letra();
+            parameters.put("letras", numeroALetra.Convertir(String.valueOf((double) Math.round(this.venta.getTotal() * 100) / 100), true, this.venta.getComprobante().getMoneda()));
+
+            parameters.put("idUsuario", this.venta.getIdUsuario());
+
+            JasperReport report = (JasperReport) JRLoader.loadObjectFromFile(sourceFileName);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(report, parameters, beanColDataSource);
+
+            HttpServletResponse httpServletResponse = (HttpServletResponse) FacesContext.getCurrentInstance().getExternalContext().getResponse();
+            httpServletResponse.setContentType("application/pdf");
+            httpServletResponse.addHeader("Content-disposition", "attachment; filename=remisionPrefactura_" + this.venta.getFolio() + ".pdf");
+            ServletOutputStream servletOutputStream = httpServletResponse.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, servletOutputStream);
+            FacesContext.getCurrentInstance().responseComplete();
+        } catch (JRException e) {
+            Mensajes.mensajeError(e.getMessage());
+        } catch (IOException ex) {
+            Mensajes.mensajeError(ex.getMessage());
+        }
     }
 
     public void surtirFincado() {
@@ -527,7 +630,7 @@ public class MbVentas implements Serializable {
             TOPedido toPed = this.convertir(this.venta);
             TOPedidoProducto toProd = new TOPedidoProducto();
             toProd.setIdMovto(this.venta.getIdMovto());
-            toProd.setIdVenta(this.venta.getIdVenta());
+            toProd.setIdPedido(this.venta.getIdPedido());
             toProd.setIdProducto(this.producto.getProducto().getIdProducto());
             toProd.setIdImpuestoGrupo(this.producto.getProducto().getArticulo().getImpuestoGrupo().getIdGrupo());
             try {
@@ -583,7 +686,7 @@ public class MbVentas implements Serializable {
     }
 
     private void convertir(TOPedidoProducto toProd, PedidoProducto prod) throws SQLException {
-        prod.setIdVenta(toProd.getIdVenta());
+        prod.setIdPedido(toProd.getIdPedido());
         prod.setOrdenada(toProd.getCantOrdenada() / toProd.getPiezas());
         prod.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / toProd.getPiezas());
         movimientos.Movimientos.convertir(toProd, prod);
@@ -614,37 +717,37 @@ public class MbVentas implements Serializable {
         try {
             this.dao = new DAOPedidos();
             if (this.venta.isDirecto()) {
-                try {
+//                try {
                     this.dao.obtenerEstatusTraspaso(this.venta.getIdSolicitud());
-                } catch (Exception ex) {
-                    Mensajes.mensajeAlert(ex.getMessage());
-                }
+//                } catch (Exception ex) {
+//                    Mensajes.mensajeAlert(ex.getMessage());
+//                }
             }
-//            if (estatus != 0) {
-                this.venta.setSubTotal(0);
-                this.venta.setDescuento(0);
-                this.venta.setImpuesto(0);
-                this.venta.setTotal(0);
-                TOPedido toPed = this.convertir(this.venta);
+            this.venta.setSubTotal(0);
+            this.venta.setDescuento(0);
+            this.venta.setImpuesto(0);
+            this.venta.setTotal(0);
+            TOPedido toPed = this.convertir(this.venta);
 
-                for (TOPedidoProducto to : this.dao.obtenerDetalleOficina(toPed)) {
-                    prod = this.convertir(to);
-                    this.totalSuma(prod);
-                    this.detalle.add(prod);
-                }
-                if (!aviso.isEmpty()) {
-                    Mensajes.mensajeAlert("Los productos (" + aviso + ") No se surtieron completamente !!!");
-                }
-                this.venta.setEstatus(toPed.getEstatus());
-                this.venta.setIdUsuario(toPed.getIdUsuario());
-                this.venta.setPropietario(toPed.getPropietario());
-                this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
-                ok = true;
-//            }
+            for (TOPedidoProducto to : this.dao.obtenerDetalleOficina(toPed)) {
+                prod = this.convertir(to);
+                this.totalSuma(prod);
+                this.detalle.add(prod);
+            }
+            if (!aviso.isEmpty()) {
+                Mensajes.mensajeAlert("Los productos (" + aviso + ") No se surtieron completamente !!!");
+            }
+            this.venta.setEstatus(toPed.getEstatus());
+            this.venta.setIdUsuario(toPed.getIdUsuario());
+            this.venta.setPropietario(toPed.getPropietario());
+            this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
+            ok = true;
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         } catch (NamingException ex) {
             Mensajes.mensajeError(ex.getMessage());
+        } catch (Exception ex) {
+            Mensajes.mensajeAlert(ex.getMessage());
         }
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
@@ -688,7 +791,7 @@ public class MbVentas implements Serializable {
                 this.venta.setEstatus(toVta.getEstatus());
                 this.venta.setIdUsuario(toVta.getIdUsuario());
                 this.venta.setPropietario(toVta.getPropietario());
-                this.venta.setIdVenta(toVta.getReferencia());
+                this.venta.setIdPedido(toVta.getReferencia());
                 this.setLocked(this.venta.getIdUsuario() == this.venta.getPropietario());
                 this.detalle = new ArrayList<>();
                 this.setProducto(null);

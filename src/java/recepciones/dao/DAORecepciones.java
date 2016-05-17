@@ -242,10 +242,15 @@ public class DAORecepciones {
 
     private TORecepcion construir(ResultSet rs) throws SQLException {
         TORecepcion toMov = new TORecepcion();
+        toMov.setIdEnvio(rs.getInt("idEnvio"));
+        toMov.setEnvioFolio(rs.getInt("envioFolio"));
         toMov.setTraspasoFolio(rs.getInt("traspasoFolio"));
         toMov.setTraspasoFecha(new java.util.Date(rs.getTimestamp("traspasoFecha").getTime()));
+        toMov.setIdSolicitud(rs.getInt("idSolicitud"));
         toMov.setSolicitudFolio(rs.getInt("solicitudFolio"));
         toMov.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
+        toMov.setPedidoFolio(rs.getInt("pedidoFolio"));
+        toMov.setPedidoFecha(new java.util.Date(rs.getTimestamp("pedidoFecha").getTime()));
         movimientos.Movimientos.construirMovimientoOficina(rs, toMov);
         return toMov;
     }
@@ -253,12 +258,15 @@ public class DAORecepciones {
     public ArrayList<TORecepcion> obtenerRecepciones(int idAlmacen, int estatus, Date fechaInicial) throws SQLException {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         ArrayList<TORecepcion> movimientos = new ArrayList<>();
-        String strSQL = "SELECT M.*\n"
-                + "     , T.folio AS traspasoFolio, T.fecha AS traspasoFecha\n"
-                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
+        String strSQL = "SELECT ISNULL(E1.idEnvio, ISNULL(E2.idEnvio, 0)) AS idEnvio, ISNULL(E1.folio, ISNULL(E2.folio, 0)) AS envioFolio\n"
+                + "	, T.folio AS traspasoFolio, T.fecha AS traspasoFecha"
+                + "     , S.idSolicitud, S.folio AS solicitudFolio, S.fecha AS solicitudFecha\n"
+                + "	, ISNULL(P.folio, 0) AS pedidoFolio, ISNULL(V.fecha, '1900-01-01') AS pedidoFecha, M.*\n"
                 + "FROM movimientos M\n"
-                + "INNER JOIN movimientos T ON T.idMovto=M.referencia\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=T.referencia\n"
+                + "INNER JOIN movimientos T ON T.idMovto=M.referencia INNER JOIN solicitudes S ON S.idSolicitud=T.referencia\n"
+                + "LEFT JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=9 AND M.estatus=" + estatus + "\n";
         if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";

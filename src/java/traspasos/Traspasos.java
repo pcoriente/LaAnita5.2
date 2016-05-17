@@ -59,16 +59,18 @@ public class Traspasos {
                 + "             FROM movimientos M\n"
                 + "             INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
                 + "             INNER JOIN movimientosDetalle D ON D.idMovto=M.idMovto\n"
-                + "             WHERE S.idSolicitud="+toTraspaso.getReferencia()+" AND M.idTipo=35 AND M.estatus=7\n"
+                + "             WHERE S.idSolicitud=" + toTraspaso.getReferencia() + " AND M.idTipo=35 AND M.estatus=7\n"
                 + "             GROUP BY S.idSolicitud, D.idEmpaque) SS ON SS.idSolicitud=SD.idSolicitud AND SS.idEmpaque=SD.idEmpaque\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=D.idEmpaque\n"
-                + "WHERE D.idMovto="+toTraspaso.getIdMovto() + condicion;
+                + "WHERE D.idMovto=" + toTraspaso.getIdMovto() + condicion;
     }
 
     public static void convertir(TOTraspaso toTraspaso, Traspaso traspaso) {
         traspaso.setIdEnvio(toTraspaso.getIdEnvio());
+        traspaso.setEnvioFolio(toTraspaso.getEnvioFolio());
         traspaso.setPedidoFolio(toTraspaso.getPedidoFolio());
-        traspaso.setEnvio(toTraspaso.getEnvio()!=0);
+        traspaso.setEnvio(toTraspaso.getEnvio() != 0);
+        traspaso.setDirecto(toTraspaso.getDirecto() != 0);
         traspaso.setSolicitudFolio(toTraspaso.getSolicitudFolio());
         traspaso.setSolicitudFecha(toTraspaso.getSolicitudFecha());
         traspaso.setSolicitudIdUsuario(toTraspaso.getSolicitudIdUsuario());
@@ -79,8 +81,10 @@ public class Traspasos {
 
     public static void convertir(Traspaso traspaso, TOTraspaso toTraspaso) {
         toTraspaso.setIdEnvio(traspaso.getIdEnvio());
+        toTraspaso.setEnvioFolio(traspaso.getEnvioFolio());
         toTraspaso.setPedidoFolio(traspaso.getPedidoFolio());
-        toTraspaso.setEnvio(traspaso.isEnvio()?1:0);
+        toTraspaso.setEnvio(traspaso.isEnvio() ? 1 : 0);
+        toTraspaso.setDirecto(traspaso.isDirecto() ? 1 : 0);
         toTraspaso.setSolicitudFolio(traspaso.getSolicitudFolio());
         toTraspaso.setSolicitudFecha(traspaso.getSolicitudFecha());
         toTraspaso.setSolicitudIdUsuario(traspaso.getSolicitudIdUsuario());
@@ -108,11 +112,26 @@ public class Traspasos {
         construir(toProd, rs);
         return toProd;
     }
+    
+    public static TOTraspaso obtenerTraspaso(Connection cn, int idSolicitud) throws SQLException {
+        TOTraspaso toTraspaso = new TOTraspaso();
+        String strSQL = "SELECT " + sqlTraspasoYY() + "\n"
+                + "WHERE S.idSolicitud=" + idSolicitud;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            if (rs.next()) {
+                toTraspaso = Traspasos.construir(rs);
+            }
+        }
+        return toTraspaso;
+    }
 
     public static void construir(ResultSet rs, TOTraspaso toTraspaso) throws SQLException {
         toTraspaso.setIdEnvio(rs.getInt("idEnvio"));
+        toTraspaso.setEnvioFolio(rs.getInt("envioFolio"));
         toTraspaso.setPedidoFolio(rs.getInt("pedidoFolio"));
-        toTraspaso.setEnvio(rs.getInt("envio"));
+        toTraspaso.setEnvio(toTraspaso.getIdEnvio() != 0 ? toTraspaso.getPedidoFolio()==0 ? 1 : 0 : 0);
+        toTraspaso.setDirecto(toTraspaso.getPedidoFolio()!=0 ? 1 : 0);
         toTraspaso.setSolicitudFolio(rs.getInt("solicitudFolio"));
         toTraspaso.setSolicitudFecha(new java.util.Date(rs.getTimestamp("solicitudFecha").getTime()));
         toTraspaso.setSolicitudIdUsuario(rs.getInt("solicitudIdUsuario"));
@@ -126,28 +145,17 @@ public class Traspasos {
         return toTraspaso;
     }
 
-    public static String sqlTraspaso() {
-        String strSQL = "ISNULL(EP.idEnvio, 0) AS idEnvio, ISNULL(P.folio, 0) AS pedidoFolio\n"
-                + "     , S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario\n"
-                + "     , S.estatus AS solicitudEstatus, S.envio, M.*\n"
-                + "FROM movimientos M\n"
-                + "INNER JOIN solicitudes S ON S.idSolicitud=M.referencia\n"
-                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta\n"
-                + "LEFT JOIN pedidos P ON P.idPedido=V.idPedido";
-        return strSQL;
+    public static String sqlTraspasoYY() {
+        return "ISNULL(ES.idEnvio, ISNULL(EP.idEnvio, 0)) AS idEnvio, ISNULL(E1.folio, ISNULL(E2.folio, 0)) AS envioFolio\n"
+                + "	, ISNULL(P.folio, 0) AS pedidoFolio\n"
+                + "     , " + Traspasos.sqlTraspasoBase() + "\n"
+                + "LEFT JOIN enviosSolicitudes ES ON S.idSolicitud=ES.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
+                + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
+                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido";
     }
 
-    public static TOTraspaso obtenerTraspaso(Connection cn, int idSolicitud) throws SQLException {
-        TOTraspaso toTraspaso = new TOTraspaso();
-        String strSQL = "SELECT " + sqlTraspaso() + "\n"
-                + "WHERE S.idSolicitud=" + idSolicitud;
-        try (Statement st = cn.createStatement()) {
-            ResultSet rs = st.executeQuery(strSQL);
-            if (rs.next()) {
-                toTraspaso = construir(rs);
-            }
-        }
-        return toTraspaso;
+    public static String sqlTraspasoBase() {
+        return "S.folio AS solicitudFolio, S.fecha AS solicitudFecha, S.idUsuario AS solicitudIdUsuario, S.estatus AS solicitudEstatus, M.*\n"
+                + "FROM movimientos M INNER JOIN solicitudes S ON S.idSolicitud=M.referencia";
     }
 }

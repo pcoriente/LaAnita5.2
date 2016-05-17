@@ -14,6 +14,22 @@ import utilerias.Utilerias;
  */
 public class Envios {
 
+    public static ArrayList<Double> obtenerTraspasoEnvioPeso(Connection cn, int idSolicitud, int idEnvio) throws SQLException {
+        ArrayList<Double> pesos = new ArrayList<>();
+        String strSQL = "SELECT SUM((SD.cantSolicitada/E.piezas)*E.peso) AS pesoAlmacen, SUM(ESD.directos*E.peso) AS pesoDirectos\n"
+                + "FROM enviosSolicitudesDetalle ESD\n"
+                + "INNER JOIN solicitudesDetalle SD ON SD.idSolicitud=ESD.idSolicitud AND SD.idEmpaque=ESD.idEmpaque\n"
+                + "INNER JOIN empaques E ON E.idEmpaque=ESD.idEmpaque\n"
+                + "WHERE ESD.idSolicitud=" + idSolicitud + " AND ESD.idEnvio=" + idEnvio;
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            rs.next();
+            pesos.add(rs.getDouble("pesoAlmacen"));
+            pesos.add(rs.getDouble("pesoDirectos"));
+        }
+        return pesos;
+    }
+
     public static ArrayList<Double> obtenerEnvioPeso(Connection cn, int idEnvio) throws SQLException {
         ArrayList<Double> pesos = new ArrayList<>();
         String strSQL = "SELECT SUM(SD.cantSolicitada*E.peso/E.piezas) AS peso, SUM(ESD.directos*E.peso) AS pesoDirectos\n"
@@ -23,7 +39,6 @@ public class Envios {
                 + "INNER JOIN enviosSolicitudes ES ON ES.idSolicitud=SD.idSolicitud\n"
                 + "INNER JOIN envios N ON N.idEnvio=ES.idEnvio\n"
                 + "WHERE N.idEnvio=" + idEnvio;
-
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             rs.next();
@@ -72,14 +87,14 @@ public class Envios {
                             + "WHERE idAlmacen=" + rs.getInt("idReferencia") + " AND idTipo=9 AND referencia=" + rs.getInt("idMovto");
                     rs = st.executeQuery(strSQL);
                     if (rs.next()) {
-                        if(rs.getInt("estatus")!=7) {
+                        if (rs.getInt("estatus") != 7) {
                             throw new Exception("La recepción no se ha cerrado");
                         }
                         idMovtoRecepcion = rs.getInt("idMovto");
                     } else {
                         throw new Exception("No se encontró la recepción !!!");
                     }
-                } else if(estatus == 5) {
+                } else if (estatus == 5) {
                     throw new Exception("El traspaso no se ha cerrado !!!");
                 } else {
                     throw new Exception("Checar estatus del traspaso !!!");
@@ -90,7 +105,7 @@ public class Envios {
         }
         return idMovtoRecepcion;
     }
-    
+
     public static void obtenerEstatusTraspaso(Connection cn, int idSolicitud) throws SQLException, Exception {
         int estatus = 0;
         int idAlmacen = 0;
@@ -108,15 +123,15 @@ public class Envios {
             rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 estatus = rs.getInt("estatus");
-                if(estatus != 7) {
+                if (estatus != 7) {
                     throw new Exception("El traspaso no se ha completado (estatus = " + estatus + ") !!!");
                 } else {
                     strSQL = "SELECT estatus FROM movimientos\n"
                             + "WHERE idAlmacen=" + rs.getInt("idReferencia") + " AND idTipo=9 AND referencia=" + rs.getInt("idMovto");
                     rs = st.executeQuery(strSQL);
-                    if(rs.next()) {
+                    if (rs.next()) {
                         estatus = rs.getInt("estatus");
-                        if(estatus != 7) {
+                        if (estatus != 7) {
                             throw new Exception("La recepción no se ha completado (estatus = " + estatus + ") !!!");
                         }
                     } else {

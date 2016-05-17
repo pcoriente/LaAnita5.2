@@ -195,24 +195,66 @@ public class MbTraspaso implements Serializable {
         return total;
     }
 
+    private boolean piezasTotales() {
+        boolean totales = true;
+        for (TraspasoProducto prod : this.detalle) {
+            if (prod.getCantFacturada() != prod.getCantSolicitada()) {
+                totales = false;
+                break;
+            }
+        }
+        return totales;
+    }
+
+    private boolean validaTraspaso() {
+        double total = 0;
+        boolean totales = true;
+        boolean valida = false;
+        if (this.detalle.isEmpty()) {
+            Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+        } else {
+            for (TraspasoProducto prod : this.detalle) {
+                if (prod.getCantFacturada() != 0) {
+                    total += prod.getCantFacturada();
+                    if (totales && prod.getCantFacturada() != prod.getCantSolicitada()) {
+                        totales = false;
+                    }
+                } else if(totales && prod.getCantSolicitada() != 0) {
+                    totales = false;
+                }
+            }
+            if(total == 0) {
+                Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+            } else if(this.traspaso.getPedidoFolio() != 0 && !totales) {
+                Mensajes.mensajeAlert("El traspaso para el envío de un pedido directo tiene que surtirse completo !!!");
+            } else {
+                valida = true;
+            }
+        }
+        return valida;
+    }
+
     public void grabar() {
         try {
-            if (this.detalle.isEmpty()) {
-                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
-            } else if (this.sumaPiezas() != 0) {
+            if(validaTraspaso()) {
+//            if (this.detalle.isEmpty()) {
+//                Mensajes.mensajeAlert("No hay productos en el movimiento !!!");
+//            } else if (this.traspaso.getPedidoFolio() != 0 && !this.piezasTotales()) {
+//                Mensajes.mensajeAlert("El traspaso para facturar un directo tiene que ser completo !!!");
+//            } else if (this.sumaPiezas() != 0) {
                 TOTraspaso to = this.convertir(this.traspaso);
 
                 this.dao = new DAOTraspasos();
                 this.dao.cerrar(to);
-//                this.traspaso.setFolio(to.getFolio());
+////                this.traspaso.setFolio(to.getFolio());
                 this.traspaso.setFecha(to.getFecha());
                 this.traspaso.setIdUsuario(to.getIdUsuario());
                 this.traspaso.setPropietario(to.getPropietario());
                 this.traspaso.setEstatus(to.getEstatus());
                 this.setLocked(this.traspaso.getIdUsuario() == this.traspaso.getPropietario());
                 Mensajes.mensajeSucces("El traspaso se grabo correctamente !!!");
-            } else {
-                Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
+//            } else {
+//                Mensajes.mensajeAlert("No hay unidades en el movimiento !!!");
             }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
@@ -296,7 +338,7 @@ public class MbTraspaso implements Serializable {
         try {
             this.dao = new DAOTraspasos();
             if (this.traspaso.getIdEnvio() != 0) {
-                if(this.dao.obtenerEstatusEnvioTraspaso(toMov.getIdEnvio(), toMov.getIdReferencia())==0) {
+                if (this.dao.obtenerEstatusEnvioTraspaso(toMov.getIdEnvio(), toMov.getIdReferencia()) == 0) {
                     Mensajes.mensajeAlert("El envío para este almacén no ha sido cerrado !!!");
                     ok = false;
                 }

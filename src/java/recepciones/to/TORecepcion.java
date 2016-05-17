@@ -8,16 +8,37 @@ import movimientos.to.TOMovimientoOficina;
  * @author jesc
  */
 public class TORecepcion extends TOMovimientoOficina {
+    private int idEnvio;
+    private int envioFolio;
     private int idSolicitud;
     private int solicitudFolio;
     private Date solicitudFecha;
     private int traspasoFolio;
     private Date traspasoFecha;
+    private int pedidoFolio;
+    private Date pedidoFecha;
     
     public TORecepcion() {
         super();
         solicitudFecha=new Date();
         traspasoFecha=new Date();
+        pedidoFecha=new Date();
+    }
+
+    public int getIdEnvio() {
+        return idEnvio;
+    }
+
+    public void setIdEnvio(int idEnvio) {
+        this.idEnvio = idEnvio;
+    }
+
+    public int getEnvioFolio() {
+        return envioFolio;
+    }
+
+    public void setEnvioFolio(int envioFolio) {
+        this.envioFolio = envioFolio;
     }
 
     public int getIdSolicitud() {
@@ -58,5 +79,21 @@ public class TORecepcion extends TOMovimientoOficina {
 
     public void setTraspasoFecha(Date traspasoFecha) {
         this.traspasoFecha = traspasoFecha;
+    }
+
+    public int getPedidoFolio() {
+        return pedidoFolio;
+    }
+
+    public void setPedidoFolio(int pedidoFolio) {
+        this.pedidoFolio = pedidoFolio;
+    }
+
+    public Date getPedidoFecha() {
+        return pedidoFecha;
+    }
+
+    public void setPedidoFecha(Date pedidoFecha) {
+        this.pedidoFecha = pedidoFecha;
     }
 }

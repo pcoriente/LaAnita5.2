@@ -75,7 +75,7 @@
                                 <h:outputText value="#{traspaso.almacenDestino.toString()}" />
                             </p:column>
                             <p:column headerText="ENVIO" style="width: 40px" >
-                                <h:outputText value="#{traspaso.idEnvio!=0 or traspaso.envio?'Si':'No'}" />
+                                <h:outputText value="#{traspaso.envioFolio}" />
                             </p:column>
                             <p:column headerText="PEDIDO" style="width: 50px" >
                                 <h:outputText value="#{traspaso.pedidoFolio}" />

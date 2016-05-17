@@ -881,7 +881,7 @@ public class DAOMovimientosOld {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
-                if (to.getIdVenta() == 0) {
+                if (to.getIdPedido() == 0) {
                     strSQL = "SELECT idEmpresa, idTienda FROM pedidosOC WHERE idPedido=" + idVenta;
                     ResultSet rs = st.executeQuery(strSQL);
                     if (rs.next()) {
@@ -889,7 +889,7 @@ public class DAOMovimientosOld {
                         int idEmpresa = rs.getInt("idEmpresa");
                         toPed.setIdReferencia(rs.getInt("idTienda"));
 
-                        to.setIdVenta(idVenta);
+                        to.setIdPedido(idVenta);
                         to.setCantSinCargo(cantidad);
 
                         this.agregarProductoPedido(idEmpresa, toPed, idImpuestoZona, to);
@@ -1118,7 +1118,7 @@ public class DAOMovimientosOld {
 
     public TOPedidoProducto construirProductoPedido(ResultSet rs) throws SQLException {
         TOPedidoProducto to = new TOPedidoProducto();
-        to.setIdVenta(rs.getInt("idVenta"));
+        to.setIdPedido(rs.getInt("idVenta"));
         to.setCantOrdenada(rs.getDouble("cantOrdenada"));
         to.setCantOrdenadaSinCargo(rs.getDouble("cantOrdenadaSinCargo"));
         this.construirProducto(rs, to);
@@ -1219,7 +1219,7 @@ public class DAOMovimientosOld {
                 this.actualizaProductoPrecio(cn, idEmpresa, toPed, to);
 
                 strSQL = "INSERT INTO ventasDetalle (idVenta, idEmpaque, cantOrdenada, cantOrdenadaSinCargo)\n"
-                        + "VALUES (" + to.getIdVenta() + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantOrdenadaSinCargo() + ")";
+                        + "VALUES (" + to.getIdPedido() + ", " + to.getIdProducto() + ", " + to.getCantOrdenada() + ", " + to.getCantOrdenadaSinCargo() + ")";
                 st.executeUpdate(strSQL);
                 cn.commit();
             } catch (SQLException ex) {
@@ -1301,7 +1301,7 @@ public class DAOMovimientosOld {
 
     private void actualizaProductoPedido(Connection cn, int idEmpresa, TOMovimientoOficina toMov, TOPedidoProducto to) throws SQLException {
         this.actualizaProductoPrecio(cn, idEmpresa, toMov, to);
-        this.actualizaProductoCantidadPedido(cn, idEmpresa, toMov.getIdReferencia(), to.getIdVenta(), to);
+        this.actualizaProductoCantidadPedido(cn, idEmpresa, toMov.getIdReferencia(), to.getIdPedido(), to);
     }
 
     public void actualizarPedido(int idEmpresa, TOMovimientoOficina toMov, ArrayList<TOPedidoProducto> tos) throws SQLException {

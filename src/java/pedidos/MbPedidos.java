@@ -439,7 +439,7 @@ public class MbPedidos implements Serializable {
             this.producto = this.detalle.get(idx);
         } else {
             this.producto.setIdMovto(this.pedido.getIdMovto());
-            this.producto.setIdVenta(this.pedido.getIdVenta());
+            this.producto.setIdPedido(this.pedido.getIdPedido());
             try {
                 TOPedido toPed = this.convertir(this.pedido);
                 TOPedidoProducto toProd = this.convertir(this.producto);
@@ -570,7 +570,7 @@ public class MbPedidos implements Serializable {
             try {
                 this.dao = new DAOPedidos();
                 this.dao.agregarPedido(toPed, this.pedido.getComprobante().getMoneda().getIdMoneda());
-                this.pedido.setIdPedido(toPed.getIdPedido());
+                this.pedido.setIdOrden(toPed.getIdOrden());
                 this.pedido.setIdMovto(toPed.getIdMovto());
                 this.pedido.setIdMovtoAlmacen(toPed.getIdMovtoAlmacen());
                 this.pedido.getComprobante().setIdComprobante(toPed.getIdComprobante());
@@ -578,7 +578,7 @@ public class MbPedidos implements Serializable {
                 this.pedido.setEstatus(toPed.getEstatus());
                 this.pedido.setIdUsuario(toPed.getIdUsuario());
                 this.pedido.setPropietario(toPed.getPropietario());
-                this.pedido.setIdVenta(toPed.getReferencia());
+                this.pedido.setIdPedido(toPed.getReferencia());
                 this.setLocked(this.pedido.getIdUsuario() == this.pedido.getPropietario());
                 this.detalle = new ArrayList<>();
                 this.setProducto(null);
