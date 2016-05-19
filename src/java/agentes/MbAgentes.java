@@ -198,10 +198,10 @@ public class MbAgentes implements Serializable {
         FacesMessage fMsg = null;
         try {
             listaAgente = null;
+            agente.setNivel(valorEnum);
             DaoAgentes daoAgente = new DaoAgentes();
             if (actualizar == 0) {
                 boolean okExito = false;
-                agente.setNivel(valorEnum);
 //                agente.setSuperior(valorSupervisor);
                 agente.setContribuyente(mbContribuyente.getContribuyente());
                 okExito = daoAgente.guardarAgentes(agente);

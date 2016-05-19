@@ -584,7 +584,7 @@ public class DAOTraspasos {
                 + "INNER JOIN almacenes A ON A.idAlmacen=S.idAlmacen\n"
                 + "LEFT JOIN enviosSolicitudes ES ON S.idSolicitud=ES.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
                 + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+                + "LEFT JOIN movimientos M ON M.idMovto=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=M.referencia\n"
                 + "WHERE S.idAlmacenOrigen=" + idAlmacenOrigen + " AND S.estatus=1\n"
                 + "ORDER BY S.fecha";
         try (Connection cn = this.ds.getConnection()) {

@@ -394,8 +394,9 @@ public class MbEnvios implements Serializable {
 //        this.obtenerTraspaso(this.mbAlmacenes.getToAlmacen().getIdAlmacen());
         this.fincados = new ArrayList<>();
         TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
+        TOEnvio toEnvio = this.convertir(this.envio);
         try {
-            for (TOPedido to : this.dao.obtenerFincados(this.envio.getIdEnvio(), toTraspaso)) {
+            for (TOPedido to : this.dao.obtenerFincados(toEnvio, toTraspaso)) {
                 this.fincados.add(this.convertir(to));
             }
             this.fincado = null;

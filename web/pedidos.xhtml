@@ -59,33 +59,30 @@
                         </f:facet>
                     </p:panelGrid>
                     <p:dataTable id="listaDePedidos" value="#{mbPedidos.pedidos}" 
-                                 var="pedido" rowKey="#{pedido.idPedido}" selectionMode="single" 
+                                 var="pedido" rowKey="#{pedido.idMovto}" selectionMode="single" 
                                  style="border:solid 1px; width: 910px;" emptyMessage="No existen pedidos" >
                         <p:ajax event="rowSelect" listener="#{mbPedidos.obtenerDetalle}" 
                                 update=":main:msgsPedidos :main:pedido :main:detallePedido :main:totales" 
                                 oncomplete="abrirPedido(xhr, status, args);" />
 
-                        <p:column headerText="Tienda" style="width: 270px;" >
+                        <p:column headerText="Tienda" >
                             <h:outputText value="#{pedido.tienda.tienda}" />
                         </p:column>
-                        <p:column headerText="Pedido" style="width: 50px;" >
+                        <p:column headerText="Pedido" style="width: 45px;" >
                             <h:outputText value="#{pedido.pedidoFolio}" />
                         </p:column>
-                        <p:column headerText="Fecha" style="width: 95px;" >
+                        <p:column headerText="Fecha" style="width: 110px;" >
                             <h:outputText value="#{pedido.pedidoFecha}" >
                                 <f:convertDateTime pattern="dd/MM/yyyy hh:mm a" type="date" timeZone="#{mbPedidos.zonaHoraria.ID}" />
                             </h:outputText>
                         </p:column>
-                        <p:column headerText="Entrega" style="width: 50px;" >
-                            <h:outputText value="#{pedido.idEnvio!=0?'Agregado':pedido.directo?'Directo':''}" />
-                        </p:column>
-                        <p:column headerText="Usuario" style="width: 50px;" >
+                        <p:column headerText="Usuario" style="width: 45px;" >
                             <h:outputText value="#{pedido.pedidoIdUsuario}" />
                         </p:column>
                         <p:column headerText="Orden De Compra" style="width: 110px;" >
                             <h:outputText value="#{pedido.ordenDeCompra}" />
                         </p:column>
-                        <p:column headerText="Estatus" style="width: 40px;" >
+                        <p:column headerText="Estatus" style="width: 50px;" >
                             <h:outputText value="#{pedido.pedidoEstatus==0?'Pendiente':pedido.pedidoEstatus==1?'Solicitado':pedido.pedidoEstatus==2?'Rechazado':pedido.pedidoEstatus==3?'Aceptado':pedido.pedidoEstatus==5?'Ordenado':pedido.pedidoEstatus==6?'Cancelado':'Cerrado'}" />
                         </p:column>
                     </p:dataTable>

@@ -266,7 +266,7 @@ public class DAORecepciones {
                 + "INNER JOIN movimientos T ON T.idMovto=M.referencia INNER JOIN solicitudes S ON S.idSolicitud=T.referencia\n"
                 + "LEFT JOIN enviosSolicitudes ES ON ES.idSolicitud=S.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
                 + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido\n"
+                + "LEFT JOIN movimientos V ON V.idMovto=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.referencia\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=9 AND M.estatus=" + estatus + "\n";
         if (estatus != 5) {
             strSQL += "         AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";

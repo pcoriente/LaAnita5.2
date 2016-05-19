@@ -446,7 +446,7 @@ public class DAOPedidos {
         String strSQL = "SELECT M.idMovto\n"
                 + "FROM movimientos M\n"
                 + "INNER JOIN pedidos P ON P.idPedido=M.referencia\n"
-                + "WHERE P.idPedido=" + toPed.getReferencia() + " AND M.estatus=5";
+                + "WHERE M.idAlmacen=" + toPed.getIdAlmacen() + " AND M.idTipo=28 AND P.idPedido=" + toPed.getReferencia() + " AND M.estatus=5";
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
@@ -455,7 +455,7 @@ public class DAOPedidos {
                 if (rs.next()) {
                     throw new Exception("El pedido ya tiene una venta pendiente !!!");
                 }
-                Pedidos.generarPedidoVenta(cn, toPed.getReferencia(), this.idUsuario);
+                Pedidos.generarPedidoVenta(cn, toPed, this.idUsuario);
                 detalle = this.obtenDetalle(cn, toPed);
 
                 cn.commit();
@@ -751,7 +751,7 @@ public class DAOPedidos {
                 + "	, ISNULL(D.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(D.unitario, 0) AS unitario\n"
                 + "	, ISNULL(D.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
                 + "	, ISNULL(D.fecha, '1900-01-01') AS fecha, ISNULL(D.existenciaAnterior, 0) AS existenciaAnterior\n"
-                + "FROM (" + Pedidos.sqlObtenProducto() + "\n"
+                + "FROM (" + Pedidos.sqlObtenProductoPedido() + "\n"
                 + "         WHERE D.idMovto=" + idMovto + ") D\n"
                 + "RIGHT JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
@@ -856,7 +856,7 @@ public class DAOPedidos {
 
     private ArrayList<TOPedidoProducto> obtenSimilares(Connection cn, int idMovto, int idProducto) throws SQLException {
         ArrayList<TOPedidoProducto> similares = new ArrayList<>();
-        String strSQL = Pedidos.sqlObtenProducto() + "\n"
+        String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
                 + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
                 + "WHERE D.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto;
         try (Statement st = cn.createStatement()) {
@@ -1306,7 +1306,7 @@ public class DAOPedidos {
 
     public TOPedidoProducto obtenerProductoOficina(Connection cn, int idMovto, int idProducto) throws SQLException {
         TOPedidoProducto toProd = null;
-        String strSQL = Pedidos.sqlObtenProducto() + "\n"
+        String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
                 + "WHERE D.idMovto=" + idMovto + " AND D.idEmpaque=" + idProducto;
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -1319,7 +1319,7 @@ public class DAOPedidos {
 
     private ArrayList<TOPedidoProducto> obtenDetalleOficina(Connection cn, TOPedido toPed) throws SQLException {
         ArrayList<TOPedidoProducto> detalle = new ArrayList<>();
-        String strSQL = Pedidos.sqlObtenProducto() + "\n"
+        String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
                 + "WHERE D.idMovto=" + toPed.getIdMovto();
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
@@ -1412,8 +1412,8 @@ public class DAOPedidos {
 
     private ArrayList<TOPedidoProducto> obtenDetalle(Connection cn, TOPedido toPed) throws SQLException {
         ArrayList<TOPedidoProducto> detalle = new ArrayList<>();
-        String strSQL = Pedidos.sqlObtenProducto() + "\n"
-                + "WHERE D.idMovto=" + toPed.getIdMovto();
+        String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
+                + "WHERE D.idMovto=(SELECT MIN(idMovto) FROM movimientos WHERE idAlmacen=" + toPed.getIdAlmacen() + " AND idTipo=28 AND referencia=" + toPed.getReferencia() + ")";
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
@@ -1430,7 +1430,7 @@ public class DAOPedidos {
             cn.setAutoCommit(false);
             try {
                 detalle = this.obtenDetalle(cn, toPed);
-                if (toPed.getIdUsuario() == toPed.getPropietario() && toPed.getEstatus() == 0 && toPed.getEspecial() == 0) {
+                if (toPed.getIdUsuario() == toPed.getPropietario() && toPed.getPedidoEstatus() == 0 && toPed.getEspecial() == 0) {
                     for (TOPedidoProducto toProd : detalle) {
                         movimientos.Movimientos.actualizaProductoPrecio(cn, toPed, toProd, toPed.getOrdenDeCompraFecha());
                         this.actualizaProductoCantidadPedido(cn, toPed, toProd);
@@ -1521,6 +1521,7 @@ public class DAOPedidos {
     }
 
     public ArrayList<TOPedido> obtenerPedidos(int idAlmacen, int estatus, Date fechaInicial, boolean isVenta) throws SQLException {
+//        int idPedido;
         String condicion = "";
         if (isVenta) {
             if (estatus != 0) {
@@ -1534,18 +1535,22 @@ public class DAOPedidos {
             condicion += "M.referencia!=0 AND P.estatus=0";
         }
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-        String strSQL = "SELECT " + Pedidos.sqlPedidos() + "\n"
+        String strSQL = "SELECT " + (isVenta? Pedidos.sqlVentas(): Pedidos.sqlPedidos()) + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND " + condicion + "\n";
         if (estatus != 0) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            strSQL += "                 AND CONVERT(date, M.fecha) >= '" + format.format(fechaInicial) + "'\n";
+            strSQL += "                 AND CONVERT(date, " + (isVenta ? "M.fecha" : "P.fecha") + ") >= '" + format.format(fechaInicial) + "'\n";
         }
-        strSQL += "ORDER BY M.fecha";
+        strSQL += (isVenta?"ORDER BY M.fecha":"ORDER BY P.fecha");
+//        idPedido = 0;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
-                    pedidos.add(Pedidos.construirPedido(rs));
+//                    if(isVenta || idPedido != rs.getInt("referencia")) {
+                        pedidos.add(Pedidos.construirPedido(rs));
+//                        idPedido = rs.getInt("referencia");
+//                    }
                 }
             }
         }

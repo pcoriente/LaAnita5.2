@@ -151,7 +151,7 @@ public class Traspasos {
                 + "     , " + Traspasos.sqlTraspasoBase() + "\n"
                 + "LEFT JOIN enviosSolicitudes ES ON S.idSolicitud=ES.idSolicitud LEFT JOIN envios E1 ON E1.idEnvio=ES.idEnvio\n"
                 + "LEFT JOIN enviosPedidos EP ON S.idSolicitud=EP.idSolicitud LEFT JOIN envios E2 ON E2.idEnvio=EP.idEnvio\n"
-                + "LEFT JOIN ventas V ON V.idVenta=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.idPedido";
+                + "LEFT JOIN movimientos V ON V.idMovto=EP.idVenta LEFT JOIN pedidos P ON P.idPedido=V.referencia";
     }
 
     public static String sqlTraspasoBase() {

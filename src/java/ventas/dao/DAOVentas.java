@@ -1286,13 +1286,13 @@ public class DAOVentas {
     }
 
     private String sqlObtenProducto() {
-        return "SELECT E.cod_pro, MD.*, ISNULL(PD.idVenta, 0) AS idPedido\n"
+        return "SELECT E.cod_pro, MD.*, ISNULL(PD.idPedido, 0) AS idPedido\n"
                 + "         , ISNULL(PD.cantOrdenada-PD.cantSurtida, 0) AS cantOrdenada\n"
                 + "         , ISNULL(PD.cantOrdenadaSinCargo-cantSurtidaSinCargo, 0) AS cantOrdenadaSinCargo\n"
                 + "FROM movimientosDetalle MD\n"
                 + "INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
                 + "INNER JOIN empaques E ON E.idEmpaque=MD.idEmpaque\n"
-                + "LEFT JOIN ventasDetalle PD ON PD.idVenta=M.referencia AND PD.idEmpaque=MD.idEmpaque";
+                + "LEFT JOIN pedidosDetalle PD ON PD.idPedido=M.referencia AND PD.idEmpaque=MD.idEmpaque";
     }
 
     private ArrayList<TOVentaProducto> obtenDetalleOficina(Connection cn, TOPedido toPed) throws SQLException {

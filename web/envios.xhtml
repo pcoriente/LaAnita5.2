@@ -462,7 +462,7 @@
                                     </f:facet>
                                 </p:cellEditor>
                             </p:column>
-                            <p:column headerText="Sin Cargo" style="width: 70px; text-align: right;" >
+                            <p:column headerText="Enviar Sin Cargo" style="width: 66px; text-align: right;" >
                                 <p:cellEditor>
                                     <f:facet name="output">
                                         <h:outputText value="#{prod.enviarSinCargo}" >
@@ -480,12 +480,12 @@
                                     </f:facet>
                                 </p:cellEditor>
                             </p:column>
-                            <p:column headerText="Pedida" style="width: 70px; text-align: right;" >
+                            <p:column headerText="Pendientes" style="width: 70px; text-align: right;" >
                                 <h:outputText value="#{prod.ordenada}" >
                                     <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>
                             </p:column>
-                            <p:column headerText="Sin Cargo" style="width: 56px; text-align: right;" >
+                            <p:column headerText="Pendientes Sin Cargo" style="width: 60px; text-align: right;" >
                                 <h:outputText value="#{prod.ordenadaSinCargo}" >
                                     <f:convertNumber pattern="###,##0.000" />
                                 </h:outputText>

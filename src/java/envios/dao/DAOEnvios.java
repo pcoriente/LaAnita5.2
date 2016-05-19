@@ -620,10 +620,10 @@ public class DAOEnvios {
         return toPedido;
     }
 
-    private ArrayList<TOPedido> obtenFincados(Connection cn, int idEnvio, TOEnvioTraspaso toTraspaso, boolean agregar) throws SQLException {
+    private ArrayList<TOPedido> obtenFincados(Connection cn, TOEnvio toEnvio, TOEnvioTraspaso toTraspaso, boolean agregar) throws SQLException {
         ArrayList<TOPedido> pedidos = new ArrayList<>();
         String strSQL = "SELECT " + Pedidos.sqlPedidos() + "\n"
-                + "WHERE M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND (ISNULL(EP.idEnvio, 0)=" + idEnvio + " OR (ISNULL(E.estatus, 0)=0 AND P.estatus IN (1,3,5) AND M.estatus=0))\n"
+                + "WHERE M.idAlmacen=" + toTraspaso.getIdReferencia() + " AND M.idTipo=28 AND (ISNULL(EP.idEnvio, 0)=" + toEnvio.getIdEnvio() + " OR (" + toEnvio.getEstatus() + "=0 AND P.estatus IN (1,3,5) AND M.estatus=0))\n"
                 + "ORDER BY M.fecha";
         try (Statement st = cn.createStatement()) {
             TOPedido toPed;
@@ -631,7 +631,7 @@ public class DAOEnvios {
             while (rs.next()) {
                 toPed = this.construirFincado(rs);
                 if (toPed.getIdEnvio() == 0 && agregar) {
-                    toPed.setIdEnvio(idEnvio);
+                    toPed.setIdEnvio(toEnvio.getIdEnvio());
                     this.agregaFincado(cn, toPed, toTraspaso);
                 }
                 pedidos.add(toPed);
@@ -640,12 +640,12 @@ public class DAOEnvios {
         return pedidos;
     }
 
-    public ArrayList<TOPedido> obtenerFincados(int idEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
+    public ArrayList<TOPedido> obtenerFincados(TOEnvio toEnvio, TOEnvioTraspaso toTraspaso) throws SQLException {
         ArrayList<TOPedido> pedidos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                pedidos = this.obtenFincados(cn, idEnvio, toTraspaso, false);
+                pedidos = this.obtenFincados(cn, toEnvio, toTraspaso, false);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -658,11 +658,19 @@ public class DAOEnvios {
     }
 
     public void agregarProducto(TOEnvioTraspaso toTraspaso, TOEnvioProducto toProd) throws SQLException {
-        String strSQL = "INSERT INTO enviosSolicitudesDetalle (idSolicitud, idEnvio, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario, fincados, directos)\n"
-                + "VALUES (" + toProd.getIdSolicitud() + ", " + toProd.getIdEnvio() + ", " + toProd.getIdProducto() + ", 0, 0, 0, 1, " + this.idUsuario + ", 0, 0)";
+        String strSQL;
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try (Statement st = cn.createStatement()) {
+                toProd.setExistencia(0);
+                strSQL = "SELECT existencia-separados AS existencia FROM almacenesEmpaques\n"
+                        + "WHERE idAlmacen=" + toTraspaso.getIdAlmacen() + " AND idEmpaque=" + toProd.getIdProducto();
+                ResultSet rs = st.executeQuery(strSQL);
+                if (rs.next()) {
+                    toProd.setExistencia(rs.getDouble("existencia"));
+                }
+                strSQL = "INSERT INTO enviosSolicitudesDetalle (idSolicitud, idEnvio, idEmpaque, estadistica, sugerido, diasInventario, banCajas, idUsuario, fincados, directos, existencia)\n"
+                        + "VALUES (" + toProd.getIdSolicitud() + ", " + toProd.getIdEnvio() + ", " + toProd.getIdProducto() + ", 0, 0, 0, 1, " + this.idUsuario + ", 0, 0, " + toProd.getExistencia() + ")";
                 st.executeUpdate(strSQL);
 
                 strSQL = "INSERT INTO solicitudesDetalle (idSolicitud, idEmpaque, cantSolicitada)\n"
@@ -671,15 +679,6 @@ public class DAOEnvios {
 
                 Movimientos.agregarProductoOficina(cn, toProd, toTraspaso.getIdImpuestoZona());
 //                movimientos.Movimientos.actualizaProductoPrecio(cn, toTraspaso, toProd, null);
-                double existencia = 0;
-                strSQL = "SELECT existencia-separados AS existencia\n"
-                        + "FROM almacenesEmpaques\n"
-                        + "WHERE idAlmacen=" + toTraspaso.getIdAlmacen() + " AND idEmpaque=" + toProd.getIdProducto();
-                ResultSet rs = st.executeQuery(strSQL);
-                if (rs.next()) {
-                    existencia = rs.getDouble("existencia");
-                }
-                toProd.setExistencia(existencia);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -1346,7 +1345,7 @@ public class DAOEnvios {
                         st1.executeUpdate(strSQL);
 
                         toTraspaso = this.obtenTraspaso(cn, toSolicitud.getIdSolicitud());
-                        this.obtenFincados(cn, toEnvio.getIdEnvio(), toTraspaso, true);
+                        this.obtenFincados(cn, toEnvio, toTraspaso, true);
                         this.calculaDiasInventarioGeneral(cn, toTraspaso);
                     }
                 }
