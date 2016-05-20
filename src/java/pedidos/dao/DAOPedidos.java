@@ -741,7 +741,7 @@ public class DAOPedidos {
     }
 
     private String sqlSimilares(int idMovto, int idProducto, int piezas) {
-        return "SELECT ISNULL(D.idEnvio, 0) AS idEnvio, ISNULL(D.cantEnviada, 0) AS cantEnviada\n"
+        return "SELECT ISNULL(D.idEnvio, 0) AS idEnvio, ISNULL(D.cantEnviar, 0) AS cantEnviar, ISNULL(D.cantEnviarSinCargo, 0) AS cantEnviarSinCargo\n"
                 + "     , ISNULL(D.idPedido, 0) AS idPedido, E.piezas\n"
                 + "     , ISNULL(D.cantOrdenada, 0) AS cantOrdenada, ISNULL(D.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
                 + "     , ISNULL(D.idMovto, 0) AS idMovto, ISNULL(D.idEmpaque, S.idSimilar) AS idEmpaque\n"

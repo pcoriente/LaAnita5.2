@@ -118,7 +118,7 @@
                                 <h:outputLabel for="txtOriginalSinCargo" value="Sin Cargo :" style="font-weight: bold; color: black;" />
                             </p:column>
                             <p:column >
-                                <p:inputText id="txtOriginalSinCargo" value="#{mbPedidos.producto.enviarSinCargo}" size="14" readonly="true" >
+                                <p:inputText id="txtOriginalSinCargo" value="#{mbPedidos.producto.ordenadaSinCargo}" size="14" readonly="true" >
                                     <f:convertNumber pattern="###,##0.0000" />
                                 </p:inputText>
                             </p:column>
@@ -148,13 +148,13 @@
                         </p:column>
 
                         <p:column headerText="Cajas" >
-                            <h:outputText value="#{similar.enviar}" >
+                            <h:outputText value="#{similar.ordenada}" >
                                 <f:convertNumber pattern="##,###,##0.000" />
                             </h:outputText>
                         </p:column>
 
                         <p:column headerText="Sin Cargo" >
-                            <h:outputText value="#{similar.enviarSinCargo}" >
+                            <h:outputText value="#{similar.ordenadaSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>
                         </p:column>

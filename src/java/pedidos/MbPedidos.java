@@ -236,7 +236,7 @@ public class MbPedidos implements Serializable {
         try {
             if (this.cantTraspasar < 0) {
                 Mensajes.mensajeAlert("La cantidad a traspasar debe ser mayor que cero !!!");
-            } else if(this.cantTraspasar > this.producto.getEnviarSinCargo()) {
+            } else if(this.cantTraspasar > this.producto.getOrdenadaSinCargo()) {
                 Mensajes.mensajeAlert("La cantidad a traspasar no puede ser mayor que la cantidad sin cargo !!!");
             } else if(this.cantTraspasar != 0) {
                 TOPedido toPed = this.convertir(this.pedido);
