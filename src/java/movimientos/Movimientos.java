@@ -300,6 +300,32 @@ public class Movimientos {
 //        }
 //        return num2 == 0 ? num1 : 1;
 //    }
+//    
+    private static String sqlObtenerBoletin(int idEmpresa, int idGrupoCte, int idFormato, int idCliente, int idTienda, int idProducto, String fechaOrdenCompra) {
+//        String strSQL = "SELECT B.* \n"
+//                        + "FROM clientesBoletinesDetalle B\n"
+//                        + "INNER JOIN clientesBoletines L ON L.idBoletin=B.idBoletin\n"
+//                        + "WHERE L.idEmpresa=" + idEmpresa + "\n"
+//                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
+//                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
+//                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
+//                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
+//                        + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
+//                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
+//                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
+//                        + "		AND CONVERT(date, " + strFechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + strFechaOrdenCompra + ") ELSE B.finVigencia END";
+        String strSQL = "SELECT D.* FROM clientesBoletinesDetalle D\n"
+                + "INNER JOIN clientesBoletines B ON B.idBoletin=D.idBoletin\n"
+                + "LEFT JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
+                + "WHERE LP.idEmpresa=" + idEmpresa + "\n"
+                + "	AND ((L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=0 AND L.idCliente=0 AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + "))\n"
+                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
+        return strSQL;
+    }
+
     public static ArrayList<Double> obtenerBoletinSinCargo(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, int idProducto) throws SQLException {
         String strFechaOrdenCompra = "GETDATE()";
         if (!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
@@ -323,24 +349,13 @@ public class Movimientos {
                 int idGrupoCte = rs.getInt("idGrupoCte");
                 int idCliente = rs.getInt("idCliente");
                 int idFormato = rs.getInt("idFormato");
-                int idGrupo = rs.getInt("idGrupo");
-                int idSubGrupo = rs.getInt("idSubGrupo");
+//                int idGrupo = rs.getInt("idGrupo");
+//                int idSubGrupo = rs.getInt("idSubGrupo");
                 boletin = new ArrayList<>();
                 boletin.add(0.0);
                 boletin.add(0.0);
-                strSQL = "SELECT B.* \n"
-                        + "FROM clientesBoletinesDetalle B\n"
-                        + "INNER JOIN clientesBoletines L ON L.idBoletin=B.idBoletin\n"
-                        + "WHERE L.idEmpresa=" + idEmpresa + "\n"
-                        + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
-                        + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
-                        + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
-                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
-                        + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                        + "		AND CONVERT(date, " + strFechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + strFechaOrdenCompra + ") ELSE B.finVigencia END";
-                rs = st.executeQuery(strSQL);
+
+                rs = st.executeQuery(sqlObtenerBoletin(idEmpresa, idGrupoCte, idFormato, idCliente, idTienda, idProducto, strFechaOrdenCompra));
                 if (rs.next()) {
                     if (rs.getDouble("conCargo") > 0 && rs.getDouble("sinCargo") > 0) {
                         boletin.set(0, rs.getDouble("conCargo"));
@@ -362,30 +377,28 @@ public class Movimientos {
         actualizaProductoPrecio(cn, toMov, toProd, fechaOrdenCompra);
     }
 
-    private static String sqlObtenerPrecioUnitario(int idEmpresa, int idGrupoCte, int idCliente, int idTienda, int idFormato, int idGrupo, int idSubGrupo, int idProducto, String fechaOrdenCompra) {
-        String strSQL = "SELECT B.*\n"
-                + "FROM clientesListasDetalle B\n"
-                + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
-                + "WHERE L.idEmpresa=" + idEmpresa + "\n"
-                + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
-                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
-                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
-                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
-                + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
-                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
-                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
-                + "		AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
-//        String strSQL = "SELECT TOP 1 D.*\n"
-//                        + "FROM (SELECT * FROM clientesListasDetalle L\n"
-//                        + "      WHERE L.idEmpresa=" + idEmpresa + "\n"
-//                        + "		AND ((L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=0 AND L.idCliente=0 AND L.idTienda=0)\n"
-//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
-//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
-//                        + "			 OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + ")) L\n"
-//                +        " INNER JOIN clientesListasDetalle D ON D.idClienteLista=L.idClienteLista\n"
-//                        + "WHERE  D.idEmpaque=" + idProducto + "\n"
-//                        + "		AND CONVERT(date, "+fechaOrdenCompra+") BETWEEN D.iniVigencia AND CASE WHEN D.finVigencia='1900-01-01' THEN CONVERT(date, "+fechaOrdenCompra+") ELSE D.finVigencia END\n"
-//                + "ORDER BY L.idGrupoCte DESC, L.idFromato DESC, L.idCliente DESC, L.idTienda DESC, CASE WHEN D.finVigencia='1900-01-01' THEN 10000 ELSE DATEDIFF(DAY, D.finVigencia, D.iniVigencia)";
+    private static String sqlObtenerPrecioUnitario(int idEmpresa, int idGrupoCte, int idCliente, int idTienda, int idFormato, int idProducto, String fechaOrdenCompra) {
+//        String strSQL = "SELECT B.*\n"
+//                + "FROM clientesListasDetalle B\n"
+//                + "INNER JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
+//                + "WHERE L.idEmpresa=" + idEmpresa + "\n"
+//                + "		AND ((B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=0 AND B.idCliente=0 AND B.idTienda=0)\n"
+//                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=0 AND B.idTienda=0)\n"
+//                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=0)\n"
+//                + "			 OR (B.idGrupoCte=" + idGrupoCte + " AND B.idFormato=" + idFormato + " AND B.idCliente=" + idCliente + " AND B.idTienda=" + idTienda + "))\n"
+//                + "		AND ((B.idGrupo=" + idGrupo + " AND B.idSubGrupo=0 AND B.idEmpaque=0) \n"
+//                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=0) \n"
+//                + "				OR (B.idGrupo=" + idGrupo + " AND B.idSubGrupo=" + idSubGrupo + " AND B.idEmpaque=" + idProducto + "))\n"
+//                + "		AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
+        String strSQL = "SELECT D.* FROM clientesListasDetalle D\n"
+                + "INNER JOIN clientesListasPrecios LP ON LP.idLista=D.idLista\n"
+                + "LEFT JOIN clientesListas L ON L.idClienteLista=LP.idClienteLista\n"
+                + "WHERE LP.idEmpresa=" + idEmpresa + "\n"
+                + "	AND ((L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=0 AND L.idCliente=0 AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
+                + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + "))\n"
+                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
         return strSQL;
     }
 
@@ -443,13 +456,13 @@ public class Movimientos {
 //        }
 //        return precio;
 //    }
+//    
     private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
         String strfechaOrdenCompra = "GETDATE()";
         if (!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
             strfechaOrdenCompra = "'" + new java.sql.Date(fechaOrdenCompra.getTime()).toString() + "'";
         }
         ArrayList<Double> precio = new ArrayList<>();
-//        double precioUnitario, desctoProducto1, precioLista;
         double precioUnitario, precioLista;
         String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
                 + "FROM clientesTiendas T\n"
@@ -465,31 +478,17 @@ public class Movimientos {
                 int idGrupoCte = rs.getInt("idGrupoCte");
                 int idCliente = rs.getInt("idCliente");
                 int idFormato = rs.getInt("idFormato");
-                int idGrupo = rs.getInt("idGrupo");
-                int idSubGrupo = rs.getInt("idSubGrupo");
-                strSQL = sqlObtenerPrecioUnitario(idEmpresa, idGrupoCte, idCliente, idTienda, idFormato, idGrupo, idSubGrupo, idProducto, strfechaOrdenCompra);
-                rs = st.executeQuery(strSQL);
+//                int idGrupo = rs.getInt("idGrupo");
+//                int idSubGrupo = rs.getInt("idSubGrupo");
+                rs = st.executeQuery(sqlObtenerPrecioUnitario(idEmpresa, idGrupoCte, idCliente, idTienda, idFormato, idProducto, strfechaOrdenCompra));
                 if (rs.next()) {
                     if (rs.getDouble("precioVenta") == 0) {
                         throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
                     } else {
-//                        precioUnitario = rs.getDouble("precioVenta");
                         precioLista = rs.getDouble("precioVenta");
-//                        if (!rs.getString("descuentos").equals("")) {
-//                            double descuento = 1.00;
-//                            for (String str : rs.getString("descuentos").split(",")) {
-//                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
-//                            }
-//                            desctoProducto1 = (1.00 - descuento) * 100.00;
-//                        } else {
-//                            desctoProducto1 = 0.00;
-//                        }
-//                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
-//                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
                         precioUnitario = (precioLista * (1 - desctoComercial / 100.00));
 
                         precio.add(precioUnitario);
-//                        precio.add(desctoProducto1);
                         precio.add(0.0);
                         precio.add(precioLista);
                     }
@@ -503,6 +502,68 @@ public class Movimientos {
         return precio;
     }
 
+//    private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, Date fechaOrdenCompra, double desctoComercial, int idProducto) throws SQLException {
+//          Este es el bueno anterior
+//    
+//        String strfechaOrdenCompra = "GETDATE()";
+//        if (!fechaOrdenCompra.equals(new Date(-2208965004000L))) {
+//            strfechaOrdenCompra = "'" + new java.sql.Date(fechaOrdenCompra.getTime()).toString() + "'";
+//        }
+//        ArrayList<Double> precio = new ArrayList<>();
+////        double precioUnitario, desctoProducto1, precioLista;
+//        double precioUnitario, precioLista;
+//        String strSQL = "SELECT G.idGrupoCte, C.idCliente, F.idFormato, T.idTienda, P.idGrupo, P.idSubGrupo\n"
+//                + "FROM clientesTiendas T\n"
+//                + "INNER JOIN clientesFormatos F ON F.idFormato=T.idFormato\n"
+//                + "INNER JOIN clientesGrupos G ON G.idGrupoCte=F.idGrupoCte\n"
+//                + "INNER JOIN clientes C ON C.idCliente=T.idCliente\n"
+//                + "INNER JOIN empaques E ON E.idEmpaque=" + idProducto + "\n"
+//                + "INNER JOIN productos P ON P.idProducto=E.idProducto\n"
+//                + "WHERE T.idTienda=" + idTienda;
+//        try (Statement st = cn.createStatement()) {
+//            ResultSet rs = st.executeQuery(strSQL);
+//            if (rs.next()) {
+//                int idGrupoCte = rs.getInt("idGrupoCte");
+//                int idCliente = rs.getInt("idCliente");
+//                int idFormato = rs.getInt("idFormato");
+//                int idGrupo = rs.getInt("idGrupo");
+//                int idSubGrupo = rs.getInt("idSubGrupo");
+//                strSQL = sqlObtenerPrecioUnitario(idEmpresa, idGrupoCte, idCliente, idTienda, idFormato, idGrupo, idSubGrupo, idProducto, strfechaOrdenCompra);
+//                rs = st.executeQuery(strSQL);
+//                if (rs.next()) {
+//                    if (rs.getDouble("precioVenta") == 0) {
+//                        throw (new SQLException("El producto id=" + idProducto + ", No tiene precio de lista vigente !!!"));
+//                    } else {
+////                        precioUnitario = rs.getDouble("precioVenta");
+//                        precioLista = rs.getDouble("precioVenta");
+////                        if (!rs.getString("descuentos").equals("")) {
+////                            double descuento = 1.00;
+////                            for (String str : rs.getString("descuentos").split(",")) {
+////                                descuento = descuento * (1 - Double.parseDouble(str) / 100.00);
+////                            }
+////                            desctoProducto1 = (1.00 - descuento) * 100.00;
+////                        } else {
+////                            desctoProducto1 = 0.00;
+////                        }
+////                        precioLista = (precioUnitario / (1 - desctoProducto1 / 100.00));
+////                        precioLista = (precioLista / (1 - desctoComercial / 100.00));
+//                        precioUnitario = (precioLista * (1 - desctoComercial / 100.00));
+//
+//                        precio.add(precioUnitario);
+////                        precio.add(desctoProducto1);
+//                        precio.add(0.0);
+//                        precio.add(precioLista);
+//                    }
+//                } else {
+//                    throw (new SQLException("No se encontro precio de venta para el producto id=" + idProducto + " !!!"));
+//                }
+//            } else {
+//                throw new SQLException("No se encotro el detalle de la tienda id=" + idTienda + " para obtener precio del producto id=" + idProducto + " !!!");
+//            }
+//        }
+//        return precio;
+//    }
+//
 //    private static ArrayList<Double> obtenerPrecioUnitario(Connection cn, int idEmpresa, int idTienda, double desctoComercial, int idProducto) throws SQLException {
 //        ArrayList<Double> precio = new ArrayList<>();
 //        double precioUnitario, desctoProducto1, precioLista;
@@ -632,7 +693,7 @@ public class Movimientos {
             } else {
                 strSQL = "SELECT cod_pro FROM empaques WHERE idEmpaque=" + idProducto;
                 rs = st.executeQuery(strSQL);
-                if(rs.next()) {
+                if (rs.next()) {
                     throw new SQLException("El producto (cod_pro='" + rs.getString("cod_pro") + "') no cuenta con existencia !!!");
                 } else {
                     throw new SQLException("El producto (idEmpaque=" + idProducto + ") no se encontró !!!");

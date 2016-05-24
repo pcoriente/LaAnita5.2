@@ -137,7 +137,7 @@
                                              update="listaAgentes actualizar" oncomplete="PF('dlg').hide()"/>
                         </center>
                     </p:dialog>
-                    
+
                     <!--Dialog contribuyente-->
                     <p:dialog widgetVar="dlgContribuyente" header="Datos del contribuyente"
                               modal="true" resizable="false" closable="true" >
@@ -145,11 +145,11 @@
                             <p:outputLabel style="color: black"  value="Rfc:"/>
                             <p:inputText id="rfc" disabled="true" value="#{mbAgentes.mbContribuyente.contribuyente.rfc}" /> 
                             <p:outputLabel/>
-                            
+
                             <p:outputLabel style="color: black" value="Contribuyente:"/>
                             <p:inputText id="contribuyente" value="#{mbAgentes.mbContribuyente.contribuyente.contribuyente}" />
                             <p:outputLabel/>
-                           
+
                             <p:outputLabel style="color: black"  value="Direccion:"/>
                             <p:inputTextarea id="direccionContribuyente" value="#{mbAgentes.mbContribuyente.contribuyente.direccion}" 
                                              style="width: 168px" rows="8" disabled="true" />
@@ -157,19 +157,19 @@
                                              disabled="#{mbAgentes.contribuyenteExistente == true}"
                                              process="@this" actionListener="#{mbAgentes.direccionContirbuyente()}"
                                              update="panelCapturaDireccion" oncomplete="PF('dlgDireccion').show()" />
-                            
+
                             <h:outputText id="lblCorreo" value="Correo:" rendered="#{mbAgentes.actualizar==0}" />
                             <p:inputText id="correo" value="#{mbAgentes.agente.contacto.correo}" rendered="#{mbAgentes.actualizar==0}" />
                             <h:outputLabel rendered="#{mbAgentes.actualizar==0}"/>
-                            
+
                         </h:panelGrid>
                         <p:commandButton id="btnGuardarContribuyente" icon="ui-icon-disk" title="Guardar Contribuyente"
-                                          disabled="#{mbAgentes.contribuyenteExistente == true}"
-                                          process="@this contribuyente correo rfc direccionContribuyente"
-                                          actionListener="#{mbAgentes.guardarContribuyente()}"
-                                          update="growl txtAgenteContribuyente" oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)" />
+                                         disabled="#{mbAgentes.contribuyenteExistente == true}"
+                                         process="@this contribuyente correo rfc direccionContribuyente"
+                                         actionListener="#{mbAgentes.guardarContribuyente()}"
+                                         update="growl txtAgenteContribuyente" oncomplete="guardarMasDatosCOntribuyentes(xhr, status, args)" />
                     </p:dialog>
-                    
+
                     <!--- Dialog de Mantenimiento de tipos telefonos -->
                     <p:dialog header="MANTENIMIENTO DE TIPOS DE TELEFONOS" 
                               widgetVar="mttoTelefonosTiposDialog"
@@ -203,7 +203,7 @@
                             </f:facet>
                         </p:panelGrid>
                     </p:dialog>
-                    
+
                     <!--- Dialog de Mantenimiento de Telefonos -->
                     <p:dialog header="MANTENIMIENTO DE TELEFONOS"
                               widgetVar="mttoTelefonosDialog" 
@@ -290,7 +290,7 @@
                             </f:facet>
                         </p:panelGrid>
                     </p:dialog>
-                    
+
                     <!--- Dialog de Correos -->
                     <p:dialog widgetVar="dlgCorreos" resizable="false" modal="true">
                         <h:panelGrid columns="2">
@@ -303,13 +303,13 @@
                                              update=":form:cmbCorreo :form:growl" oncomplete="nuevoCorreos(xhr, status, args);"/>
                         </center>
                     </p:dialog>
-                    
+
                     <!--- Dialog de Mantenimiento de Contactos -->
                     <p:dialog widgetVar="dlgContactos" header="Mantenimiento de Contactos" modal="true" >
                         <h:panelGrid columns="2" id="panelContactos">
                             <h:outputLabel value="Contacto :" style="color: black"/>
                             <p:inputText id="txtContacto" value="#{mbAgentes.mbContactos.contacto.contacto}"/>
-                            
+
                             <h:outputLabel value="Puesto :" style="color: black"/>
                             <p:inputText id="txtPuesto" value="#{mbAgentes.mbContactos.contacto.puesto}"/>
 
@@ -328,7 +328,7 @@
                                              oncomplete="PF('dlgContactos').hide()" />
                         </div>
                     </p:dialog>
-                    
+
                     <!--- Dialog de Direccion -->
                     <p:dialog  header="Nueva Dirección" 
                                widgetVar="dlgDireccion"
@@ -426,80 +426,72 @@
             <ui:include src="footer.html" />
         </div>
         <script type="text/javascript">
+            function ocularTodo() {
+                PF('dlgContribuyente').hide();
+                PF('confirmCancelar').hide();
+            }
+            
+            function nuevoCorreos(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlgCorreos').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlgCorreos').hide();
+                }
+            }
+            
+            function nuevoContribuyente(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlg').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlg').hide();
+                }
+            }
 
-                    function ocularTodo() {
-                        PF('dlgContribuyente').hide();
-                        PF('confirmCancelar').hide();
-                    }
+            function guardarMasDatosCOntribuyentes(xhr, status, args) {
+                if (args.validationFailed || !args.ok) {
+                    PF('dlgContribuyente').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlgContribuyente').hide();
+                }
+            }
 
+            function nuevaDireccion(xhr, status, args) {
+                if (args.validationFailed || !args.okDireccion) {
+                    PF('dlgDireccion').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlgDireccion').hide();
+                }
+            }
+            
+            function nuevoCont(xhr, status, args) {
+                if (args.validationFailed || !args.okContacto) {
+                    PF('dlgContactos').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('dlgContactos').hide();
+                }
+            }
 
-                    function nuevoCorreos(xhr, status, args) {
-                        if (args.validationFailed || !args.ok) {
-                            PF('dlgCorreos').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgCorreos').hide();
-                        }
-                    }
-                    function nuevoContribuyente(xhr, status, args) {
-                        if (args.validationFailed || !args.ok) {
-                            PF('dlg').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlg').hide();
-                        }
-                    }
+            function nuevoTelefono(xhr, status, args) {
+                if (args.validationFailed || !args.okTelefono) {
+                    PF('mttoTelefonosDialog').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('mttoTelefonosDialog').hide();
+                }
+            }
 
-                    function guardarMasDatosCOntribuyentes(xhr, status, args) {
-                        if (args.validationFailed || !args.ok) {
-                            PF('dlgContribuyente').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgContribuyente').hide();
-                        }
-                    }
+            function handleTelefonoTipo(xhr, status, args) {
+                if (args.validationFailed || !args.okTelefonoTipo) {
+                    PF('mttoTelefonosTiposDialog').jq.effect("shake", {times: 5}, 100);
+                } else {
+                    PF('mttoTelefonosTiposDialog').hide();
+                }
+            }
 
-
-
-                    function nuevaDireccion(xhr, status, args) {
-                        if (args.validationFailed || !args.okDireccion) {
-                            PF('dlgDireccion').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgDireccion').hide();
-                        }
-                    }
-                    function nuevoCont(xhr, status, args) {
-                        if (args.validationFailed || !args.okContacto) {
-                            PF('dlgContactos').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('dlgContactos').hide();
-                        }
-                    }
-
-                    function nuevoTelefono(xhr, status, args) {
-                        if (args.validationFailed || !args.okTelefono) {
-                            PF('mttoTelefonosDialog').jq.effect("shake", {times: 5}, 100);
-                        }
-                        else {
-                            PF('mttoTelefonosDialog').hide();
-                        }
-                    }
-
-                    function handleTelefonoTipo(xhr, status, args) {
-                        if (args.validationFailed || !args.okTelefonoTipo) {
-                            PF('mttoTelefonosTiposDialog').jq.effect("shake", {times: 5}, 100);
-                        } else {
-                            PF('mttoTelefonosTiposDialog').hide();
-                        }
-                    }
-
-                    function handleBuscarContribuyente(xhr, status, args) {
-                        if (!(args.validationFailed || !args.okBuscarContribuyente)) {
-                            PF('buscarProvDlg').hide();
-                        }
-                    }</script>
-
+            function handleBuscarContribuyente(xhr, status, args) {
+                if (!(args.validationFailed || !args.okBuscarContribuyente)) {
+                    PF('buscarProvDlg').hide();
+                }
+            }
+        </script>
     </h:body>
 </html>
