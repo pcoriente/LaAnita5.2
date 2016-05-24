@@ -619,7 +619,7 @@ public class DAOPedidos {
 
                 if (toPed.getEspecial() == 0) {
                     this.actualizaProductoCantidadPedido(cn, toPed, toProd);
-                    similares = this.obtenSimilares(cn, toProd);
+                    similares = this.obtenSimilaresPedido(cn, toProd);
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -735,7 +735,7 @@ public class DAOPedidos {
                         + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                similares = this.obtenSimilares(cn, toProd);
+                similares = this.obtenSimilaresPedido(cn, toProd);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -899,7 +899,7 @@ public class DAOPedidos {
                     + "	, ISNULL(PD.fecha, '1900-01-01') AS fecha, ISNULL(PD.existenciaAnterior, 0) AS existenciaAnterior, ISNULL(PD.ctoPromAnterior, 0) AS ctoPromAnterior\n"
                     + "FROM empaquesSimilares S\n"
                     + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
-                    + "LEFT JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo\n"
+                    + "INNER JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo\n"
                     + "                 , 0 AS idPedido, 0 AS cantOrdenada, 0 AS cantOrdenadaSinCargo, 0 AS cantSurtida, 0 AS cantSurtidaSinCargo , MD.* \n"
                     + "             FROM movimientosDetalle MD INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
                     + "             LEFT JOIN enviosPedidos EP ON EP.idVenta=MD.idMovto\n"
@@ -1335,7 +1335,7 @@ public class DAOPedidos {
                                     this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
                                 }
                             }
-                            similares = this.obtenSimilares(cn, toProd);
+                            similares = this.obtenSimilaresPedido(cn, toProd);
                             toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
                             similares.remove(0);
                         }
@@ -1369,7 +1369,7 @@ public class DAOPedidos {
                         } else {
                             this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
                         }
-                        similares = this.obtenSimilares(cn, toProd);
+                        similares = this.obtenSimilaresPedido(cn, toProd);
                         toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
                         similares.remove(0);
                     }
