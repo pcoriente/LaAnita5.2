@@ -322,7 +322,7 @@ public class Movimientos {
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + "))\n"
-                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
+                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN D.iniVigencia AND CASE WHEN D.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE D.finVigencia END";
         return strSQL;
     }
 
@@ -398,7 +398,7 @@ public class Movimientos {
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=" + idTienda + "))\n"
-                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN B.iniVigencia AND CASE WHEN B.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE B.finVigencia END";
+                + "	AND D.idEmpaque=" + idProducto + " AND CONVERT(date, " + fechaOrdenCompra + ") BETWEEN D.iniVigencia AND CASE WHEN D.finVigencia='1900-01-01' THEN CONVERT(date, " + fechaOrdenCompra + ") ELSE D.finVigencia END";
         return strSQL;
     }
 
