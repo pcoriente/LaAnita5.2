@@ -140,7 +140,8 @@
                     </p:panelGrid>
                     <p:dataTable id="detalleSimilares" value="#{mbVentas.similares}" 
                                  var="similar" scrollable="true" scrollHeight="200" style="width: 650px;"
-                                 rowKey="#{similar.producto.idProducto}" selectionMode="single" selection="#{mbVentas.similar}" >
+                                 rowKey="#{similar.producto.idProducto}" selectionMode="single" selection="#{mbVentas.similar}"
+                                 emptyMessage="No se encontraron productos similares en el pedido" >
                         <p:ajax event = "rowSelect" update="btnSeleccion" />
 
                         <f:facet name="header">Seleccione un similar</f:facet>
@@ -149,17 +150,17 @@
                             <h:outputText value="#{similar.producto.cod_pro}" />
                         </p:column>
 
-                        <p:column headerText="Producto" style="width: 420px;" >
+                        <p:column headerText="Producto" >
                             <h:outputText value="#{similar.producto.toString()}" />
                         </p:column>
 
-                        <p:column headerText="Facturada" >
+                        <p:column headerText="Facturada" style="width: 70px" >
                             <h:outputText value="#{similar.cantFacturada}" >
                                 <f:convertNumber pattern="##,###,##0.000" />
                             </h:outputText>
                         </p:column>
 
-                        <p:column headerText="Sin Cargo" >
+                        <p:column headerText="Sin Cargo" style="width: 70px" >
                             <h:outputText value="#{similar.cantSinCargo}" >
                                 <f:convertNumber pattern="###,##0.000" />
                             </h:outputText>

@@ -28,7 +28,8 @@ public class Pedidos {
                     + "			INNER JOIN movimientosAlmacen M ON M.idMovtoAlmacen=D.idMovtoAlmacen\n"
                     + "			WHERE D.idMovtoAlmacen=" + toPed.getIdMovtoAlmacen() + "\n"
                     + "			GROUP BY D.idEmpaque) A ON A.idEmpaque=D.idEmpaque\n"
-                    + "WHERE D.idMovto=" + toPed.getIdMovto() + " AND (A.idEmpaque IS NULL OR D.cantFacturada+D.cantSinCargo != A.cantidad)";
+                    + "WHERE D.idMovto=" + toPed.getIdMovto() + " AND D.cantFacturada+D.cantSinCargo !=0\n"
+                    + "         AND (A.idEmpaque IS NULL OR D.cantFacturada+D.cantSinCargo != A.cantidad)";
             ResultSet rs = st.executeQuery(strSQL);
             if (rs.next()) {
                 throw new SQLException("Lotes incompletos !!!");

@@ -483,11 +483,12 @@ public class MbVentas implements Serializable {
     public void traspasoSimilar() {
         boolean ok = false;
         this.similares = new ArrayList<>();
+        TOPedidoProducto toProd = this.convertir(this.producto);
         try {
             this.similar = null;
             this.cantTraspasar = 0;
             this.dao = new DAOPedidos();
-            for (TOPedidoProducto to : this.dao.obtenerSimilares(this.producto.getIdMovto(), this.producto.getProducto().getIdProducto())) {
+            for (TOPedidoProducto to : this.dao.obtenerSimilares(toProd)) {
                 this.similares.add(this.convertir(to));
             }
             ok = true;
@@ -551,6 +552,10 @@ public class MbVentas implements Serializable {
 
     private TOPedidoProducto convertir(PedidoProducto prod) {
         TOPedidoProducto toProd = new TOPedidoProducto();
+        toProd.setIdEnvio(prod.getIdEnvio());
+        toProd.setCantEnviar(prod.getEnviar()*prod.getProducto().getPiezas());
+        toProd.setCantEnviarSinCargo(prod.getEnviarSinCargo()*prod.getProducto().getPiezas());
+        toProd.setIdPedido(prod.getIdPedido());
         toProd.setPiezas(prod.getProducto().getPiezas());
         toProd.setCantOrdenada(prod.getOrdenada() * toProd.getPiezas());
         toProd.setCantOrdenadaSinCargo(prod.getOrdenadaSinCargo() * toProd.getPiezas());
@@ -686,6 +691,9 @@ public class MbVentas implements Serializable {
     }
 
     private void convertir(TOPedidoProducto toProd, PedidoProducto prod) throws SQLException {
+        prod.setIdEnvio(toProd.getIdEnvio());
+        prod.setEnviar(toProd.getCantEnviar()/toProd.getPiezas());
+        prod.setEnviarSinCargo(toProd.getCantEnviarSinCargo()/toProd.getPiezas());
         prod.setIdPedido(toProd.getIdPedido());
         prod.setOrdenada(toProd.getCantOrdenada() / toProd.getPiezas());
         prod.setOrdenadaSinCargo(toProd.getCantOrdenadaSinCargo() / toProd.getPiezas());

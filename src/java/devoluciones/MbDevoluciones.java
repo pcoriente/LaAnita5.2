@@ -529,7 +529,7 @@ public class MbDevoluciones implements Serializable {
 
     public ArrayList<Accion> getAcciones() {
         if (this.acciones == null) {
-            this.acciones = this.mbAcciones.obtenerAcciones(1040);
+            this.acciones = this.mbAcciones.obtenerAcciones(1042);
         }
         return acciones;
     }

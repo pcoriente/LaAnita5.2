@@ -556,8 +556,8 @@ public class DAOPedidos {
 
             strSQL = "DELETE FROM comprobantes WHERE idComprobante=" + toPed.getIdComprobante();
             st.executeUpdate(strSQL);
-            
-            strSQL = "DELETE FROM ventas WHERE idMovto="+toPed.getIdMovto();
+
+            strSQL = "DELETE FROM ventas WHERE idMovto=" + toPed.getIdMovto();
             st.executeUpdate(strSQL);
 
             strSQL = "DELETE FROM pedidos WHERE idPedido=" + toPed.getReferencia();
@@ -619,7 +619,7 @@ public class DAOPedidos {
 
                 if (toPed.getEspecial() == 0) {
                     this.actualizaProductoCantidadPedido(cn, toPed, toProd);
-                    similares = this.obtenSimilares(cn, toProd.getIdMovto(), toProd.getIdProducto());
+                    similares = this.obtenSimilares(cn, toProd);
                 }
                 cn.commit();
             } catch (SQLException ex) {
@@ -671,13 +671,20 @@ public class DAOPedidos {
         try (Connection cn = this.ds.getConnection()) {
             cn.setAutoCommit(false);
             try {
-                if (toSimilar.getIdMovto() == 0) {
-                    toSimilar.setIdMovto(toProd.getIdMovto());
-                    toSimilar.setCantOrdenada(0);
-                    toSimilar.setCantOrdenadaSinCargo(0);
-//                    this.agregaProducto(cn, toPed, toSimilar);
-//                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
-                    Pedidos.agregaProductoPedido(cn, toPed, toProd);
+                if (toPed.getReferencia() != 0) {
+                    if (toSimilar.getIdPedido() != 0) {
+                        toSimilar.setIdMovto(toPed.getIdMovto());
+                        Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
+                    } else if (toSimilar.getIdMovto() == 0) {
+                        toSimilar.setIdPedido(toPed.getReferencia());
+                        toSimilar.setIdMovto(toPed.getIdMovto());
+                        toSimilar.setCantOrdenada(0);
+                        toSimilar.setCantOrdenadaSinCargo(0);
+                        Pedidos.agregaProductoPedido(cn, toPed, toSimilar);
+                    }
+                } else if (toSimilar.getIdMovto() == 0) {
+                    toSimilar.setIdMovto(toPed.getIdMovto());
+                    Movimientos.agregarProductoVenta(cn, toPed, toSimilar, toPed.getOrdenDeCompraFecha());
                 }
                 if (this.idCedis == 1) {
                     Movimientos.separar(cn, toPed.getIdMovto(), toSimilar.getIdProducto(), cantidad, "cantSinCargo");
@@ -728,7 +735,7 @@ public class DAOPedidos {
                         + "WHERE idPedido=" + toPed.getReferencia() + " AND idEmpaque=" + toProd.getIdProducto();
                 st.executeUpdate(strSQL);
 
-                similares = this.obtenSimilares(cn, toProd.getIdMovto(), toProd.getIdProducto());
+                similares = this.obtenSimilares(cn, toProd);
                 cn.commit();
             } catch (SQLException ex) {
                 cn.rollback();
@@ -854,11 +861,52 @@ public class DAOPedidos {
         }
     }
 
-    private ArrayList<TOPedidoProducto> obtenSimilares(Connection cn, int idMovto, int idProducto) throws SQLException {
+    private ArrayList<TOPedidoProducto> obtenSimilares(Connection cn, TOPedidoProducto toProd) throws SQLException {
         ArrayList<TOPedidoProducto> similares = new ArrayList<>();
         String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
                 + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
-                + "WHERE D.idMovto=" + idMovto + " AND S.idEmpaque=" + idProducto;
+                + "WHERE D.idMovto=" + toProd.getIdMovto() + " AND S.idEmpaque=" + toProd.getIdProducto();
+        if (toProd.getIdPedido() != 0) {
+            strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada, ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
+                    + "	, ISNULL(PD.cantSurtida, 0) AS cantSurtida, ISNULL(PD.cantSurtidaSinCargo, 0) AS cantSurtidaSinCargo\n"
+                    + "	, ISNULL(PD.idEnvio, 0) AS idEnvio, ISNULL(PD.cantEnviar, 0) AS cantEnviar, ISNULL(PD.cantEnviarSinCargo, 0) AS cantEnviarsinCargo\n"
+                    + "	, E.piezas, ISNULL(PD.idMovto, 0) AS idMovto, S.idSimilar AS idEmpaque\n"
+                    + "	, ISNULL(PD.cantFacturada, 0) AS cantFacturada, ISNULL(PD.cantSinCargo, 0) AS cantSinCargo, ISNULL(PD.costoPromedio, 0) AS costoPromedio\n"
+                    + "	, ISNULL(PD.costo, 0) AS costo, ISNULL(PD.desctoProducto1, 0) AS desctoProducto1, ISNULL(PD.desctoProducto2, 0) AS desctoProducto2\n"
+                    + "	, ISNULL(PD.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(PD.unitario, 0) AS unitario, ISNULL(PD.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
+                    + "	, ISNULL(PD.fecha, '1900-01-01') AS fecha, ISNULL(PD.existenciaAnterior, 0) AS existenciaAnterior, ISNULL(PD.ctoPromAnterior, 0) AS ctoPromAnterior\n"
+                    + "FROM empaquesSimilares S\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
+                    + "LEFT JOIN (SELECT PD.idPedido, PD.idEmpaque, PD.cantOrdenada, PD.cantOrdenadaSinCargo, PD.cantSurtida, PD.cantSurtidaSinCargo\n"
+                    + "             , MD.idEnvio, MD.cantEnviar, MD.cantEnviarSinCargo, MD.idMovto, MD.cantFacturada, MD.cantSinCargo\n"
+                    + "             , MD.costoPromedio, MD.costo, MD.desctoProducto1, MD.desctoProducto2, MD.desctoConfidencial, MD.unitario\n"
+                    + "             , MD.idImpuestoGrupo, MD.fecha, MD.existenciaAnterior, MD.ctoPromAnterior\n"
+                    + "         FROM pedidosDetalle PD\n"
+                    + "         LEFT JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo, MD.* FROM movimientosDetalle MD\n"
+                    + "                     LEFT JOIN enviosPedidos EP ON EP.idVenta=MD.idMovto\n"
+                    + "                     LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=MD.idMovto AND EPD.idEmpaque=MD.idEmpaque\n"
+                    + "                     WHERE MD.idMovto=" + toProd.getIdMovto() + ") MD ON MD.idEmpaque=PD.idEmpaque\n"
+                    + "         WHERE PD.idPedido=" + toProd.getIdPedido() + ") PD ON PD.idEmpaque=S.idSimilar\n"
+                    + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND S.idEmpaque!=S.idSimilar";
+        } else {
+            strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada, ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
+                    + "	, ISNULL(PD.cantSurtida, 0) AS cantSurtida, ISNULL(PD.cantSurtidaSinCargo, 0) AS cantSurtidaSinCargo\n"
+                    + "	, ISNULL(PD.idEnvio, 0) AS idEnvio, ISNULL(PD.cantEnviar, 0) AS cantEnviar, ISNULL(PD.cantEnviarSinCargo, 0) AS cantEnviarsinCargo\n"
+                    + "	, E.piezas, ISNULL(PD.idMovto, 0) AS idMovto, S.idSimilar AS idEmpaque\n"
+                    + "	, ISNULL(PD.cantFacturada, 0) AS cantFacturada, ISNULL(PD.cantSinCargo, 0) AS cantSinCargo, ISNULL(PD.costoPromedio, 0) AS costoPromedio\n"
+                    + "	, ISNULL(PD.costo, 0) AS costo, ISNULL(PD.desctoProducto1, 0) AS desctoProducto1, ISNULL(PD.desctoProducto2, 0) AS desctoProducto2\n"
+                    + "	, ISNULL(PD.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(PD.unitario, 0) AS unitario, ISNULL(PD.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
+                    + "	, ISNULL(PD.fecha, '1900-01-01') AS fecha, ISNULL(PD.existenciaAnterior, 0) AS existenciaAnterior, ISNULL(PD.ctoPromAnterior, 0) AS ctoPromAnterior\n"
+                    + "FROM empaquesSimilares S\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
+                    + "LEFT JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo\n"
+                    + "                 , 0 AS idPedido, 0 AS cantOrdenada, 0 AS cantOrdenadaSinCargo, 0 AS cantSurtida, 0 AS cantSurtidaSinCargo , MD.* \n"
+                    + "             FROM movimientosDetalle MD INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
+                    + "             LEFT JOIN enviosPedidos EP ON EP.idVenta=MD.idMovto\n"
+                    + "             LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=MD.idMovto AND EPD.idEmpaque=MD.idEmpaque\n"
+                    + "             WHERE MD.idMovto=" + toProd.getIdMovto() + ") PD ON PD.idEmpaque=S.idSimilar\n"
+                    + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND S.idEmpaque!=S.idSimilar";
+        }
         try (Statement st = cn.createStatement()) {
             ResultSet rs = st.executeQuery(strSQL);
             while (rs.next()) {
@@ -868,10 +916,10 @@ public class DAOPedidos {
         return similares;
     }
 
-    public ArrayList<TOPedidoProducto> obtenerSimilares(int idMovto, int idProducto) throws SQLException {
+    public ArrayList<TOPedidoProducto> obtenerSimilares(TOPedidoProducto toProd) throws SQLException {
         ArrayList<TOPedidoProducto> productos = new ArrayList<>();
         try (Connection cn = this.ds.getConnection()) {
-            this.obtenSimilares(cn, idMovto, idProducto);
+            productos = this.obtenSimilares(cn, toProd);
         }
         return productos;
     }
@@ -893,7 +941,7 @@ public class DAOPedidos {
             cn.setAutoCommit(false);
             try {
                 this.actualizaProductoCantidadPedido(cn, toPed, toProd);
-                similares = this.obtenSimilares(cn, toPed.getIdMovto(), toProd.getIdProducto());
+                similares = this.obtenSimilares(cn, toProd);
 
                 cn.commit();
             } catch (SQLException ex) {
@@ -1232,7 +1280,7 @@ public class DAOPedidos {
                                     this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
                                 }
                             }
-                            similares = this.obtenSimilares(cn, toPed.getIdMovto(), toProd.getIdProducto());
+                            similares = this.obtenSimilares(cn, toProd);
                             toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
                             similares.remove(0);
                         }
@@ -1266,7 +1314,7 @@ public class DAOPedidos {
                         } else {
                             this.liberaSimilaresSinCargo(cn, toPed, toProd, cantSolicitada);
                         }
-                        similares = this.obtenSimilares(cn, toPed.getIdMovto(), toProd.getIdProducto());
+                        similares = this.obtenSimilares(cn, toProd);
                         toProd.setCantSinCargo(similares.get(0).getCantSinCargo());
                         similares.remove(0);
                     }
@@ -1535,20 +1583,20 @@ public class DAOPedidos {
             condicion += "M.referencia!=0 AND P.estatus=0";
         }
         ArrayList<TOPedido> pedidos = new ArrayList<>();
-        String strSQL = "SELECT " + (isVenta? Pedidos.sqlVentas(): Pedidos.sqlPedidos()) + "\n"
+        String strSQL = "SELECT " + (isVenta ? Pedidos.sqlVentas() : Pedidos.sqlPedidos()) + "\n"
                 + "WHERE M.idAlmacen=" + idAlmacen + " AND M.idTipo=28 AND " + condicion + "\n";
         if (estatus != 0) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             strSQL += "                 AND CONVERT(date, " + (isVenta ? "M.fecha" : "P.fecha") + ") >= '" + format.format(fechaInicial) + "'\n";
         }
-        strSQL += (isVenta?"ORDER BY M.fecha":"ORDER BY P.fecha");
+        strSQL += (isVenta ? "ORDER BY M.fecha" : "ORDER BY P.fecha");
 //        idPedido = 0;
         try (Connection cn = this.ds.getConnection()) {
             try (Statement st = cn.createStatement()) {
                 ResultSet rs = st.executeQuery(strSQL);
                 while (rs.next()) {
 //                    if(isVenta || idPedido != rs.getInt("referencia")) {
-                        pedidos.add(Pedidos.construirPedido(rs));
+                    pedidos.add(Pedidos.construirPedido(rs));
 //                        idPedido = rs.getInt("referencia");
 //                    }
                 }
