@@ -230,7 +230,7 @@ public class DAOPedidos {
                 st.executeUpdate(strSQL);
 
                 strSQL = "UPDATE pedidos\n"
-                        + "SET fecha=GETDATE(), idUsuario=" + this.idUsuario + "\n"
+                        + "SET fecha=GETDATE(), idUsuario=" + this.idUsuario + ", estatus=" + toPed.getPedidoEstatus() + "\n"
                         + "WHERE idPedido=" + toPed.getReferencia();
                 st.executeUpdate(strSQL);
 
@@ -860,6 +860,61 @@ public class DAOPedidos {
             }
         }
     }
+    
+    private ArrayList<TOPedidoProducto> obtenSimilaresPedido(Connection cn, TOPedidoProducto toProd) throws SQLException {
+        ArrayList<TOPedidoProducto> similares = new ArrayList<>();
+        String strSQL = Pedidos.sqlObtenProductoPedido() + "\n"
+                + "INNER JOIN empaquesSimilares S ON S.idSimilar=D.idEmpaque\n"
+                + "WHERE D.idMovto=" + toProd.getIdMovto() + " AND S.idEmpaque=" + toProd.getIdProducto();
+        if (toProd.getIdPedido() != 0) {
+            strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada, ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
+                    + "	, ISNULL(PD.cantSurtida, 0) AS cantSurtida, ISNULL(PD.cantSurtidaSinCargo, 0) AS cantSurtidaSinCargo\n"
+                    + "	, ISNULL(PD.idEnvio, 0) AS idEnvio, ISNULL(PD.cantEnviar, 0) AS cantEnviar, ISNULL(PD.cantEnviarSinCargo, 0) AS cantEnviarsinCargo\n"
+                    + "	, E.piezas, ISNULL(PD.idMovto, 0) AS idMovto, S.idSimilar AS idEmpaque\n"
+                    + "	, ISNULL(PD.cantFacturada, 0) AS cantFacturada, ISNULL(PD.cantSinCargo, 0) AS cantSinCargo, ISNULL(PD.costoPromedio, 0) AS costoPromedio\n"
+                    + "	, ISNULL(PD.costo, 0) AS costo, ISNULL(PD.desctoProducto1, 0) AS desctoProducto1, ISNULL(PD.desctoProducto2, 0) AS desctoProducto2\n"
+                    + "	, ISNULL(PD.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(PD.unitario, 0) AS unitario, ISNULL(PD.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
+                    + "	, ISNULL(PD.fecha, '1900-01-01') AS fecha, ISNULL(PD.existenciaAnterior, 0) AS existenciaAnterior, ISNULL(PD.ctoPromAnterior, 0) AS ctoPromAnterior\n"
+                    + "FROM empaquesSimilares S\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
+                    + "INNER JOIN (SELECT PD.idPedido, PD.idEmpaque, PD.cantOrdenada, PD.cantOrdenadaSinCargo, PD.cantSurtida, PD.cantSurtidaSinCargo\n"
+                    + "             , MD.idEnvio, MD.cantEnviar, MD.cantEnviarSinCargo, MD.idMovto, MD.cantFacturada, MD.cantSinCargo\n"
+                    + "             , MD.costoPromedio, MD.costo, MD.desctoProducto1, MD.desctoProducto2, MD.desctoConfidencial, MD.unitario\n"
+                    + "             , MD.idImpuestoGrupo, MD.fecha, MD.existenciaAnterior, MD.ctoPromAnterior\n"
+                    + "         FROM pedidosDetalle PD\n"
+                    + "         INNER JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo, MD.* FROM movimientosDetalle MD\n"
+                    + "                     LEFT JOIN enviosPedidos EP ON EP.idVenta=MD.idMovto\n"
+                    + "                     LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=MD.idMovto AND EPD.idEmpaque=MD.idEmpaque\n"
+                    + "                     WHERE MD.idMovto=" + toProd.getIdMovto() + ") MD ON MD.idEmpaque=PD.idEmpaque\n"
+                    + "         WHERE PD.idPedido=" + toProd.getIdPedido() + ") PD ON PD.idEmpaque=S.idSimilar\n"
+                    + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND S.idEmpaque!=S.idSimilar";
+        } else {
+            strSQL = "SELECT ISNULL(PD.idPedido, 0) AS idPedido, ISNULL(PD.cantOrdenada, 0) AS cantOrdenada, ISNULL(PD.cantOrdenadaSinCargo, 0) AS cantOrdenadaSinCargo\n"
+                    + "	, ISNULL(PD.cantSurtida, 0) AS cantSurtida, ISNULL(PD.cantSurtidaSinCargo, 0) AS cantSurtidaSinCargo\n"
+                    + "	, ISNULL(PD.idEnvio, 0) AS idEnvio, ISNULL(PD.cantEnviar, 0) AS cantEnviar, ISNULL(PD.cantEnviarSinCargo, 0) AS cantEnviarsinCargo\n"
+                    + "	, E.piezas, ISNULL(PD.idMovto, 0) AS idMovto, S.idSimilar AS idEmpaque\n"
+                    + "	, ISNULL(PD.cantFacturada, 0) AS cantFacturada, ISNULL(PD.cantSinCargo, 0) AS cantSinCargo, ISNULL(PD.costoPromedio, 0) AS costoPromedio\n"
+                    + "	, ISNULL(PD.costo, 0) AS costo, ISNULL(PD.desctoProducto1, 0) AS desctoProducto1, ISNULL(PD.desctoProducto2, 0) AS desctoProducto2\n"
+                    + "	, ISNULL(PD.desctoConfidencial, 0) AS desctoConfidencial, ISNULL(PD.unitario, 0) AS unitario, ISNULL(PD.idImpuestoGrupo, 0) AS idImpuestoGrupo\n"
+                    + "	, ISNULL(PD.fecha, '1900-01-01') AS fecha, ISNULL(PD.existenciaAnterior, 0) AS existenciaAnterior, ISNULL(PD.ctoPromAnterior, 0) AS ctoPromAnterior\n"
+                    + "FROM empaquesSimilares S\n"
+                    + "INNER JOIN empaques E ON E.idEmpaque=S.idSimilar\n"
+                    + "LEFT JOIN (SELECT EPD.idEnvio, EPD.cantEnviar, EPD.cantEnviarSinCargo\n"
+                    + "                 , 0 AS idPedido, 0 AS cantOrdenada, 0 AS cantOrdenadaSinCargo, 0 AS cantSurtida, 0 AS cantSurtidaSinCargo , MD.* \n"
+                    + "             FROM movimientosDetalle MD INNER JOIN movimientos M ON M.idMovto=MD.idMovto\n"
+                    + "             LEFT JOIN enviosPedidos EP ON EP.idVenta=MD.idMovto\n"
+                    + "             LEFT JOIN enviosPedidosDetalle EPD ON EPD.idEnvio=EP.idEnvio AND EPD.idVenta=MD.idMovto AND EPD.idEmpaque=MD.idEmpaque\n"
+                    + "             WHERE MD.idMovto=" + toProd.getIdMovto() + ") PD ON PD.idEmpaque=S.idSimilar\n"
+                    + "WHERE S.idEmpaque=" + toProd.getIdProducto() + " AND S.idEmpaque!=S.idSimilar";
+        }
+        try (Statement st = cn.createStatement()) {
+            ResultSet rs = st.executeQuery(strSQL);
+            while (rs.next()) {
+                similares.add(Pedidos.construirProducto(rs));
+            }
+        }
+        return similares;
+    }
 
     private ArrayList<TOPedidoProducto> obtenSimilares(Connection cn, TOPedidoProducto toProd) throws SQLException {
         ArrayList<TOPedidoProducto> similares = new ArrayList<>();
@@ -941,7 +996,7 @@ public class DAOPedidos {
             cn.setAutoCommit(false);
             try {
                 this.actualizaProductoCantidadPedido(cn, toPed, toProd);
-                similares = this.obtenSimilares(cn, toProd);
+                similares = this.obtenSimilaresPedido(cn, toProd);
 
                 cn.commit();
             } catch (SQLException ex) {

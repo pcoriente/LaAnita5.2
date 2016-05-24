@@ -384,12 +384,16 @@
                                 <p:commandButton id="btnPedidoEliminar" icon="ui-icon-trash" value="ELIMINAR" title="Eliminar el pedido" 
                                                  disabled="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked}"
                                                  process="@this" actionListener="#{mbPedidos.eliminarPedido()}" 
-                                                 update=":main:msgsPedido" oncomplete="handlePedido(xhr, status, args);" />
+                                                 update=":main:msgsPedido" oncomplete="handlePedido(xhr, status, args);" >
+                                    <p:confirm header="Eliminar el pedido" message="Confirma ?" icon="ui-icon-alert" />
+                                </p:commandButton>
                                 <p:commandButton id="btnPedidoCerrar" value="CERRAR" title="Cerrar pedido, ya no se podra modificar" 
                                                  disabled="#{mbPedidos.pedido.pedidoEstatus!=0 or !mbPedidos.locked 
                                                              or (mbPedidos.pedido.especial and !mbPedidos.mbAcciones.validarAccion('btnPedidoCerrar'))}"
                                                  process="@this" actionListener="#{mbPedidos.cerrarPedido()}" 
-                                                 update=":main:msgsPedido :main:pedido :main:totales" />
+                                                 update=":main:msgsPedido :main:pedido :main:totales" >
+                                    <p:confirm header="Cerrar el pedido" message="Confirma ?" icon="ui-icon-alert" />
+                                </p:commandButton>
                                 <p:commandButton id="btnPedidoCancelar" icon="ui-icon-cancel" value="CANCELAR" title="Cancelar el pedido" 
                                                  disabled="#{mbPedidos.pedido.pedidoEstatus != 1 or !mbPedidos.locked}"
                                                  process="@this" update=":main:cancelarPedido" 
@@ -407,6 +411,10 @@
                         </p:row>
                     </p:panelGrid>
                 </p:dialog>
+                <p:confirmDialog global="true" >
+                    <p:commandButton value="Si" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                </p:confirmDialog>
                 <p:dialog header="BUSCADOR DE PRODUCTOS" widgetVar="buscarProductoDlg" resizable="false" style="width: 600px;" modal="true" >
                     <p:messages id="msgBuscar" showDetail="true" autoUpdate="true" closable="true" />
                     <p:panelGrid id="buscarProductos" styleClass="sinBorde" >
