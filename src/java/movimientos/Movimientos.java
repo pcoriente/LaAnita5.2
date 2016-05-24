@@ -317,7 +317,7 @@ public class Movimientos {
         String strSQL = "SELECT D.* FROM clientesBoletinesDetalle D\n"
                 + "INNER JOIN clientesBoletines B ON B.idBoletin=D.idBoletin\n"
                 + "LEFT JOIN clientesListas L ON L.idClienteLista=B.idClienteLista\n"
-                + "WHERE LP.idEmpresa=" + idEmpresa + "\n"
+                + "WHERE B.idEmpresa=" + idEmpresa + "\n"
                 + "	AND ((L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=0 AND L.idCliente=0 AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=0 AND L.idTienda=0)\n"
                 + "             OR (L.idGrupoCte=" + idGrupoCte + " AND L.idFormato=" + idFormato + " AND L.idCliente=" + idCliente + " AND L.idTienda=0)\n"
