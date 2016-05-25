@@ -245,6 +245,7 @@ public class MbPedidos implements Serializable {
 
                 this.dao = new DAOPedidos();
                 this.procesaSimilares(this.dao.transferirSinCargo(toPed, toProd, toSimilar, this.cantTraspasar * this.producto.getProducto().getPiezas()));
+                this.producto.setOrdenadaSinCargo(this.producto.getOrdenadaSinCargo()-this.cantTraspasar);
                 okSimilares = true;
             }
         } catch (NamingException ex) {
