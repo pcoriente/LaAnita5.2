@@ -102,7 +102,7 @@ public class MbEnvios implements Serializable {
         this.dao = new DAOEnvios();
         this.inicializa();
     }
-    
+
     public TOEnvioProductoReporte convertirReporte(EnvioProducto prod) {
         TOEnvioProductoReporte toProd = new TOEnvioProductoReporte();
         toProd.setSku(prod.getProducto().getCod_pro());
@@ -114,7 +114,7 @@ public class MbEnvios implements Serializable {
         toProd.setDiasInventario(prod.getDiasInventario());
         return toProd;
     }
-    
+
     public void imprimir() {
         try {
 //            double peso = 0;
@@ -244,7 +244,7 @@ public class MbEnvios implements Serializable {
             }
         }
     }
-    
+
     public void onCellEditDetalleFincado(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
@@ -256,7 +256,7 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeAlert("A ver que pasa !!!");
         }
     }
-    
+
     public void entregaDirecta() {
         TOPedido toPedido = this.convertir(this.fincado);
         this.fincado.setDirecto(!this.fincado.isDirecto());
@@ -322,7 +322,7 @@ public class MbEnvios implements Serializable {
         this.fincado.setPropietario(toPed.getPropietario());
         this.setFincadoLocked(this.fincado.getIdUsuario() == this.fincado.getPropietario());
     }
-    
+
     public void obtenerDetalleFincado(SelectEvent event) {
         boolean ok = false;
         this.fincado = (Pedido) event.getObject();
@@ -335,13 +335,13 @@ public class MbEnvios implements Serializable {
         RequestContext context = RequestContext.getCurrentInstance();
         context.addCallbackParam("okPedido", ok);
     }
-    
+
     private TOPedido convertir(Pedido ped) {
         TOPedido toPed = new TOPedido();
         Pedidos.convertirPedido(ped, toPed);
         return toPed;
     }
-    
+
     public void grabarOrden() {
         TOPedido toPedido = this.convertir(this.fincado);
         this.fincado.setOrden(this.fincado.getOrden2());
@@ -357,7 +357,7 @@ public class MbEnvios implements Serializable {
             }
         }
     }
-    
+
     public void onCellEditFincado(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
@@ -404,7 +404,7 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public void liberarTraspaso() {
         TOTraspaso toTraspaso = Traspasos.convertir(this.traspaso);
         try {
@@ -437,7 +437,7 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     private TOEnvio convertir(Envio envio) {
         TOEnvio to = new TOEnvio();
         to.setEstatus(envio.getEstatus());
@@ -471,7 +471,7 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public void gestionarDiasInventario() {
         TOEnvioProducto toProd = this.convertir(this.producto);
         this.producto.setDiasInventario(this.producto.getDiasInventario2());
@@ -497,15 +497,15 @@ public class MbEnvios implements Serializable {
             }
         }
     }
-    
+
     private void sumaPesoTraspaso(boolean sumarEnvio) {
         double peso = this.producto.getSolicitada() * this.producto.getProducto().getPeso();
         this.traspaso.setPeso(this.traspaso.getPeso() + peso);
 //        if (sumarEnvio) {
-            this.envio.setPeso(this.envio.getPeso() + peso);
+        this.envio.setPeso(this.envio.getPeso() + peso);
 //        }
     }
-    
+
     private void restaPesoTraspaso() {
         double peso = this.producto.getSolicitada() * this.producto.getProducto().getPeso();
         this.traspaso.setPeso(this.traspaso.getPeso() - peso);
@@ -513,7 +513,7 @@ public class MbEnvios implements Serializable {
         this.envio.setPeso(this.envio.getPeso() - peso);
 //        }
     }
-    
+
     public void gestionarSolicitada() {
         TOEnvioProducto toProd = this.convertir(this.producto);
         toProd.setCantSolicitada(this.producto.getSolicitada() * this.producto.getProducto().getPiezas());
@@ -542,7 +542,7 @@ public class MbEnvios implements Serializable {
             }
         }
     }
-    
+
     private TOEnvioProducto convertir(EnvioProducto prod) {
         TOEnvioProducto toProd = new TOEnvioProducto();
         toProd.setIdEnvio(prod.getIdEnvio());
@@ -557,7 +557,7 @@ public class MbEnvios implements Serializable {
         Traspasos.convertir(prod, toProd);
         return toProd;
     }
-    
+
     public void gestionarSugerido() {
         if (this.producto.getSugerido() < 0) {
             this.producto.setSugerido(this.producto.getSugerido2());
@@ -573,7 +573,7 @@ public class MbEnvios implements Serializable {
             }
         }
     }
-    
+
     public void onCellEdit(CellEditEvent event) {
         Object oldValue = event.getOldValue();
         Object newValue = event.getNewValue();
@@ -585,32 +585,50 @@ public class MbEnvios implements Serializable {
             Mensajes.mensajeAlert("A ver que pasa !!!");
         }
     }
-    
+
     public void actualizaPesoEnvio() {
         try {
-            int idAlmacen = this.mbAlmacenes.getToAlmacen().getIdAlmacen();
-            this.obtenTraspasos(this.dao.calcularPesoGeneral(this.traspaso.getIdEnvio(), this.traspaso.getDiasInventario(), this.pesoMaximo), false);
-            this.obtenerTraspaso(idAlmacen);
-            this.mbAlmacenes.setToAlmacen(this.traspaso.getAlmacenDestino());
-            this.obtenDetalleTraspaso(false);
+            if (!verificaEstadistica()) {
+                Mensajes.mensajeAlert("No hay productos con estadística, no se puede realizar cálculo !!!");
+            } else {
+                int idAlmacen = this.mbAlmacenes.getToAlmacen().getIdAlmacen();
+                this.obtenTraspasos(this.dao.calcularPesoGeneral(this.traspaso.getIdEnvio(), this.traspaso.getDiasInventario(), this.pesoMaximo), false);
+                this.obtenerTraspaso(idAlmacen);
+                this.mbAlmacenes.setToAlmacen(this.traspaso.getAlmacenDestino());
+                this.obtenDetalleTraspaso(false);
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
+    }
+
+    private boolean verificaEstadistica() {
+        boolean ok = false;
+        for (EnvioProducto p : this.detalle) {
+            if (p.getEstadistica() != 0) {
+                ok = true;
+            }
+        }
+        return ok;
     }
 
     public void actualizaDiasInventarioTraspaso() {
         TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
         this.traspaso.setDiasInventario(this.traspaso.getDiasInventario2());
         try {
-            this.dao.calcularDiasInventarioGeneral(toTraspaso);
-            this.actualizaPesoTraspaso(this.obtenDetalleTraspaso(true));
-            this.traspaso.setDiasInventario(toTraspaso.getDiasInventario());
-            this.traspaso.setDiasInventario2(toTraspaso.getDiasInventario());
+            if (!verificaEstadistica()) {
+                Mensajes.mensajeAlert("No hay productos con estadística, no se puede realizar cálculo !!!");
+            } else {
+                this.dao.calcularDiasInventarioGeneral(toTraspaso);
+                this.actualizaPesoTraspaso(this.obtenDetalleTraspaso(true));
+                this.traspaso.setDiasInventario(toTraspaso.getDiasInventario());
+                this.traspaso.setDiasInventario2(toTraspaso.getDiasInventario());
+            }
         } catch (SQLException ex) {
             Mensajes.mensajeError(ex.getErrorCode() + " " + ex.getMessage());
         }
     }
-    
+
     public void actualizaProductoSeleccionado() {
         int idx;
         boolean ok = false;
@@ -692,7 +710,8 @@ public class MbEnvios implements Serializable {
 
     private ArrayList<Double> obtenDetalleTraspaso(boolean sumarEnvio) throws SQLException {
         ArrayList<Double> pesos = new ArrayList<>();
-        pesos.add(0.0); pesos.add(0.0);
+        pesos.add(0.0);
+        pesos.add(0.0);
         this.detalle.clear();
         TOEnvioTraspaso toTraspaso = this.convertir(this.traspaso);
         for (TOEnvioProducto to : this.dao.obtenerDetalle(toTraspaso, pesos)) {
@@ -753,7 +772,7 @@ public class MbEnvios implements Serializable {
         this.mbAlmacenes.inicializaAlmacen("Seleccione");
         this.mbAlmacenes.getListaAlmacenes().add(new SelectItem(this.mbAlmacenes.getToAlmacen(), this.mbAlmacenes.getToAlmacen().toString()));
         for (TOEnvioTraspaso to : traspasos) {
-            if(to.getSolicitudEstatus()==0 && calcular) {
+            if (to.getSolicitudEstatus() == 0 && calcular) {
                 this.dao.calcularDiasInventarioGeneral(to);
             }
             this.traspaso = this.convertir(to);
