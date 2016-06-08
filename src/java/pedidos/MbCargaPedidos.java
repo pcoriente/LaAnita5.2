@@ -127,6 +127,7 @@ public class MbCargaPedidos implements Serializable {
     }
 
     public void upload(FileUploadEvent event) {
+        
         try {
             copyFile(event.getFile().getFileName(), event.getFile().getInputstream());
             //String entrada =destination + this.setFile(file);
@@ -138,26 +139,26 @@ public class MbCargaPedidos implements Serializable {
             int idGpoCte = this.mbClientesGrupos.getClientesGrupos().getIdGrupoCte();
             LeerTextuales leerTextuales = new LeerTextuales();
             switch (idGpoCte) {
-                case 190: //Grupo Nueva WallMart
-                    if (idFto == 233) {
+                case 189: //Grupo Nueva WallMart
+                    if (idFto == 229) {
                         textual = leerTextuales.leerArchivoSams(entrada);
                         this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                         System.out.print("SAMS CLUB " + idFto);
                     }
-                    if (idFto == 230) {
+                    if (idFto == 228) {
                         System.out.print("WALLMART " + idFto);
                     }
-                    if (idFto == 231) {
+                    if (idFto == 227) {
                         System.out.print("BODEGA AURRERA " + idFto);
                     }
-                    if (idFto == 232) {
+                    if (idFto == 228) {
                         System.out.print("SUPERAMA " + idFto);
                     }
                     break;
                 case 175: //IMSS
                     textual = leerTextuales.leerArchivoImss(entrada);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
-                case 188:
+                case 187:
                     textual = leerTextuales.leerArchivoCHedraui(entrada);
                     this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
 //                    Pedido pedido;
@@ -184,7 +185,7 @@ public class MbCargaPedidos implements Serializable {
 ////                        }
 ////                    }
                     break;
-                case 176: //Comercial Mexicana
+                case 190: //Comercial Mexicana
                     if (fechaEntrega == null || fechaCancelacion == null) {
                         Mensajes.mensajeError("Capture Fecha de Entrega y/o Fecha de Cancelación");
                     } else {
@@ -192,7 +193,7 @@ public class MbCargaPedidos implements Serializable {
                         this.dao.crearPedidos(idEmp, idGpoCte, idFto, textual, event.getFile().getFileName());
                     }
                     break;
-                case 189: //Soriana
+                case 188: //Soriana
                     textual = leerTextuales.leerArchivoSoriana(entrada);
                     //System.out.println(entrada);
                     //File excelFile;
@@ -261,6 +262,7 @@ public class MbCargaPedidos implements Serializable {
                 //leerTextuales.leerArchivoSoriana(entrada);
 
                 default:
+                    Mensajes.MensajeAlertP("No hay ningun grupo de clientes");
                     System.out.println("No hay ningun grupo de clientes");
                     break;
             }

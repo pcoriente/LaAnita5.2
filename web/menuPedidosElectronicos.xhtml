@@ -41,7 +41,7 @@
                                         <f:selectItems value="#{mbCargaPedidos.mbClientesGrupos.itemsClientesGrupos}" />
                                         <p:ajax event="change"
                                                 listener="#{mbCargaPedidos.cargaFormatos()}"
-                                                update="fEntrega fCance formato"
+                                                update="fEntrega fCance formato cargaArchivo"
                                                 process="@this"/>
                                     </p:selectOneMenu>
                                 </p:column>
@@ -61,7 +61,7 @@
                                                 showOn="button"
                                                 value="#{mbCargaPedidos.fechaEntrega}" maxlength="8" size="15"
                                                 placeholder="Fecha de Entrega"
-                                                disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
+                                                disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 190}"
                                                 >
                                         <p:ajax event="dateSelect" process="@this"/>
                                     </p:calendar>
@@ -71,7 +71,7 @@
                                                 showOn="button"
                                                 value ="#{mbCargaPedidos.fechaCancelacion}" maxlength="8" size="15"
                                                 placeholder="Fecha de Cancelación"
-                                                disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 176}"
+                                                disabled="#{mbCargaPedidos.mbClientesGrupos.clientesGrupos.idGrupoCte != 190}"
                                                 >
                                         <p:ajax event="dateSelect" process="@this"/>
                                     </p:calendar>
