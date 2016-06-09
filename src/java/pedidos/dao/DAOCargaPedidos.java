@@ -92,7 +92,7 @@ public class DAOCargaPedidos {
                         toPed.setIdImpuestoZona(toTienda.getIdImpuestoZona());
                         toPed.setIdUsuario(this.idUusario);
                         toPed.setEstatus(5);
-                        Pedidos.agregarPedido(cn, toPed, 1);
+                        Pedidos.agregarPedidoConOrden(cn, toPed, 1);
                         pedidos.add(toPed);
                     }
                     strSQL = "SELECT E.cod_pro, E.idEmpaque, E.piezas, P.idImpuesto\n"
